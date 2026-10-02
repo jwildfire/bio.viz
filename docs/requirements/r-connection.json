@@ -35,7 +35,7 @@
     "RCON-CALL-007": "The R code that passes a table in and a result out uses base R only, and computes no statistic.",
     "RCON-CALL-008": "A data frame R returns, at any depth, comes back as an array of row objects, one per row, with every column in every row and NA as null: an empty array for no rows and an array of one object for one row, the same shape `data` has going in.",
     "RCON-BUILD-001": "The build bundles only files under `src/` and does not resolve the webR import.",
-    "RCON-BUILD-002": "The committed bundles keep the import of webR as a run-time import of a URL and contain none of webR.",
+    "RCON-BUILD-002": "The committed bundles keep the import of webR as a run-time import of a URL and contain none of webR: every file a bundle names as one it was made from is a file under `src/`, and the bundles hold no known marker of webR's code.",
     "RCON-BUILD-003": "The `r` module imports nothing from outside `src/r/`, so the connection can be handed to a chart in another library.",
     "RCON-CHECK-001": "On the R check page two numbers count as the same answer when they differ by no more than 1 part in 10^8 of the larger; zero equals only zero, and something that is not a number equals nothing.",
     "RCON-CHECK-002": "Every member of an answer is compared with the expected one: numbers by the tolerance; text, counts, warnings and the shape of the answer exactly. A member missing or added fails.",

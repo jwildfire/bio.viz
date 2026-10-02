@@ -12,6 +12,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 const dist = (file) => path.join(ROOT, `dist/bio.viz-${pkg.version}`, file);
 
+// The files a committed bundle was made from: esbuild writes each one's path
+// above its code. A library that had been bundled in would be listed here by
+// its path under node_modules.
+const modulesOf = (code) =>
+  [...code.matchAll(/^ {0,2}\/\/ (\S+\.[cm]?js)$/gm)].map((match) => match[1]);
+
 function sourceFiles(dir) {
   return readdirSync(dir).flatMap((entry) => {
     const file = path.join(dir, entry);
@@ -72,8 +78,17 @@ describe('bundle: the chart ships, safety.viz and Chart.js do not', () => {
       }
       // It reaches the kit on the page instead.
       expect(code).toContain('globalThis.SafetyViz');
-      // safety.viz's bundle is seventeen times this size.
-      expect(code.length).toBeLessThan(200_000);
+      // Every file the bundle was made from is one of this repository's own,
+      // under src/: nothing of safety.viz, of Chart.js or of any package.
+      const modules = [...new Set(modulesOf(code))];
+      expect(modules.length).toBeGreaterThan(10);
+      expect(modules).toContain('src/group-comparison.js');
+      expect(modules.filter((file) => !file.startsWith('src/'))).toEqual([]);
+      expect(modules.sort()).toEqual(
+        sourceFiles(path.join(ROOT, 'src'))
+          .map((file) => path.relative(ROOT, file))
+          .sort()
+      );
     }
   });
 
