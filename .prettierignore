@@ -20,3 +20,7 @@ site/r-check/data/
 # The vendored synthetic study and its source record are written by
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/
+
+# safety.viz's bundle, copied byte for byte by tools/vendor-safety-viz.mjs, with
+# its record.
+site/vendor/
