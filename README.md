@@ -32,7 +32,7 @@ Vendor the committed bundle — no build step, no npm install:
 An ES module build is committed alongside:
 
 ```js
-import { version, r } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
 ```
 
 ## Asking R for a statistic
@@ -56,6 +56,25 @@ if (result.status === 'ok') {
 ```
 
 R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched from its public CDN on first use and never bundled. The full interface, including the format of stored results, is in [docs/r-connection.md](docs/r-connection.md), which the site publishes as the connection's [API reference](https://jwildfire.github.io/bio.viz/dev/r-connection/api.html).
+
+## Naming a variable and getting one row per participant
+
+Every chart takes its variables the same way and resolves them the same way, with `BioViz.core`:
+
+```js
+const { data, dropped } = BioViz.core.frame(
+  { results, participants },
+  {
+    y: { measure: 'IL-6', visit: 'Week 4', value: 'change' },
+    x: { col: 'ARM' }
+  },
+  { baseline_visits: ['Baseline'] }
+);
+// data: one record per participant, { USUBJID, y, x }, ready to draw and to hand to R
+// dropped: who was left out, counted by reason
+```
+
+Only the results table is required. The value types, the settings and what is counted are in [docs/core.md](docs/core.md), published as the core's [API reference](https://jwildfire.github.io/bio.viz/dev/core/api.html).
 
 ## Example data
 
