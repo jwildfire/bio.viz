@@ -30,8 +30,30 @@ Vendor the committed bundle — no build step, no npm install:
 An ES module build is committed alongside:
 
 ```js
-import { version } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
+import { version, r } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
 ```
+
+## Asking R for a statistic
+
+A chart reaches R through a connection. The same call is answered from results shipped with the page, or by R started in the browser the first time a result is needed; with neither, it says that statistics are unavailable.
+
+```js
+const connection = BioViz.r.createConnection({
+  browser: { sourceUrl: 'statistics.R', packages: ['survival'] }
+});
+
+const result = await connection.run('rank_sum', {
+  data: rows,
+  args: { value: 'AVAL', group: 'ARM' }
+});
+
+if (result.status === 'ok') {
+  console.log(BioViz.r.formatStatistic(result.value).text);
+  // "Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted."
+}
+```
+
+R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched from its public CDN on first use and never bundled. The full interface, including the format of stored results, is in [docs/r-connection.md](docs/r-connection.md).
 
 ## Developing
 

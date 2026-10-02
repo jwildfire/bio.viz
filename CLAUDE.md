@@ -25,6 +25,7 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - Name a test by the requirement ID it evidences and the issue it belongs to: `'CORE-API-001: … (#1)'`. Unit tests for a module go in `tests/unit/<module>/`, browser tests in `tests/e2e/<module>.spec.js`.
 - No statistical inference in JavaScript. A chart asks R through the connection and draws what comes back.
 - No runtime dependencies in package.json. safety.viz and webR are loaded beside the bundle on a page, never bundled; webR is loaded on first use.
+- The only file that knows webR's API is `src/r/webREngine.js`. Unit and browser tests of the connection use a stub engine or the stand-in at `tests/e2e/fixtures/fake-webr/`; they never reach the network.
 - Public or synthetic data only.
 - Every page on the site holds at a 390px-wide viewport with no horizontal scroll; assert it in a browser test.
 - The browser suite serves the repository root on port 8199 and refuses to reuse a server already there; set `PW_PORT` to run two worktrees side by side.
