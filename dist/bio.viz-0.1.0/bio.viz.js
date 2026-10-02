@@ -115,7 +115,16 @@ var BioViz = (() => {
   var WEBR_VERSION = "0.6.0";
   var WEBR_BASE_URL = `https://webr.r-wasm.org/v${WEBR_VERSION}/`;
   var R_HELPERS = `
+.bioviz_column <- function(x) {
+  if (is.factor(x)) return(as.character(x))
+  if (inherits(x, "Date") || inherits(x, "POSIXt")) return(format(x))
+  if (is.list(x)) return(lapply(unname(x), .bioviz_plain))
+  as.vector(x)
+}
 .bioviz_plain <- function(x) {
+  if (is.data.frame(x)) {
+    return(list(.bioviz_frame = nrow(x), columns = lapply(x, .bioviz_column)))
+  }
   if (is.factor(x)) return(as.character(x))
   if (inherits(x, "Date") || inherits(x, "POSIXt")) return(format(x))
   if (is.list(x)) return(lapply(x, .bioviz_plain))
@@ -160,9 +169,23 @@ var BioViz = (() => {
   }
   var ATOMIC = /* @__PURE__ */ new Set(["logical", "integer", "double", "character"]);
   var allNamed = (names) => Array.isArray(names) && names.length > 0 && names.every((name) => name !== null && name !== "");
+  var FRAME = ".bioviz_frame";
+  function frameRows(node) {
+    const count = node.values[0].values[0];
+    const columns = node.values[1];
+    const names = columns.names || [];
+    const values = columns.values.map(
+      (column) => column.type === "list" ? column.values.map(toPlain) : column.values
+    );
+    return Array.from(
+      { length: count },
+      (unused, row) => Object.fromEntries(names.map((name, column) => [name, values[column][row] ?? null]))
+    );
+  }
   function toPlain(node) {
     if (!node || node.type === "null") return null;
     if (node.type === "list") {
+      if (Array.isArray(node.names) && node.names[0] === FRAME) return frameRows(node);
       const values = node.values.map(toPlain);
       if (!allNamed(node.names)) return values;
       return Object.fromEntries(node.names.map((name, index) => [name, values[index]]));

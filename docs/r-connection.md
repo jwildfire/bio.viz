@@ -80,17 +80,22 @@ Going in, `data` becomes a data frame built with base R: one column per key foun
 
 Coming out, the value is converted with base R and nothing else; no package is needed in the R session:
 
-| R value                            | JavaScript                                   |
-| ---------------------------------- | -------------------------------------------- |
-| named list, or data frame          | object (a data frame: one member per column) |
-| unnamed list                       | array, whatever its length                   |
-| named vector                       | object, whatever its length                  |
-| unnamed vector of length one       | a single number, string or boolean           |
-| unnamed vector of any other length | array                                        |
-| factor, Date, date-time            | text                                         |
-| `NULL`, `NA`                       | `null`                                       |
+| R value                            | JavaScript                                                   |
+| ---------------------------------- | ------------------------------------------------------------ |
+| data frame, at any depth           | array of row objects, one per row: the same shape `data` has |
+| named list                         | object                                                       |
+| unnamed list                       | array, whatever its length                                   |
+| named vector                       | object, whatever its length                                  |
+| unnamed vector of length one       | a single number, string or boolean                           |
+| unnamed vector of any other length | array                                                        |
+| factor, Date, date-time            | text                                                         |
+| `NULL`, `NA`                       | `null`                                                       |
 
-So an R function that must return an array even when it holds one element returns an unnamed list. A value with no plain form, such as a function, is an `error` result.
+A table has one shape whatever its size. A data frame of no rows is an empty array, one row is an array of one object, and every row carries every column, with `NA` as `null`. Row names are not carried; a table that needs them puts them in a column. A column may itself hold lists or data frames, converted by the same rules.
+
+The rule for whoever writes the R function: return a collection as a data frame or an unnamed list, never as a bare vector whose length may be one. A bare vector of length one arrives as a single value, so a chart reading it could not tell one group from a number. Single facts (a p-value, a method's name) are bare vectors of length one; counts by group are a named vector, which is an object at any length.
+
+A value with no plain form, such as a function, is an `error` result.
 
 ## Stored results
 

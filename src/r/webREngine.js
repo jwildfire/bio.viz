@@ -26,10 +26,21 @@ export const WEBR_BASE_URL = `https://webr.r-wasm.org/v${WEBR_VERSION}/`;
 // `rank_sum(data, value = "AVAL")` rather than carrying the whole table. An R
 // error is caught and handed back as its message, exactly as R worded it.
 // `.bioviz_plain` leaves the result as nested lists and vectors, which webR
-// hands to JavaScript as they are: factors and dates become text, and a data
-// frame becomes a list of its columns.
-const R_HELPERS = `
+// hands to JavaScript as they are: factors and dates become text. A data frame,
+// at any depth, is handed over as its row count and its columns under a marker
+// name, so that JavaScript can rebuild it as rows whatever its size — a table of
+// one row must not look different from a table of two.
+export const R_HELPERS = `
+.bioviz_column <- function(x) {
+  if (is.factor(x)) return(as.character(x))
+  if (inherits(x, "Date") || inherits(x, "POSIXt")) return(format(x))
+  if (is.list(x)) return(lapply(unname(x), .bioviz_plain))
+  as.vector(x)
+}
 .bioviz_plain <- function(x) {
+  if (is.data.frame(x)) {
+    return(list(.bioviz_frame = nrow(x), columns = lapply(x, .bioviz_column)))
+  }
   if (is.factor(x)) return(as.character(x))
   if (inherits(x, "Date") || inherits(x, "POSIXt")) return(format(x))
   if (is.list(x)) return(lapply(x, .bioviz_plain))
@@ -85,22 +96,41 @@ const ATOMIC = new Set(['logical', 'integer', 'double', 'character']);
 const allNamed = (names) =>
   Array.isArray(names) && names.length > 0 && names.every((name) => name !== null && name !== '');
 
+const FRAME = '.bioviz_frame';
+
+// A data frame, as `.bioviz_plain` sends it, to an array of row objects: one
+// per row, every column in every row, NA as null. The same shape `data` has
+// going in. Zero rows is an empty array and one row is an array of one object.
+function frameRows(node) {
+  const count = node.values[0].values[0];
+  const columns = node.values[1];
+  const names = columns.names || [];
+  const values = columns.values.map((column) =>
+    column.type === 'list' ? column.values.map(toPlain) : column.values
+  );
+  return Array.from({ length: count }, (unused, row) =>
+    Object.fromEntries(names.map((name, column) => [name, values[column][row] ?? null]))
+  );
+}
+
 // webR's tree for an R value to plain JavaScript:
 //
 //   NULL                      null
 //   NA                        null
+//   data frame                an array of row objects, whatever its size
 //   unnamed vector, length 1  a number, string or boolean
 //   unnamed vector, otherwise an array
 //   named vector              an object, whatever its length
 //   named list                an object
 //   unnamed list              an array, whatever its length
 //
-// So an R function that must return an array even for one element returns an
-// unnamed list. Anything else (a function, an environment) has no plain form
-// and is an error rather than a guess.
+// So an R function returns a collection as a data frame or an unnamed list,
+// never as a bare vector whose length may be one. Anything else (a function,
+// an environment) has no plain form and is an error rather than a guess.
 export function toPlain(node) {
   if (!node || node.type === 'null') return null;
   if (node.type === 'list') {
+    if (Array.isArray(node.names) && node.names[0] === FRAME) return frameRows(node);
     const values = node.values.map(toPlain);
     if (!allNamed(node.names)) return values;
     return Object.fromEntries(node.names.map((name, index) => [name, values[index]]));

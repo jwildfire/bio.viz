@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T12:37:08.035Z",
+  "generatedAt": "2026-10-02T12:44:33.080Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -598,6 +598,14 @@
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["RCON-CALL-007"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-008: a data frame R returns becomes an array of row objects, whatever its size and depth (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-008"],
       "issueRefs": [2],
       "screenshots": []
     },

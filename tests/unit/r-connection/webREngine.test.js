@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createConnection, WEBR_BASE_URL, WEBR_VERSION } from '../../../src/r/index.js';
-import { createWebREngine, recordsToColumns, toPlain } from '../../../src/r/webREngine.js';
+import {
+  createWebREngine,
+  recordsToColumns,
+  toPlain,
+  R_HELPERS
+} from '../../../src/r/webREngine.js';
 
 // The browser form's engine (#2), against a fake webR module: what it loads and
 // from where, the order it does things in, and the two conversions it owns —
@@ -284,6 +289,75 @@ describe('webR engine: one call', () => {
     ).toEqual({ estimate: [1.5, 2.5], groups: ['Placebo'] });
     // something with no plain form is an error, not a guess
     expect(() => toPlain({ type: 'closure' })).toThrow(/closure/);
+  });
+
+  it('RCON-CALL-008: a data frame R returns becomes an array of row objects, whatever its size and depth (#2)', () => {
+    const atomic = (type, values) => ({ type, names: null, values });
+    // What .bioviz_plain sends for a data frame: the row count, then the columns.
+    const frame = (count, columns) => ({
+      type: 'list',
+      names: ['.bioviz_frame', 'columns'],
+      values: [
+        atomic('integer', [count]),
+        {
+          type: 'list',
+          names: Object.keys(columns).length ? Object.keys(columns) : null,
+          values: Object.values(columns)
+        }
+      ]
+    });
+    const two = frame(2, {
+      group: atomic('character', ['Placebo', 'Active']),
+      n: atomic('integer', [86, 84]),
+      median: atomic('double', [1.5, null])
+    });
+    const one = frame(1, {
+      group: atomic('character', ['Placebo']),
+      n: atomic('integer', [86]),
+      median: atomic('double', [null])
+    });
+    const none = frame(0, {
+      group: atomic('character', []),
+      n: atomic('integer', []),
+      median: atomic('double', [])
+    });
+
+    expect(toPlain(two)).toEqual([
+      { group: 'Placebo', n: 86, median: 1.5 },
+      { group: 'Active', n: 84, median: null }
+    ]);
+    // One row is still an array, of one object: the same shape as two rows.
+    expect(toPlain(one)).toEqual([{ group: 'Placebo', n: 86, median: null }]);
+    // No rows is an empty array.
+    expect(toPlain(none)).toEqual([]);
+    // No columns: one empty object per row.
+    expect(toPlain(frame(2, {}))).toEqual([{}, {}]);
+
+    // At any depth: inside a list, and as a list column inside another table.
+    expect(
+      toPlain({
+        type: 'list',
+        names: ['method', 'pairs'],
+        values: [atomic('character', ['Wilcoxon rank-sum test']), one]
+      })
+    ).toEqual({
+      method: 'Wilcoxon rank-sum test',
+      pairs: [{ group: 'Placebo', n: 86, median: null }]
+    });
+    const withListColumn = frame(2, {
+      biomarker: atomic('character', ['IL6', 'CRP']),
+      groups: { type: 'list', names: null, values: [one, none] }
+    });
+    expect(toPlain(withListColumn)).toEqual([
+      { biomarker: 'IL6', groups: [{ group: 'Placebo', n: 86, median: null }] },
+      { biomarker: 'CRP', groups: [] }
+    ]);
+
+    // The R side marks a data frame before it is treated as a list.
+    expect(R_HELPERS.indexOf('is.data.frame(x)')).toBeGreaterThan(-1);
+    expect(R_HELPERS.indexOf('is.data.frame(x)')).toBeLessThan(
+      R_HELPERS.indexOf('if (is.list(x)) return(lapply(x, .bioviz_plain))')
+    );
   });
 
   it('RCON-CALL-007: the R that passes a table in and a result out uses base R only (#2)', async () => {
