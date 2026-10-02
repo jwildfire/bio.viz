@@ -1,0 +1,15 @@
+{
+  "siteTitle": "bio.viz",
+  "repoUrl": "https://github.com/jwildfire/bio.viz",
+  "hubUrl": "https://jwildfire.github.io/obot.roadmap/",
+  "matrixBaseUrl": "https://github.com/jwildfire/bio.viz/blob/HEAD/requirements",
+  "modules": [
+    {
+      "module": "core",
+      "title": "Library core",
+      "status": "available",
+      "blurb": "The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.",
+      "matrix": "core.md"
+    }
+  ]
+}
