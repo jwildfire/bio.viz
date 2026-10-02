@@ -10,6 +10,13 @@
       "status": "available",
       "blurb": "The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.",
       "matrix": "core.md"
+    },
+    {
+      "module": "r-connection",
+      "title": "Connection to R",
+      "status": "available",
+      "blurb": "The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.",
+      "matrix": "r-connection.md"
     }
   ]
 }
