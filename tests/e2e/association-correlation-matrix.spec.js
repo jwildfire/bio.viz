@@ -460,7 +460,8 @@ test.describe('correlation matrix: what is drawn', () => {
     await expect(footnote(page)).toHaveText(planted);
     await root(page).locator('.bv-matrix-title').hover();
     await expect(footnote(page)).toHaveText(HINT);
-    // And while the keyboard is on it.
+    // And while the keyboard is on it, with the pointer out of the way.
+    await page.mouse.move(0, 0);
     await cellAt(page, 8, 10).focus();
     await expect(footnote(page)).toHaveText(
       'IL-10 and TNF-alpha: Pearson’s r 0.6384, 95% confidence interval 0.5482 to 0.7139 ' +
@@ -909,7 +910,7 @@ test.describe('correlation matrix: how many variables are drawn', () => {
       timings.push({ variables: limit, pairs: pairsDrawn, ...timing });
     }
     // At a desk twelve hold their numbers; twenty-four and thirty-six do not,
-    // and none of them scrolls. The cells hold numbers up to twenty-one.
+    // and none of them scrolls. The cells hold numbers up to twenty-three.
     expect(timings.map((timing) => timing.compact)).toEqual([false, true, true]);
     expect(timings.every((timing) => !timing.scrolls)).toBe(true);
     expect(timings[0].cell).toBeGreaterThanOrEqual(34);
@@ -925,7 +926,7 @@ test.describe('correlation matrix: how many variables are drawn', () => {
       }, limit);
       return !(await grid(page)).compact;
     };
-    expect([await holdsNumbers(21), await holdsNumbers(22)]).toEqual([true, false]);
+    expect([await holdsNumbers(23), await holdsNumbers(24)]).toEqual([true, false]);
     const record = {
       measured: 'drawing a grid from its tables, the median of five, with no R attached',
       viewport: '1280 by 800',
@@ -2283,20 +2284,23 @@ test.describe('correlation matrix: on a phone', () => {
     expect(box).toEqual({ scrolls: true, within: true, overflow: 'auto', cell: 18, cells: 1260 });
     expect(await layout(page)).toEqual(HOLDS);
     expect(await overflowing(page)).toEqual([]);
-    // Thirteen is the fewest that do not fit; the default limit, twelve, is
-    // the most that does, long names and all.
-    await open(page, { data: 'many-biomarkers', settings: { limit: 13 } });
+    // On this page fourteen are the fewest that do not fit; thirteen and the
+    // default limit, twelve, fit, long names and all.
+    await open(page, { data: 'many-biomarkers', settings: { limit: 14 } });
     expect(
       await root(page)
         .locator('.bv-matrix-scroll')
         .evaluate((scroll) => scroll.scrollWidth > scroll.clientWidth + 1)
     ).toBe(true);
-    await open(page, { data: 'many-biomarkers', settings: { limit: 12 } });
-    expect(
-      await root(page)
-        .locator('.bv-matrix-scroll')
-        .evaluate((scroll) => scroll.scrollWidth > scroll.clientWidth + 1)
-    ).toBe(false);
+    for (const limit of [13, 12]) {
+      await open(page, { data: 'many-biomarkers', settings: { limit } });
+      expect(
+        await root(page)
+          .locator('.bv-matrix-scroll')
+          .evaluate((scroll) => scroll.scrollWidth > scroll.clientWidth + 1),
+        String(limit)
+      ).toBe(false);
+    }
     await expect(notes(page).first()).toHaveText(/^12 of 36 biomarkers shown: /);
     expect(await layout(page)).toEqual(HOLDS);
     // A name too long for its column is cut short inside the grid, never

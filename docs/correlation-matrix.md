@@ -59,13 +59,15 @@ A grid's cells grow as the square of its variables: twelve are 66 pairs, twenty-
 
 | Variables | Pairs | Drawing | R in the browser, once started | A cell at a desk (1280 pixels) | On a phone (390 pixels)             |
 | --------- | ----- | ------- | ------------------------------ | ------------------------------ | ----------------------------------- |
-| 12        | 66    | 3 ms    | 0.1 s                          | 62 pixels, numbers shown       | cells of 19 pixels, marks only      |
-| 24        | 276   | 9 ms    | 0.3 s                          | 30 pixels, marks only          | the grid scrolls inside its own box |
-| 36        | 630   | 14 ms   | 0.7 s                          | 19 pixels, marks only          | the grid scrolls inside its own box |
+| 12        | 66    | 3 ms    | 0.1 s                          | 67 pixels, numbers shown       | cells of 20 pixels, marks only      |
+| 24        | 276   | 9 ms    | 0.3 s                          | 33 pixels, marks only          | the grid scrolls inside its own box |
+| 36        | 630   | 14 ms   | 0.7 s                          | 22 pixels, marks only          | the grid scrolls inside its own box |
+
+The cell widths are on the browser tests' fixture page, whose chart has the width of the window less a 16-pixel margin on each side; a page that gives the chart less room has narrower cells.
 
 Drawing is the median of five draws of the grid from its tables; R's time is from the moment the line reads that it is waiting to the moment the grid is filled. The browser tests named `CM-LIMIT-002` and `CM-LIVE-006` measure both again on every run and print them in the run's log.
 
-Neither the drawing nor R is what a grid runs out of at these sizes: it is room. Twelve is the most variables a phone shows whole: with thirteen the cells reach their narrowest, 18 pixels, and the grid scrolls sideways inside its box. At a desk twelve leaves each cell 62 pixels, its number easy to read; the cells hold their numbers up to twenty-one variables and are marks alone from twenty-two. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart's limit for its overview. A page with more room, or a reader content with marks and the list, sets `limit` higher.
+Neither the drawing nor R is what a grid runs out of at these sizes: it is room. On a phone, cells reach their narrowest, 18 pixels, at about a dozen variables: on the fixture page thirteen still fit and fourteen scroll sideways inside the grid's box, and on the gallery's demo page, which gives the chart less room, twelve fit with 11 pixels to spare. Twelve is the default because it fits a phone whole on either page. At a desk it leaves each cell 67 pixels, its number easy to read; the cells hold their numbers up to twenty-three variables and are marks alone from twenty-four. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart's limit for its overview. A page with more room, or a reader content with marks and the list, sets `limit` higher.
 
 ## What is drawn
 
@@ -289,9 +291,9 @@ The answers are checked against desktop R. `tools/r-matrix-statistics.R` sources
 
 Below 900 pixels of width safety.viz's shell stacks, and below 600 the controls start folded away, one tap from open. The grid is as wide as the page allows and no wider: the page never scrolls sideways.
 
-Twelve variables on a phone are cells of about 19 pixels: too small for a number, so both sides of the diagonal are marks and the grid is read as a picture. The numbers, the intervals and the counts are in the list beneath, in the order R returned them, and each pair in it is a button as well as its cell, which is the easier target for a finger. With six variables or fewer the cells are wide enough for their numbers, and for the small scatters.
+Twelve variables on a phone are cells of 18 to 20 pixels, by the room the page gives the chart: too small for a number, so both sides of the diagonal are marks and the grid is read as a picture. The numbers, the intervals and the counts are in the list beneath, in the order R returned them, and each pair in it is a button as well as its cell, which is the easier target for a finger. With six variables or fewer the cells are wide enough for their numbers, and for the small scatters.
 
-More than twelve variables do not fit at 18 pixels a cell: the grid then scrolls sideways inside its own box, and the page does not. The default limit is the most that never does.
+Where the cells would be narrower than 18 pixels, from about thirteen variables, the grid scrolls sideways inside its own box, and the page does not. Between cells that hold marks the gaps close from 2 pixels to 1, and the labels down the side take what their longest needs, up to 84 pixels on a phone and 150 at a desk.
 
 ## What is not here
 

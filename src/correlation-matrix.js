@@ -83,6 +83,7 @@ ${C} .bv-cell[data-status=withheld],${C} .bv-cell[data-status=refused],${C} .bv-
 ${C} .bv-mark{display:block;width:var(--bv-size);height:var(--bv-size);border-radius:50%;background:var(--bv-color)}
 ${C} .bv-mark[data-sign=negative]{background:radial-gradient(circle closest-side,transparent 0 54%,var(--bv-color) 56% 100%)}
 ${C} .bv-cell[data-side=number] .bv-mark,${C} .bv-cell[data-side=mark] .bv-num{display:none}
+${C} .bv-matrix-grid.bv-compact{gap:1px}
 ${C} .bv-compact .bv-cell[data-side=number] .bv-mark{display:block}
 ${C} .bv-compact .bv-cell[data-side=number] .bv-num{display:none}
 ${C} .bv-mini{position:relative;width:100%;height:100%}
@@ -832,13 +833,26 @@ class CorrelationMatrix {
     const label = narrow ? 84 : 150;
     const count = this.model.variables.length;
     const scatters = this.grid.dataset.view === 'scatters';
-    // The room the cells have between them: the grid's own width, less the
-    // labels down the side and the gaps.
-    const room = this.grid.parentElement.clientWidth - label - 2 * count - 2;
-    const size = cellSize(room, count, scatters ? 150 : 72);
-    this.grid.style.setProperty('--bv-cell', `${size}px`);
     this.grid.style.setProperty('--bv-label', `${label}px`);
-    this.grid.classList.toggle('bv-compact', !scatters && size < NUMBERS_FROM);
+    // The labels down the side take what their longest needs, up to the budget.
+    const heads = [...this.grid.querySelectorAll('.bv-row-head')];
+    const widest = Math.min(
+      label,
+      Math.ceil(Math.max(0, ...heads.map((head) => head.scrollWidth)))
+    );
+    // The room the cells have between them: the grid's own width, less the
+    // labels down the side and the gaps, which close up where cells hold marks.
+    const sizeWith = (gap) =>
+      cellSize(
+        this.grid.parentElement.clientWidth - widest - gap * count - 2,
+        count,
+        scatters ? 150 : 72
+      );
+    let size = sizeWith(2);
+    const compact = !scatters && size < NUMBERS_FROM;
+    if (compact) size = sizeWith(1);
+    this.grid.style.setProperty('--bv-cell', `${size}px`);
+    this.grid.classList.toggle('bv-compact', compact);
     this.charts.forEach((chart) => chart.resize());
   }
 
