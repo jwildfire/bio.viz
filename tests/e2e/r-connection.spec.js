@@ -244,6 +244,8 @@ test.describe('R check page, live', () => {
   let page;
   let finished = [];
   const measured = {};
+  // What R in the browser answered, kept for the record written at the end.
+  const answered = { session: null, values: {} };
 
   const isRFile = (url) => {
     const { hostname, pathname } = new URL(url);
@@ -346,6 +348,7 @@ test.describe('R check page, live', () => {
     expect(state).toBe('done');
 
     const result = browser.results.find((entry) => entry.name === 'rank_sum');
+    answered.values.rank_sum = result.value;
     expect(result.form).toBe('browser');
     // Compared here as well as by the page, from the values themselves.
     const rows = compareValues(expectedResults.results[0].value, result.value);
@@ -374,6 +377,8 @@ test.describe('R check page, live', () => {
     expect(browser.session.platform).toContain('wasm');
 
     const result = browser.results.find((entry) => entry.name === 'log_rank');
+    answered.values.log_rank = result.value;
+    answered.session = browser.session;
     const rows = compareValues(expectedResults.results[1].value, result.value);
     expect(rows.filter((row) => !row.ok)).toEqual([]);
     expect(rows.map((row) => row.path)).toContain('groups[2].expected');
@@ -498,6 +503,16 @@ test.describe('R check page, live', () => {
           }
         ])
       ),
+      // Both sides of the comparison, every number as the shortest text that
+      // reads back as exactly that number.
+      answers: {
+        desktopR: {
+          ...expectedResults.made_by,
+          rank_sum: expectedResults.results[0].value,
+          log_rank: expectedResults.results[1].value
+        },
+        webR: { ...answered.session, ...answered.values }
+      },
       detail: {
         cold: measured.cold,
         reload: measured.reload,
@@ -512,7 +527,7 @@ test.describe('R check page, live', () => {
     mkdirSync(new URL('../../test-results/', import.meta.url), { recursive: true });
     writeFileSync(new URL('../../test-results/r-check-measurements.json', import.meta.url), text);
     if (process.env.R_CHECK_RECORD === '1') {
-      const { detail, ...shown } = record;
+      const { detail, answers, ...shown } = record;
       writeFileSync(
         new URL('../../site/r-check/measured.json', import.meta.url),
         JSON.stringify(shown, null, 2) + '\n'
@@ -527,6 +542,23 @@ test.describe('R check page, live', () => {
       console.log(
         `${name.padEnd(8)} ${String(state.megabytes).padStart(9)}  ${String(state.requests).padStart(8)}  ` +
           `${String(state.requestsOverNetwork ?? 0).padStart(12)}  ${String(state.seconds).padStart(7)}`
+      );
+    }
+    const { desktopR, webR } = record.answers;
+    console.log(
+      `\nDesktop R ${desktopR.r_version} (survival ${desktopR.survival_version}) beside ` +
+        `webR's R ${webR.r_version} (survival ${webR.survival_version})`
+    );
+    for (const [name, member] of [
+      ['rank_sum', 'p_value'],
+      ['rank_sum', 'statistic'],
+      ['log_rank', 'p_value'],
+      ['log_rank', 'statistic']
+    ]) {
+      console.log(
+        `  ${`${name}.${member}`.padEnd(19)} desktop ${String(desktopR[name][member]).padEnd(24)} ` +
+          `webR ${String(webR[name][member]).padEnd(24)} ` +
+          `difference ${Math.abs(desktopR[name][member] - webR[name][member])}`
       );
     }
     for (const file of measured.cold.files) {
