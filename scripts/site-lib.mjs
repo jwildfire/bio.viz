@@ -421,7 +421,7 @@ function galleryCard(entry, heroes = {}) {
   const hero = heroes[entry.module];
   const picture = hero
     ? `<a class="module-hero" href="../${escapeHtml(entry.module)}/index.html">` +
-      `<img src="../${escapeHtml(entry.module)}/evidence/${escapeHtml(hero)}" loading="lazy" ` +
+      `<img src="../${escapeHtml(entry.module)}/evidence/${escapeHtml(hero)}" ` +
       `alt="${escapeHtml(entry.title)}: a screenshot captured by its tests"></a>`
     : '';
   return (
