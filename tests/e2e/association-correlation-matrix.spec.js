@@ -910,7 +910,7 @@ test.describe('correlation matrix: how many variables are drawn', () => {
       timings.push({ variables: limit, pairs: pairsDrawn, ...timing });
     }
     // At a desk twelve hold their numbers; twenty-four and thirty-six do not,
-    // and none of them scrolls. The cells hold numbers up to twenty-three.
+    // and none of them scrolls.
     expect(timings.map((timing) => timing.compact)).toEqual([false, true, true]);
     expect(timings.every((timing) => !timing.scrolls)).toBe(true);
     expect(timings[0].cell).toBeGreaterThanOrEqual(34);
@@ -926,10 +926,17 @@ test.describe('correlation matrix: how many variables are drawn', () => {
       }, limit);
       return !(await grid(page)).compact;
     };
-    expect([await holdsNumbers(23), await holdsNumbers(24)]).toEqual([true, false]);
+    // The most that hold their numbers depends on how wide the names are in
+    // the fonts at hand: it is measured, and it is well above the default.
+    let mostWithNumbers = 12;
+    while (await holdsNumbers(mostWithNumbers + 1)) mostWithNumbers += 1;
+    expect(mostWithNumbers).toBeGreaterThanOrEqual(20);
+    expect(mostWithNumbers).toBeLessThan(30);
+    expect(await holdsNumbers(mostWithNumbers + 1)).toBe(false);
     const record = {
       measured: 'drawing a grid from its tables, the median of five, with no R attached',
       viewport: '1280 by 800',
+      mostVariablesWithNumbersInCells: mostWithNumbers,
       machine:
         process.env.R_CHECK_MACHINE ||
         (process.env.CI ? 'a GitHub Actions runner (ubuntu-latest)' : 'not named'),
@@ -946,6 +953,7 @@ test.describe('correlation matrix: how many variables are drawn', () => {
       text
     );
     console.log(`\nCorrelation matrix, drawing a grid — ${record.machine}`);
+    console.log(`  cells hold their numbers up to ${mostWithNumbers} variables`);
     for (const timing of timings) {
       console.log(
         `  ${timing.variables} variables, ${timing.pairs} pairs: ${timing.milliseconds} ms, ` +
