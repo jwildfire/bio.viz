@@ -15,11 +15,11 @@ name: Update evidence baselines
 #
 # Two ways to ask for it:
 #
-#   - Put the label `update-baselines` on a pull request. It runs then, and
-#     again on every push while the label stays, on the pull request's head
-#     commit. Anything that can label a pull request can do this, including an
-#     agent whose token may not start workflows. Take the label off when the
-#     baselines are in.
+#   - Put the label `update-baselines` on a pull request. It runs then, once,
+#     on the pull request's head commit. Anything that can label a pull request
+#     can do this, including an agent whose token may not start workflows. To
+#     run it again after a push, take the label off and put it back; take it
+#     off when the baselines are in.
 #   - Run it from the Actions tab against a branch (workflow_dispatch).
 #
 # Then, in a checkout of the branch:
@@ -30,7 +30,9 @@ name: Update evidence baselines
 on:
   workflow_dispatch:
   pull_request:
-    types: [labeled, synchronize]
+    # Only the labelling itself. Listening for pushes as well would leave a
+    # skipped check on every pull request that never asked for this.
+    types: [labeled]
 
 permissions:
   contents: read
@@ -44,7 +46,7 @@ jobs:
     name: Refresh baselines and evidence sets
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.labels.*.name, 'update-baselines')
+      github.event.label.name == 'update-baselines'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

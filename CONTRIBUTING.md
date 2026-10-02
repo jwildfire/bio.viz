@@ -77,7 +77,7 @@ Baselines belong to the Linux runner continuous integration uses. Font rendering
 
 1. Put the label `update-baselines` on the pull request (or run the workflow "Update evidence baselines" from the Actions tab against the branch). The workflow reruns the browser tests with `--update-snapshots` and uploads the refreshed `docs/evidence/` folder as the artifact `evidence-baselines`. It commits nothing: a commit pushed by a workflow starts no continuous-integration run, so the pull request's required check would never report.
 2. Download the artifact into the branch and commit it: `gh run download <run id> -R jwildfire/bio.viz -n evidence-baselines -D docs/evidence`, then `git add docs/evidence`, commit and push.
-3. Take the label off. While it is on, every push reruns the workflow.
+3. Take the label off. The workflow runs once each time the label is put on, so to run it again after a push, take the label off and put it back.
 
 The run that makes a module's first baseline exits 1, because the test that looks for a screenshot on the evidence page ran against a page built before the baseline existed; the artifact is uploaded all the same, and the next run is clean.
 
