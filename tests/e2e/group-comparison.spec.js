@@ -1555,10 +1555,18 @@ test.describe('group comparison: on the site', () => {
   test('GC-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll (#9)', async ({
     page
   }) => {
+    // This test stays on this machine: R's hosts are out of reach, and the chart
+    // is set to ask for no test, so the line under it says that none is chosen
+    // and what the first one would cost. GC-STAT-042 is the same page on a
+    // phone with R answering.
     await blockR(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/_site/group-comparison/index.html');
     await page.evaluate(() => window.BioVizDemo.ready);
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ test: 'none' }));
+    await expect(page.locator('.sv-main > .bv-statistic')).toHaveText(
+      'Statistics: no test chosen. The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
+    );
     const measure = () =>
       page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
