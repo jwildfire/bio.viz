@@ -692,6 +692,17 @@ describe('group comparison: how R’s answer is printed', () => {
     });
     await stored.begin().ask({ name: 'f', data: [], args: {}, dataId: 'opening' }, () => {});
     expect(stored.idle(WAITING)).toBe(`Statistics: waiting for R… ${note}`);
+    // Several panels asking in one drawing: the first that waits says the
+    // note, and the rest say only that they are waiting (#17).
+    const several = deskOn(slowEngine().engine, note);
+    const round = several.begin();
+    const lines = [[], [], []];
+    lines.forEach((shown) => round.ask(request([{ y: 1, x: 'A' }]), (entry) => shown.push(entry)));
+    expect(lines.map((shown) => shown[0].text)).toEqual([
+      `Statistics: waiting for R… ${note}`,
+      WAITING,
+      WAITING
+    ]);
     // With no note the texts are the plain ones.
     expect(deskOn(slowEngine().engine).idle(WAITING)).toBe(WAITING);
   });
