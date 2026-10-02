@@ -48,6 +48,12 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      # The unit tests hold the vendored synthetic study to its own record. This
+      # holds it to the source: each file is fetched from gsm.bio at the
+      # recorded commit and compared byte for byte.
+      - name: Vendored study equals gsm.bio at the recorded commit
+        run: npm run data:check-source
+
       # Desktop R, at the version that made site/r-check/expected.json, so the
       # step after it re-derives the R check page's expected results instead of
       # trusting the committed file. The survival package comes with R.
@@ -65,6 +71,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # On this runner each evidence screenshot is compared with its committed
+      # baseline in docs/evidence/ (tests/e2e/evidence.js); a new or changed
+      # capture fails here until the "Update evidence baselines" workflow has
+      # made its baseline.
+      #
       # Includes the RCON-LIVE tests, which load webR and the survival package
       # from their public hosts and run real R. They fail if those hosts cannot
       # be reached; nothing skips or retries. The megabytes and seconds they
