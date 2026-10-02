@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatStatistic } from '../../../src/r/index.js';
+import { formatComparison, formatEstimate, formatStatistic } from '../../../src/r/index.js';
 
 // How a p-value is shown (#2): the design's rules, applied by one function
 // whichever chart prints the number. The function formats what R returned; it
@@ -125,5 +125,228 @@ describe('formatStatistic: the rules', () => {
     const first = formatStatistic(statistic);
     expect(formatStatistic(statistic)).toEqual(first);
     expect(statistic.p_value).toBe(0.0312);
+  });
+});
+
+// What gsm.bio's Analyze_GroupDifference returns (#16): a status, R's reason as
+// a whole sentence, estimates with intervals, and pairwise rows.
+
+describe('formatStatistic: what R declined, and what R could not do', () => {
+  const tooSmall = {
+    status: 'too_small',
+    reason: 'Not computed: Treatment has 3. The minimum group size is 5.',
+    test: 't',
+    method: null,
+    p_value: null,
+    adjustment: 'none',
+    counts: { Placebo: 95, Treatment: 3 }
+  };
+
+  it('PVAL-RULE-008: a reason that already says the result was not computed is printed as it is, and "not computed" is said once (#16)', () => {
+    const formatted = formatStatistic(tooSmall);
+    expect(formatted).toEqual({
+      status: 'withheld',
+      text: 'Not computed: Treatment has 3. The minimum group size is 5. Counts: Placebo n = 95, Treatment n = 3.'
+    });
+    expect(formatted.text.match(/not computed/gi)).toHaveLength(1);
+    // The sentence the two halves used to make between them (#15).
+    expect(
+      formatStatistic({ ...tooSmall, method: 'Welch Two Sample t-test' }).text.match(
+        /not computed/gi
+      )
+    ).toHaveLength(1);
+    // With no counts the sentence stands alone, with its own full stop.
+    expect(formatStatistic({ reason: tooSmall.reason }).text).toBe(tooSmall.reason);
+    // No number, whatever else came with the reason.
+    expect(formatStatistic({ ...tooSmall, p_value: 0.0312 }).text).not.toContain('0.031');
+    // A reason in the formatter's own style is still led in by the method.
+    expect(
+      formatStatistic({ method: 'Welch Two Sample t-test', reason: 'too few participants' }).text
+    ).toBe('Welch Two Sample t-test: not computed, too few participants.');
+  });
+
+  it('PVAL-RULE-009: a result R marked as an error is printed as R’s message, said to be an error, with no number (#16)', () => {
+    const failed = {
+      status: 'error',
+      reason: "Column 'y' (strValueCol) is not numeric.",
+      method: null,
+      p_value: null,
+      counts: null
+    };
+    expect(formatStatistic(failed)).toEqual({
+      status: 'error',
+      text: "R reported an error: Column 'y' (strValueCol) is not numeric."
+    });
+    // The counts are printed where R knew them.
+    expect(
+      formatStatistic({ ...failed, reason: 'not enough observations', counts: { A: 2, B: 9 } })
+    ).toEqual({
+      status: 'error',
+      text: 'R reported an error: not enough observations (A n = 2, B n = 9).'
+    });
+    expect(formatStatistic({ status: 'error', p_value: 0.01, method, counts }).text).toBe(
+      `R reported an error: no message ${countsText}.`
+    );
+  });
+
+  it('PVAL-RULE-010: an adjustment R names by its p.adjust method is printed by its usual name, and any other name as given (#16)', () => {
+    const label = (adjustment) =>
+      formatStatistic({ method, p_value: 0.0312, counts, adjustment }).text.split('). ')[1];
+    expect(label('holm')).toBe('Exploratory, adjusted (Holm).');
+    expect(label('BH')).toBe('Exploratory, adjusted (Benjamini-Hochberg).');
+    expect(label('fdr')).toBe('Exploratory, adjusted (Benjamini-Hochberg).');
+    expect(label('BY')).toBe('Exploratory, adjusted (Benjamini-Yekutieli).');
+    expect(label('bonferroni')).toBe('Exploratory, adjusted (Bonferroni).');
+    expect(label('hochberg')).toBe('Exploratory, adjusted (Hochberg).');
+    expect(label('hommel')).toBe('Exploratory, adjusted (Hommel).');
+    expect(label('Dunnett')).toBe('Exploratory, adjusted (Dunnett).');
+    expect(label('none')).toBe('Exploratory, unadjusted.');
+    // A name is looked up, never run: one that is also a property of every object is a name.
+    expect(label('constructor')).toBe('Exploratory, adjusted (constructor).');
+  });
+});
+
+describe('formatEstimate: an estimate and its interval', () => {
+  const difference = {
+    name: 'Difference in means',
+    group: 'Placebo - Treatment',
+    estimate: 1.2350450049999998,
+    lower: 0.8440141032,
+    upper: 1.626075907,
+    level: 0.95
+  };
+
+  it('PVAL-EST-001: an estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, to four significant figures (#16)', () => {
+    expect(formatEstimate(difference)).toEqual({
+      status: 'shown',
+      text: 'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.'
+    });
+    // A level that is not a whole percent is printed as it is.
+    expect(formatEstimate({ ...difference, level: 0.975 }).text).toContain(
+      '97.5% confidence interval'
+    );
+    // An estimate R gave no interval for is printed without one.
+    expect(
+      formatEstimate({
+        name: 'Mean',
+        group: 'Placebo',
+        estimate: 0.024726315,
+        lower: null,
+        upper: null,
+        level: null
+      })
+    ).toEqual({ status: 'shown', text: 'Mean (Placebo): 0.02473.' });
+    expect(formatEstimate({ name: 'Median', estimate: -12 }).text).toBe('Median: -12.');
+    // Nothing is computed: the estimate handed in is not changed.
+    const frozen = Object.freeze({ ...difference });
+    expect(formatEstimate(frozen)).toEqual(formatEstimate(difference));
+  });
+
+  it('PVAL-EST-002: an estimate with no name or no number, or with half an interval, is refused and nothing is printed in its place (#16)', () => {
+    expect(formatEstimate({ ...difference, name: '' })).toEqual({
+      status: 'refused',
+      text: 'Estimate not shown: it has no name.'
+    });
+    for (const bad of [undefined, null, Number.NaN, Infinity, '1.2']) {
+      expect(formatEstimate({ ...difference, estimate: bad })).toEqual({
+        status: 'refused',
+        text: 'Estimate not shown: Difference in means is not a number.'
+      });
+    }
+    for (const half of [{ lower: null }, { upper: undefined }, { level: null }, { level: 95 }]) {
+      const formatted = formatEstimate({ ...difference, ...half });
+      expect(formatted).toEqual({
+        status: 'refused',
+        text: 'Estimate not shown: the interval of Difference in means is incomplete.'
+      });
+      expect(formatted.text).not.toMatch(/\d/);
+    }
+    expect(formatEstimate(undefined).status).toBe('refused');
+  });
+});
+
+describe('formatComparison: one pair of groups from a result’s rows', () => {
+  const pair = {
+    group_1: 'Placebo F',
+    group_2: 'Treatment F',
+    n_1: 42,
+    n_2: 42,
+    counts: 84,
+    method: 'Welch Two Sample t-test',
+    p_unadjusted: 0.0001635767,
+    p_value: 0.00049073,
+    adjustment: 'holm',
+    status: 'ok',
+    reason: null,
+    warning: null
+  };
+
+  it('PVAL-ROW-001: a pair’s p-value comes with its method, the two groups’ counts and its adjustment label, by the rules a whole result is held to (#16)', () => {
+    expect(formatComparison(pair)).toEqual({
+      status: 'shown',
+      text: 'Placebo F and Treatment F: Welch Two Sample t-test: p < 0.001 (Placebo F n = 42, Treatment F n = 42). Exploratory, adjusted (Holm).',
+      result:
+        'Welch Two Sample t-test: p < 0.001 (Placebo F n = 42, Treatment F n = 42). Exploratory, adjusted (Holm).',
+      groups: ['Placebo F', 'Treatment F'],
+      n: [42, 42],
+      method: 'Welch Two Sample t-test',
+      p: 'p < 0.001',
+      adjustment: 'Holm',
+      label: 'Exploratory, adjusted (Holm).'
+    });
+    // The adjusted p-value is the one printed, never the unadjusted one.
+    expect(formatComparison({ ...pair, p_value: 0.0312, p_unadjusted: 0.0052 }).p).toBe(
+      'p = 0.031'
+    );
+    expect(formatComparison({ ...pair, p_value: 1 }).p).toBe('p > 0.999');
+    const unadjusted = formatComparison({ ...pair, adjustment: 'none' });
+    expect(unadjusted.label).toBe('Exploratory, unadjusted.');
+    expect(unadjusted.adjustment).toBe(null);
+    for (const p of [0, 1e-12, 0.049, 0.05, 1]) {
+      const { text } = formatComparison({ ...pair, p_value: p });
+      expect(text).not.toContain('*');
+      expect(text.toLowerCase()).not.toContain('significan');
+    }
+  });
+
+  it('PVAL-ROW-002: a pair with no method, no counts or no groups is refused, and one R could not compute shows R’s words and no number (#16)', () => {
+    const noMethod = formatComparison({ ...pair, method: null });
+    expect(noMethod.status).toBe('refused');
+    expect(noMethod.p).toBe(null);
+    expect(noMethod.text).toBe(
+      'Placebo F and Treatment F: p-value not shown: the result does not name its method.'
+    );
+    const noCounts = formatComparison({ ...pair, n_2: null });
+    expect(noCounts.status).toBe('refused');
+    expect(noCounts.n).toBe(null);
+    expect(noCounts.p).toBe(null);
+    const noGroups = formatComparison({ ...pair, group_2: null });
+    expect(noGroups).toEqual({
+      status: 'refused',
+      text: 'p-value not shown: the comparison does not name its two groups.',
+      result: 'p-value not shown: the comparison does not name its two groups.',
+      groups: null,
+      n: null,
+      method: null,
+      p: null,
+      adjustment: null,
+      label: null
+    });
+    const failed = formatComparison({
+      ...pair,
+      status: 'error',
+      reason: 'not enough observations',
+      method: null,
+      p_value: null
+    });
+    expect(failed.status).toBe('error');
+    expect(failed.p).toBe(null);
+    expect(failed.text).toBe(
+      'Placebo F and Treatment F: R reported an error: not enough observations (Placebo F n = 42, Treatment F n = 42).'
+    );
+    expect(failed.result).toBe(
+      'R reported an error: not enough observations (Placebo F n = 42, Treatment F n = 42).'
+    );
+    expect(formatComparison(undefined).status).toBe('refused');
   });
 });
