@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T17:57:31.956Z",
+  "generatedAt": "2026-10-02T18:05:22.685Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37045025429",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37045025429"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -407,7 +410,7 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-032"],
       "issueRefs": [16],
-      "screenshots": []
+      "screenshots": ["GC-STAT-032-pairwise-table-on-a-phone.png"]
     },
     {
       "test": "GC-STAT-033: with R attached and no test chosen the page asks for nothing; the first test chosen starts R, once (#16)",
@@ -487,7 +490,7 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-042"],
       "issueRefs": [16],
-      "screenshots": []
+      "screenshots": ["GC-STAT-042-r-in-the-browser-on-a-phone.png"]
     },
     {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
