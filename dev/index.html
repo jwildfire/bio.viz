@@ -18,6 +18,7 @@
         <span class="site-version">v0.1.0</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
+        <a href="r-check/index.html">R check</a>
         <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
         <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
@@ -58,7 +59,16 @@
 
 <section>
   <h2>What is in it</h2>
-  <ul class="modules"><li class="module"><h3>Library core</h3><p>The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.</p><p class="module-facts">6 requirements · 36 of 36 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/core.md">Requirement matrix</a></p></li><li class="module"><h3>Connection to R</h3><p>The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.</p><p class="module-facts">46 requirements · 81 of 81 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/r-connection.md">Requirement matrix</a></p></li></ul>
+  <ul class="modules"><li class="module"><h3>Library core</h3><p>The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.</p><p class="module-facts">6 requirements · 40 of 40 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/core.md">Requirement matrix</a></p></li><li class="module"><h3>Connection to R</h3><p>The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.</p><p class="module-facts">64 requirements · 100 of 100 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/r-connection.md">Requirement matrix</a></p></li></ul>
+</section>
+
+<section>
+  <h2>R in the browser, checked</h2>
+  <p>
+    The <a href="r-check/index.html">R check page</a> runs two real tests through R in this
+    browser, shows each answer beside the one desktop R gives, and reports what starting R costs
+    in megabytes and seconds.
+  </p>
 </section>
 
 <section>
@@ -78,7 +88,7 @@
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/094de8a6ac7aa79b3713e65c3f6b5015a2097a2a"><code>094de8a</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/e9dafab2575ee031fad592701206bb2054884396"><code>e9dafab</code></a>.
       </p>
       <p>
         Built in the open — follow the
