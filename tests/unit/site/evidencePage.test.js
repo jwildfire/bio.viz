@@ -143,9 +143,11 @@ describe('evidence page', () => {
   it('CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'evidence-'));
     writeFileSync(path.join(dir, 'GC-DRAW-001-boxes.png'), '');
-    const errors = validateEvidenceScreenshots(evidence, dir);
-    expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain('GC-DRAW-002-counts.png');
+    const errors = validateEvidenceScreenshots(evidence, dir, 'docs/evidence/group-comparison');
+    expect(errors).toEqual([
+      'the evidence set names a screenshot that is not in docs/evidence/group-comparison: ' +
+        'GC-DRAW-002-counts.png'
+    ]);
     writeFileSync(path.join(dir, 'GC-DRAW-002-counts.png'), '');
     expect(validateEvidenceScreenshots(evidence, dir)).toEqual([]);
   });

@@ -656,7 +656,7 @@ npm run evidence         # rebuild docs/evidence/${escapeHtml(entry.module)}/evi
 
 // Every screenshot an evidence set names must be committed beside it, or the
 // page would show a broken image.
-export function validateEvidenceScreenshots(evidence, evidenceDir) {
+export function validateEvidenceScreenshots(evidence, evidenceDir, label = evidenceDir) {
   const missing = new Set();
   for (const record of (evidence && evidence.records) || []) {
     for (const screenshot of record.screenshots || []) {
@@ -665,7 +665,7 @@ export function validateEvidenceScreenshots(evidence, evidenceDir) {
   }
   return [...missing]
     .sort()
-    .map((file) => `the evidence set names a screenshot that is not in ${evidenceDir}: ${file}`);
+    .map((file) => `the evidence set names a screenshot that is not in ${label}: ${file}`);
 }
 
 // ---- API reference ---------------------------------------------------------

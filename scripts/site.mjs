@@ -211,7 +211,7 @@ for (const entry of modules) {
     errors.push(`missing docs/requirements/${module}.json — run \`npm run requirements\``);
   }
   if (evidence && requirements) {
-    errors.push(...validateEvidenceScreenshots(evidence, evidenceDir));
+    errors.push(...validateEvidenceScreenshots(evidence, evidenceDir, `docs/evidence/${module}`));
     const screenshots = readdirSync(evidenceDir).filter((name) => name.endsWith('.png'));
     for (const file of screenshots) {
       copyFileSync(path.join(evidenceDir, file), path.join(moduleDir, 'evidence', file));
