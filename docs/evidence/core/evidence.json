@@ -1,16 +1,13 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-02T14:04:25.690Z",
+  "generatedAt": "2026-10-02T14:27:17.107Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37017251078",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37017251078"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
@@ -266,6 +263,262 @@
       "status": "pass",
       "requirementIds": ["CORE-DEP-001"],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: a biomarker at a visit and a column are each written one way and returned in full (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: a variable that was returned can be handed back, and cannot be changed (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: the five value types are raw, baseline, change, fold change and percent change (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-002: a malformed variable is refused with a message naming what is wrong (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-009: a variable is named in words for an axis or a legend (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-009"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-012: column names are settings, and their defaults are the synthetic study’s (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-012"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-013: a call that cannot be made is refused with a message naming what is wrong (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-013"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-001: the frame has one record per participant, holding the id and one field per variable, named as given (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-002: IL-6 change from Baseline to Week 4 has 186 participants and 14 dropped (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-003: every participant seen is either in the frame or counted once in the dropped list (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-004: the results table alone gives a frame, with no participant column in it (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-004"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-005: a column is read from the participant table when it is given, and otherwise from a column carried on the results rows (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-006: a wide table with one row per participant resolves as it is, every column a variable (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-004: raw is the result as the table holds it at the visit (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-004"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: baseline is the result at the baseline visit named in settings (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: several baseline visits are brought to one value by their mean, or by the statistic named (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: with no baseline visit named, the first visit in visit order is the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-006: a participant with no baseline result has no change, fold change or percent change, and is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-006: change is the result at the visit minus the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-007, CORE-VAR-008: a baseline of zero, or below it, gives no fold or percent change, and the participant is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-007", "CORE-VAR-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-007: fold change is the result at the visit divided by the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-007"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-008: percent change is one hundred times the change divided by the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-API-002: BioViz.core is exported by both committed bundles, with the variable, the frame and their vocabulary (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-API-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-BUILD-003: the core module imports nothing from outside src/core, and reaches for no page and no network (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-BUILD-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-014: the frame’s records go to R through the connection as they are, with the fields named as the statistics functions take them (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-014"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-015: the frame changes nothing it is given (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-015"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-007: of several results for one participant, biomarker and visit the first usable one is used and the rest are counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-007"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-008: a result that is missing or not a number is not a result, and a participant with no other is dropped and counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-009: participants in one table and not the other are each handled and counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-009"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-010: a column carried on the results rows must hold one value for the participant; one that is empty, varies or is not a number is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-010"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-011: a variable that is not required is left empty rather than dropping the participant (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-011"],
+      "issueRefs": [8],
       "screenshots": []
     },
     {
