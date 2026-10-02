@@ -19,7 +19,7 @@
     "evidence:update": "node scripts/evidence.mjs --update",
     "requirements": "node scripts/requirements.mjs",
     "requirements:check": "node scripts/requirements.mjs --check",
-    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R",
+    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R && Rscript tools/r-association-statistics.R",
     "fixtures:check": "node scripts/check-r-fixtures.mjs",
     "data:check": "node tools/vendor-synthetic-study.mjs --check",
     "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source",
