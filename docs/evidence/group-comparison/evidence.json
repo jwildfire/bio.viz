@@ -1,5 +1,5 @@
 {
-  "module": "core",
+  "module": "group-comparison",
   "generatedAt": "2026-10-02T16:32:14.310Z",
   "environment": {
     "os": "darwin 23.6.0",
@@ -9,14 +9,6 @@
   },
   "run": null,
   "records": [
-    {
-      "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CORE-API-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
       "suite": "browser",
@@ -39,7 +31,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-003"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-003-gallery.png"]
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
@@ -55,7 +47,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
@@ -63,7 +55,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
@@ -79,7 +71,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
@@ -87,7 +79,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
@@ -122,12 +114,252 @@
       "screenshots": []
     },
     {
+      "test": "GC-CTRL-005: the biomarker, the value type and the visit are chosen in the sidebar, and the chart follows (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-005"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-CTRL-006: the levels of the group are chosen in the sidebar, and a level left out is not drawn (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-006"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-CTRL-007: Reset chart returns every control to what the chart opened on (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-007"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-001: a box per group, with the number in each group beneath, and the quartiles R gives (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-003: points, one per participant, each in its group’s place (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-004: a second grouping by colour draws the colours side by side, with a legend and the count in each (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-005: panels by one further variable, and by visit, each a chart of its own on one value axis (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-005"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-006: a logarithmic scale, with values of zero or less left out and counted (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-006"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-001: loaded with the results table alone it draws and shows no filters, and a group comes from a column on the results rows (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-002: the synthetic results as vendored carry no group column: the chart says so, and draws everyone as one group (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-003: loaded with participant data it shows filters and offers participant-level variables (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-004: a filter narrows the participants drawn, and the counts beneath follow (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-KIT-004: the chart is built from safety.viz’s kit on the page, and draws with the kit’s Chart.js, not one of its own (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-KIT-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-KIT-005: without safety.viz on the page the chart says what is missing instead of failing somewhere else (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-KIT-005"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIFE-001: init, setData, setSettings, render, resize and destroy drive the chart as they drive a safety.viz chart (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIFE-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIFE-002: tables the chart cannot read are refused with a message, shown in its place (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIFE-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIST-001: clicking a box lists its participants in the kit’s record listing (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIST-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIST-002: a control or a filter change empties the listing, so it never lists a box that is no longer drawn (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIST-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIST-003: the listing’s export downloads the listed rows under this chart’s name (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIST-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-LIST-004: clicking a point lists its participant and opens their profile (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-LIST-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-MOBILE-001: at 390px the chart fills the width with its controls folded away one tap from open, and the page does not scroll sideways (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-MOBILE-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-MOBILE-002: at 390px a box can be tapped, its listing read and a profile opened, and the page still does not scroll sideways (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-MOBILE-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-PROF-001: a listing row opens safety.viz’s participant profile through the participantsSelected event (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-PROF-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-SITE-002: the live demo draws the chart on the synthetic study, from safety.viz’s bundle and bio.viz’s, and says statistics are unavailable (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-006: with no R attached the statistics line reads that statistics are unavailable (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-006"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-007: the line shows that it is waiting until R answers, and then prints the answer through the shared formatter (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-007"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-008: a filter change clears the line before asking again, and an answer for the rows before the change is never shown (#9)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-008"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
@@ -135,7 +367,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
@@ -143,7 +375,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
@@ -226,315 +458,27 @@
       "screenshots": []
     },
     {
-      "test": "bio.viz core CORE-API-001: BioViz.version in the committed IIFE bundle equals the package version (#1)",
+      "test": "bundle: the chart ships, safety.viz and Chart.js do not GC-KIT-006: BioViz.groupComparison is exported by both committed bundles, and defining it needs no safety.viz (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-API-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "bio.viz core CORE-API-001: src/main.js exports version equal to the package version (#1)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-API-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "bio.viz core CORE-API-001: version in the committed ESM bundle equals the package version (#1)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-API-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "bio.viz core CORE-BUILD-001: the committed IIFE bundle defines the global BioViz (#1)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-BUILD-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "bio.viz core CORE-BUILD-002: the committed ESM bundle has the same exports as the IIFE bundle (#1)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-BUILD-002"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "bio.viz core CORE-DEP-001: package.json declares no runtime dependencies (#1)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-DEP-001"],
-      "issueRefs": [1],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-001: a biomarker at a visit and a column are each written one way and returned in full (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-001"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-001: a variable that was returned can be handed back, and cannot be changed (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-001"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-001: the five value types are raw, baseline, change, fold change and percent change (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-001"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-002: a malformed variable is refused with a message naming what is wrong (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-002"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-003"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: a variable CORE-VAR-009: a variable is named in words for an axis or a legend (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-009"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: settings CORE-FRAME-012: column names are settings, and their defaults are the synthetic study’s (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-012"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: settings CORE-FRAME-013: a call that cannot be made is refused with a message naming what is wrong (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-013"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: settings CORE-FRAME-016: the visits of a results table are listed in visit order, the ones with a usable result only (#9)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-016"],
+      "requirementIds": ["GC-KIT-006"],
       "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "core: the frame on the synthetic study CORE-FRAME-001: the frame has one record per participant, holding the id and one field per variable, named as given (#8)",
+      "test": "bundle: the chart ships, safety.viz and Chart.js do not GC-KIT-006: the build takes in only files under src/, and no source file imports from outside it (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-FRAME-001"],
-      "issueRefs": [8],
+      "requirementIds": ["GC-KIT-006"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "core: the frame on the synthetic study CORE-FRAME-002: IL-6 change from Baseline to Week 4 has 186 participants and 14 dropped (#8)",
+      "test": "bundle: the chart ships, safety.viz and Chart.js do not GC-KIT-006: the committed bundles hold none of safety.viz and no Chart.js (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-FRAME-002"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: the frame on the synthetic study CORE-FRAME-003: every participant seen is either in the frame or counted once in the dropped list (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-003"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: the frame on the synthetic study CORE-FRAME-004: the results table alone gives a frame, with no participant column in it (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-004"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: the frame on the synthetic study CORE-FRAME-005: a column is read from the participant table when it is given, and otherwise from a column carried on the results rows (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-005"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: the frame on the synthetic study CORE-FRAME-006: a wide table with one row per participant resolves as it is, every column a variable (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-006"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-004: raw is the result as the table holds it at the visit (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-004"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-005: baseline is the result at the baseline visit named in settings (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-005"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-005: several baseline visits are brought to one value by their mean, or by the statistic named (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-005"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-005: with no baseline visit named, the first visit in visit order is the baseline (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-005"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-006: a participant with no baseline result has no change, fold change or percent change, and is counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-006"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-006: change is the result at the visit minus the baseline (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-006"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-007, CORE-VAR-008: a baseline of zero, or below it, gives no fold or percent change, and the participant is counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-007", "CORE-VAR-008"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-007: fold change is the result at the visit divided by the baseline (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-007"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: value types on the synthetic study CORE-VAR-008: percent change is one hundred times the change divided by the baseline (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-VAR-008"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what leaves the frame, and what the module is made of CORE-API-002: BioViz.core is exported by both committed bundles, with the variable, the frame and their vocabulary (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-API-002"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what leaves the frame, and what the module is made of CORE-BUILD-003: the core module imports nothing from outside src/core, and reaches for no page and no network (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-BUILD-003"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-014: the frame’s records go to R through the connection as they are, with the fields named as the statistics functions take them (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-014"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-015: the frame changes nothing it is given (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-015"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what the frame leaves out CORE-FRAME-007: of several results for one participant, biomarker and visit the first usable one is used and the rest are counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-007"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what the frame leaves out CORE-FRAME-008: a result that is missing or not a number is not a result, and a participant with no other is dropped and counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-008"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what the frame leaves out CORE-FRAME-009: participants in one table and not the other are each handled and counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-009"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what the frame leaves out CORE-FRAME-010: a column carried on the results rows must hold one value for the participant; one that is empty, varies or is not a number is counted (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-010"],
-      "issueRefs": [8],
-      "screenshots": []
-    },
-    {
-      "test": "core: what the frame leaves out CORE-FRAME-011: a variable that is not required is left empty rather than dropping the participant (#8)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-FRAME-011"],
-      "issueRefs": [8],
+      "requirementIds": ["GC-KIT-006"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
@@ -639,7 +583,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
@@ -647,7 +591,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
@@ -655,7 +599,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
@@ -663,7 +607,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
@@ -671,7 +615,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-006"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+      "screenshots": []
     },
     {
       "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
@@ -719,7 +663,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-003"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-003-gallery.png"]
+      "screenshots": []
     },
     {
       "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
@@ -727,7 +671,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-003"],
       "issueRefs": [9],
-      "screenshots": ["CORE-SITE-003-gallery.png"]
+      "screenshots": []
     },
     {
       "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
@@ -735,7 +679,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-003"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-003-gallery.png"]
+      "screenshots": []
     },
     {
       "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
@@ -743,7 +687,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-003"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-003-gallery.png"]
+      "screenshots": []
     },
     {
       "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
@@ -786,6 +730,254 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: panels and cells GC-DATA-001: one panel holds one cell per level of the group, each with the participants the frame resolved there (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-002: the number of participants in each group is written beneath it, and with a colour the number in each colour (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-003: a second grouping by colour splits each level into side-by-side cells that share its place on the axis (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-004: panels by one further variable give one panel per level of it, all on one value axis (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-005: with more than one visit chosen each visit is a panel, crossed with the panel variable when there is one (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-005"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-006: the levels chosen are the levels drawn; a level left out takes its participants with it (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-006"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-007: on a logarithmic axis a value of zero or less is left out and counted (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-007"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-008: a filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-008"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: panels and cells GC-DATA-009: with the results table alone a group comes from a column carried on the results rows (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-009"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: settings GC-CFG-001: every setting has a default, and the column and baseline defaults are the core’s (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CFG-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: settings GC-CFG-002: a caller’s settings are laid over the defaults, and names and lists are read the same way however they are written (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CFG-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: settings GC-CFG-003: a setting that is not known, or a value a setting cannot take, is refused with a message naming it (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CFG-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: settings GC-CFG-004: the chart has no setting that chooses a test, an adjustment or a cut (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CFG-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the numbers a box is drawn from GC-BOX-001: a quantile is worked out by R’s default rule, type 7 (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-BOX-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the numbers a box is drawn from GC-BOX-002: on the synthetic study every box’s count, quantiles and mean equal R’s quantile(type = 7) and mean (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-BOX-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the outline of a violin GC-VIOLIN-001: the smoothing width equals R’s bw.nrd0, and the outline equals a Gaussian kernel density worked out in R (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-VIOLIN-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the outline of a violin GC-VIOLIN-002: on a logarithmic axis the outline is worked out on the logarithm of the values (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-VIOLIN-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the outline of a violin GC-VIOLIN-003: a cell with one value, or with every value the same, has no outline, and a box mark asks for none (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-VIOLIN-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-001: with no R attached the line reads exactly what the connection answers (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-002: the line says it is waiting from the moment a result is asked for until it arrives (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-003: the request carries the rows that were drawn, the names of their fields and what the rows are (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-004: an answer still on its way when the chart is drawn again is dropped even if no other arrives (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-004: an answer that arrives after the chart has been drawn again is never shown (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the statistics line GC-STAT-005: what R declined to compute, what the formatter refuses and what R reports as an error are each printed as such (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-005"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-CTRL-001: with participant data the columns offered as a group are the participant table’s categories (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-001"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-CTRL-002: with the results table alone the columns offered are the ones carried on its rows that hold one value per participant (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-002"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-CTRL-003: filters are the participant table’s categories, and there are none without a participant table (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-CTRL-004: the biomarkers, the visits and the visit the chart opens on are read from the table (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-DATA-010: the value axis is named for the variable, with the unit its values are in (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-010"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the controls offer GC-DATA-011: a point’s place across its slot is fixed by the participant’s id (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-011"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: with nothing to group by GC-DATA-013: with no column to group by, everyone is drawn as one group (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-DATA-013"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
       "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
       "suite": "unit",
       "status": "pass",
@@ -799,7 +991,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
@@ -807,7 +999,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
@@ -815,7 +1007,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
@@ -823,7 +1015,7 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
-      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+      "screenshots": []
     },
     {
       "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
@@ -1050,91 +1242,67 @@
       "screenshots": []
     },
     {
-      "test": "the vendored synthetic study CORE-DATA-001: the three files are in site/data/synthetic-study/ with a record naming the gsm.bio commit and each file there (#7)",
+      "test": "the results-alone fixture GC-DATA-012: deriving the fixture again from the vendored study gives the committed file, byte for byte (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-001"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-DATA-012"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "the vendored synthetic study CORE-DATA-002: each vendored file matches its recorded checksum, size, columns and row count (#7)",
+      "test": "the results-alone fixture GC-DATA-012: every cell of the fixture is a cell of a vendored file: the results rows of two biomarkers, each with the participant’s arm (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-002"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-DATA-012"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "the vendored synthetic study CORE-DATA-003: the results table has its six columns and 11,472 rows, one per participant, biomarker and visit (#7)",
+      "test": "the results-alone fixture GC-DATA-012: the fixture’s record names the vendored files it was derived from, by the checksums the study’s own record holds (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-003"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-DATA-012"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "the vendored synthetic study CORE-DATA-004: the participant table has its six columns and 200 rows, one per participant, covering everyone in the results (#7)",
+      "test": "the vendored safety.viz bundle GC-KIT-001: safety.viz’s bundle is in site/vendor/safety.viz/ with a record naming the repository, the commit, the version and the file it was copied from (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-004"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-KIT-001"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "the vendored synthetic study CORE-DATA-005: the outcomes table has its five columns and 200 rows, one per participant and endpoint, all of them known participants (#7)",
+      "test": "the vendored safety.viz bundle GC-KIT-002: the vendored bundle matches its recorded checksum and size (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-005"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-KIT-002"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "vendoring: the copy and its check CORE-DATA-002: a changed file fails the check, even by one character (#7)",
+      "test": "the vendored safety.viz bundle GC-KIT-003: the record says whether the commit is on safety.viz’s dev branch, and when it is not, why and what is to be done (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-002"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-KIT-003"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "vendoring: the copy and its check CORE-DATA-002: a missing file, an unrecorded file and a missing record each fail the check (#7)",
+      "test": "vendoring a bundle: the copy and its check GC-KIT-002: a changed bundle, a missing one, and a file beside it that is not recorded each fail the check (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-002"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-KIT-002"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
-      "test": "vendoring: the copy and its check CORE-DATA-002: a record edited without its file fails the check (#7)",
+      "test": "vendoring a bundle: the copy and its check GC-KIT-002: the copy writes the bundle exactly as the source holds it and records what was asked of it (#9)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["CORE-DATA-002"],
-      "issueRefs": [7],
-      "screenshots": []
-    },
-    {
-      "test": "vendoring: the copy and its check CORE-DATA-006: a record is refused without the full commit it was copied from (#7)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-DATA-006"],
-      "issueRefs": [7],
-      "screenshots": []
-    },
-    {
-      "test": "vendoring: the copy and its check CORE-DATA-006: the check against the source fails when a vendored file differs from the commit it names (#7)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-DATA-006"],
-      "issueRefs": [7],
-      "screenshots": []
-    },
-    {
-      "test": "vendoring: the copy and its check CORE-DATA-006: the copy writes each file exactly as the source holds it and records the checksum of those bytes (#7)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CORE-DATA-006"],
-      "issueRefs": [7],
+      "requirementIds": ["GC-KIT-002"],
+      "issueRefs": [9],
       "screenshots": []
     }
   ]
