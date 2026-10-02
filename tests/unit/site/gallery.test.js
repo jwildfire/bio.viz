@@ -166,7 +166,8 @@ describe('module registry', () => {
       ['core', 'shared'],
       ['r-connection', 'shared'],
       ['group-comparison', 'chart'],
-      ['association-scatter', 'chart']
+      ['association-scatter', 'chart'],
+      ['correlation-matrix', 'chart']
     ]);
   });
 

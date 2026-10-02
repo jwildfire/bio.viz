@@ -61,6 +61,22 @@
         "source": ["src/association-scatter.js"],
         "settings": "src/association-scatter/configure.js"
       }
+    },
+    {
+      "module": "correlation-matrix",
+      "title": "Correlation matrix",
+      "kind": "chart",
+      "status": "available",
+      "blurb": "Which of these biomarkers, or which visits of one biomarker, are related? A grid over a set of variables: below the diagonal a mark sized and coloured by R's coefficient, above it the number, with the pair count of every cell, for Pearson or Spearman on the participants who have both values. It prints no p-value. It opens on every biomarker at the first visit, and a click on a cell opens that pair in the association scatter, with a way back.",
+      "matrix": "correlation-matrix.md",
+      "demo": "correlation-matrix.js",
+      "hero": "CM-DRAW-001-biomarkers-at-baseline.png",
+      "api": {
+        "doc": "correlation-matrix.md",
+        "surface": ["correlationMatrix"],
+        "source": ["src/correlation-matrix.js"],
+        "settings": "src/correlation-matrix/configure.js"
+      }
     }
   ]
 }
