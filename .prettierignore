@@ -1,0 +1,11 @@
+dist/
+node_modules/
+playwright-report/
+test-results/
+package-lock.json
+_site/
+
+# Requirement matrices are wide, hand-maintained data tables. Alignment padding
+# would rewrite every row on each edit and bury the one that changed.
+requirements/*.md
+!requirements/README.md
