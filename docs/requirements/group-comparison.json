@@ -67,6 +67,6 @@
     "GC-SITE-001": "The gallery lists the group comparison chart with its picture and links to its live demo, its evidence page and its API reference.",
     "GC-SITE-002": "The live demo draws the chart on the synthetic study from safety.viz's vendored bundle and bio.viz's committed one, with no errors, and its statistics line reads that statistics are unavailable.",
     "GC-SITE-003": "The live demo holds at a 390-pixel-wide viewport with no horizontal scroll.",
-    "GC-SITE-004": "The API reference names every setting the chart has; the site build fails when one is missing."
+    "GC-SITE-004": "The API reference has a table row for every setting the chart has; the site build fails when one is missing."
   }
 }

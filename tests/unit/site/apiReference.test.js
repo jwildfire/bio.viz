@@ -214,10 +214,22 @@ describe('API reference: held to the code', () => {
       });
     expect(problems(settings)).toEqual([]);
     expect(problems([...settings, 'whisker_rule'])).toEqual([
-      'group-comparison: docs/group-comparison.md does not name the setting `whisker_rule`, which the chart has.'
+      'group-comparison: docs/group-comparison.md has no table row for the setting `whisker_rule`, which the chart has.'
     ]);
-    // Every one of them has a row in the reference's table of settings.
-    for (const setting of settings) expect(markdown, setting).toContain(`| \`${setting}\``);
+    // A mention in passing is not a row: a setting named only in a sentence is a problem.
+    const renamed = markdown.replace('| `max_levels` ', '| `most_levels` ');
+    expect(renamed).toContain('at most `max_levels` different values');
+    expect(
+      checkApiReference({
+        module: entry.module,
+        doc: `docs/${entry.api.doc}`,
+        markdown: renamed,
+        names,
+        settings
+      })
+    ).toEqual([
+      'group-comparison: docs/group-comparison.md has no table row for the setting `max_levels`, which the chart has.'
+    ]);
   });
 
   it('CORE-SITE-010: the committed references document everything the committed bundle exports (#7)', async () => {

@@ -12,7 +12,7 @@
 //      JSDoc comment) is named in the file's section for that export;
 //   4. an exported constant's value is given in its section;
 //   5. every setting of a chart (the keys of the DEFAULT_SETTINGS its registry
-//      entry points at) is named in the file.
+//      entry points at) has a table row of its own in the file.
 //
 // A module says what it documents in site/config.json:
 //
@@ -171,10 +171,20 @@ export function checkApiReference({ module, doc, markdown, names, params = {}, s
     }
   }
 
-  // A chart's settings are part of its interface: each is named in the file.
+  // A chart's settings are part of its interface: each has a row of its own in
+  // a table of the file. A mention in passing is not a description.
+  const rows = new Set(
+    String(markdown)
+      .split('\n')
+      .map((line) => line.match(/^\|\s*`([^`]+)`\s*\|/))
+      .filter(Boolean)
+      .map((match) => match[1])
+  );
   for (const setting of settings) {
-    if (!markdown.includes('`' + setting + '`')) {
-      problems.push(`${where} does not name the setting \`${setting}\`, which the chart has.`);
+    if (!rows.has(setting)) {
+      problems.push(
+        `${where} has no table row for the setting \`${setting}\`, which the chart has.`
+      );
     }
   }
 
