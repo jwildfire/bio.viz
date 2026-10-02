@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Group comparison: API reference · bio.viz</title>
+    <meta name="description" content="The interface of the bio.viz Group comparison module: what it exports, what each call takes and what it answers." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.1.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../gallery/index.html">Gallery</a>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main ">
+<section class="hero">
+  <p class="eyebrow">API reference</p>
+  <h1>The group comparison chart</h1>
+  <nav class="page-tabs" aria-label="Pages for this module"><a href="../gallery/index.html">Gallery</a><a href="index.html">Live demo</a><a href="evidence.html">Evidence</a><a class="current" aria-current="page" href="api.html">API reference</a></nav>
+</section>
+
+<nav class="api-toc" aria-label="On this page">
+  <h2>On this page</h2>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+</nav>
+
+<article class="api-body">
+<p>Does this biomarker differ between these groups? The chart draws one value across the levels of a category at chosen visits, as boxes, violins or points, with the number in each group beneath. It takes a second grouping by colour, panels by one further variable and a logarithmic scale. Clicking a box or a point lists its participants, and a row of the list opens the participant&#39;s profile.</p>
+<p>It draws; it does not test. The line under the chart is where a test of the groups is printed, and that test is computed by R and asked for through the <a href="../r-connection/api.html">connection to R</a>. With no R attached the line says that statistics are unavailable.</p>
+<h2 id="at-a-glance">At a glance</h2>
+<pre><code class="language-html">&lt;div id=&quot;chart&quot;&gt;&lt;/div&gt;
+&lt;script src=&quot;vendor/safety.viz/safety.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;dist/bio.viz-0.1.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  const chart = BioViz.groupComparison(&#39;#chart&#39;, {
+    start_value: &#39;IL-6&#39;,
+    visits: &#39;Week 4&#39;,
+    value_type: &#39;change&#39;,
+    baseline_visits: &#39;Baseline&#39;,
+    group_by: &#39;ARM&#39;
+  }).init({ results, participants });
+&lt;/script&gt;</code></pre>
+<h2 id="what-the-page-loads">What the page loads</h2>
+<p>Two script tags, safety.viz&#39;s first. The chart is built from safety.viz&#39;s kit (<code>SafetyViz.kit</code>): its control sidebar, its filters, its record listing, its participant profile, its box drawing and its Chart.js. bio.viz bundles none of it and no Chart.js of its own; it finds the kit on the page when a chart is made, and says so plainly if it is not there.</p>
+<p>This repository keeps a copy of safety.viz&#39;s bundle, with a record of the safety.viz commit it was copied from, at <code>site/vendor/safety.viz/safety.viz.js</code>; the site and the browser tests load that copy.</p>
+<h2 id="groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></h2>
+<p>Makes a chart in an element and returns it. <code>element</code> is the element, or a CSS selector for it. <code>settings</code> is laid over the <a href="#settings">defaults</a> and may be left out. The controls are drawn at once; nothing else is drawn until the chart is given its tables.</p>
+<p>A setting that is not known, or a value a setting cannot take, is refused: <code>groupComparison</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> and names the setting.</p>
+<h2 id="the-tables">The tables</h2>
+<p><code>init</code> and <code>setData</code> take <code>{ results, participants }</code>, each an array of records, one object per row. They are the tables the <a href="../core/api.html">core</a> reads, and the column settings are the core&#39;s.</p>
+<table class="doc-table"><thead><tr><th scope="col">Table</th><th scope="col">Required</th><th scope="col">One row per</th><th scope="col">What it adds</th></tr></thead>
+<tbody><tr><td data-label="Table"><code>results</code></td><td data-label="Required">yes</td><td data-label="One row per">participant, biomarker, visit</td><td data-label="What it adds">Everything the chart draws.</td></tr>
+<tr><td data-label="Table"><code>participants</code></td><td data-label="Required">no</td><td data-label="One row per">participant</td><td data-label="What it adds">Filters, and participant-level columns to group by, colour by and panel by.</td></tr></tbody></table>
+<p>Only the results table is required. With it alone the chart has no filters, and a group comes from a column carried on the results rows: one that is not the id, the biomarker, the result, the visit, the visit order or the unit, and that holds one value for each participant. When the results rows carry no such column there is nothing to group by; the chart says so in its controls and draws everyone as one group.</p>
+<p>With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most <code>max_levels</code> different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result.</p>
+<h2 id="the-charts-methods">The chart&#39;s methods</h2>
+<p>The lifecycle is safety.viz&#39;s, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.</p>
+<table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
+<tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.</td></tr>
+<tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
+<tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls.</td></tr>
+<tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the chart to its container, for a page that changes the container&#39;s size without resizing the window.</td></tr>
+<tr><td data-label="Method"><code>chart.destroy()</code></td><td data-label="What it does">Takes the chart down and empties its element. A destroyed chart cannot be used again.</td></tr></tbody></table>
+<p>Tables the chart cannot read (not arrays of records, or a results table without one of its mapped columns) are refused: <code>setData</code> throws a <code>TypeError</code>, and the message is shown in the chart&#39;s element.</p>
+<h2 id="settings">Settings</h2>
+<p>Every setting, with its default. The column settings and the baseline settings are the <a href="../core/api.html#default_settings">core&#39;s</a>, under the same names, and safety.viz&#39;s charts use the same names for the same columns.</p>
+<table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>id_col</code></td><td data-label="Default"><code>&#39;USUBJID&#39;</code></td><td data-label="Meaning">The participant&#39;s id, in the results table.</td></tr>
+<tr><td data-label="Setting"><code>measure_col</code></td><td data-label="Default"><code>&#39;TEST&#39;</code></td><td data-label="Meaning">The biomarker&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>value_col</code></td><td data-label="Default"><code>&#39;STRESN&#39;</code></td><td data-label="Meaning">The result.</td></tr>
+<tr><td data-label="Setting"><code>visit_col</code></td><td data-label="Default"><code>&#39;VISIT&#39;</code></td><td data-label="Meaning">The visit&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>visit_order_col</code></td><td data-label="Default"><code>&#39;VISITNUM&#39;</code></td><td data-label="Meaning">A number that orders the visits. May be null.</td></tr>
+<tr><td data-label="Setting"><code>unit_col</code></td><td data-label="Default"><code>&#39;STRESU&#39;</code></td><td data-label="Meaning">The unit of the result, printed in the value axis title. May be null.</td></tr>
+<tr><td data-label="Setting"><code>participant_id_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s id in the participant table, when it is not named as <code>id_col</code> is.</td></tr>
+<tr><td data-label="Setting"><code>baseline_visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The baseline visit, or a list of them. Null means the first visit in visit order.</td></tr>
+<tr><td data-label="Setting"><code>baseline_stat</code></td><td data-label="Default"><code>&#39;mean&#39;</code></td><td data-label="Meaning">How several baseline visits are brought to one value: <code>mean</code>, <code>min</code>, <code>max</code> or <code>first</code>.</td></tr>
+<tr><td data-label="Setting"><code>start_value</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The biomarker the chart opens on. Null means the first by name.</td></tr>
+<tr><td data-label="Setting"><code>visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The visit, or visits, the chart opens on. Null means the first visit after the baseline.</td></tr>
+<tr><td data-label="Setting"><code>value_type</code></td><td data-label="Default"><code>&#39;raw&#39;</code></td><td data-label="Meaning">The value type the chart opens on: <code>raw</code>, <code>baseline</code>, <code>change</code>, <code>fold_change</code> or <code>percent_change</code>, as the <a href="../core/api.html#value_types">core defines them</a>.</td></tr>
+<tr><td data-label="Setting"><code>group_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column on the axis the chart opens on. Null means the first column offered.</td></tr>
+<tr><td data-label="Setting"><code>levels</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The levels of the group the chart opens on. Null means all of them.</td></tr>
+<tr><td data-label="Setting"><code>color_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column of the second grouping, by colour. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>panel_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column the panels are made by. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>mark</code></td><td data-label="Default"><code>&#39;box&#39;</code></td><td data-label="Meaning">What a group is drawn as: <code>box</code>, <code>violin</code> or <code>points</code>.</td></tr>
+<tr><td data-label="Setting"><code>y_scale</code></td><td data-label="Default"><code>&#39;linear&#39;</code></td><td data-label="Meaning">The scale of the value axis: <code>linear</code> or <code>log</code>.</td></tr>
+<tr><td data-label="Setting"><code>measures</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.</td></tr>
+<tr><td data-label="Setting"><code>groups</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The columns offered to group, colour and panel by, as names or <code>{ value_col, label }</code>. Null means the category columns the tables have.</td></tr>
+<tr><td data-label="Setting"><code>max_levels</code></td><td data-label="Default"><code>12</code></td><td data-label="Meaning">The most different values a column may hold and still be offered as a category.</td></tr>
+<tr><td data-label="Setting"><code>filters</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The filters, as names or <code>{ value_col, label }</code>, with safety.viz&#39;s <code>start</code>, <code>all</code> and <code>multiple</code>. Null means every category column of the participant table.</td></tr>
+<tr><td data-label="Setting"><code>details</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The columns of the listing, as names or <code>{ value_col, label }</code>. Null means the participant, the group, the colour, the panel and the value.</td></tr>
+<tr><td data-label="Setting"><code>page_size</code></td><td data-label="Default"><code>10</code></td><td data-label="Meaning">Rows on a page of the listing.</td></tr>
+<tr><td data-label="Setting"><code>connection</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The connection to R the statistics line asks. Null means one with no R attached.</td></tr>
+<tr><td data-label="Setting"><code>statistic</code></td><td data-label="Default"><code>&#39;Analyze_GroupDifference&#39;</code></td><td data-label="Meaning">The R function the statistics line asks for. Null means no statistics line.</td></tr>
+<tr><td data-label="Setting"><code>profile</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether a row of the listing opens safety.viz&#39;s participant profile.</td></tr>
+<tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s columns shown at the head of the profile. Null means the category columns.</td></tr>
+<tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.</td></tr>
+<tr><td data-label="Setting"><code>normal_col_high</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the upper limit of normal of each result, when the results have one.</td></tr>
+<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr></tbody></table>
+<h2 id="what-is-drawn">What is drawn</h2>
+<p>Each panel is one Chart.js chart. The levels of the group are along the axis; under each is its name and the number of participants drawn there, <code>n = 95</code>, and with a colour the number in each colour, <code>42 · 53</code>. The value axis is named for the variable, with its unit.</p>
+<table class="doc-table"><thead><tr><th scope="col">Mark</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Mark"><code>box</code></td><td data-label="What it is">safety.viz&#39;s box: the box from the first to the third quartile, a line at the median, whiskers to the 5th and 95th percentiles, and a marker at the mean. It is the box safety.viz&#39;s results over time chart draws.</td></tr>
+<tr><td data-label="Mark"><code>violin</code></td><td data-label="What it is">The outline of a Gaussian kernel density of the values, from the least value to the greatest, with a line at the median. Every violin is as wide as its slot at its widest.</td></tr>
+<tr><td data-label="Mark"><code>points</code></td><td data-label="What it is">One point per participant, at its value, placed across its group&#39;s slot at a position fixed by the participant&#39;s id.</td></tr></tbody></table>
+<p>The quantiles are worked out by linear interpolation between the two nearest values, at position (n − 1)p: R&#39;s <code>quantile(type = 7)</code>, its default, and the rule safety.viz&#39;s boxes use. A violin&#39;s smoothing width is R&#39;s <code>bw.nrd0</code>, the default of <code>density()</code>. On a logarithmic axis a violin&#39;s outline is worked out on the logarithm of the values. Every one of these numbers is held to desktop R by the unit tests, on the synthetic study.</p>
+<p>These numbers describe the values being drawn. None of them compares one group with another.</p>
+<p>A second grouping by colour splits each level into cells side by side, with a legend. Panels by one further variable give one panel per level of it; more than one visit gives one panel per visit; with both, one per visit and level. All panels share one value axis.</p>
+<p>On a logarithmic scale a value of zero or less cannot be shown. It is left out, and the note above the chart counts how many were.</p>
+<p>The note above the chart says how many participants were drawn, of how many, and why any was left out, in the <a href="../core/api.html#dropped">core&#39;s words</a>.</p>
+<h2 id="the-controls">The controls</h2>
+<p>In safety.viz&#39;s sidebar, in four sections.</p>
+<table class="doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
+<tbody><tr><td data-label="Section">Value</td><td data-label="Control">Biomarker</td><td data-label="What it sets">The biomarker.</td></tr>
+<tr><td data-label="Section">Value</td><td data-label="Control">Value</td><td data-label="What it sets">The value type: result, baseline, change, fold change or percent change from baseline.</td></tr>
+<tr><td data-label="Section">Value</td><td data-label="Control">Visit</td><td data-label="What it sets">The visit, or visits. Not shown for a baseline value, which has no visit.</td></tr>
+<tr><td data-label="Section">Groups</td><td data-label="Control">Group by</td><td data-label="What it sets">The column on the axis.</td></tr>
+<tr><td data-label="Section">Groups</td><td data-label="Control">Levels</td><td data-label="What it sets">Which of its levels are drawn.</td></tr>
+<tr><td data-label="Section">Groups</td><td data-label="Control">Colour by</td><td data-label="What it sets">The second grouping, or none.</td></tr>
+<tr><td data-label="Section">Groups</td><td data-label="Control">Panel by</td><td data-label="What it sets">The variable the panels are made by, or none.</td></tr>
+<tr><td data-label="Section">Display</td><td data-label="Control">Draw as</td><td data-label="What it sets">Box, violin or points.</td></tr>
+<tr><td data-label="Section">Display</td><td data-label="Control">Scale</td><td data-label="What it sets">Linear or logarithmic.</td></tr>
+<tr><td data-label="Section">Filters</td><td data-label="Control">one per filter</td><td data-label="What it sets">The participants drawn. Only with a participant table.</td></tr>
+<tr><td data-label="Section"></td><td data-label="Control">Reset chart</td><td data-label="What it sets">Returns every control to what the chart opened on.</td></tr></tbody></table>
+<p>There is no control that chooses a test, an adjustment or a cut. Those belong to R, and arrive with the statistics.</p>
+<h2 id="listing-and-participant-profile">Listing and participant profile</h2>
+<p>Clicking a box or a violin lists its participants under the chart, in safety.viz&#39;s record listing, with its search, its sorting, its paging and a CSV export. Clicking a point lists that participant and opens their profile. A change to a control or a filter empties the list, so it never lists a box that is no longer drawn.</p>
+<p>Clicking a row selects that participant. The chart then raises the event safety.viz&#39;s charts raise, <code>participantsSelected</code>, on its own root element, and the event bubbles: <code>event.detail.data</code> is a list holding the participant&#39;s id, or an empty list when the selection is cleared. safety.viz&#39;s participant profile opens on that event, in a rail beside the chart, and any other chart on the page can listen for it.</p>
+<p>The profile was made for laboratory results that carry a reference range. For results that have one, name its columns in <code>normal_col_high</code> and <code>normal_col_low</code>. For results that have none, as biomarker results often do, the profile shows each biomarker as a multiple of the participant&#39;s first result, and no reference range is drawn or implied. Its time axis is a study day: name the column that holds it in <code>studyday_col</code>.</p>
+<h2 id="the-statistics-line">The statistics line</h2>
+<p>Under each panel. The chart hands the rows it drew to R through the connection in the setting <code>connection</code>:</p>
+<pre><code class="language-js">connection.run(&#39;Analyze_GroupDifference&#39;, {
+  data, // the panel&#39;s rows: the participant&#39;s id, `y` and `x`
+  args: { strValueCol: &#39;y&#39;, strGroupCol: &#39;x&#39; },
+  dataId // what the rows are: the variable, the group, the levels, the panel, the filters
+});</code></pre>
+<p>and prints the answer through <code>BioViz.r.formatStatistic</code>, the one place a p-value is formatted. With no connection given the chart makes one with no R attached, and the line reads <code>Statistics are unavailable: no R is attached to this chart.</code></p>
+<p>Two rules keep a wrong number from standing under a chart:</p>
+<ul><li>From the moment a result is asked for until it arrives, the line reads <code>Statistics: waiting for R…</code>.</li><li>Every time the chart is drawn the line is cleared and asked for again, and an answer that was asked for before the chart was last drawn is dropped when it arrives. The line never shows an answer for rows other than the ones on screen.</li></ul>
+<p>The chart computes no test, no estimate, no interval and no p-value, and has no setting that chooses one.</p>
+<h2 id="on-a-phone">On a phone</h2>
+<p>Below 900 pixels of width safety.viz&#39;s shell stacks: the controls above the chart, the participant profile below it. Below 600 pixels the controls start folded away, so the chart is on the first screen, and one tap on Controls opens them. Panels drop to one column. The listing wraps its cells instead of running off the page.</p>
+<h2 id="what-is-not-here">What is not here</h2>
+<p>No statistical test, estimate, interval, p-value or adjustment, and no rule that cuts a continuous variable into groups: a group comes from a column. Those arrive with the statistics, computed by R.</p>
+</article>
+
+<p class="sub" id="api-source">
+  This page is the file <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/group-comparison.md"><code>docs/group-comparison.md</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/311a87ca0b6436b78892d04d3fea72c96c60f127"><code>311a87c</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>

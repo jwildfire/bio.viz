@@ -25,7 +25,7 @@
         <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
       </nav>
     </header>
-    <main class="site-main">
+    <main class="site-main ">
 <section class="hero">
   <p class="eyebrow">API reference</p>
   <h1>The library core</h1>
@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
+  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -127,6 +127,10 @@ const x = { col: &#39;ARM&#39; };</code></pre>
 <p><code>frame</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> when the call cannot be made: tables that are not arrays of records, a table other than the two, variables not given by name, a variable named as the id column is, a malformed variable, a setting that is not known or has a value it cannot take, a column a setting names that the table does not have, or a column variable whose column is in neither table.</p>
 <p>It does not refuse on what the tables hold. A biomarker or a visit that no row has gives an empty <code>data</code> and a count of everyone under <code>No result at the visit</code>.</p>
 <p>It changes nothing it is given.</p>
+<h2 id="visitsresults-settings"><code>visits(results, settings)</code></h2>
+<p>The visits of a results table, in visit order, as a list of names. The order is the visit-order column&#39;s when the table has one, and otherwise the names&#39;, with numbers inside a name counted as numbers, so <code>Week 2</code> comes before <code>Week 12</code>. Only visits with at least one usable result are listed. A chart offers these in its visit control, and the first of them is the baseline visit when <code>baseline_visits</code> names none.</p>
+<pre><code class="language-js">BioViz.core.visits(results); // [&#39;Baseline&#39;, &#39;Week 2&#39;, &#39;Week 4&#39;, &#39;Week 8&#39;, &#39;Week 12&#39;]</code></pre>
+<p><code>results</code> is the results table and <code>settings</code> the same settings <code>frame</code> takes; only the column names are read.</p>
 <h2 id="default_settings"><code>DEFAULT_SETTINGS</code></h2>
 <p>The settings and their defaults. The names are safety.viz&#39;s, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.</p>
 <table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
@@ -196,7 +200,7 @@ const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/78aab1b88596b67820f5d84d35c2ecb389517395"><code>78aab1b</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/311a87ca0b6436b78892d04d3fea72c96c60f127"><code>311a87c</code></a>.
       </p>
       <p>
         Built in the open — follow the

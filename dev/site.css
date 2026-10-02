@@ -10,6 +10,7 @@
      4. Page components: hero, callout, facts, module list
      5. R check page: answers, comparisons, measurement tables
      6. Module pages: tabs, evidence lists, the API reference
+     7. A chart's demo page
 
    Every rule has to hold at a 390px-wide viewport with no horizontal scroll;
    tests/e2e/site.spec.js measures it.
@@ -327,7 +328,9 @@ th .sub {
   margin-top: 1rem;
 }
 
-button {
+/* The R check page's one button. Named, so the rule stays off the buttons a
+   chart draws inside a demo page. */
+#start-r {
   background: var(--side-bg);
   border: 0;
   border-radius: var(--radius-small);
@@ -337,11 +340,11 @@ button {
   padding: 0.7rem 1.1rem;
 }
 
-button:hover:not(:disabled) {
+#start-r:hover:not(:disabled) {
   background: var(--accent);
 }
 
-button:disabled {
+#start-r:disabled {
   cursor: default;
   opacity: 0.55;
 }
@@ -594,7 +597,7 @@ button:disabled {
   max-width: 100%;
 }
 
-details > summary {
+#shared-tests summary {
   color: var(--accent);
   cursor: pointer;
   margin-bottom: 0.75rem;
@@ -699,5 +702,46 @@ details > summary {
     font-size: 0.72rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
+  }
+}
+
+/* ---- 7. A chart's demo page ---------------------------------------------- */
+
+/* A chart with its sidebar needs more room than a page of prose. */
+.site-main.wide {
+  max-width: 82rem;
+}
+
+.site-main.wide > .hero .lead {
+  max-width: 52rem;
+}
+
+#chart {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.module-hero {
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.module-hero img {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+#about-demo .sub {
+  margin-top: 1rem;
+}
+
+@media (max-width: 44rem) {
+  #chart {
+    padding: 0.5rem;
   }
 }
