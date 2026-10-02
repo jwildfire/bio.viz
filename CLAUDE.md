@@ -16,6 +16,7 @@ npm run evidence              # run both suites -> docs/evidence/<module>/eviden
 npm run site                  # build the site into _site/ (gitignored)
 npm run fixtures:check        # desktop R re-derives the R check page's expected results (needs R)
 npm run data:check            # the vendored synthetic study matches its record (:check-source asks gsm.bio)
+npm run kit:check             # the vendored safety.viz bundle matches its record (:check-source asks safety.viz)
 ```
 
 Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test:e2e`, `evidence:check` and `requirements:check` all pass. CI runs the same.
@@ -27,6 +28,8 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - Name a test by the requirement ID it evidences and the issue it belongs to: `'CORE-API-001: … (#1)'`. Unit tests for a module go in `tests/unit/<module>/`, browser tests in `tests/e2e/<module>.spec.js`.
 - No statistical inference in JavaScript. A chart asks R through the connection and draws what comes back.
 - `src/core/` is pure: no page, no chart, no network, nothing imported from outside it. A chart takes its variables through `core.variable` and its rows through `core.frame`; do not resolve a variable anywhere else.
+- A chart is built from `SafetyViz.kit`, found on the page when the chart is made. Nothing under `src/` imports safety.viz or Chart.js. Never edit `site/vendor/safety.viz/`: it is safety.viz's bundle, copied by `node tools/vendor-safety-viz.mjs`.
+- A chart may describe the values it draws (counts, quantiles, a mean, a density outline) and nothing more. Those numbers are held to desktop R by `tests/fixtures/group-comparison-r.json`, which `Rscript tools/r-group-comparison.R` writes; never type a number into it.
 - No runtime dependencies in package.json. safety.viz and webR are loaded beside the bundle on a page, never bundled; webR is loaded on first use.
 - The only file that knows webR's API is `src/r/webREngine.js`. Unit and browser tests of the connection use a stub engine or the stand-in at `tests/e2e/fixtures/fake-webr/`; they never reach the network.
 - The `RCON-LIVE-*` browser tests run real R from webR's public CDN and need the network. They fail when it is unreachable; do not make them skip or retry.
