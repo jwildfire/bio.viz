@@ -81,10 +81,10 @@ function lookUp(store, name, { data, args, dataId }) {
   const entry = store.get(keyFor(name, args, dataId));
   if (!entry) return miss(`with these arguments on the data ${describe(dataId)}`);
   if (entry.rows !== void 0) {
-    const given = Array.isArray(data) ? data.length : "none";
-    if (given !== entry.rows) {
+    const given2 = Array.isArray(data) ? data.length : "none";
+    if (given2 !== entry.rows) {
       return miss(
-        `fits the data given: it was computed on ${entry.rows} rows, and ${given} were given`
+        `fits the data given: it was computed on ${entry.rows} rows, and ${given2} were given`
       );
     }
   }
@@ -387,13 +387,467 @@ function formatStatistic(statistic) {
   if (!method) return refused("the result does not name its method");
   if (!counts) return refused("the result does not give the counts it used");
   const adjustment = text(result.adjustment);
-  const label = adjustment && adjustment.toLowerCase() !== "none" ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
-  return { status: "shown", text: `${method}: ${formatP(p)} (${counts}). ${label}` };
+  const label2 = adjustment && adjustment.toLowerCase() !== "none" ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
+  return { status: "shown", text: `${method}: ${formatP(p)} (${counts}). ${label2}` };
+}
+
+// src/core/index.js
+var core_exports = {};
+__export(core_exports, {
+  BASELINE_STATS: () => BASELINE_STATS,
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS,
+  DROPPED: () => DROPPED,
+  UNUSED: () => UNUSED,
+  VALUE_TYPES: () => VALUE_TYPES,
+  frame: () => frame,
+  label: () => label,
+  variable: () => variable
+});
+
+// src/core/variable.js
+var VALUE_TYPES = Object.freeze([
+  "raw",
+  "baseline",
+  "change",
+  "fold_change",
+  "percent_change"
+]);
+var KEYS = ["measure", "visit", "value", "col", "type", "cut"];
+var isText = (value) => typeof value === "string" && value.trim() !== "";
+var given = (value) => value !== void 0 && value !== null;
+var refuse = (message) => {
+  throw new TypeError(`bio.viz: ${message}`);
+};
+function variable(spec) {
+  if (spec === null || typeof spec !== "object" || Array.isArray(spec)) {
+    refuse(
+      "a variable must be an object: { measure, visit, value } for a biomarker at a visit, or { col } for a column."
+    );
+  }
+  const written = JSON.stringify(spec);
+  const unknown = Object.keys(spec).filter((key) => key !== "kind" && !KEYS.includes(key));
+  if (unknown.length) {
+    refuse(
+      `the variable ${written} has a key that is not known: ${unknown.join(", ")}. A variable takes ${KEYS.filter((key) => key !== "cut").join(", ")}.`
+    );
+  }
+  if (given(spec.cut)) {
+    refuse(
+      `the variable ${written} asks for a cut, and the cut rule is not available yet: it arrives with cross-tabulation. Until then a group comes from a column.`
+    );
+  }
+  const hasMeasure = given(spec.measure);
+  const hasColumn2 = given(spec.col);
+  if (hasMeasure === hasColumn2) {
+    refuse(
+      `the variable ${written} must name a biomarker (\`measure\`) or a column (\`col\`), and it names ${hasMeasure ? "both" : "neither"}.`
+    );
+  }
+  if (hasColumn2) {
+    if (!isText(spec.col)) refuse(`the variable ${written}: \`col\` must be the name of a column.`);
+    for (const key of ["visit", "value"]) {
+      if (given(spec[key])) {
+        refuse(`the variable ${written} is a column, and a column takes no \`${key}\`.`);
+      }
+    }
+    if (given(spec.type) && spec.type !== "number") {
+      refuse(
+        `the variable ${written}: \`type\` can only be 'number', to read the column as a number.`
+      );
+    }
+    return Object.freeze({ kind: "column", col: spec.col, type: spec.type ?? null });
+  }
+  if (!isText(spec.measure)) {
+    refuse(`the variable ${written}: \`measure\` must be the name of a biomarker.`);
+  }
+  if (given(spec.type)) {
+    refuse(
+      `the variable ${written} is a biomarker, which is always a number: it takes no \`type\`.`
+    );
+  }
+  const value = spec.value ?? "raw";
+  if (!VALUE_TYPES.includes(value)) {
+    refuse(
+      `the variable ${written}: \`value\` must be one of ${VALUE_TYPES.join(", ")}, and it is ${JSON.stringify(spec.value)}.`
+    );
+  }
+  if (value === "baseline") {
+    if (given(spec.visit)) {
+      refuse(
+        `the variable ${written} is a baseline value, which is read at the baseline visits named in settings: it takes no \`visit\`.`
+      );
+    }
+    return Object.freeze({ kind: "measure", measure: spec.measure, visit: null, value });
+  }
+  if (!isText(spec.visit)) {
+    refuse(`the variable ${written} must name its visit: \`visit\` is missing or empty.`);
+  }
+  return Object.freeze({ kind: "measure", measure: spec.measure, visit: spec.visit, value });
+}
+var WORDS = {
+  change: "change from baseline",
+  fold_change: "fold change from baseline",
+  percent_change: "percent change from baseline"
+};
+function label(spec) {
+  const read = variable(spec);
+  if (read.kind === "column") return read.col;
+  if (read.value === "baseline") return `${read.measure} at baseline`;
+  const at = `${read.measure} at ${read.visit}`;
+  return read.value === "raw" ? at : `${at}, ${WORDS[read.value]}`;
+}
+
+// src/core/reasons.js
+var DROPPED = Object.freeze({
+  NOT_IN_PARTICIPANT_TABLE: "Not in the participant table",
+  NO_RESULT: "No result at the visit",
+  MISSING_RESULT: "Result at the visit is missing or not a number",
+  NO_BASELINE: "No baseline result",
+  MISSING_BASELINE: "Baseline result is missing or not a number",
+  ZERO_BASELINE: "Baseline is zero",
+  NEGATIVE_BASELINE: "Baseline is negative",
+  EMPTY_COLUMN: "Column is empty",
+  VARYING_COLUMN: "Column has more than one value for the participant",
+  NOT_A_NUMBER: "Column value is not a number"
+});
+var UNUSED = Object.freeze({
+  NO_ID: "Row has no participant id",
+  DUPLICATE_PARTICIPANT: "Later row for a participant already in the participant table",
+  DUPLICATE_RESULT: "Later result for the same participant, biomarker and visit",
+  MISSING_RESULT: "Result is missing or not a number"
+});
+
+// src/core/settings.js
+var BASELINE_STATS = Object.freeze(["mean", "min", "max", "first"]);
+var DEFAULT_SETTINGS = Object.freeze({
+  id_col: "USUBJID",
+  measure_col: "TEST",
+  value_col: "STRESN",
+  visit_col: "VISIT",
+  visit_order_col: "VISITNUM",
+  participant_id_col: null,
+  baseline_visits: null,
+  baseline_stat: "mean",
+  required: null
+});
+var isText2 = (value) => typeof value === "string" && value.trim() !== "";
+var isPlainObject2 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+var refuse2 = (message) => {
+  throw new TypeError(`bio.viz: ${message}`);
+};
+function textList(value, name) {
+  const list = typeof value === "string" ? [value] : value;
+  if (!Array.isArray(list) || list.length === 0 || !list.every(isText2)) {
+    refuse2(`\`${name}\` must be a name, or a list of names, and none of them empty.`);
+  }
+  return [...new Set(list)];
+}
+function readSettings(overrides) {
+  if (overrides !== void 0 && overrides !== null && !isPlainObject2(overrides)) {
+    refuse2("settings must be an object.");
+  }
+  const given2 = overrides || {};
+  for (const key of Object.keys(given2)) {
+    if (!(key in DEFAULT_SETTINGS)) {
+      refuse2(
+        `\`${key}\` is not a setting. The settings are ${Object.keys(DEFAULT_SETTINGS).join(", ")}.`
+      );
+    }
+  }
+  const settings = { ...DEFAULT_SETTINGS };
+  for (const [key, value] of Object.entries(given2)) {
+    if (value !== void 0) settings[key] = value;
+  }
+  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+    if (!isText2(settings[key])) refuse2(`\`${key}\` must be the name of a column.`);
+  }
+  for (const key of ["visit_order_col", "participant_id_col"]) {
+    if (settings[key] !== null && !isText2(settings[key])) {
+      refuse2(`\`${key}\` must be the name of a column, or null.`);
+    }
+  }
+  if (settings.baseline_visits !== null) {
+    settings.baseline_visits = textList(settings.baseline_visits, "baseline_visits");
+  }
+  if (!BASELINE_STATS.includes(settings.baseline_stat)) {
+    refuse2(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(", ")}.`);
+  }
+  if (settings.required !== null) {
+    if (!Array.isArray(settings.required) || !settings.required.every(isText2)) {
+      refuse2("`required` must be a list of the names of variables, or null for all of them.");
+    }
+    settings.required = [...new Set(settings.required)];
+  }
+  return settings;
+}
+
+// src/core/frame.js
+var refuse3 = (message) => {
+  throw new TypeError(`bio.viz: ${message}`);
+};
+var isPlainObject3 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+var isBlank = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
+function toNumber(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+var hasColumn = (rows, column) => rows.some((row) => row !== null && column in row);
+function readTable(table, name) {
+  if (!Array.isArray(table) || !table.every(isPlainObject3)) {
+    refuse3(`\`${name}\` must be an array of records, one object per row.`);
+  }
+  return table;
+}
+function needColumn(rows, column, setting, table) {
+  if (!hasColumn(rows, column)) {
+    refuse3(`the ${table} table has no column \`${column}\` (\`${setting}\`).`);
+  }
+}
+function visitsInOrder(results, settings) {
+  const byName = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
+  const ordered = settings.visit_order_col !== null && hasColumn(results, settings.visit_order_col);
+  const order2 = /* @__PURE__ */ new Map();
+  for (const row of results) {
+    const visit = row[settings.visit_col];
+    if (isBlank(visit) || order2.has(String(visit))) continue;
+    if (toNumber(row[settings.value_col]) === null) continue;
+    order2.set(String(visit), ordered ? toNumber(row[settings.visit_order_col]) : null);
+  }
+  return [...order2.keys()].sort((a, b) => {
+    const [first, second] = [order2.get(a), order2.get(b)];
+    if (first !== null && second !== null && first !== second) return first - second;
+    return byName(a, b);
+  });
+}
+var STATS = {
+  mean: (values) => values.reduce((sum, value) => sum + value, 0) / values.length,
+  min: (values) => Math.min(...values),
+  max: (values) => Math.max(...values),
+  first: (values) => values[0]
+};
+function frame(tables, variables, settings) {
+  const config = readSettings(settings);
+  if (!isPlainObject3(tables))
+    refuse3("frame() takes the tables as an object: { results, participants }.");
+  for (const key of Object.keys(tables)) {
+    if (!["results", "participants"].includes(key)) {
+      refuse3(`frame() takes the tables \`results\` and \`participants\`, not \`${key}\`.`);
+    }
+  }
+  const results = readTable(tables.results, "results");
+  const participantTable = tables.participants === void 0 || tables.participants === null ? null : readTable(tables.participants, "participants");
+  if (!isPlainObject3(variables) || Object.keys(variables).length === 0) {
+    refuse3("frame() takes the variables as an object, each under the name of its field.");
+  }
+  const idCol = config.id_col;
+  const named = Object.entries(variables).map(([name, spec]) => {
+    if (name.trim() === "" || name !== name.trim()) {
+      refuse3("a variable needs a name with no space at either end: it is the name of its field.");
+    }
+    if (name === idCol) {
+      refuse3(`a variable cannot be named \`${name}\`: that field holds the participant's id.`);
+    }
+    return { name, variable: variable(spec) };
+  });
+  const required = new Set(
+    config.required === null ? named.map(({ name }) => name) : config.required
+  );
+  for (const name of required) {
+    if (!named.some((entry) => entry.name === name)) {
+      refuse3(`\`required\` names \`${name}\`, which is not one of the variables.`);
+    }
+  }
+  const unusedCounts = /* @__PURE__ */ new Map();
+  const unused = (reason, table, n = 1) => {
+    const key = `${table}\0${reason}`;
+    unusedCounts.set(key, (unusedCounts.get(key) || 0) + n);
+  };
+  needColumn(results, idCol, "id_col", "results");
+  const measures = named.filter(({ variable: variable2 }) => variable2.kind === "measure");
+  const needsBaseline = measures.some(({ variable: variable2 }) => variable2.value !== "raw");
+  if (measures.length) {
+    needColumn(results, config.measure_col, "measure_col", "results");
+    needColumn(results, config.visit_col, "visit_col", "results");
+    needColumn(results, config.value_col, "value_col", "results");
+  }
+  const participantIdCol = config.participant_id_col || idCol;
+  if (participantTable) {
+    needColumn(participantTable, participantIdCol, "participant_id_col", "participant");
+  }
+  const columnSource = /* @__PURE__ */ new Map();
+  for (const { variable: variable2 } of named) {
+    if (variable2.kind !== "column") continue;
+    if (participantTable && hasColumn(participantTable, variable2.col)) {
+      columnSource.set(variable2.col, "participants");
+    } else if (hasColumn(results, variable2.col)) {
+      columnSource.set(variable2.col, "results");
+    } else {
+      refuse3(
+        `no table has the column \`${variable2.col}\`: it is not in the ${participantTable ? "participant table or the " : ""}results table.`
+      );
+    }
+  }
+  const resultRows = /* @__PURE__ */ new Map();
+  for (const row of results) {
+    if (isBlank(row[idCol])) {
+      unused(UNUSED.NO_ID, "results");
+      continue;
+    }
+    const id = String(row[idCol]);
+    if (!resultRows.has(id)) resultRows.set(id, []);
+    resultRows.get(id).push(row);
+  }
+  const participantRow = /* @__PURE__ */ new Map();
+  let ids = [...resultRows.keys()];
+  let notInTable = 0;
+  if (participantTable) {
+    for (const row of participantTable) {
+      if (isBlank(row[participantIdCol])) {
+        unused(UNUSED.NO_ID, "participants");
+      } else if (participantRow.has(String(row[participantIdCol]))) {
+        unused(UNUSED.DUPLICATE_PARTICIPANT, "participants");
+      } else {
+        participantRow.set(String(row[participantIdCol]), row);
+      }
+    }
+    notInTable = ids.filter((id) => !participantRow.has(id)).length;
+    ids = [...participantRow.keys()];
+  }
+  let baselineVisits = null;
+  if (needsBaseline) {
+    baselineVisits = config.baseline_visits || visitsInOrder(results, config).slice(0, 1);
+  }
+  const consulted = /* @__PURE__ */ new Map();
+  for (const { variable: variable2 } of measures) {
+    if (!consulted.has(variable2.measure)) consulted.set(variable2.measure, /* @__PURE__ */ new Set());
+    const visits = consulted.get(variable2.measure);
+    if (variable2.visit !== null) visits.add(variable2.visit);
+    if (variable2.value !== "raw") baselineVisits.forEach((visit) => visits.add(visit));
+  }
+  const cells = /* @__PURE__ */ new Map();
+  const cellKey = (id, measure, visit) => `${id}\0${measure}\0${visit}`;
+  for (const id of ids) {
+    for (const row of resultRows.get(id) || []) {
+      const measure = String(row[config.measure_col]);
+      const visit = String(row[config.visit_col]);
+      if (!consulted.has(measure) || !consulted.get(measure).has(visit)) continue;
+      const key = cellKey(id, measure, visit);
+      if (!cells.has(key)) cells.set(key, { rows: 0, values: [] });
+      const cell = cells.get(key);
+      cell.rows += 1;
+      const number = toNumber(row[config.value_col]);
+      if (number === null) {
+        unused(UNUSED.MISSING_RESULT, "results");
+      } else {
+        if (cell.values.length) unused(UNUSED.DUPLICATE_RESULT, "results");
+        cell.values.push(number);
+      }
+    }
+  }
+  const resultAt = (id, measure, visit) => {
+    const cell = cells.get(cellKey(id, measure, visit));
+    if (!cell) return { reason: DROPPED.NO_RESULT };
+    if (!cell.values.length) return { reason: DROPPED.MISSING_RESULT };
+    return { value: cell.values[0] };
+  };
+  const baselineOf = (id, measure) => {
+    const found = baselineVisits.map((visit) => resultAt(id, measure, visit));
+    const values = found.filter((entry) => "value" in entry).map((entry) => entry.value);
+    if (values.length) return { value: STATS[config.baseline_stat](values) };
+    const missing = found.some((entry) => entry.reason === DROPPED.MISSING_RESULT);
+    return { reason: missing ? DROPPED.MISSING_BASELINE : DROPPED.NO_BASELINE };
+  };
+  const measureValue = (id, { measure, visit, value }) => {
+    if (value === "raw") return resultAt(id, measure, visit);
+    if (value === "baseline") return baselineOf(id, measure);
+    const at = resultAt(id, measure, visit);
+    if ("reason" in at) return at;
+    const baseline = baselineOf(id, measure);
+    if ("reason" in baseline) return baseline;
+    if (value === "change") return { value: at.value - baseline.value };
+    if (baseline.value === 0) return { reason: DROPPED.ZERO_BASELINE };
+    if (baseline.value < 0) return { reason: DROPPED.NEGATIVE_BASELINE };
+    if (value === "fold_change") return { value: at.value / baseline.value };
+    return { value: 100 * (at.value - baseline.value) / baseline.value };
+  };
+  const columnValue = (id, { col, type }) => {
+    let found;
+    if (columnSource.get(col) === "participants") {
+      found = participantRow.get(id)[col];
+      if (isBlank(found)) return { reason: DROPPED.EMPTY_COLUMN };
+    } else {
+      const distinct = /* @__PURE__ */ new Map();
+      for (const row of resultRows.get(id) || []) {
+        if (!isBlank(row[col]) && !distinct.has(String(row[col])))
+          distinct.set(String(row[col]), row[col]);
+      }
+      if (distinct.size === 0) return { reason: DROPPED.EMPTY_COLUMN };
+      if (distinct.size > 1) return { reason: DROPPED.VARYING_COLUMN };
+      [found] = distinct.values();
+    }
+    if (type !== "number") return { value: found };
+    const number = toNumber(found);
+    return number === null ? { reason: DROPPED.NOT_A_NUMBER } : { value: number };
+  };
+  const data = [];
+  const droppedCounts = /* @__PURE__ */ new Map();
+  for (const id of ids) {
+    const source = participantRow.get(id) || (resultRows.get(id) || [])[0];
+    const record = { [idCol]: source[participantRow.has(id) ? participantIdCol : idCol] };
+    let leftOut = null;
+    for (const { name, variable: variable2 } of named) {
+      const found = variable2.kind === "measure" ? measureValue(id, variable2) : columnValue(id, variable2);
+      if ("value" in found) {
+        record[name] = found.value;
+      } else if (required.has(name)) {
+        leftOut = { name, reason: found.reason };
+        break;
+      } else {
+        record[name] = null;
+      }
+    }
+    if (leftOut) {
+      const key = `${leftOut.name}\0${leftOut.reason}`;
+      droppedCounts.set(key, (droppedCounts.get(key) || 0) + 1);
+    } else {
+      data.push(record);
+    }
+  }
+  const reasons = Object.values(DROPPED);
+  const dropped = [];
+  if (notInTable) {
+    dropped.push({ reason: DROPPED.NOT_IN_PARTICIPANT_TABLE, variable: null, n: notInTable });
+  }
+  for (const { name } of named) {
+    for (const reason of reasons) {
+      const n = droppedCounts.get(`${name}\0${reason}`);
+      if (n) dropped.push({ reason, variable: name, n });
+    }
+  }
+  const unusedList = [];
+  for (const table of ["results", "participants"]) {
+    for (const reason of Object.values(UNUSED)) {
+      const n = unusedCounts.get(`${table}\0${reason}`);
+      if (n) unusedList.push({ reason, table, n });
+    }
+  }
+  return {
+    data,
+    id_col: idCol,
+    variables: Object.fromEntries(named.map(({ name, variable: variable2 }) => [name, variable2])),
+    participants: ids.length + notInTable,
+    dropped,
+    unused: unusedList,
+    baseline_visits: baselineVisits
+  };
 }
 
 // src/main.js
 var version = "0.1.0";
 export {
+  core_exports as core,
   r_exports as r,
   version
 };

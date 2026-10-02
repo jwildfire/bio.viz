@@ -26,6 +26,7 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - After adding, removing or renaming a test, run `npm run evidence` and commit `docs/evidence/`.
 - Name a test by the requirement ID it evidences and the issue it belongs to: `'CORE-API-001: … (#1)'`. Unit tests for a module go in `tests/unit/<module>/`, browser tests in `tests/e2e/<module>.spec.js`.
 - No statistical inference in JavaScript. A chart asks R through the connection and draws what comes back.
+- `src/core/` is pure: no page, no chart, no network, nothing imported from outside it. A chart takes its variables through `core.variable` and its rows through `core.frame`; do not resolve a variable anywhere else.
 - No runtime dependencies in package.json. safety.viz and webR are loaded beside the bundle on a page, never bundled; webR is loaded on first use.
 - The only file that knows webR's API is `src/r/webREngine.js`. Unit and browser tests of the connection use a stub engine or the stand-in at `tests/e2e/fixtures/fake-webr/`; they never reach the network.
 - The `RCON-LIVE-*` browser tests run real R from webR's public CDN and need the network. They fail when it is unreachable; do not make them skip or retry.

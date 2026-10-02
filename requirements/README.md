@@ -6,7 +6,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 
 | Matrix                             | Module       | Rows |
 | ---------------------------------- | ------------ | ---: |
-| [core.md](core.md)                 | core         |   25 |
+| [core.md](core.md)                 | core         |   51 |
 | [r-connection.md](r-connection.md) | r-connection |   64 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.

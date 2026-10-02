@@ -360,6 +360,15 @@ test.describe('API reference', () => {
           `${module}: ${name}`
         ).toBe(true);
       }
+      // Every link within the page leads to a heading on it.
+      const dangling = await page
+        .locator('.api-toc a, .api-body a[href^="#"]')
+        .evaluateAll((links) =>
+          links
+            .map((link) => link.getAttribute('href'))
+            .filter((href) => !document.getElementById(href.slice(1)))
+        );
+      expect(dangling, module).toEqual([]);
     }
   });
 
