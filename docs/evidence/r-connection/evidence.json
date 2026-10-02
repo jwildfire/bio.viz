@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T12:44:33.080Z",
+  "generatedAt": "2026-10-02T12:59:47.667Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -47,6 +47,78 @@
       "status": "pass",
       "requirementIds": ["RCON-LAZY-004"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-001: with no R attached the page answers that statistics are unavailable (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-002: the precomputed form gives the desktop-R answers with no R loaded and no request to R's hosts (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-003: R in the browser gives the rank-sum result desktop R gives, within the stated tolerance (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-004: the survival package installs and loads, and the log-rank result is the one desktop R gives (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-004"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-005: cold, a first visit with nothing cached: megabytes, requests and seconds to the first result (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-005"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-006: reload, the page loaded again with the files cached: R starts again and gives the same answers (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-006"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-007: warm, R already running: a repeated call makes no request (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-007"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-008: the R check page holds at a 390px-wide viewport with its results shown (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-008"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-009: the three measurements are recorded where a reader of the run can find them (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-009"],
+      "issueRefs": [3],
       "screenshots": []
     },
     {
@@ -410,6 +482,78 @@
       "screenshots": []
     },
     {
+      "test": "R check page RCON-PAGE-001: the page has a button that starts R, the stated tolerance and the versions desktop R used (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-002: the recorded megabytes, requests and seconds are shown for cold, reload and warm, with how they were measured (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-003: with no recorded measurement the page says so and prints no number in its place (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-001: two numbers agree when they differ by no more than 1 part in 10^8, and not beyond (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-002: every member is compared: numbers by the tolerance, text and structure exactly (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-003: a number is shown in full, so a difference in the last digit is visible (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-004: a table is read from CSV with its numeric columns as numbers and blanks as missing (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-004"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: the committed expected results RCON-CHECK-005: the expected results name the script, the R version and the survival version that made them (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-005"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: the committed expected results RCON-CHECK-006: each expected result is a stored result on its committed table, which the precomputed form answers (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-006"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
       "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
       "suite": "unit",
       "status": "pass",
@@ -519,6 +663,14 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page links to the R check page (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [3],
       "screenshots": []
     },
     {
