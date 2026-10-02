@@ -1,16 +1,13 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T18:49:21.954Z",
+  "generatedAt": "2026-10-02T20:41:13.554Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37049898315",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37049898315"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -717,6 +714,22 @@
       "screenshots": []
     },
     {
+      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-001: a group’s estimate comes with its interval at the level R gave, and its p-value with its method, the group’s count and its label, by the rules a whole result is held to (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-GRP-001"],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-002: a group with no name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words and no number (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-GRP-002"],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
       "test": "formatStatistic: the formatted text PVAL-FMT-001: an ordinary p-value is shown to three decimals with its method and counts (#2)",
       "suite": "unit",
       "status": "pass",
@@ -882,6 +895,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
       "screenshots": []
     },
     {
