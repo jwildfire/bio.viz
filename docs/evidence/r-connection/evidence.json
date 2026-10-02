@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T22:58:28.641Z",
+  "generatedAt": "2026-10-02T23:03:28.143Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37075237060",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37075237060"
+    "id": "37075634503",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37075634503"
   },
   "records": [
     {
