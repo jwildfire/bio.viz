@@ -162,6 +162,16 @@ It does not refuse on what the tables hold. A biomarker or a visit that no row h
 
 It changes nothing it is given.
 
+## `visits(results, settings)`
+
+The visits of a results table, in visit order, as a list of names. The order is the visit-order column's when the table has one, and otherwise the names', with numbers inside a name counted as numbers, so `Week 2` comes before `Week 12`. Only visits with at least one usable result are listed. A chart offers these in its visit control, and the first of them is the baseline visit when `baseline_visits` names none.
+
+```js
+BioViz.core.visits(results); // ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']
+```
+
+`results` is the results table and `settings` the same settings `frame` takes; only the column names are read.
+
 ## `DEFAULT_SETTINGS`
 
 The settings and their defaults. The names are safety.viz's, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.

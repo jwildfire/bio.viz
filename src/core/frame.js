@@ -78,6 +78,25 @@ function visitsInOrder(results, settings) {
   });
 }
 
+/**
+ * The visits of a results table, in visit order: by the visit-order column when
+ * the table has one, and otherwise by name, with numbers inside a name counted
+ * as numbers. Only visits with at least one usable result are listed. The first
+ * of them is the baseline visit when settings name none.
+ *
+ * @param {object[]} results The results table.
+ * @param {object} [settings] Column names; see DEFAULT_SETTINGS.
+ * @returns {string[]} The visits' names.
+ */
+export function visits(results, settings) {
+  const config = readSettings(settings);
+  const rows = readTable(results, 'results');
+  if (!rows.length) return [];
+  needColumn(rows, config.visit_col, 'visit_col', 'results');
+  needColumn(rows, config.value_col, 'value_col', 'results');
+  return visitsInOrder(rows, config);
+}
+
 const STATS = {
   mean: (values) => values.reduce((sum, value) => sum + value, 0) / values.length,
   min: (values) => Math.min(...values),

@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-02T14:28:32.253Z",
+  "generatedAt": "2026-10-02T16:38:04.735Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37020055875",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37020055875"
+    "id": "37035194189",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37035194189"
   },
   "records": [
     {
@@ -221,6 +221,14 @@
       "screenshots": []
     },
     {
+      "test": "API reference: held to the code GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
       "test": "bio.viz core CORE-API-001: BioViz.version in the committed IIFE bundle equals the package version (#1)",
       "suite": "unit",
       "status": "pass",
@@ -330,6 +338,14 @@
       "status": "pass",
       "requirementIds": ["CORE-FRAME-013"],
       "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-016: the visits of a results table are listed in visit order, the ones with a usable result only (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-016"],
+      "issueRefs": [9],
       "screenshots": []
     },
     {
@@ -709,6 +725,14 @@
       "screenshots": ["CORE-SITE-003-gallery.png"]
     },
     {
+      "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
       "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
       "suite": "unit",
       "status": "pass",
@@ -754,6 +778,14 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page says there are no charts yet only while none is published (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [9],
       "screenshots": []
     },
     {

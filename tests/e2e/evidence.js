@@ -44,10 +44,15 @@ export async function captureEvidence(target, requirementId, slug, { module } = 
   const name = `${requirementId}-${slug}.png`;
   const page = typeof target.page === 'function' ? target.page() : target;
   if (CANONICAL) {
-    expect(
-      await fontsLoaded(page),
-      'the page’s web fonts did not load, so the capture would not be the page a reader sees'
-    ).toEqual([]);
+    // A page of the site asks for the three families; a fixture page asks for
+    // none, and is drawn in the runner's own fonts.
+    const missing = await fontsLoaded(page);
+    if (new URL(page.url()).pathname.includes('/_site/')) {
+      expect(
+        missing,
+        'the page’s web fonts did not load, so the capture would not be the page a reader sees'
+      ).toEqual([]);
+    }
     await expect(target).toHaveScreenshot([owner, name]);
   } else {
     await page.evaluate(() => document.fonts.ready);

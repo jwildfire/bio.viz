@@ -1,0 +1,1913 @@
+USUBJID,VISIT,VISITNUM,TEST,STRESU,STRESN,ARM
+BIO-001,Baseline,0,IL-6,pg/mL,6.927,Placebo
+BIO-001,Week 2,2,IL-6,pg/mL,5.473,Placebo
+BIO-001,Week 4,4,IL-6,pg/mL,5.9,Placebo
+BIO-001,Week 8,8,IL-6,pg/mL,6.379,Placebo
+BIO-001,Week 12,12,IL-6,pg/mL,5.879,Placebo
+BIO-001,Baseline,0,CRP,mg/L,1.537,Placebo
+BIO-001,Week 2,2,CRP,mg/L,1.103,Placebo
+BIO-001,Week 4,4,CRP,mg/L,3.482,Placebo
+BIO-001,Week 8,8,CRP,mg/L,3.463,Placebo
+BIO-001,Week 12,12,CRP,mg/L,1.061,Placebo
+BIO-002,Baseline,0,IL-6,pg/mL,5.36,Treatment
+BIO-002,Week 2,2,IL-6,pg/mL,2.747,Treatment
+BIO-002,Week 4,4,IL-6,pg/mL,3.252,Treatment
+BIO-002,Week 8,8,IL-6,pg/mL,2.919,Treatment
+BIO-002,Week 12,12,IL-6,pg/mL,2.799,Treatment
+BIO-002,Baseline,0,CRP,mg/L,2.372,Treatment
+BIO-002,Week 2,2,CRP,mg/L,1.238,Treatment
+BIO-002,Week 4,4,CRP,mg/L,1.597,Treatment
+BIO-002,Week 8,8,CRP,mg/L,2.095,Treatment
+BIO-002,Week 12,12,CRP,mg/L,1.328,Treatment
+BIO-003,Baseline,0,IL-6,pg/mL,9.778,Placebo
+BIO-003,Week 4,4,IL-6,pg/mL,8.038,Placebo
+BIO-003,Week 12,12,IL-6,pg/mL,9.41,Placebo
+BIO-003,Baseline,0,CRP,mg/L,2.146,Placebo
+BIO-003,Week 4,4,CRP,mg/L,2.62,Placebo
+BIO-003,Week 12,12,CRP,mg/L,4.285,Placebo
+BIO-004,Baseline,0,IL-6,pg/mL,9.151,Treatment
+BIO-004,Week 2,2,IL-6,pg/mL,5.495,Treatment
+BIO-004,Week 4,4,IL-6,pg/mL,6.017,Treatment
+BIO-004,Week 8,8,IL-6,pg/mL,6.771,Treatment
+BIO-004,Week 12,12,IL-6,pg/mL,5.208,Treatment
+BIO-004,Baseline,0,CRP,mg/L,1.971,Treatment
+BIO-004,Week 2,2,CRP,mg/L,1.768,Treatment
+BIO-004,Week 4,4,CRP,mg/L,1.491,Treatment
+BIO-004,Week 8,8,CRP,mg/L,1.376,Treatment
+BIO-004,Week 12,12,CRP,mg/L,2.255,Treatment
+BIO-005,Baseline,0,IL-6,pg/mL,10.242,Treatment
+BIO-005,Week 2,2,IL-6,pg/mL,8.526,Treatment
+BIO-005,Week 4,4,IL-6,pg/mL,10.764,Treatment
+BIO-005,Week 8,8,IL-6,pg/mL,7.858,Treatment
+BIO-005,Week 12,12,IL-6,pg/mL,8.12,Treatment
+BIO-005,Baseline,0,CRP,mg/L,2.628,Treatment
+BIO-005,Week 2,2,CRP,mg/L,3.687,Treatment
+BIO-005,Week 4,4,CRP,mg/L,1.698,Treatment
+BIO-005,Week 8,8,CRP,mg/L,3.359,Treatment
+BIO-005,Week 12,12,CRP,mg/L,2.908,Treatment
+BIO-006,Baseline,0,IL-6,pg/mL,6.872,Placebo
+BIO-006,Week 2,2,IL-6,pg/mL,6.149,Placebo
+BIO-006,Week 4,4,IL-6,pg/mL,6.366,Placebo
+BIO-006,Week 8,8,IL-6,pg/mL,5.161,Placebo
+BIO-006,Baseline,0,CRP,mg/L,0.502,Placebo
+BIO-006,Week 2,2,CRP,mg/L,0.717,Placebo
+BIO-006,Week 4,4,CRP,mg/L,1.423,Placebo
+BIO-006,Week 8,8,CRP,mg/L,1.113,Placebo
+BIO-007,Baseline,0,IL-6,pg/mL,7.909,Treatment
+BIO-007,Week 2,2,IL-6,pg/mL,5.158,Treatment
+BIO-007,Week 4,4,IL-6,pg/mL,6.59,Treatment
+BIO-007,Week 8,8,IL-6,pg/mL,6.936,Treatment
+BIO-007,Week 12,12,IL-6,pg/mL,6.226,Treatment
+BIO-007,Baseline,0,CRP,mg/L,2.479,Treatment
+BIO-007,Week 2,2,CRP,mg/L,2.508,Treatment
+BIO-007,Week 4,4,CRP,mg/L,1.369,Treatment
+BIO-007,Week 8,8,CRP,mg/L,2.055,Treatment
+BIO-007,Week 12,12,CRP,mg/L,1.044,Treatment
+BIO-008,Baseline,0,IL-6,pg/mL,5.968,Placebo
+BIO-008,Week 2,2,IL-6,pg/mL,5.645,Placebo
+BIO-008,Week 4,4,IL-6,pg/mL,6.269,Placebo
+BIO-008,Week 8,8,IL-6,pg/mL,7.285,Placebo
+BIO-008,Week 12,12,IL-6,pg/mL,5.636,Placebo
+BIO-008,Baseline,0,CRP,mg/L,3.499,Placebo
+BIO-008,Week 2,2,CRP,mg/L,5.876,Placebo
+BIO-008,Week 4,4,CRP,mg/L,6.494,Placebo
+BIO-008,Week 8,8,CRP,mg/L,2.296,Placebo
+BIO-008,Week 12,12,CRP,mg/L,4.659,Placebo
+BIO-009,Baseline,0,IL-6,pg/mL,9.614,Treatment
+BIO-009,Week 2,2,IL-6,pg/mL,7.597,Treatment
+BIO-009,Week 4,4,IL-6,pg/mL,5.961,Treatment
+BIO-009,Week 8,8,IL-6,pg/mL,6.711,Treatment
+BIO-009,Week 12,12,IL-6,pg/mL,6.719,Treatment
+BIO-009,Baseline,0,CRP,mg/L,2.669,Treatment
+BIO-009,Week 2,2,CRP,mg/L,7.075,Treatment
+BIO-009,Week 4,4,CRP,mg/L,3.418,Treatment
+BIO-009,Week 8,8,CRP,mg/L,1.609,Treatment
+BIO-009,Week 12,12,CRP,mg/L,5.122,Treatment
+BIO-010,Baseline,0,IL-6,pg/mL,6.822,Placebo
+BIO-010,Week 8,8,IL-6,pg/mL,6.805,Placebo
+BIO-010,Week 12,12,IL-6,pg/mL,7.917,Placebo
+BIO-010,Baseline,0,CRP,mg/L,3.592,Placebo
+BIO-010,Week 8,8,CRP,mg/L,5.9,Placebo
+BIO-010,Week 12,12,CRP,mg/L,4.735,Placebo
+BIO-011,Baseline,0,IL-6,pg/mL,7.194,Treatment
+BIO-011,Week 2,2,IL-6,pg/mL,6.761,Treatment
+BIO-011,Week 4,4,IL-6,pg/mL,7.6,Treatment
+BIO-011,Week 8,8,IL-6,pg/mL,6.873,Treatment
+BIO-011,Baseline,0,CRP,mg/L,2.222,Treatment
+BIO-011,Week 2,2,CRP,mg/L,4.857,Treatment
+BIO-011,Week 4,4,CRP,mg/L,5.431,Treatment
+BIO-011,Week 8,8,CRP,mg/L,4.142,Treatment
+BIO-012,Baseline,0,IL-6,pg/mL,6.297,Placebo
+BIO-012,Week 2,2,IL-6,pg/mL,5.886,Placebo
+BIO-012,Week 4,4,IL-6,pg/mL,5.337,Placebo
+BIO-012,Week 8,8,IL-6,pg/mL,5.242,Placebo
+BIO-012,Week 12,12,IL-6,pg/mL,6.214,Placebo
+BIO-012,Baseline,0,CRP,mg/L,7.132,Placebo
+BIO-012,Week 2,2,CRP,mg/L,10.22,Placebo
+BIO-012,Week 4,4,CRP,mg/L,8.481,Placebo
+BIO-012,Week 8,8,CRP,mg/L,6.537,Placebo
+BIO-012,Week 12,12,CRP,mg/L,17.197,Placebo
+BIO-013,Baseline,0,IL-6,pg/mL,8.547,Placebo
+BIO-013,Week 2,2,IL-6,pg/mL,9.016,Placebo
+BIO-013,Week 4,4,IL-6,pg/mL,9.157,Placebo
+BIO-013,Week 8,8,IL-6,pg/mL,9.926,Placebo
+BIO-013,Week 12,12,IL-6,pg/mL,8.998,Placebo
+BIO-013,Baseline,0,CRP,mg/L,2.03,Placebo
+BIO-013,Week 2,2,CRP,mg/L,3.541,Placebo
+BIO-013,Week 4,4,CRP,mg/L,2.946,Placebo
+BIO-013,Week 8,8,CRP,mg/L,3.509,Placebo
+BIO-013,Week 12,12,CRP,mg/L,3.719,Placebo
+BIO-014,Baseline,0,IL-6,pg/mL,9.481,Treatment
+BIO-014,Week 2,2,IL-6,pg/mL,5.647,Treatment
+BIO-014,Week 4,4,IL-6,pg/mL,5.938,Treatment
+BIO-014,Week 8,8,IL-6,pg/mL,8.095,Treatment
+BIO-014,Week 12,12,IL-6,pg/mL,5.084,Treatment
+BIO-014,Baseline,0,CRP,mg/L,1.417,Treatment
+BIO-014,Week 2,2,CRP,mg/L,0.768,Treatment
+BIO-014,Week 4,4,CRP,mg/L,2.226,Treatment
+BIO-014,Week 8,8,CRP,mg/L,1.065,Treatment
+BIO-014,Week 12,12,CRP,mg/L,1.005,Treatment
+BIO-015,Baseline,0,IL-6,pg/mL,7.35,Placebo
+BIO-015,Week 2,2,IL-6,pg/mL,8.94,Placebo
+BIO-015,Week 4,4,IL-6,pg/mL,8.194,Placebo
+BIO-015,Week 12,12,IL-6,pg/mL,6.13,Placebo
+BIO-015,Baseline,0,CRP,mg/L,1.448,Placebo
+BIO-015,Week 2,2,CRP,mg/L,1.766,Placebo
+BIO-015,Week 4,4,CRP,mg/L,2.471,Placebo
+BIO-015,Week 12,12,CRP,mg/L,1.819,Placebo
+BIO-016,Baseline,0,IL-6,pg/mL,8.548,Placebo
+BIO-016,Week 2,2,IL-6,pg/mL,7.745,Placebo
+BIO-016,Week 4,4,IL-6,pg/mL,8.12,Placebo
+BIO-016,Week 8,8,IL-6,pg/mL,7.788,Placebo
+BIO-016,Week 12,12,IL-6,pg/mL,9.927,Placebo
+BIO-016,Baseline,0,CRP,mg/L,4.66,Placebo
+BIO-016,Week 2,2,CRP,mg/L,7.703,Placebo
+BIO-016,Week 4,4,CRP,mg/L,3.061,Placebo
+BIO-016,Week 8,8,CRP,mg/L,2.435,Placebo
+BIO-016,Week 12,12,CRP,mg/L,7.499,Placebo
+BIO-017,Baseline,0,IL-6,pg/mL,8.45,Placebo
+BIO-017,Week 2,2,IL-6,pg/mL,9.507,Placebo
+BIO-017,Week 4,4,IL-6,pg/mL,8.373,Placebo
+BIO-017,Week 8,8,IL-6,pg/mL,9.089,Placebo
+BIO-017,Week 12,12,IL-6,pg/mL,9.008,Placebo
+BIO-017,Baseline,0,CRP,mg/L,3.695,Placebo
+BIO-017,Week 2,2,CRP,mg/L,4.494,Placebo
+BIO-017,Week 4,4,CRP,mg/L,2.559,Placebo
+BIO-017,Week 8,8,CRP,mg/L,2.82,Placebo
+BIO-017,Week 12,12,CRP,mg/L,2.577,Placebo
+BIO-018,Baseline,0,IL-6,pg/mL,9.838,Treatment
+BIO-018,Week 2,2,IL-6,pg/mL,7.265,Treatment
+BIO-018,Week 4,4,IL-6,pg/mL,7.784,Treatment
+BIO-018,Week 8,8,IL-6,pg/mL,5.297,Treatment
+BIO-018,Week 12,12,IL-6,pg/mL,6.579,Treatment
+BIO-018,Baseline,0,CRP,mg/L,3.065,Treatment
+BIO-018,Week 2,2,CRP,mg/L,2.939,Treatment
+BIO-018,Week 4,4,CRP,mg/L,3.312,Treatment
+BIO-018,Week 8,8,CRP,mg/L,2.68,Treatment
+BIO-018,Week 12,12,CRP,mg/L,2.374,Treatment
+BIO-019,Baseline,0,IL-6,pg/mL,8.98,Treatment
+BIO-019,Week 2,2,IL-6,pg/mL,6.311,Treatment
+BIO-019,Week 4,4,IL-6,pg/mL,5.657,Treatment
+BIO-019,Week 8,8,IL-6,pg/mL,7.006,Treatment
+BIO-019,Week 12,12,IL-6,pg/mL,7.25,Treatment
+BIO-019,Baseline,0,CRP,mg/L,7.076,Treatment
+BIO-019,Week 2,2,CRP,mg/L,6.454,Treatment
+BIO-019,Week 4,4,CRP,mg/L,7.656,Treatment
+BIO-019,Week 8,8,CRP,mg/L,4.594,Treatment
+BIO-019,Week 12,12,CRP,mg/L,3.794,Treatment
+BIO-020,Baseline,0,IL-6,pg/mL,5.859,Treatment
+BIO-020,Week 2,2,IL-6,pg/mL,6.899,Treatment
+BIO-020,Week 4,4,IL-6,pg/mL,6.771,Treatment
+BIO-020,Week 8,8,IL-6,pg/mL,6.088,Treatment
+BIO-020,Week 12,12,IL-6,pg/mL,6.657,Treatment
+BIO-020,Baseline,0,CRP,mg/L,4.056,Treatment
+BIO-020,Week 2,2,CRP,mg/L,1.508,Treatment
+BIO-020,Week 4,4,CRP,mg/L,0.922,Treatment
+BIO-020,Week 8,8,CRP,mg/L,4.442,Treatment
+BIO-020,Week 12,12,CRP,mg/L,1.643,Treatment
+BIO-021,Baseline,0,IL-6,pg/mL,12.004,Placebo
+BIO-021,Week 2,2,IL-6,pg/mL,11.43,Placebo
+BIO-021,Week 4,4,IL-6,pg/mL,11.164,Placebo
+BIO-021,Week 8,8,IL-6,pg/mL,10.381,Placebo
+BIO-021,Week 12,12,IL-6,pg/mL,11.653,Placebo
+BIO-021,Baseline,0,CRP,mg/L,3.152,Placebo
+BIO-021,Week 2,2,CRP,mg/L,2.576,Placebo
+BIO-021,Week 4,4,CRP,mg/L,3.303,Placebo
+BIO-021,Week 8,8,CRP,mg/L,4.08,Placebo
+BIO-021,Week 12,12,CRP,mg/L,2.641,Placebo
+BIO-022,Baseline,0,IL-6,pg/mL,6.406,Treatment
+BIO-022,Week 2,2,IL-6,pg/mL,4.562,Treatment
+BIO-022,Week 4,4,IL-6,pg/mL,6.121,Treatment
+BIO-022,Week 8,8,IL-6,pg/mL,5.831,Treatment
+BIO-022,Week 12,12,IL-6,pg/mL,5.385,Treatment
+BIO-022,Baseline,0,CRP,mg/L,8.129,Treatment
+BIO-022,Week 2,2,CRP,mg/L,12.996,Treatment
+BIO-022,Week 4,4,CRP,mg/L,3.779,Treatment
+BIO-022,Week 8,8,CRP,mg/L,4.05,Treatment
+BIO-022,Week 12,12,CRP,mg/L,8.915,Treatment
+BIO-023,Baseline,0,IL-6,pg/mL,5.595,Placebo
+BIO-023,Week 2,2,IL-6,pg/mL,6.944,Placebo
+BIO-023,Week 4,4,IL-6,pg/mL,7.927,Placebo
+BIO-023,Week 8,8,IL-6,pg/mL,9.812,Placebo
+BIO-023,Week 12,12,IL-6,pg/mL,7.468,Placebo
+BIO-023,Baseline,0,CRP,mg/L,2.914,Placebo
+BIO-023,Week 2,2,CRP,mg/L,1.673,Placebo
+BIO-023,Week 4,4,CRP,mg/L,1.703,Placebo
+BIO-023,Week 8,8,CRP,mg/L,2.509,Placebo
+BIO-023,Week 12,12,CRP,mg/L,1.257,Placebo
+BIO-024,Baseline,0,IL-6,pg/mL,7.906,Treatment
+BIO-024,Week 2,2,IL-6,pg/mL,7.705,Treatment
+BIO-024,Week 4,4,IL-6,pg/mL,8.784,Treatment
+BIO-024,Week 8,8,IL-6,pg/mL,7.285,Treatment
+BIO-024,Week 12,12,IL-6,pg/mL,8.434,Treatment
+BIO-024,Baseline,0,CRP,mg/L,1.076,Treatment
+BIO-024,Week 2,2,CRP,mg/L,1.015,Treatment
+BIO-024,Week 4,4,CRP,mg/L,1.294,Treatment
+BIO-024,Week 8,8,CRP,mg/L,1.053,Treatment
+BIO-024,Week 12,12,CRP,mg/L,1.824,Treatment
+BIO-025,Baseline,0,IL-6,pg/mL,7.664,Placebo
+BIO-025,Week 2,2,IL-6,pg/mL,8.524,Placebo
+BIO-025,Week 4,4,IL-6,pg/mL,7.485,Placebo
+BIO-025,Week 8,8,IL-6,pg/mL,8.67,Placebo
+BIO-025,Week 12,12,IL-6,pg/mL,8.154,Placebo
+BIO-025,Baseline,0,CRP,mg/L,1.501,Placebo
+BIO-025,Week 2,2,CRP,mg/L,1.956,Placebo
+BIO-025,Week 4,4,CRP,mg/L,1.481,Placebo
+BIO-025,Week 8,8,CRP,mg/L,1.387,Placebo
+BIO-025,Week 12,12,CRP,mg/L,2.293,Placebo
+BIO-026,Baseline,0,IL-6,pg/mL,8.268,Placebo
+BIO-026,Week 2,2,IL-6,pg/mL,9.523,Placebo
+BIO-026,Week 4,4,IL-6,pg/mL,7.6,Placebo
+BIO-026,Week 8,8,IL-6,pg/mL,7.232,Placebo
+BIO-026,Week 12,12,IL-6,pg/mL,7.245,Placebo
+BIO-026,Baseline,0,CRP,mg/L,16.657,Placebo
+BIO-026,Week 2,2,CRP,mg/L,21.231,Placebo
+BIO-026,Week 4,4,CRP,mg/L,5.242,Placebo
+BIO-026,Week 8,8,CRP,mg/L,,Placebo
+BIO-026,Week 12,12,CRP,mg/L,11.486,Placebo
+BIO-027,Baseline,0,IL-6,pg/mL,6.341,Placebo
+BIO-027,Week 2,2,IL-6,pg/mL,9.377,Placebo
+BIO-027,Week 8,8,IL-6,pg/mL,7.599,Placebo
+BIO-027,Week 12,12,IL-6,pg/mL,10.2,Placebo
+BIO-027,Baseline,0,CRP,mg/L,1.375,Placebo
+BIO-027,Week 2,2,CRP,mg/L,1.045,Placebo
+BIO-027,Week 8,8,CRP,mg/L,1.506,Placebo
+BIO-027,Week 12,12,CRP,mg/L,1.5,Placebo
+BIO-028,Baseline,0,IL-6,pg/mL,8.506,Treatment
+BIO-028,Week 2,2,IL-6,pg/mL,7.107,Treatment
+BIO-028,Week 4,4,IL-6,pg/mL,6.188,Treatment
+BIO-028,Week 8,8,IL-6,pg/mL,5.992,Treatment
+BIO-028,Week 12,12,IL-6,pg/mL,6.252,Treatment
+BIO-028,Baseline,0,CRP,mg/L,1.935,Treatment
+BIO-028,Week 2,2,CRP,mg/L,1.039,Treatment
+BIO-028,Week 4,4,CRP,mg/L,1.789,Treatment
+BIO-028,Week 8,8,CRP,mg/L,2.981,Treatment
+BIO-028,Week 12,12,CRP,mg/L,1.359,Treatment
+BIO-029,Baseline,0,IL-6,pg/mL,5.744,Treatment
+BIO-029,Week 2,2,IL-6,pg/mL,6.355,Treatment
+BIO-029,Week 4,4,IL-6,pg/mL,5.316,Treatment
+BIO-029,Week 8,8,IL-6,pg/mL,5.738,Treatment
+BIO-029,Week 12,12,IL-6,pg/mL,5.868,Treatment
+BIO-029,Baseline,0,CRP,mg/L,1.36,Treatment
+BIO-029,Week 2,2,CRP,mg/L,3.924,Treatment
+BIO-029,Week 4,4,CRP,mg/L,3.51,Treatment
+BIO-029,Week 8,8,CRP,mg/L,2.677,Treatment
+BIO-029,Week 12,12,CRP,mg/L,2.292,Treatment
+BIO-030,Baseline,0,IL-6,pg/mL,8.893,Treatment
+BIO-030,Week 2,2,IL-6,pg/mL,7.769,Treatment
+BIO-030,Week 4,4,IL-6,pg/mL,9.368,Treatment
+BIO-030,Week 8,8,IL-6,pg/mL,7.174,Treatment
+BIO-030,Week 12,12,IL-6,pg/mL,7.061,Treatment
+BIO-030,Baseline,0,CRP,mg/L,1.364,Treatment
+BIO-030,Week 2,2,CRP,mg/L,2.452,Treatment
+BIO-030,Week 4,4,CRP,mg/L,1.358,Treatment
+BIO-030,Week 8,8,CRP,mg/L,1.08,Treatment
+BIO-030,Week 12,12,CRP,mg/L,2.182,Treatment
+BIO-031,Baseline,0,IL-6,pg/mL,9.182,Treatment
+BIO-031,Week 2,2,IL-6,pg/mL,6.896,Treatment
+BIO-031,Week 4,4,IL-6,pg/mL,6.824,Treatment
+BIO-031,Week 8,8,IL-6,pg/mL,7.348,Treatment
+BIO-031,Week 12,12,IL-6,pg/mL,7.538,Treatment
+BIO-031,Baseline,0,CRP,mg/L,2.274,Treatment
+BIO-031,Week 2,2,CRP,mg/L,3.512,Treatment
+BIO-031,Week 4,4,CRP,mg/L,1.651,Treatment
+BIO-031,Week 8,8,CRP,mg/L,3.342,Treatment
+BIO-031,Week 12,12,CRP,mg/L,2.365,Treatment
+BIO-032,Baseline,0,IL-6,pg/mL,7.333,Treatment
+BIO-032,Week 2,2,IL-6,pg/mL,5.632,Treatment
+BIO-032,Week 4,4,IL-6,pg/mL,5.84,Treatment
+BIO-032,Week 8,8,IL-6,pg/mL,5.234,Treatment
+BIO-032,Week 12,12,IL-6,pg/mL,6.565,Treatment
+BIO-032,Baseline,0,CRP,mg/L,2.449,Treatment
+BIO-032,Week 2,2,CRP,mg/L,5.302,Treatment
+BIO-032,Week 4,4,CRP,mg/L,9.218,Treatment
+BIO-032,Week 8,8,CRP,mg/L,2.111,Treatment
+BIO-032,Week 12,12,CRP,mg/L,3.182,Treatment
+BIO-033,Baseline,0,IL-6,pg/mL,8.772,Treatment
+BIO-033,Week 2,2,IL-6,pg/mL,7.535,Treatment
+BIO-033,Week 4,4,IL-6,pg/mL,9.236,Treatment
+BIO-033,Week 8,8,IL-6,pg/mL,7.333,Treatment
+BIO-033,Week 12,12,IL-6,pg/mL,9.244,Treatment
+BIO-033,Baseline,0,CRP,mg/L,4.183,Treatment
+BIO-033,Week 2,2,CRP,mg/L,1.573,Treatment
+BIO-033,Week 4,4,CRP,mg/L,1.066,Treatment
+BIO-033,Week 8,8,CRP,mg/L,1.654,Treatment
+BIO-033,Week 12,12,CRP,mg/L,1.99,Treatment
+BIO-034,Baseline,0,IL-6,pg/mL,8.145,Placebo
+BIO-034,Week 2,2,IL-6,pg/mL,6.271,Placebo
+BIO-034,Week 4,4,IL-6,pg/mL,6.981,Placebo
+BIO-034,Week 8,8,IL-6,pg/mL,7.674,Placebo
+BIO-034,Week 12,12,IL-6,pg/mL,8.412,Placebo
+BIO-034,Baseline,0,CRP,mg/L,2.11,Placebo
+BIO-034,Week 2,2,CRP,mg/L,2.836,Placebo
+BIO-034,Week 4,4,CRP,mg/L,2.58,Placebo
+BIO-034,Week 8,8,CRP,mg/L,1.91,Placebo
+BIO-034,Week 12,12,CRP,mg/L,2.578,Placebo
+BIO-035,Baseline,0,IL-6,pg/mL,6.347,Placebo
+BIO-035,Week 2,2,IL-6,pg/mL,,Placebo
+BIO-035,Week 4,4,IL-6,pg/mL,6.201,Placebo
+BIO-035,Week 8,8,IL-6,pg/mL,5.575,Placebo
+BIO-035,Week 12,12,IL-6,pg/mL,6.582,Placebo
+BIO-035,Baseline,0,CRP,mg/L,6.556,Placebo
+BIO-035,Week 2,2,CRP,mg/L,2.982,Placebo
+BIO-035,Week 4,4,CRP,mg/L,2.403,Placebo
+BIO-035,Week 8,8,CRP,mg/L,4.792,Placebo
+BIO-035,Week 12,12,CRP,mg/L,5.515,Placebo
+BIO-036,Baseline,0,IL-6,pg/mL,7.62,Treatment
+BIO-036,Week 2,2,IL-6,pg/mL,7.609,Treatment
+BIO-036,Week 4,4,IL-6,pg/mL,5.2,Treatment
+BIO-036,Week 8,8,IL-6,pg/mL,5.756,Treatment
+BIO-036,Week 12,12,IL-6,pg/mL,7.871,Treatment
+BIO-036,Baseline,0,CRP,mg/L,2.576,Treatment
+BIO-036,Week 2,2,CRP,mg/L,3.889,Treatment
+BIO-036,Week 4,4,CRP,mg/L,2.55,Treatment
+BIO-036,Week 8,8,CRP,mg/L,3.333,Treatment
+BIO-036,Week 12,12,CRP,mg/L,2.499,Treatment
+BIO-037,Baseline,0,IL-6,pg/mL,7.261,Placebo
+BIO-037,Week 2,2,IL-6,pg/mL,7.671,Placebo
+BIO-037,Week 4,4,IL-6,pg/mL,8.726,Placebo
+BIO-037,Week 8,8,IL-6,pg/mL,6.631,Placebo
+BIO-037,Week 12,12,IL-6,pg/mL,6.84,Placebo
+BIO-037,Baseline,0,CRP,mg/L,3.604,Placebo
+BIO-037,Week 2,2,CRP,mg/L,3.567,Placebo
+BIO-037,Week 4,4,CRP,mg/L,2.558,Placebo
+BIO-037,Week 8,8,CRP,mg/L,2.092,Placebo
+BIO-037,Week 12,12,CRP,mg/L,1.36,Placebo
+BIO-038,Baseline,0,IL-6,pg/mL,10.515,Treatment
+BIO-038,Week 2,2,IL-6,pg/mL,7.789,Treatment
+BIO-038,Week 4,4,IL-6,pg/mL,8.496,Treatment
+BIO-038,Week 8,8,IL-6,pg/mL,8.273,Treatment
+BIO-038,Week 12,12,IL-6,pg/mL,7.627,Treatment
+BIO-038,Baseline,0,CRP,mg/L,1.813,Treatment
+BIO-038,Week 2,2,CRP,mg/L,2.846,Treatment
+BIO-038,Week 4,4,CRP,mg/L,1.912,Treatment
+BIO-038,Week 8,8,CRP,mg/L,5.253,Treatment
+BIO-038,Week 12,12,CRP,mg/L,2.347,Treatment
+BIO-039,Baseline,0,IL-6,pg/mL,7.674,Placebo
+BIO-039,Week 2,2,IL-6,pg/mL,5.063,Placebo
+BIO-039,Week 4,4,IL-6,pg/mL,6.254,Placebo
+BIO-039,Week 8,8,IL-6,pg/mL,8.176,Placebo
+BIO-039,Week 12,12,IL-6,pg/mL,10.459,Placebo
+BIO-039,Baseline,0,CRP,mg/L,3.318,Placebo
+BIO-039,Week 2,2,CRP,mg/L,3.068,Placebo
+BIO-039,Week 4,4,CRP,mg/L,2.517,Placebo
+BIO-039,Week 8,8,CRP,mg/L,6.393,Placebo
+BIO-039,Week 12,12,CRP,mg/L,2.525,Placebo
+BIO-040,Baseline,0,IL-6,pg/mL,6.239,Treatment
+BIO-040,Week 2,2,IL-6,pg/mL,6.075,Treatment
+BIO-040,Week 4,4,IL-6,pg/mL,4.375,Treatment
+BIO-040,Week 8,8,IL-6,pg/mL,5.938,Treatment
+BIO-040,Baseline,0,CRP,mg/L,1.305,Treatment
+BIO-040,Week 2,2,CRP,mg/L,2.247,Treatment
+BIO-040,Week 4,4,CRP,mg/L,2.661,Treatment
+BIO-040,Week 8,8,CRP,mg/L,1.871,Treatment
+BIO-041,Baseline,0,IL-6,pg/mL,5.774,Treatment
+BIO-041,Week 2,2,IL-6,pg/mL,5.817,Treatment
+BIO-041,Week 4,4,IL-6,pg/mL,6.784,Treatment
+BIO-041,Week 8,8,IL-6,pg/mL,4.093,Treatment
+BIO-041,Week 12,12,IL-6,pg/mL,5.756,Treatment
+BIO-041,Baseline,0,CRP,mg/L,7.056,Treatment
+BIO-041,Week 2,2,CRP,mg/L,4.214,Treatment
+BIO-041,Week 4,4,CRP,mg/L,3.028,Treatment
+BIO-041,Week 8,8,CRP,mg/L,5.297,Treatment
+BIO-041,Week 12,12,CRP,mg/L,,Treatment
+BIO-042,Baseline,0,IL-6,pg/mL,9.268,Treatment
+BIO-042,Week 2,2,IL-6,pg/mL,6.731,Treatment
+BIO-042,Week 4,4,IL-6,pg/mL,7.297,Treatment
+BIO-042,Week 8,8,IL-6,pg/mL,7.655,Treatment
+BIO-042,Week 12,12,IL-6,pg/mL,6.525,Treatment
+BIO-042,Baseline,0,CRP,mg/L,3.486,Treatment
+BIO-042,Week 2,2,CRP,mg/L,2.881,Treatment
+BIO-042,Week 4,4,CRP,mg/L,2.791,Treatment
+BIO-042,Week 8,8,CRP,mg/L,4.528,Treatment
+BIO-042,Week 12,12,CRP,mg/L,2.329,Treatment
+BIO-043,Baseline,0,IL-6,pg/mL,8.291,Placebo
+BIO-043,Week 2,2,IL-6,pg/mL,8.496,Placebo
+BIO-043,Week 4,4,IL-6,pg/mL,9.854,Placebo
+BIO-043,Week 8,8,IL-6,pg/mL,8.104,Placebo
+BIO-043,Week 12,12,IL-6,pg/mL,6.651,Placebo
+BIO-043,Baseline,0,CRP,mg/L,9.064,Placebo
+BIO-043,Week 2,2,CRP,mg/L,5.652,Placebo
+BIO-043,Week 4,4,CRP,mg/L,9.741,Placebo
+BIO-043,Week 8,8,CRP,mg/L,5.849,Placebo
+BIO-043,Week 12,12,CRP,mg/L,12.327,Placebo
+BIO-044,Baseline,0,IL-6,pg/mL,10.028,Placebo
+BIO-044,Week 4,4,IL-6,pg/mL,11.429,Placebo
+BIO-044,Week 8,8,IL-6,pg/mL,10.155,Placebo
+BIO-044,Week 12,12,IL-6,pg/mL,9.241,Placebo
+BIO-044,Baseline,0,CRP,mg/L,2.808,Placebo
+BIO-044,Week 4,4,CRP,mg/L,3.22,Placebo
+BIO-044,Week 8,8,CRP,mg/L,2.461,Placebo
+BIO-044,Week 12,12,CRP,mg/L,4.882,Placebo
+BIO-045,Baseline,0,IL-6,pg/mL,8.511,Placebo
+BIO-045,Week 2,2,IL-6,pg/mL,8.186,Placebo
+BIO-045,Week 4,4,IL-6,pg/mL,9.045,Placebo
+BIO-045,Week 8,8,IL-6,pg/mL,9.645,Placebo
+BIO-045,Week 12,12,IL-6,pg/mL,8.552,Placebo
+BIO-045,Baseline,0,CRP,mg/L,3.949,Placebo
+BIO-045,Week 2,2,CRP,mg/L,1.035,Placebo
+BIO-045,Week 4,4,CRP,mg/L,6.185,Placebo
+BIO-045,Week 8,8,CRP,mg/L,2.121,Placebo
+BIO-045,Week 12,12,CRP,mg/L,1.767,Placebo
+BIO-046,Baseline,0,IL-6,pg/mL,6.951,Treatment
+BIO-046,Week 2,2,IL-6,pg/mL,6.151,Treatment
+BIO-046,Week 4,4,IL-6,pg/mL,6.743,Treatment
+BIO-046,Week 8,8,IL-6,pg/mL,7.273,Treatment
+BIO-046,Week 12,12,IL-6,pg/mL,5.394,Treatment
+BIO-046,Baseline,0,CRP,mg/L,1.23,Treatment
+BIO-046,Week 2,2,CRP,mg/L,1.982,Treatment
+BIO-046,Week 4,4,CRP,mg/L,1.964,Treatment
+BIO-046,Week 8,8,CRP,mg/L,1.931,Treatment
+BIO-046,Week 12,12,CRP,mg/L,2.827,Treatment
+BIO-047,Baseline,0,IL-6,pg/mL,7.464,Treatment
+BIO-047,Week 2,2,IL-6,pg/mL,5.719,Treatment
+BIO-047,Week 4,4,IL-6,pg/mL,6.408,Treatment
+BIO-047,Week 8,8,IL-6,pg/mL,5.638,Treatment
+BIO-047,Week 12,12,IL-6,pg/mL,4.55,Treatment
+BIO-047,Baseline,0,CRP,mg/L,2.727,Treatment
+BIO-047,Week 2,2,CRP,mg/L,4.693,Treatment
+BIO-047,Week 4,4,CRP,mg/L,3.959,Treatment
+BIO-047,Week 8,8,CRP,mg/L,2.909,Treatment
+BIO-047,Week 12,12,CRP,mg/L,4.562,Treatment
+BIO-048,Baseline,0,IL-6,pg/mL,8.356,Placebo
+BIO-048,Week 2,2,IL-6,pg/mL,6.41,Placebo
+BIO-048,Week 4,4,IL-6,pg/mL,7.951,Placebo
+BIO-048,Week 8,8,IL-6,pg/mL,6.029,Placebo
+BIO-048,Week 12,12,IL-6,pg/mL,8.332,Placebo
+BIO-048,Baseline,0,CRP,mg/L,4.448,Placebo
+BIO-048,Week 2,2,CRP,mg/L,2.256,Placebo
+BIO-048,Week 4,4,CRP,mg/L,2.481,Placebo
+BIO-048,Week 8,8,CRP,mg/L,1.57,Placebo
+BIO-048,Week 12,12,CRP,mg/L,2.393,Placebo
+BIO-049,Baseline,0,IL-6,pg/mL,10.445,Treatment
+BIO-049,Week 2,2,IL-6,pg/mL,9.869,Treatment
+BIO-049,Week 4,4,IL-6,pg/mL,9.01,Treatment
+BIO-049,Week 8,8,IL-6,pg/mL,9.558,Treatment
+BIO-049,Week 12,12,IL-6,pg/mL,8.896,Treatment
+BIO-049,Baseline,0,CRP,mg/L,7.907,Treatment
+BIO-049,Week 2,2,CRP,mg/L,12.501,Treatment
+BIO-049,Week 4,4,CRP,mg/L,6.605,Treatment
+BIO-049,Week 8,8,CRP,mg/L,7.928,Treatment
+BIO-049,Week 12,12,CRP,mg/L,7.205,Treatment
+BIO-050,Baseline,0,IL-6,pg/mL,8.358,Treatment
+BIO-050,Week 2,2,IL-6,pg/mL,7.155,Treatment
+BIO-050,Week 4,4,IL-6,pg/mL,6.113,Treatment
+BIO-050,Week 8,8,IL-6,pg/mL,5.307,Treatment
+BIO-050,Week 12,12,IL-6,pg/mL,7.238,Treatment
+BIO-050,Baseline,0,CRP,mg/L,5.731,Treatment
+BIO-050,Week 2,2,CRP,mg/L,2.651,Treatment
+BIO-050,Week 4,4,CRP,mg/L,4.812,Treatment
+BIO-050,Week 8,8,CRP,mg/L,3.675,Treatment
+BIO-050,Week 12,12,CRP,mg/L,5.074,Treatment
+BIO-051,Baseline,0,IL-6,pg/mL,8.273,Treatment
+BIO-051,Week 2,2,IL-6,pg/mL,,Treatment
+BIO-051,Week 4,4,IL-6,pg/mL,7.578,Treatment
+BIO-051,Week 12,12,IL-6,pg/mL,7.376,Treatment
+BIO-051,Baseline,0,CRP,mg/L,3.707,Treatment
+BIO-051,Week 2,2,CRP,mg/L,3.021,Treatment
+BIO-051,Week 4,4,CRP,mg/L,3.086,Treatment
+BIO-051,Week 12,12,CRP,mg/L,3.167,Treatment
+BIO-052,Baseline,0,IL-6,pg/mL,6.806,Treatment
+BIO-052,Week 2,2,IL-6,pg/mL,4.914,Treatment
+BIO-052,Week 4,4,IL-6,pg/mL,4.894,Treatment
+BIO-052,Week 8,8,IL-6,pg/mL,5.028,Treatment
+BIO-052,Week 12,12,IL-6,pg/mL,4.96,Treatment
+BIO-052,Baseline,0,CRP,mg/L,3.584,Treatment
+BIO-052,Week 2,2,CRP,mg/L,2.126,Treatment
+BIO-052,Week 4,4,CRP,mg/L,1.062,Treatment
+BIO-052,Week 8,8,CRP,mg/L,2.773,Treatment
+BIO-052,Week 12,12,CRP,mg/L,2.573,Treatment
+BIO-053,Baseline,0,IL-6,pg/mL,5.946,Treatment
+BIO-053,Week 2,2,IL-6,pg/mL,5.646,Treatment
+BIO-053,Week 4,4,IL-6,pg/mL,6.454,Treatment
+BIO-053,Week 8,8,IL-6,pg/mL,4.676,Treatment
+BIO-053,Baseline,0,CRP,mg/L,1.78,Treatment
+BIO-053,Week 2,2,CRP,mg/L,4.062,Treatment
+BIO-053,Week 4,4,CRP,mg/L,3.804,Treatment
+BIO-053,Week 8,8,CRP,mg/L,1.637,Treatment
+BIO-054,Baseline,0,IL-6,pg/mL,9.088,Placebo
+BIO-054,Week 2,2,IL-6,pg/mL,9.965,Placebo
+BIO-054,Week 4,4,IL-6,pg/mL,11.017,Placebo
+BIO-054,Week 12,12,IL-6,pg/mL,11.386,Placebo
+BIO-054,Baseline,0,CRP,mg/L,8.704,Placebo
+BIO-054,Week 2,2,CRP,mg/L,,Placebo
+BIO-054,Week 4,4,CRP,mg/L,7.555,Placebo
+BIO-054,Week 12,12,CRP,mg/L,4.062,Placebo
+BIO-055,Baseline,0,IL-6,pg/mL,8.908,Placebo
+BIO-055,Week 2,2,IL-6,pg/mL,11.179,Placebo
+BIO-055,Week 4,4,IL-6,pg/mL,7.996,Placebo
+BIO-055,Week 8,8,IL-6,pg/mL,8.787,Placebo
+BIO-055,Week 12,12,IL-6,pg/mL,8.919,Placebo
+BIO-055,Baseline,0,CRP,mg/L,1.919,Placebo
+BIO-055,Week 2,2,CRP,mg/L,4.847,Placebo
+BIO-055,Week 4,4,CRP,mg/L,1.822,Placebo
+BIO-055,Week 8,8,CRP,mg/L,5.422,Placebo
+BIO-055,Week 12,12,CRP,mg/L,3.477,Placebo
+BIO-056,Baseline,0,IL-6,pg/mL,8.499,Treatment
+BIO-056,Week 2,2,IL-6,pg/mL,8.258,Treatment
+BIO-056,Week 4,4,IL-6,pg/mL,8.307,Treatment
+BIO-056,Week 8,8,IL-6,pg/mL,7.072,Treatment
+BIO-056,Week 12,12,IL-6,pg/mL,7.641,Treatment
+BIO-056,Baseline,0,CRP,mg/L,3.077,Treatment
+BIO-056,Week 2,2,CRP,mg/L,3.23,Treatment
+BIO-056,Week 4,4,CRP,mg/L,3.989,Treatment
+BIO-056,Week 8,8,CRP,mg/L,7.217,Treatment
+BIO-056,Week 12,12,CRP,mg/L,4.234,Treatment
+BIO-057,Baseline,0,IL-6,pg/mL,6.546,Placebo
+BIO-057,Week 2,2,IL-6,pg/mL,6.303,Placebo
+BIO-057,Week 8,8,IL-6,pg/mL,5.719,Placebo
+BIO-057,Week 12,12,IL-6,pg/mL,8.044,Placebo
+BIO-057,Baseline,0,CRP,mg/L,1.064,Placebo
+BIO-057,Week 2,2,CRP,mg/L,1.888,Placebo
+BIO-057,Week 8,8,CRP,mg/L,2.359,Placebo
+BIO-057,Week 12,12,CRP,mg/L,2.567,Placebo
+BIO-058,Baseline,0,IL-6,pg/mL,8.743,Placebo
+BIO-058,Week 2,2,IL-6,pg/mL,7.267,Placebo
+BIO-058,Week 4,4,IL-6,pg/mL,8.284,Placebo
+BIO-058,Week 8,8,IL-6,pg/mL,7.836,Placebo
+BIO-058,Week 12,12,IL-6,pg/mL,9.177,Placebo
+BIO-058,Baseline,0,CRP,mg/L,3.795,Placebo
+BIO-058,Week 2,2,CRP,mg/L,4.045,Placebo
+BIO-058,Week 4,4,CRP,mg/L,4.204,Placebo
+BIO-058,Week 8,8,CRP,mg/L,3.076,Placebo
+BIO-058,Week 12,12,CRP,mg/L,3.769,Placebo
+BIO-059,Baseline,0,IL-6,pg/mL,5.154,Placebo
+BIO-059,Week 2,2,IL-6,pg/mL,3.829,Placebo
+BIO-059,Week 4,4,IL-6,pg/mL,4.122,Placebo
+BIO-059,Week 8,8,IL-6,pg/mL,5.376,Placebo
+BIO-059,Week 12,12,IL-6,pg/mL,6.189,Placebo
+BIO-059,Baseline,0,CRP,mg/L,6.673,Placebo
+BIO-059,Week 2,2,CRP,mg/L,4.67,Placebo
+BIO-059,Week 4,4,CRP,mg/L,8.883,Placebo
+BIO-059,Week 8,8,CRP,mg/L,5.345,Placebo
+BIO-059,Week 12,12,CRP,mg/L,6.328,Placebo
+BIO-060,Baseline,0,IL-6,pg/mL,7.507,Placebo
+BIO-060,Week 4,4,IL-6,pg/mL,6.547,Placebo
+BIO-060,Week 8,8,IL-6,pg/mL,6.135,Placebo
+BIO-060,Week 12,12,IL-6,pg/mL,6.101,Placebo
+BIO-060,Baseline,0,CRP,mg/L,6.599,Placebo
+BIO-060,Week 4,4,CRP,mg/L,2.964,Placebo
+BIO-060,Week 8,8,CRP,mg/L,2.881,Placebo
+BIO-060,Week 12,12,CRP,mg/L,3.299,Placebo
+BIO-061,Baseline,0,IL-6,pg/mL,9.436,Placebo
+BIO-061,Week 2,2,IL-6,pg/mL,5.709,Placebo
+BIO-061,Week 4,4,IL-6,pg/mL,8.063,Placebo
+BIO-061,Week 8,8,IL-6,pg/mL,6.491,Placebo
+BIO-061,Week 12,12,IL-6,pg/mL,7.241,Placebo
+BIO-061,Baseline,0,CRP,mg/L,11.857,Placebo
+BIO-061,Week 2,2,CRP,mg/L,10.741,Placebo
+BIO-061,Week 4,4,CRP,mg/L,7.43,Placebo
+BIO-061,Week 8,8,CRP,mg/L,11.019,Placebo
+BIO-061,Week 12,12,CRP,mg/L,3.216,Placebo
+BIO-062,Baseline,0,IL-6,pg/mL,6.534,Placebo
+BIO-062,Week 2,2,IL-6,pg/mL,5.189,Placebo
+BIO-062,Week 4,4,IL-6,pg/mL,7.075,Placebo
+BIO-062,Week 8,8,IL-6,pg/mL,6.119,Placebo
+BIO-062,Baseline,0,CRP,mg/L,2.656,Placebo
+BIO-062,Week 2,2,CRP,mg/L,2.586,Placebo
+BIO-062,Week 4,4,CRP,mg/L,4.053,Placebo
+BIO-062,Week 8,8,CRP,mg/L,5.015,Placebo
+BIO-063,Baseline,0,IL-6,pg/mL,8.45,Treatment
+BIO-063,Week 2,2,IL-6,pg/mL,4.916,Treatment
+BIO-063,Week 4,4,IL-6,pg/mL,5.637,Treatment
+BIO-063,Week 8,8,IL-6,pg/mL,8.58,Treatment
+BIO-063,Baseline,0,CRP,mg/L,1.036,Treatment
+BIO-063,Week 2,2,CRP,mg/L,1.907,Treatment
+BIO-063,Week 4,4,CRP,mg/L,2.895,Treatment
+BIO-063,Week 8,8,CRP,mg/L,1.982,Treatment
+BIO-064,Baseline,0,IL-6,pg/mL,4.871,Treatment
+BIO-064,Week 2,2,IL-6,pg/mL,4.771,Treatment
+BIO-064,Week 4,4,IL-6,pg/mL,5.139,Treatment
+BIO-064,Week 8,8,IL-6,pg/mL,6.01,Treatment
+BIO-064,Week 12,12,IL-6,pg/mL,6.063,Treatment
+BIO-064,Baseline,0,CRP,mg/L,2.619,Treatment
+BIO-064,Week 2,2,CRP,mg/L,6.034,Treatment
+BIO-064,Week 4,4,CRP,mg/L,4.469,Treatment
+BIO-064,Week 8,8,CRP,mg/L,5.386,Treatment
+BIO-064,Week 12,12,CRP,mg/L,5.293,Treatment
+BIO-065,Baseline,0,IL-6,pg/mL,6.11,Treatment
+BIO-065,Week 2,2,IL-6,pg/mL,4.134,Treatment
+BIO-065,Week 4,4,IL-6,pg/mL,5.14,Treatment
+BIO-065,Week 8,8,IL-6,pg/mL,5.637,Treatment
+BIO-065,Week 12,12,IL-6,pg/mL,4.531,Treatment
+BIO-065,Baseline,0,CRP,mg/L,2.44,Treatment
+BIO-065,Week 2,2,CRP,mg/L,2.678,Treatment
+BIO-065,Week 4,4,CRP,mg/L,2.205,Treatment
+BIO-065,Week 8,8,CRP,mg/L,2.648,Treatment
+BIO-065,Week 12,12,CRP,mg/L,2.072,Treatment
+BIO-066,Baseline,0,IL-6,pg/mL,7.63,Treatment
+BIO-066,Week 2,2,IL-6,pg/mL,6.706,Treatment
+BIO-066,Week 8,8,IL-6,pg/mL,5.428,Treatment
+BIO-066,Week 12,12,IL-6,pg/mL,5.153,Treatment
+BIO-066,Baseline,0,CRP,mg/L,8.39,Treatment
+BIO-066,Week 2,2,CRP,mg/L,5.077,Treatment
+BIO-066,Week 8,8,CRP,mg/L,5.728,Treatment
+BIO-066,Week 12,12,CRP,mg/L,9.977,Treatment
+BIO-067,Baseline,0,IL-6,pg/mL,8.171,Placebo
+BIO-067,Week 2,2,IL-6,pg/mL,9.44,Placebo
+BIO-067,Week 4,4,IL-6,pg/mL,8.115,Placebo
+BIO-067,Week 8,8,IL-6,pg/mL,9.787,Placebo
+BIO-067,Week 12,12,IL-6,pg/mL,,Placebo
+BIO-067,Baseline,0,CRP,mg/L,3.132,Placebo
+BIO-067,Week 2,2,CRP,mg/L,1.407,Placebo
+BIO-067,Week 4,4,CRP,mg/L,2.644,Placebo
+BIO-067,Week 8,8,CRP,mg/L,1.223,Placebo
+BIO-067,Week 12,12,CRP,mg/L,0.818,Placebo
+BIO-068,Baseline,0,IL-6,pg/mL,6.135,Placebo
+BIO-068,Week 2,2,IL-6,pg/mL,6.094,Placebo
+BIO-068,Week 4,4,IL-6,pg/mL,4.735,Placebo
+BIO-068,Week 8,8,IL-6,pg/mL,5.802,Placebo
+BIO-068,Week 12,12,IL-6,pg/mL,6.865,Placebo
+BIO-068,Baseline,0,CRP,mg/L,1.517,Placebo
+BIO-068,Week 2,2,CRP,mg/L,3.604,Placebo
+BIO-068,Week 4,4,CRP,mg/L,1.756,Placebo
+BIO-068,Week 8,8,CRP,mg/L,2.881,Placebo
+BIO-068,Week 12,12,CRP,mg/L,2.275,Placebo
+BIO-069,Baseline,0,IL-6,pg/mL,8.126,Treatment
+BIO-069,Week 2,2,IL-6,pg/mL,7.09,Treatment
+BIO-069,Week 4,4,IL-6,pg/mL,7.088,Treatment
+BIO-069,Week 8,8,IL-6,pg/mL,7.049,Treatment
+BIO-069,Week 12,12,IL-6,pg/mL,7.604,Treatment
+BIO-069,Baseline,0,CRP,mg/L,5.835,Treatment
+BIO-069,Week 2,2,CRP,mg/L,4.053,Treatment
+BIO-069,Week 4,4,CRP,mg/L,2.06,Treatment
+BIO-069,Week 8,8,CRP,mg/L,2.339,Treatment
+BIO-069,Week 12,12,CRP,mg/L,1.642,Treatment
+BIO-070,Baseline,0,IL-6,pg/mL,7.577,Placebo
+BIO-070,Week 2,2,IL-6,pg/mL,8.732,Placebo
+BIO-070,Week 4,4,IL-6,pg/mL,7.322,Placebo
+BIO-070,Week 8,8,IL-6,pg/mL,8.527,Placebo
+BIO-070,Week 12,12,IL-6,pg/mL,7.954,Placebo
+BIO-070,Baseline,0,CRP,mg/L,2.704,Placebo
+BIO-070,Week 2,2,CRP,mg/L,2.203,Placebo
+BIO-070,Week 4,4,CRP,mg/L,2.806,Placebo
+BIO-070,Week 8,8,CRP,mg/L,2.568,Placebo
+BIO-070,Week 12,12,CRP,mg/L,2.904,Placebo
+BIO-071,Baseline,0,IL-6,pg/mL,5.454,Placebo
+BIO-071,Week 2,2,IL-6,pg/mL,7.451,Placebo
+BIO-071,Week 4,4,IL-6,pg/mL,7.032,Placebo
+BIO-071,Week 8,8,IL-6,pg/mL,5.412,Placebo
+BIO-071,Week 12,12,IL-6,pg/mL,5.737,Placebo
+BIO-071,Baseline,0,CRP,mg/L,1.437,Placebo
+BIO-071,Week 2,2,CRP,mg/L,0.764,Placebo
+BIO-071,Week 4,4,CRP,mg/L,1.251,Placebo
+BIO-071,Week 8,8,CRP,mg/L,1.944,Placebo
+BIO-071,Week 12,12,CRP,mg/L,1.342,Placebo
+BIO-072,Baseline,0,IL-6,pg/mL,6.753,Treatment
+BIO-072,Week 8,8,IL-6,pg/mL,5.517,Treatment
+BIO-072,Week 12,12,IL-6,pg/mL,6.108,Treatment
+BIO-072,Baseline,0,CRP,mg/L,3.237,Treatment
+BIO-072,Week 8,8,CRP,mg/L,5.199,Treatment
+BIO-072,Week 12,12,CRP,mg/L,4.689,Treatment
+BIO-073,Baseline,0,IL-6,pg/mL,7.519,Treatment
+BIO-073,Week 2,2,IL-6,pg/mL,8.192,Treatment
+BIO-073,Week 8,8,IL-6,pg/mL,5.62,Treatment
+BIO-073,Week 12,12,IL-6,pg/mL,6.479,Treatment
+BIO-073,Baseline,0,CRP,mg/L,2.458,Treatment
+BIO-073,Week 2,2,CRP,mg/L,1.992,Treatment
+BIO-073,Week 8,8,CRP,mg/L,2.523,Treatment
+BIO-073,Week 12,12,CRP,mg/L,1.233,Treatment
+BIO-074,Baseline,0,IL-6,pg/mL,7.916,Treatment
+BIO-074,Week 2,2,IL-6,pg/mL,6.461,Treatment
+BIO-074,Week 8,8,IL-6,pg/mL,5.566,Treatment
+BIO-074,Week 12,12,IL-6,pg/mL,4.002,Treatment
+BIO-074,Baseline,0,CRP,mg/L,1.647,Treatment
+BIO-074,Week 2,2,CRP,mg/L,2.325,Treatment
+BIO-074,Week 8,8,CRP,mg/L,1.692,Treatment
+BIO-074,Week 12,12,CRP,mg/L,1.973,Treatment
+BIO-075,Baseline,0,IL-6,pg/mL,9.736,Placebo
+BIO-075,Week 2,2,IL-6,pg/mL,9.998,Placebo
+BIO-075,Week 4,4,IL-6,pg/mL,9.113,Placebo
+BIO-075,Week 8,8,IL-6,pg/mL,11.86,Placebo
+BIO-075,Week 12,12,IL-6,pg/mL,9.456,Placebo
+BIO-075,Baseline,0,CRP,mg/L,5.77,Placebo
+BIO-075,Week 2,2,CRP,mg/L,3.131,Placebo
+BIO-075,Week 4,4,CRP,mg/L,2.77,Placebo
+BIO-075,Week 8,8,CRP,mg/L,2.358,Placebo
+BIO-075,Week 12,12,CRP,mg/L,3.236,Placebo
+BIO-076,Baseline,0,IL-6,pg/mL,10.464,Placebo
+BIO-076,Week 2,2,IL-6,pg/mL,10.627,Placebo
+BIO-076,Week 4,4,IL-6,pg/mL,11.285,Placebo
+BIO-076,Week 8,8,IL-6,pg/mL,10.629,Placebo
+BIO-076,Week 12,12,IL-6,pg/mL,11.75,Placebo
+BIO-076,Baseline,0,CRP,mg/L,3.243,Placebo
+BIO-076,Week 2,2,CRP,mg/L,4.038,Placebo
+BIO-076,Week 4,4,CRP,mg/L,3.116,Placebo
+BIO-076,Week 8,8,CRP,mg/L,3.591,Placebo
+BIO-076,Week 12,12,CRP,mg/L,2.623,Placebo
+BIO-077,Baseline,0,IL-6,pg/mL,6.801,Treatment
+BIO-077,Week 2,2,IL-6,pg/mL,7.131,Treatment
+BIO-077,Week 4,4,IL-6,pg/mL,6.396,Treatment
+BIO-077,Week 8,8,IL-6,pg/mL,6.197,Treatment
+BIO-077,Week 12,12,IL-6,pg/mL,4.509,Treatment
+BIO-077,Baseline,0,CRP,mg/L,2.153,Treatment
+BIO-077,Week 2,2,CRP,mg/L,1.28,Treatment
+BIO-077,Week 4,4,CRP,mg/L,3.901,Treatment
+BIO-077,Week 8,8,CRP,mg/L,2.274,Treatment
+BIO-077,Week 12,12,CRP,mg/L,4.334,Treatment
+BIO-078,Baseline,0,IL-6,pg/mL,10.421,Treatment
+BIO-078,Week 2,2,IL-6,pg/mL,5.149,Treatment
+BIO-078,Week 4,4,IL-6,pg/mL,7.307,Treatment
+BIO-078,Week 8,8,IL-6,pg/mL,7.71,Treatment
+BIO-078,Week 12,12,IL-6,pg/mL,5.763,Treatment
+BIO-078,Baseline,0,CRP,mg/L,3.861,Treatment
+BIO-078,Week 2,2,CRP,mg/L,3.072,Treatment
+BIO-078,Week 4,4,CRP,mg/L,3.168,Treatment
+BIO-078,Week 8,8,CRP,mg/L,4.64,Treatment
+BIO-078,Week 12,12,CRP,mg/L,4.905,Treatment
+BIO-079,Baseline,0,IL-6,pg/mL,7.012,Placebo
+BIO-079,Week 2,2,IL-6,pg/mL,6.96,Placebo
+BIO-079,Week 4,4,IL-6,pg/mL,5.85,Placebo
+BIO-079,Week 8,8,IL-6,pg/mL,7.721,Placebo
+BIO-079,Week 12,12,IL-6,pg/mL,6.733,Placebo
+BIO-079,Baseline,0,CRP,mg/L,5.976,Placebo
+BIO-079,Week 2,2,CRP,mg/L,4.773,Placebo
+BIO-079,Week 4,4,CRP,mg/L,2.175,Placebo
+BIO-079,Week 8,8,CRP,mg/L,2.771,Placebo
+BIO-079,Week 12,12,CRP,mg/L,3.425,Placebo
+BIO-080,Baseline,0,IL-6,pg/mL,8.399,Placebo
+BIO-080,Week 2,2,IL-6,pg/mL,9.007,Placebo
+BIO-080,Week 4,4,IL-6,pg/mL,7.451,Placebo
+BIO-080,Week 8,8,IL-6,pg/mL,9.559,Placebo
+BIO-080,Week 12,12,IL-6,pg/mL,9.389,Placebo
+BIO-080,Baseline,0,CRP,mg/L,1.018,Placebo
+BIO-080,Week 2,2,CRP,mg/L,0.987,Placebo
+BIO-080,Week 4,4,CRP,mg/L,1.126,Placebo
+BIO-080,Week 8,8,CRP,mg/L,1.033,Placebo
+BIO-080,Week 12,12,CRP,mg/L,0.792,Placebo
+BIO-081,Baseline,0,IL-6,pg/mL,7.673,Placebo
+BIO-081,Week 2,2,IL-6,pg/mL,8.749,Placebo
+BIO-081,Week 4,4,IL-6,pg/mL,7.721,Placebo
+BIO-081,Week 8,8,IL-6,pg/mL,8.588,Placebo
+BIO-081,Week 12,12,IL-6,pg/mL,8.52,Placebo
+BIO-081,Baseline,0,CRP,mg/L,1.898,Placebo
+BIO-081,Week 2,2,CRP,mg/L,2.7,Placebo
+BIO-081,Week 4,4,CRP,mg/L,1.925,Placebo
+BIO-081,Week 8,8,CRP,mg/L,2.882,Placebo
+BIO-081,Week 12,12,CRP,mg/L,1.605,Placebo
+BIO-082,Baseline,0,IL-6,pg/mL,7.229,Treatment
+BIO-082,Week 2,2,IL-6,pg/mL,5.456,Treatment
+BIO-082,Week 8,8,IL-6,pg/mL,7.287,Treatment
+BIO-082,Week 12,12,IL-6,pg/mL,5.601,Treatment
+BIO-082,Baseline,0,CRP,mg/L,1.626,Treatment
+BIO-082,Week 2,2,CRP,mg/L,1.534,Treatment
+BIO-082,Week 8,8,CRP,mg/L,1.562,Treatment
+BIO-082,Week 12,12,CRP,mg/L,1.29,Treatment
+BIO-083,Baseline,0,IL-6,pg/mL,9.928,Placebo
+BIO-083,Week 2,2,IL-6,pg/mL,7.673,Placebo
+BIO-083,Week 4,4,IL-6,pg/mL,7.935,Placebo
+BIO-083,Week 8,8,IL-6,pg/mL,7.986,Placebo
+BIO-083,Week 12,12,IL-6,pg/mL,7.005,Placebo
+BIO-083,Baseline,0,CRP,mg/L,2.749,Placebo
+BIO-083,Week 2,2,CRP,mg/L,2.305,Placebo
+BIO-083,Week 4,4,CRP,mg/L,1.787,Placebo
+BIO-083,Week 8,8,CRP,mg/L,1.697,Placebo
+BIO-083,Week 12,12,CRP,mg/L,2.616,Placebo
+BIO-084,Baseline,0,IL-6,pg/mL,8.042,Placebo
+BIO-084,Week 2,2,IL-6,pg/mL,,Placebo
+BIO-084,Week 4,4,IL-6,pg/mL,5.637,Placebo
+BIO-084,Week 8,8,IL-6,pg/mL,7.116,Placebo
+BIO-084,Week 12,12,IL-6,pg/mL,7.638,Placebo
+BIO-084,Baseline,0,CRP,mg/L,1.521,Placebo
+BIO-084,Week 2,2,CRP,mg/L,1.824,Placebo
+BIO-084,Week 4,4,CRP,mg/L,3.279,Placebo
+BIO-084,Week 8,8,CRP,mg/L,3.996,Placebo
+BIO-084,Week 12,12,CRP,mg/L,1.241,Placebo
+BIO-085,Baseline,0,IL-6,pg/mL,7.36,Placebo
+BIO-085,Week 2,2,IL-6,pg/mL,7.861,Placebo
+BIO-085,Week 4,4,IL-6,pg/mL,7.26,Placebo
+BIO-085,Week 8,8,IL-6,pg/mL,7.048,Placebo
+BIO-085,Week 12,12,IL-6,pg/mL,7.198,Placebo
+BIO-085,Baseline,0,CRP,mg/L,3.304,Placebo
+BIO-085,Week 2,2,CRP,mg/L,1.336,Placebo
+BIO-085,Week 4,4,CRP,mg/L,4.622,Placebo
+BIO-085,Week 8,8,CRP,mg/L,3.131,Placebo
+BIO-085,Week 12,12,CRP,mg/L,1.86,Placebo
+BIO-086,Baseline,0,IL-6,pg/mL,9.427,Placebo
+BIO-086,Week 2,2,IL-6,pg/mL,9.463,Placebo
+BIO-086,Week 4,4,IL-6,pg/mL,11.34,Placebo
+BIO-086,Week 8,8,IL-6,pg/mL,11.381,Placebo
+BIO-086,Week 12,12,IL-6,pg/mL,10.488,Placebo
+BIO-086,Baseline,0,CRP,mg/L,7.647,Placebo
+BIO-086,Week 2,2,CRP,mg/L,5.028,Placebo
+BIO-086,Week 4,4,CRP,mg/L,5.479,Placebo
+BIO-086,Week 8,8,CRP,mg/L,3.208,Placebo
+BIO-086,Week 12,12,CRP,mg/L,3.08,Placebo
+BIO-087,Baseline,0,IL-6,pg/mL,7.486,Treatment
+BIO-087,Week 2,2,IL-6,pg/mL,7.888,Treatment
+BIO-087,Week 4,4,IL-6,pg/mL,5.783,Treatment
+BIO-087,Week 8,8,IL-6,pg/mL,6.223,Treatment
+BIO-087,Week 12,12,IL-6,pg/mL,7.28,Treatment
+BIO-087,Baseline,0,CRP,mg/L,3.421,Treatment
+BIO-087,Week 2,2,CRP,mg/L,2.351,Treatment
+BIO-087,Week 4,4,CRP,mg/L,4.76,Treatment
+BIO-087,Week 8,8,CRP,mg/L,4.035,Treatment
+BIO-087,Week 12,12,CRP,mg/L,3.884,Treatment
+BIO-088,Baseline,0,IL-6,pg/mL,9.554,Treatment
+BIO-088,Week 2,2,IL-6,pg/mL,6.455,Treatment
+BIO-088,Week 4,4,IL-6,pg/mL,6.083,Treatment
+BIO-088,Week 8,8,IL-6,pg/mL,7.843,Treatment
+BIO-088,Week 12,12,IL-6,pg/mL,6.175,Treatment
+BIO-088,Baseline,0,CRP,mg/L,1.592,Treatment
+BIO-088,Week 2,2,CRP,mg/L,1.875,Treatment
+BIO-088,Week 4,4,CRP,mg/L,2.456,Treatment
+BIO-088,Week 8,8,CRP,mg/L,2.623,Treatment
+BIO-088,Week 12,12,CRP,mg/L,1.252,Treatment
+BIO-089,Baseline,0,IL-6,pg/mL,8.302,Placebo
+BIO-089,Week 2,2,IL-6,pg/mL,9.842,Placebo
+BIO-089,Week 4,4,IL-6,pg/mL,11.926,Placebo
+BIO-089,Week 8,8,IL-6,pg/mL,7.627,Placebo
+BIO-089,Week 12,12,IL-6,pg/mL,10.818,Placebo
+BIO-089,Baseline,0,CRP,mg/L,6.025,Placebo
+BIO-089,Week 2,2,CRP,mg/L,2.639,Placebo
+BIO-089,Week 4,4,CRP,mg/L,3.321,Placebo
+BIO-089,Week 8,8,CRP,mg/L,9.735,Placebo
+BIO-089,Week 12,12,CRP,mg/L,2.427,Placebo
+BIO-090,Baseline,0,IL-6,pg/mL,8.277,Placebo
+BIO-090,Week 2,2,IL-6,pg/mL,8.409,Placebo
+BIO-090,Week 4,4,IL-6,pg/mL,7.991,Placebo
+BIO-090,Week 8,8,IL-6,pg/mL,10.869,Placebo
+BIO-090,Week 12,12,IL-6,pg/mL,7.691,Placebo
+BIO-090,Baseline,0,CRP,mg/L,2.748,Placebo
+BIO-090,Week 2,2,CRP,mg/L,3.187,Placebo
+BIO-090,Week 4,4,CRP,mg/L,2.367,Placebo
+BIO-090,Week 8,8,CRP,mg/L,3.871,Placebo
+BIO-090,Week 12,12,CRP,mg/L,2.736,Placebo
+BIO-091,Baseline,0,IL-6,pg/mL,8.137,Placebo
+BIO-091,Week 2,2,IL-6,pg/mL,9.89,Placebo
+BIO-091,Week 4,4,IL-6,pg/mL,7.389,Placebo
+BIO-091,Week 8,8,IL-6,pg/mL,7.646,Placebo
+BIO-091,Week 12,12,IL-6,pg/mL,7.205,Placebo
+BIO-091,Baseline,0,CRP,mg/L,2.795,Placebo
+BIO-091,Week 2,2,CRP,mg/L,4.624,Placebo
+BIO-091,Week 4,4,CRP,mg/L,3.138,Placebo
+BIO-091,Week 8,8,CRP,mg/L,3.324,Placebo
+BIO-091,Week 12,12,CRP,mg/L,1.507,Placebo
+BIO-092,Baseline,0,IL-6,pg/mL,7.473,Placebo
+BIO-092,Week 2,2,IL-6,pg/mL,6.824,Placebo
+BIO-092,Week 4,4,IL-6,pg/mL,8.358,Placebo
+BIO-092,Week 8,8,IL-6,pg/mL,8.594,Placebo
+BIO-092,Week 12,12,IL-6,pg/mL,8.443,Placebo
+BIO-092,Baseline,0,CRP,mg/L,3.427,Placebo
+BIO-092,Week 2,2,CRP,mg/L,5.437,Placebo
+BIO-092,Week 4,4,CRP,mg/L,2.955,Placebo
+BIO-092,Week 8,8,CRP,mg/L,2.674,Placebo
+BIO-092,Week 12,12,CRP,mg/L,2.93,Placebo
+BIO-093,Baseline,0,IL-6,pg/mL,9.152,Placebo
+BIO-093,Week 2,2,IL-6,pg/mL,10.483,Placebo
+BIO-093,Week 4,4,IL-6,pg/mL,9.692,Placebo
+BIO-093,Week 8,8,IL-6,pg/mL,9.561,Placebo
+BIO-093,Week 12,12,IL-6,pg/mL,11.412,Placebo
+BIO-093,Baseline,0,CRP,mg/L,1.692,Placebo
+BIO-093,Week 2,2,CRP,mg/L,2.401,Placebo
+BIO-093,Week 4,4,CRP,mg/L,1.383,Placebo
+BIO-093,Week 8,8,CRP,mg/L,2.706,Placebo
+BIO-093,Week 12,12,CRP,mg/L,3.113,Placebo
+BIO-094,Baseline,0,IL-6,pg/mL,8.598,Placebo
+BIO-094,Week 2,2,IL-6,pg/mL,8.112,Placebo
+BIO-094,Week 4,4,IL-6,pg/mL,7.821,Placebo
+BIO-094,Week 8,8,IL-6,pg/mL,7.039,Placebo
+BIO-094,Week 12,12,IL-6,pg/mL,9.396,Placebo
+BIO-094,Baseline,0,CRP,mg/L,1.569,Placebo
+BIO-094,Week 2,2,CRP,mg/L,2.872,Placebo
+BIO-094,Week 4,4,CRP,mg/L,2.198,Placebo
+BIO-094,Week 8,8,CRP,mg/L,4.606,Placebo
+BIO-094,Week 12,12,CRP,mg/L,,Placebo
+BIO-095,Baseline,0,IL-6,pg/mL,8.626,Placebo
+BIO-095,Week 2,2,IL-6,pg/mL,10.59,Placebo
+BIO-095,Week 4,4,IL-6,pg/mL,9.432,Placebo
+BIO-095,Week 8,8,IL-6,pg/mL,6.788,Placebo
+BIO-095,Week 12,12,IL-6,pg/mL,8.872,Placebo
+BIO-095,Baseline,0,CRP,mg/L,2.03,Placebo
+BIO-095,Week 2,2,CRP,mg/L,4.236,Placebo
+BIO-095,Week 4,4,CRP,mg/L,1.562,Placebo
+BIO-095,Week 8,8,CRP,mg/L,1.511,Placebo
+BIO-095,Week 12,12,CRP,mg/L,,Placebo
+BIO-096,Baseline,0,IL-6,pg/mL,7.425,Treatment
+BIO-096,Week 2,2,IL-6,pg/mL,8.741,Treatment
+BIO-096,Week 4,4,IL-6,pg/mL,8.437,Treatment
+BIO-096,Week 8,8,IL-6,pg/mL,6.72,Treatment
+BIO-096,Week 12,12,IL-6,pg/mL,7.089,Treatment
+BIO-096,Baseline,0,CRP,mg/L,6.133,Treatment
+BIO-096,Week 2,2,CRP,mg/L,13.363,Treatment
+BIO-096,Week 4,4,CRP,mg/L,3.498,Treatment
+BIO-096,Week 8,8,CRP,mg/L,15.053,Treatment
+BIO-096,Week 12,12,CRP,mg/L,7.637,Treatment
+BIO-097,Baseline,0,IL-6,pg/mL,9.655,Placebo
+BIO-097,Week 2,2,IL-6,pg/mL,9.402,Placebo
+BIO-097,Week 4,4,IL-6,pg/mL,8.062,Placebo
+BIO-097,Week 8,8,IL-6,pg/mL,8.269,Placebo
+BIO-097,Week 12,12,IL-6,pg/mL,9.062,Placebo
+BIO-097,Baseline,0,CRP,mg/L,1.201,Placebo
+BIO-097,Week 2,2,CRP,mg/L,0.881,Placebo
+BIO-097,Week 4,4,CRP,mg/L,1.396,Placebo
+BIO-097,Week 8,8,CRP,mg/L,1.255,Placebo
+BIO-097,Week 12,12,CRP,mg/L,2.143,Placebo
+BIO-098,Baseline,0,IL-6,pg/mL,9.21,Placebo
+BIO-098,Week 2,2,IL-6,pg/mL,8.61,Placebo
+BIO-098,Week 4,4,IL-6,pg/mL,8.411,Placebo
+BIO-098,Week 8,8,IL-6,pg/mL,8.732,Placebo
+BIO-098,Week 12,12,IL-6,pg/mL,7.895,Placebo
+BIO-098,Baseline,0,CRP,mg/L,1.328,Placebo
+BIO-098,Week 2,2,CRP,mg/L,1.844,Placebo
+BIO-098,Week 4,4,CRP,mg/L,2.4,Placebo
+BIO-098,Week 8,8,CRP,mg/L,2.081,Placebo
+BIO-098,Week 12,12,CRP,mg/L,1.635,Placebo
+BIO-099,Baseline,0,IL-6,pg/mL,7.79,Placebo
+BIO-099,Week 2,2,IL-6,pg/mL,5.415,Placebo
+BIO-099,Week 8,8,IL-6,pg/mL,9.37,Placebo
+BIO-099,Week 12,12,IL-6,pg/mL,8.653,Placebo
+BIO-099,Baseline,0,CRP,mg/L,2.865,Placebo
+BIO-099,Week 2,2,CRP,mg/L,3.714,Placebo
+BIO-099,Week 8,8,CRP,mg/L,3.855,Placebo
+BIO-099,Week 12,12,CRP,mg/L,3.105,Placebo
+BIO-100,Baseline,0,IL-6,pg/mL,10.208,Placebo
+BIO-100,Week 2,2,IL-6,pg/mL,7.678,Placebo
+BIO-100,Week 4,4,IL-6,pg/mL,9.489,Placebo
+BIO-100,Week 8,8,IL-6,pg/mL,9.839,Placebo
+BIO-100,Week 12,12,IL-6,pg/mL,,Placebo
+BIO-100,Baseline,0,CRP,mg/L,3.613,Placebo
+BIO-100,Week 2,2,CRP,mg/L,3.879,Placebo
+BIO-100,Week 4,4,CRP,mg/L,2.281,Placebo
+BIO-100,Week 8,8,CRP,mg/L,6.194,Placebo
+BIO-100,Week 12,12,CRP,mg/L,1.689,Placebo
+BIO-101,Baseline,0,IL-6,pg/mL,6.804,Placebo
+BIO-101,Week 2,2,IL-6,pg/mL,5.859,Placebo
+BIO-101,Week 4,4,IL-6,pg/mL,5.842,Placebo
+BIO-101,Week 8,8,IL-6,pg/mL,7.386,Placebo
+BIO-101,Week 12,12,IL-6,pg/mL,5.224,Placebo
+BIO-101,Baseline,0,CRP,mg/L,1.506,Placebo
+BIO-101,Week 2,2,CRP,mg/L,2.453,Placebo
+BIO-101,Week 4,4,CRP,mg/L,2.845,Placebo
+BIO-101,Week 8,8,CRP,mg/L,3.308,Placebo
+BIO-101,Week 12,12,CRP,mg/L,3.178,Placebo
+BIO-102,Baseline,0,IL-6,pg/mL,5.011,Treatment
+BIO-102,Week 2,2,IL-6,pg/mL,6.566,Treatment
+BIO-102,Week 4,4,IL-6,pg/mL,3.919,Treatment
+BIO-102,Week 8,8,IL-6,pg/mL,6.238,Treatment
+BIO-102,Week 12,12,IL-6,pg/mL,5.089,Treatment
+BIO-102,Baseline,0,CRP,mg/L,1.902,Treatment
+BIO-102,Week 2,2,CRP,mg/L,2.035,Treatment
+BIO-102,Week 4,4,CRP,mg/L,1.426,Treatment
+BIO-102,Week 8,8,CRP,mg/L,2.015,Treatment
+BIO-102,Week 12,12,CRP,mg/L,1.763,Treatment
+BIO-103,Baseline,0,IL-6,pg/mL,8.067,Treatment
+BIO-103,Week 2,2,IL-6,pg/mL,7.438,Treatment
+BIO-103,Week 4,4,IL-6,pg/mL,4.862,Treatment
+BIO-103,Week 8,8,IL-6,pg/mL,6.26,Treatment
+BIO-103,Week 12,12,IL-6,pg/mL,4.733,Treatment
+BIO-103,Baseline,0,CRP,mg/L,3.42,Treatment
+BIO-103,Week 2,2,CRP,mg/L,1.513,Treatment
+BIO-103,Week 4,4,CRP,mg/L,3.099,Treatment
+BIO-103,Week 8,8,CRP,mg/L,1.896,Treatment
+BIO-103,Week 12,12,CRP,mg/L,1.576,Treatment
+BIO-104,Baseline,0,IL-6,pg/mL,6.034,Treatment
+BIO-104,Week 2,2,IL-6,pg/mL,7.632,Treatment
+BIO-104,Week 4,4,IL-6,pg/mL,6.652,Treatment
+BIO-104,Week 8,8,IL-6,pg/mL,,Treatment
+BIO-104,Week 12,12,IL-6,pg/mL,7.243,Treatment
+BIO-104,Baseline,0,CRP,mg/L,2.196,Treatment
+BIO-104,Week 2,2,CRP,mg/L,2.744,Treatment
+BIO-104,Week 4,4,CRP,mg/L,2.31,Treatment
+BIO-104,Week 8,8,CRP,mg/L,3.515,Treatment
+BIO-104,Week 12,12,CRP,mg/L,2.271,Treatment
+BIO-105,Baseline,0,IL-6,pg/mL,8.069,Placebo
+BIO-105,Week 2,2,IL-6,pg/mL,8.329,Placebo
+BIO-105,Week 4,4,IL-6,pg/mL,9.075,Placebo
+BIO-105,Week 8,8,IL-6,pg/mL,7.967,Placebo
+BIO-105,Week 12,12,IL-6,pg/mL,8.721,Placebo
+BIO-105,Baseline,0,CRP,mg/L,2.826,Placebo
+BIO-105,Week 2,2,CRP,mg/L,1.095,Placebo
+BIO-105,Week 4,4,CRP,mg/L,1.636,Placebo
+BIO-105,Week 8,8,CRP,mg/L,1.364,Placebo
+BIO-105,Week 12,12,CRP,mg/L,1.623,Placebo
+BIO-106,Baseline,0,IL-6,pg/mL,8.93,Placebo
+BIO-106,Week 2,2,IL-6,pg/mL,8.33,Placebo
+BIO-106,Week 4,4,IL-6,pg/mL,9.89,Placebo
+BIO-106,Week 8,8,IL-6,pg/mL,8.795,Placebo
+BIO-106,Week 12,12,IL-6,pg/mL,9.514,Placebo
+BIO-106,Baseline,0,CRP,mg/L,2.331,Placebo
+BIO-106,Week 2,2,CRP,mg/L,,Placebo
+BIO-106,Week 4,4,CRP,mg/L,4.369,Placebo
+BIO-106,Week 8,8,CRP,mg/L,2.295,Placebo
+BIO-106,Week 12,12,CRP,mg/L,1.669,Placebo
+BIO-107,Baseline,0,IL-6,pg/mL,5.591,Placebo
+BIO-107,Week 2,2,IL-6,pg/mL,7.168,Placebo
+BIO-107,Week 4,4,IL-6,pg/mL,6.91,Placebo
+BIO-107,Week 8,8,IL-6,pg/mL,6.822,Placebo
+BIO-107,Week 12,12,IL-6,pg/mL,6.783,Placebo
+BIO-107,Baseline,0,CRP,mg/L,1.119,Placebo
+BIO-107,Week 2,2,CRP,mg/L,1.032,Placebo
+BIO-107,Week 4,4,CRP,mg/L,1.698,Placebo
+BIO-107,Week 8,8,CRP,mg/L,1.083,Placebo
+BIO-107,Week 12,12,CRP,mg/L,0.689,Placebo
+BIO-108,Baseline,0,IL-6,pg/mL,9.773,Treatment
+BIO-108,Week 2,2,IL-6,pg/mL,7.873,Treatment
+BIO-108,Week 4,4,IL-6,pg/mL,,Treatment
+BIO-108,Week 8,8,IL-6,pg/mL,8.498,Treatment
+BIO-108,Week 12,12,IL-6,pg/mL,8.026,Treatment
+BIO-108,Baseline,0,CRP,mg/L,3.407,Treatment
+BIO-108,Week 2,2,CRP,mg/L,1.635,Treatment
+BIO-108,Week 4,4,CRP,mg/L,2.782,Treatment
+BIO-108,Week 8,8,CRP,mg/L,2.923,Treatment
+BIO-108,Week 12,12,CRP,mg/L,2.15,Treatment
+BIO-109,Baseline,0,IL-6,pg/mL,8.437,Placebo
+BIO-109,Week 2,2,IL-6,pg/mL,8.299,Placebo
+BIO-109,Week 4,4,IL-6,pg/mL,8.852,Placebo
+BIO-109,Week 8,8,IL-6,pg/mL,9.633,Placebo
+BIO-109,Week 12,12,IL-6,pg/mL,6.56,Placebo
+BIO-109,Baseline,0,CRP,mg/L,1.766,Placebo
+BIO-109,Week 2,2,CRP,mg/L,3.285,Placebo
+BIO-109,Week 4,4,CRP,mg/L,2.969,Placebo
+BIO-109,Week 8,8,CRP,mg/L,3.89,Placebo
+BIO-109,Week 12,12,CRP,mg/L,4.392,Placebo
+BIO-110,Baseline,0,IL-6,pg/mL,7.637,Treatment
+BIO-110,Week 2,2,IL-6,pg/mL,7.609,Treatment
+BIO-110,Week 4,4,IL-6,pg/mL,8.256,Treatment
+BIO-110,Week 8,8,IL-6,pg/mL,9.116,Treatment
+BIO-110,Week 12,12,IL-6,pg/mL,7.146,Treatment
+BIO-110,Baseline,0,CRP,mg/L,3.269,Treatment
+BIO-110,Week 2,2,CRP,mg/L,3.238,Treatment
+BIO-110,Week 4,4,CRP,mg/L,2.37,Treatment
+BIO-110,Week 8,8,CRP,mg/L,2.931,Treatment
+BIO-110,Week 12,12,CRP,mg/L,6.213,Treatment
+BIO-111,Baseline,0,IL-6,pg/mL,5.791,Treatment
+BIO-111,Week 4,4,IL-6,pg/mL,6.841,Treatment
+BIO-111,Week 8,8,IL-6,pg/mL,5.694,Treatment
+BIO-111,Week 12,12,IL-6,pg/mL,7.152,Treatment
+BIO-111,Baseline,0,CRP,mg/L,6.131,Treatment
+BIO-111,Week 4,4,CRP,mg/L,2.357,Treatment
+BIO-111,Week 8,8,CRP,mg/L,1.747,Treatment
+BIO-111,Week 12,12,CRP,mg/L,3.706,Treatment
+BIO-112,Baseline,0,IL-6,pg/mL,10.472,Placebo
+BIO-112,Week 2,2,IL-6,pg/mL,11.539,Placebo
+BIO-112,Week 4,4,IL-6,pg/mL,10.046,Placebo
+BIO-112,Week 8,8,IL-6,pg/mL,8.769,Placebo
+BIO-112,Week 12,12,IL-6,pg/mL,7.244,Placebo
+BIO-112,Baseline,0,CRP,mg/L,3.129,Placebo
+BIO-112,Week 2,2,CRP,mg/L,1.554,Placebo
+BIO-112,Week 4,4,CRP,mg/L,1.745,Placebo
+BIO-112,Week 8,8,CRP,mg/L,3.222,Placebo
+BIO-112,Week 12,12,CRP,mg/L,4.149,Placebo
+BIO-113,Baseline,0,IL-6,pg/mL,8.857,Treatment
+BIO-113,Week 2,2,IL-6,pg/mL,7.48,Treatment
+BIO-113,Week 4,4,IL-6,pg/mL,6.482,Treatment
+BIO-113,Week 8,8,IL-6,pg/mL,8.296,Treatment
+BIO-113,Week 12,12,IL-6,pg/mL,7.426,Treatment
+BIO-113,Baseline,0,CRP,mg/L,2.773,Treatment
+BIO-113,Week 2,2,CRP,mg/L,2.694,Treatment
+BIO-113,Week 4,4,CRP,mg/L,2.481,Treatment
+BIO-113,Week 8,8,CRP,mg/L,1.412,Treatment
+BIO-113,Week 12,12,CRP,mg/L,2.296,Treatment
+BIO-114,Baseline,0,IL-6,pg/mL,8.594,Treatment
+BIO-114,Week 2,2,IL-6,pg/mL,6.18,Treatment
+BIO-114,Week 4,4,IL-6,pg/mL,8.438,Treatment
+BIO-114,Week 8,8,IL-6,pg/mL,6.923,Treatment
+BIO-114,Week 12,12,IL-6,pg/mL,6.578,Treatment
+BIO-114,Baseline,0,CRP,mg/L,1.356,Treatment
+BIO-114,Week 2,2,CRP,mg/L,3.787,Treatment
+BIO-114,Week 4,4,CRP,mg/L,4.074,Treatment
+BIO-114,Week 8,8,CRP,mg/L,2.623,Treatment
+BIO-114,Week 12,12,CRP,mg/L,1.923,Treatment
+BIO-115,Baseline,0,IL-6,pg/mL,7.86,Placebo
+BIO-115,Week 2,2,IL-6,pg/mL,10.995,Placebo
+BIO-115,Week 4,4,IL-6,pg/mL,10.13,Placebo
+BIO-115,Week 8,8,IL-6,pg/mL,8.334,Placebo
+BIO-115,Week 12,12,IL-6,pg/mL,9.374,Placebo
+BIO-115,Baseline,0,CRP,mg/L,1.927,Placebo
+BIO-115,Week 2,2,CRP,mg/L,1.802,Placebo
+BIO-115,Week 4,4,CRP,mg/L,2.369,Placebo
+BIO-115,Week 8,8,CRP,mg/L,0.965,Placebo
+BIO-115,Week 12,12,CRP,mg/L,1.465,Placebo
+BIO-116,Baseline,0,IL-6,pg/mL,9.095,Placebo
+BIO-116,Week 2,2,IL-6,pg/mL,6.528,Placebo
+BIO-116,Week 4,4,IL-6,pg/mL,7.539,Placebo
+BIO-116,Baseline,0,CRP,mg/L,3.115,Placebo
+BIO-116,Week 2,2,CRP,mg/L,4.695,Placebo
+BIO-116,Week 4,4,CRP,mg/L,2.545,Placebo
+BIO-117,Baseline,0,IL-6,pg/mL,8.375,Placebo
+BIO-117,Week 2,2,IL-6,pg/mL,10.11,Placebo
+BIO-117,Week 4,4,IL-6,pg/mL,8.852,Placebo
+BIO-117,Week 8,8,IL-6,pg/mL,8.705,Placebo
+BIO-117,Week 12,12,IL-6,pg/mL,10.773,Placebo
+BIO-117,Baseline,0,CRP,mg/L,3.484,Placebo
+BIO-117,Week 2,2,CRP,mg/L,1.795,Placebo
+BIO-117,Week 4,4,CRP,mg/L,2.275,Placebo
+BIO-117,Week 8,8,CRP,mg/L,2.154,Placebo
+BIO-117,Week 12,12,CRP,mg/L,1.341,Placebo
+BIO-118,Baseline,0,IL-6,pg/mL,8.643,Placebo
+BIO-118,Week 2,2,IL-6,pg/mL,8.99,Placebo
+BIO-118,Week 4,4,IL-6,pg/mL,8.111,Placebo
+BIO-118,Week 8,8,IL-6,pg/mL,8.905,Placebo
+BIO-118,Baseline,0,CRP,mg/L,4.719,Placebo
+BIO-118,Week 2,2,CRP,mg/L,17.362,Placebo
+BIO-118,Week 4,4,CRP,mg/L,8.206,Placebo
+BIO-118,Week 8,8,CRP,mg/L,8.293,Placebo
+BIO-119,Baseline,0,IL-6,pg/mL,6.892,Treatment
+BIO-119,Week 2,2,IL-6,pg/mL,6.551,Treatment
+BIO-119,Week 4,4,IL-6,pg/mL,6.851,Treatment
+BIO-119,Week 8,8,IL-6,pg/mL,7.251,Treatment
+BIO-119,Week 12,12,IL-6,pg/mL,8.505,Treatment
+BIO-119,Baseline,0,CRP,mg/L,9.917,Treatment
+BIO-119,Week 2,2,CRP,mg/L,4.074,Treatment
+BIO-119,Week 4,4,CRP,mg/L,6.041,Treatment
+BIO-119,Week 8,8,CRP,mg/L,5.787,Treatment
+BIO-119,Week 12,12,CRP,mg/L,7.865,Treatment
+BIO-120,Baseline,0,IL-6,pg/mL,7.128,Treatment
+BIO-120,Week 2,2,IL-6,pg/mL,4.994,Treatment
+BIO-120,Week 4,4,IL-6,pg/mL,5.57,Treatment
+BIO-120,Week 8,8,IL-6,pg/mL,6.368,Treatment
+BIO-120,Week 12,12,IL-6,pg/mL,6.878,Treatment
+BIO-120,Baseline,0,CRP,mg/L,4.09,Treatment
+BIO-120,Week 2,2,CRP,mg/L,2.199,Treatment
+BIO-120,Week 4,4,CRP,mg/L,2.646,Treatment
+BIO-120,Week 8,8,CRP,mg/L,1.633,Treatment
+BIO-120,Week 12,12,CRP,mg/L,2.567,Treatment
+BIO-121,Baseline,0,IL-6,pg/mL,6.369,Treatment
+BIO-121,Week 2,2,IL-6,pg/mL,4.602,Treatment
+BIO-121,Week 4,4,IL-6,pg/mL,6.294,Treatment
+BIO-121,Week 8,8,IL-6,pg/mL,4.102,Treatment
+BIO-121,Week 12,12,IL-6,pg/mL,5.127,Treatment
+BIO-121,Baseline,0,CRP,mg/L,1.516,Treatment
+BIO-121,Week 2,2,CRP,mg/L,2.167,Treatment
+BIO-121,Week 4,4,CRP,mg/L,1.704,Treatment
+BIO-121,Week 8,8,CRP,mg/L,2.027,Treatment
+BIO-121,Week 12,12,CRP,mg/L,2.018,Treatment
+BIO-122,Baseline,0,IL-6,pg/mL,8.902,Placebo
+BIO-122,Week 2,2,IL-6,pg/mL,8.203,Placebo
+BIO-122,Week 4,4,IL-6,pg/mL,10.919,Placebo
+BIO-122,Week 8,8,IL-6,pg/mL,8.671,Placebo
+BIO-122,Week 12,12,IL-6,pg/mL,8.367,Placebo
+BIO-122,Baseline,0,CRP,mg/L,2.934,Placebo
+BIO-122,Week 2,2,CRP,mg/L,4.827,Placebo
+BIO-122,Week 4,4,CRP,mg/L,4.447,Placebo
+BIO-122,Week 8,8,CRP,mg/L,4.879,Placebo
+BIO-122,Week 12,12,CRP,mg/L,4.577,Placebo
+BIO-123,Baseline,0,IL-6,pg/mL,5.723,Treatment
+BIO-123,Week 2,2,IL-6,pg/mL,3.705,Treatment
+BIO-123,Week 4,4,IL-6,pg/mL,4.797,Treatment
+BIO-123,Week 8,8,IL-6,pg/mL,3.879,Treatment
+BIO-123,Week 12,12,IL-6,pg/mL,5.107,Treatment
+BIO-123,Baseline,0,CRP,mg/L,1.637,Treatment
+BIO-123,Week 2,2,CRP,mg/L,3.091,Treatment
+BIO-123,Week 4,4,CRP,mg/L,1.974,Treatment
+BIO-123,Week 8,8,CRP,mg/L,1.496,Treatment
+BIO-123,Week 12,12,CRP,mg/L,1.718,Treatment
+BIO-124,Baseline,0,IL-6,pg/mL,7.107,Placebo
+BIO-124,Week 4,4,IL-6,pg/mL,9.033,Placebo
+BIO-124,Week 8,8,IL-6,pg/mL,9.164,Placebo
+BIO-124,Week 12,12,IL-6,pg/mL,8.725,Placebo
+BIO-124,Baseline,0,CRP,mg/L,7.991,Placebo
+BIO-124,Week 4,4,CRP,mg/L,7.797,Placebo
+BIO-124,Week 8,8,CRP,mg/L,5.529,Placebo
+BIO-124,Week 12,12,CRP,mg/L,3.422,Placebo
+BIO-125,Baseline,0,IL-6,pg/mL,8.733,Treatment
+BIO-125,Week 2,2,IL-6,pg/mL,7.367,Treatment
+BIO-125,Week 4,4,IL-6,pg/mL,6.365,Treatment
+BIO-125,Week 8,8,IL-6,pg/mL,5.35,Treatment
+BIO-125,Week 12,12,IL-6,pg/mL,5.844,Treatment
+BIO-125,Baseline,0,CRP,mg/L,2.417,Treatment
+BIO-125,Week 2,2,CRP,mg/L,2.317,Treatment
+BIO-125,Week 4,4,CRP,mg/L,1.185,Treatment
+BIO-125,Week 8,8,CRP,mg/L,1.67,Treatment
+BIO-125,Week 12,12,CRP,mg/L,1.76,Treatment
+BIO-126,Baseline,0,IL-6,pg/mL,4.939,Treatment
+BIO-126,Week 2,2,IL-6,pg/mL,5.715,Treatment
+BIO-126,Week 4,4,IL-6,pg/mL,3.121,Treatment
+BIO-126,Week 8,8,IL-6,pg/mL,3.569,Treatment
+BIO-126,Week 12,12,IL-6,pg/mL,,Treatment
+BIO-126,Baseline,0,CRP,mg/L,2.503,Treatment
+BIO-126,Week 2,2,CRP,mg/L,5.338,Treatment
+BIO-126,Week 4,4,CRP,mg/L,3.23,Treatment
+BIO-126,Week 8,8,CRP,mg/L,1.822,Treatment
+BIO-126,Week 12,12,CRP,mg/L,3.194,Treatment
+BIO-127,Baseline,0,IL-6,pg/mL,8.413,Treatment
+BIO-127,Week 2,2,IL-6,pg/mL,6.528,Treatment
+BIO-127,Week 8,8,IL-6,pg/mL,9.052,Treatment
+BIO-127,Week 12,12,IL-6,pg/mL,8.119,Treatment
+BIO-127,Baseline,0,CRP,mg/L,3.671,Treatment
+BIO-127,Week 2,2,CRP,mg/L,3.725,Treatment
+BIO-127,Week 8,8,CRP,mg/L,3.359,Treatment
+BIO-127,Week 12,12,CRP,mg/L,5.722,Treatment
+BIO-128,Baseline,0,IL-6,pg/mL,8.376,Placebo
+BIO-128,Week 2,2,IL-6,pg/mL,7.323,Placebo
+BIO-128,Week 8,8,IL-6,pg/mL,6.97,Placebo
+BIO-128,Week 12,12,IL-6,pg/mL,7.932,Placebo
+BIO-128,Baseline,0,CRP,mg/L,4.812,Placebo
+BIO-128,Week 2,2,CRP,mg/L,4.14,Placebo
+BIO-128,Week 8,8,CRP,mg/L,5.081,Placebo
+BIO-128,Week 12,12,CRP,mg/L,3.9,Placebo
+BIO-129,Baseline,0,IL-6,pg/mL,7.623,Treatment
+BIO-129,Week 2,2,IL-6,pg/mL,8.175,Treatment
+BIO-129,Week 4,4,IL-6,pg/mL,7.501,Treatment
+BIO-129,Week 8,8,IL-6,pg/mL,6.339,Treatment
+BIO-129,Week 12,12,IL-6,pg/mL,7.37,Treatment
+BIO-129,Baseline,0,CRP,mg/L,6.509,Treatment
+BIO-129,Week 2,2,CRP,mg/L,2.604,Treatment
+BIO-129,Week 4,4,CRP,mg/L,7.337,Treatment
+BIO-129,Week 8,8,CRP,mg/L,4.672,Treatment
+BIO-129,Week 12,12,CRP,mg/L,3.099,Treatment
+BIO-130,Baseline,0,IL-6,pg/mL,7.181,Placebo
+BIO-130,Week 2,2,IL-6,pg/mL,6.159,Placebo
+BIO-130,Week 4,4,IL-6,pg/mL,6.048,Placebo
+BIO-130,Week 8,8,IL-6,pg/mL,7.045,Placebo
+BIO-130,Week 12,12,IL-6,pg/mL,6.383,Placebo
+BIO-130,Baseline,0,CRP,mg/L,3.849,Placebo
+BIO-130,Week 2,2,CRP,mg/L,3.071,Placebo
+BIO-130,Week 4,4,CRP,mg/L,4.275,Placebo
+BIO-130,Week 8,8,CRP,mg/L,4.32,Placebo
+BIO-130,Week 12,12,CRP,mg/L,2.937,Placebo
+BIO-131,Baseline,0,IL-6,pg/mL,9.171,Placebo
+BIO-131,Week 2,2,IL-6,pg/mL,8.844,Placebo
+BIO-131,Week 4,4,IL-6,pg/mL,9.373,Placebo
+BIO-131,Week 8,8,IL-6,pg/mL,7.305,Placebo
+BIO-131,Week 12,12,IL-6,pg/mL,6.904,Placebo
+BIO-131,Baseline,0,CRP,mg/L,1.883,Placebo
+BIO-131,Week 2,2,CRP,mg/L,2.897,Placebo
+BIO-131,Week 4,4,CRP,mg/L,2.155,Placebo
+BIO-131,Week 8,8,CRP,mg/L,2.668,Placebo
+BIO-131,Week 12,12,CRP,mg/L,3.746,Placebo
+BIO-132,Baseline,0,IL-6,pg/mL,7.687,Placebo
+BIO-132,Week 2,2,IL-6,pg/mL,7.81,Placebo
+BIO-132,Week 4,4,IL-6,pg/mL,7.326,Placebo
+BIO-132,Week 12,12,IL-6,pg/mL,6.666,Placebo
+BIO-132,Baseline,0,CRP,mg/L,3.655,Placebo
+BIO-132,Week 2,2,CRP,mg/L,1.009,Placebo
+BIO-132,Week 4,4,CRP,mg/L,2.807,Placebo
+BIO-132,Week 12,12,CRP,mg/L,2.272,Placebo
+BIO-133,Baseline,0,IL-6,pg/mL,8.874,Treatment
+BIO-133,Week 4,4,IL-6,pg/mL,7.874,Treatment
+BIO-133,Week 8,8,IL-6,pg/mL,6.773,Treatment
+BIO-133,Week 12,12,IL-6,pg/mL,5.695,Treatment
+BIO-133,Baseline,0,CRP,mg/L,1.634,Treatment
+BIO-133,Week 4,4,CRP,mg/L,6.393,Treatment
+BIO-133,Week 8,8,CRP,mg/L,2.196,Treatment
+BIO-133,Week 12,12,CRP,mg/L,1.798,Treatment
+BIO-134,Baseline,0,IL-6,pg/mL,7.743,Treatment
+BIO-134,Week 2,2,IL-6,pg/mL,4.565,Treatment
+BIO-134,Week 4,4,IL-6,pg/mL,4.328,Treatment
+BIO-134,Baseline,0,CRP,mg/L,3.341,Treatment
+BIO-134,Week 2,2,CRP,mg/L,4.788,Treatment
+BIO-134,Week 4,4,CRP,mg/L,3.766,Treatment
+BIO-135,Baseline,0,IL-6,pg/mL,5.113,Treatment
+BIO-135,Week 2,2,IL-6,pg/mL,5.011,Treatment
+BIO-135,Week 4,4,IL-6,pg/mL,5.039,Treatment
+BIO-135,Week 8,8,IL-6,pg/mL,5.935,Treatment
+BIO-135,Week 12,12,IL-6,pg/mL,4.291,Treatment
+BIO-135,Baseline,0,CRP,mg/L,5.992,Treatment
+BIO-135,Week 2,2,CRP,mg/L,9.981,Treatment
+BIO-135,Week 4,4,CRP,mg/L,7.603,Treatment
+BIO-135,Week 8,8,CRP,mg/L,5.342,Treatment
+BIO-135,Week 12,12,CRP,mg/L,7.803,Treatment
+BIO-136,Baseline,0,IL-6,pg/mL,8.011,Treatment
+BIO-136,Week 2,2,IL-6,pg/mL,4.633,Treatment
+BIO-136,Week 4,4,IL-6,pg/mL,4.895,Treatment
+BIO-136,Week 8,8,IL-6,pg/mL,6.53,Treatment
+BIO-136,Week 12,12,IL-6,pg/mL,7.163,Treatment
+BIO-136,Baseline,0,CRP,mg/L,5.277,Treatment
+BIO-136,Week 2,2,CRP,mg/L,4.865,Treatment
+BIO-136,Week 4,4,CRP,mg/L,2.534,Treatment
+BIO-136,Week 8,8,CRP,mg/L,4.222,Treatment
+BIO-136,Week 12,12,CRP,mg/L,6.657,Treatment
+BIO-137,Baseline,0,IL-6,pg/mL,10.86,Treatment
+BIO-137,Week 2,2,IL-6,pg/mL,6.981,Treatment
+BIO-137,Week 4,4,IL-6,pg/mL,8.738,Treatment
+BIO-137,Week 8,8,IL-6,pg/mL,7.557,Treatment
+BIO-137,Week 12,12,IL-6,pg/mL,7.79,Treatment
+BIO-137,Baseline,0,CRP,mg/L,4.663,Treatment
+BIO-137,Week 2,2,CRP,mg/L,4.461,Treatment
+BIO-137,Week 4,4,CRP,mg/L,4.939,Treatment
+BIO-137,Week 8,8,CRP,mg/L,6.144,Treatment
+BIO-137,Week 12,12,CRP,mg/L,4.174,Treatment
+BIO-138,Baseline,0,IL-6,pg/mL,8.389,Placebo
+BIO-138,Week 2,2,IL-6,pg/mL,7.71,Placebo
+BIO-138,Week 4,4,IL-6,pg/mL,8.518,Placebo
+BIO-138,Week 8,8,IL-6,pg/mL,8.136,Placebo
+BIO-138,Week 12,12,IL-6,pg/mL,7.28,Placebo
+BIO-138,Baseline,0,CRP,mg/L,1.65,Placebo
+BIO-138,Week 2,2,CRP,mg/L,1.231,Placebo
+BIO-138,Week 4,4,CRP,mg/L,1.529,Placebo
+BIO-138,Week 8,8,CRP,mg/L,1.309,Placebo
+BIO-138,Week 12,12,CRP,mg/L,3.58,Placebo
+BIO-139,Baseline,0,IL-6,pg/mL,7.273,Treatment
+BIO-139,Week 2,2,IL-6,pg/mL,6.362,Treatment
+BIO-139,Week 4,4,IL-6,pg/mL,8.264,Treatment
+BIO-139,Week 8,8,IL-6,pg/mL,6.332,Treatment
+BIO-139,Week 12,12,IL-6,pg/mL,6.928,Treatment
+BIO-139,Baseline,0,CRP,mg/L,1.931,Treatment
+BIO-139,Week 2,2,CRP,mg/L,3.104,Treatment
+BIO-139,Week 4,4,CRP,mg/L,1.568,Treatment
+BIO-139,Week 8,8,CRP,mg/L,1.77,Treatment
+BIO-139,Week 12,12,CRP,mg/L,1.423,Treatment
+BIO-140,Baseline,0,IL-6,pg/mL,9.018,Treatment
+BIO-140,Week 2,2,IL-6,pg/mL,7.591,Treatment
+BIO-140,Week 4,4,IL-6,pg/mL,7.456,Treatment
+BIO-140,Week 8,8,IL-6,pg/mL,9.183,Treatment
+BIO-140,Week 12,12,IL-6,pg/mL,8.755,Treatment
+BIO-140,Baseline,0,CRP,mg/L,1.961,Treatment
+BIO-140,Week 2,2,CRP,mg/L,4.883,Treatment
+BIO-140,Week 4,4,CRP,mg/L,3.123,Treatment
+BIO-140,Week 8,8,CRP,mg/L,2.003,Treatment
+BIO-140,Week 12,12,CRP,mg/L,3.325,Treatment
+BIO-141,Baseline,0,IL-6,pg/mL,8.102,Treatment
+BIO-141,Week 2,2,IL-6,pg/mL,6.801,Treatment
+BIO-141,Week 4,4,IL-6,pg/mL,5.112,Treatment
+BIO-141,Week 8,8,IL-6,pg/mL,6.801,Treatment
+BIO-141,Week 12,12,IL-6,pg/mL,6.331,Treatment
+BIO-141,Baseline,0,CRP,mg/L,3.526,Treatment
+BIO-141,Week 2,2,CRP,mg/L,10.901,Treatment
+BIO-141,Week 4,4,CRP,mg/L,4.518,Treatment
+BIO-141,Week 8,8,CRP,mg/L,5.743,Treatment
+BIO-141,Week 12,12,CRP,mg/L,6.165,Treatment
+BIO-142,Baseline,0,IL-6,pg/mL,10.301,Treatment
+BIO-142,Week 2,2,IL-6,pg/mL,8.137,Treatment
+BIO-142,Week 4,4,IL-6,pg/mL,9.331,Treatment
+BIO-142,Week 8,8,IL-6,pg/mL,7.779,Treatment
+BIO-142,Week 12,12,IL-6,pg/mL,6.811,Treatment
+BIO-142,Baseline,0,CRP,mg/L,6.237,Treatment
+BIO-142,Week 2,2,CRP,mg/L,3.735,Treatment
+BIO-142,Week 4,4,CRP,mg/L,4.362,Treatment
+BIO-142,Week 8,8,CRP,mg/L,9.434,Treatment
+BIO-142,Week 12,12,CRP,mg/L,7.691,Treatment
+BIO-143,Baseline,0,IL-6,pg/mL,5.102,Treatment
+BIO-143,Week 2,2,IL-6,pg/mL,4.629,Treatment
+BIO-143,Week 4,4,IL-6,pg/mL,5.632,Treatment
+BIO-143,Week 8,8,IL-6,pg/mL,4.022,Treatment
+BIO-143,Week 12,12,IL-6,pg/mL,5.913,Treatment
+BIO-143,Baseline,0,CRP,mg/L,1.106,Treatment
+BIO-143,Week 2,2,CRP,mg/L,1.326,Treatment
+BIO-143,Week 4,4,CRP,mg/L,2.01,Treatment
+BIO-143,Week 8,8,CRP,mg/L,2.475,Treatment
+BIO-143,Week 12,12,CRP,mg/L,1.807,Treatment
+BIO-144,Baseline,0,IL-6,pg/mL,6.059,Placebo
+BIO-144,Week 2,2,IL-6,pg/mL,6.014,Placebo
+BIO-144,Week 4,4,IL-6,pg/mL,7.446,Placebo
+BIO-144,Week 8,8,IL-6,pg/mL,6.335,Placebo
+BIO-144,Week 12,12,IL-6,pg/mL,8.274,Placebo
+BIO-144,Baseline,0,CRP,mg/L,2.793,Placebo
+BIO-144,Week 2,2,CRP,mg/L,4.417,Placebo
+BIO-144,Week 4,4,CRP,mg/L,6.983,Placebo
+BIO-144,Week 8,8,CRP,mg/L,3.459,Placebo
+BIO-144,Week 12,12,CRP,mg/L,2.78,Placebo
+BIO-145,Baseline,0,IL-6,pg/mL,8.038,Placebo
+BIO-145,Week 2,2,IL-6,pg/mL,6.064,Placebo
+BIO-145,Week 4,4,IL-6,pg/mL,8.586,Placebo
+BIO-145,Week 8,8,IL-6,pg/mL,9.051,Placebo
+BIO-145,Week 12,12,IL-6,pg/mL,7.445,Placebo
+BIO-145,Baseline,0,CRP,mg/L,4.179,Placebo
+BIO-145,Week 2,2,CRP,mg/L,2.251,Placebo
+BIO-145,Week 4,4,CRP,mg/L,1.687,Placebo
+BIO-145,Week 8,8,CRP,mg/L,1.765,Placebo
+BIO-145,Week 12,12,CRP,mg/L,3.072,Placebo
+BIO-146,Baseline,0,IL-6,pg/mL,8.909,Treatment
+BIO-146,Week 2,2,IL-6,pg/mL,7.715,Treatment
+BIO-146,Week 4,4,IL-6,pg/mL,6.066,Treatment
+BIO-146,Week 12,12,IL-6,pg/mL,7.702,Treatment
+BIO-146,Baseline,0,CRP,mg/L,0.933,Treatment
+BIO-146,Week 2,2,CRP,mg/L,1.043,Treatment
+BIO-146,Week 4,4,CRP,mg/L,1.877,Treatment
+BIO-146,Week 12,12,CRP,mg/L,2.345,Treatment
+BIO-147,Baseline,0,IL-6,pg/mL,8.241,Placebo
+BIO-147,Week 2,2,IL-6,pg/mL,7.384,Placebo
+BIO-147,Week 4,4,IL-6,pg/mL,7.433,Placebo
+BIO-147,Week 8,8,IL-6,pg/mL,7.785,Placebo
+BIO-147,Week 12,12,IL-6,pg/mL,7.743,Placebo
+BIO-147,Baseline,0,CRP,mg/L,3.333,Placebo
+BIO-147,Week 2,2,CRP,mg/L,1.707,Placebo
+BIO-147,Week 4,4,CRP,mg/L,4.142,Placebo
+BIO-147,Week 8,8,CRP,mg/L,3.517,Placebo
+BIO-147,Week 12,12,CRP,mg/L,4.071,Placebo
+BIO-148,Baseline,0,IL-6,pg/mL,7.07,Placebo
+BIO-148,Week 2,2,IL-6,pg/mL,6.81,Placebo
+BIO-148,Week 4,4,IL-6,pg/mL,7.265,Placebo
+BIO-148,Week 8,8,IL-6,pg/mL,6.768,Placebo
+BIO-148,Week 12,12,IL-6,pg/mL,8.392,Placebo
+BIO-148,Baseline,0,CRP,mg/L,2.616,Placebo
+BIO-148,Week 2,2,CRP,mg/L,5.813,Placebo
+BIO-148,Week 4,4,CRP,mg/L,2.858,Placebo
+BIO-148,Week 8,8,CRP,mg/L,2.365,Placebo
+BIO-148,Week 12,12,CRP,mg/L,,Placebo
+BIO-149,Baseline,0,IL-6,pg/mL,8.802,Placebo
+BIO-149,Week 2,2,IL-6,pg/mL,7.778,Placebo
+BIO-149,Week 4,4,IL-6,pg/mL,8.322,Placebo
+BIO-149,Week 8,8,IL-6,pg/mL,7.204,Placebo
+BIO-149,Week 12,12,IL-6,pg/mL,7.227,Placebo
+BIO-149,Baseline,0,CRP,mg/L,0.757,Placebo
+BIO-149,Week 2,2,CRP,mg/L,2.459,Placebo
+BIO-149,Week 4,4,CRP,mg/L,3.403,Placebo
+BIO-149,Week 8,8,CRP,mg/L,2.061,Placebo
+BIO-149,Week 12,12,CRP,mg/L,2.592,Placebo
+BIO-150,Baseline,0,IL-6,pg/mL,7.186,Placebo
+BIO-150,Week 2,2,IL-6,pg/mL,7.016,Placebo
+BIO-150,Week 4,4,IL-6,pg/mL,7.125,Placebo
+BIO-150,Week 8,8,IL-6,pg/mL,9.089,Placebo
+BIO-150,Week 12,12,IL-6,pg/mL,8.589,Placebo
+BIO-150,Baseline,0,CRP,mg/L,3.555,Placebo
+BIO-150,Week 2,2,CRP,mg/L,2.36,Placebo
+BIO-150,Week 4,4,CRP,mg/L,2.852,Placebo
+BIO-150,Week 8,8,CRP,mg/L,4.996,Placebo
+BIO-150,Week 12,12,CRP,mg/L,4.435,Placebo
+BIO-151,Baseline,0,IL-6,pg/mL,8.979,Treatment
+BIO-151,Week 2,2,IL-6,pg/mL,,Treatment
+BIO-151,Week 4,4,IL-6,pg/mL,5.828,Treatment
+BIO-151,Week 8,8,IL-6,pg/mL,8.049,Treatment
+BIO-151,Week 12,12,IL-6,pg/mL,6.576,Treatment
+BIO-151,Baseline,0,CRP,mg/L,5.53,Treatment
+BIO-151,Week 2,2,CRP,mg/L,3.487,Treatment
+BIO-151,Week 4,4,CRP,mg/L,5.037,Treatment
+BIO-151,Week 8,8,CRP,mg/L,4.611,Treatment
+BIO-151,Week 12,12,CRP,mg/L,2.687,Treatment
+BIO-152,Baseline,0,IL-6,pg/mL,7.994,Placebo
+BIO-152,Week 2,2,IL-6,pg/mL,6.101,Placebo
+BIO-152,Week 4,4,IL-6,pg/mL,8.966,Placebo
+BIO-152,Week 8,8,IL-6,pg/mL,8.224,Placebo
+BIO-152,Week 12,12,IL-6,pg/mL,8.138,Placebo
+BIO-152,Baseline,0,CRP,mg/L,2.466,Placebo
+BIO-152,Week 2,2,CRP,mg/L,2.73,Placebo
+BIO-152,Week 4,4,CRP,mg/L,2.25,Placebo
+BIO-152,Week 8,8,CRP,mg/L,3.191,Placebo
+BIO-152,Week 12,12,CRP,mg/L,6.029,Placebo
+BIO-153,Baseline,0,IL-6,pg/mL,6.03,Placebo
+BIO-153,Week 2,2,IL-6,pg/mL,7.172,Placebo
+BIO-153,Week 4,4,IL-6,pg/mL,8.225,Placebo
+BIO-153,Week 8,8,IL-6,pg/mL,9.776,Placebo
+BIO-153,Week 12,12,IL-6,pg/mL,8.419,Placebo
+BIO-153,Baseline,0,CRP,mg/L,2.695,Placebo
+BIO-153,Week 2,2,CRP,mg/L,2.097,Placebo
+BIO-153,Week 4,4,CRP,mg/L,2.889,Placebo
+BIO-153,Week 8,8,CRP,mg/L,1.94,Placebo
+BIO-153,Week 12,12,CRP,mg/L,2.526,Placebo
+BIO-154,Baseline,0,IL-6,pg/mL,7.24,Treatment
+BIO-154,Week 2,2,IL-6,pg/mL,8.083,Treatment
+BIO-154,Week 8,8,IL-6,pg/mL,6.395,Treatment
+BIO-154,Week 12,12,IL-6,pg/mL,6.865,Treatment
+BIO-154,Baseline,0,CRP,mg/L,4.117,Treatment
+BIO-154,Week 2,2,CRP,mg/L,1.362,Treatment
+BIO-154,Week 8,8,CRP,mg/L,2.553,Treatment
+BIO-154,Week 12,12,CRP,mg/L,1.11,Treatment
+BIO-155,Baseline,0,IL-6,pg/mL,8.629,Treatment
+BIO-155,Week 4,4,IL-6,pg/mL,6.134,Treatment
+BIO-155,Week 8,8,IL-6,pg/mL,6.722,Treatment
+BIO-155,Week 12,12,IL-6,pg/mL,6.527,Treatment
+BIO-155,Baseline,0,CRP,mg/L,3.021,Treatment
+BIO-155,Week 4,4,CRP,mg/L,1.617,Treatment
+BIO-155,Week 8,8,CRP,mg/L,3.946,Treatment
+BIO-155,Week 12,12,CRP,mg/L,2.47,Treatment
+BIO-156,Baseline,0,IL-6,pg/mL,5.95,Placebo
+BIO-156,Week 2,2,IL-6,pg/mL,6.318,Placebo
+BIO-156,Week 4,4,IL-6,pg/mL,6.466,Placebo
+BIO-156,Week 8,8,IL-6,pg/mL,7.631,Placebo
+BIO-156,Week 12,12,IL-6,pg/mL,6.004,Placebo
+BIO-156,Baseline,0,CRP,mg/L,6.513,Placebo
+BIO-156,Week 2,2,CRP,mg/L,3.804,Placebo
+BIO-156,Week 4,4,CRP,mg/L,2.36,Placebo
+BIO-156,Week 8,8,CRP,mg/L,4.275,Placebo
+BIO-156,Week 12,12,CRP,mg/L,3.303,Placebo
+BIO-157,Baseline,0,IL-6,pg/mL,7.893,Treatment
+BIO-157,Week 2,2,IL-6,pg/mL,4.074,Treatment
+BIO-157,Week 4,4,IL-6,pg/mL,6.918,Treatment
+BIO-157,Week 8,8,IL-6,pg/mL,6.007,Treatment
+BIO-157,Week 12,12,IL-6,pg/mL,5.981,Treatment
+BIO-157,Baseline,0,CRP,mg/L,0.926,Treatment
+BIO-157,Week 2,2,CRP,mg/L,1.594,Treatment
+BIO-157,Week 4,4,CRP,mg/L,1.494,Treatment
+BIO-157,Week 8,8,CRP,mg/L,1.594,Treatment
+BIO-157,Week 12,12,CRP,mg/L,2.083,Treatment
+BIO-158,Baseline,0,IL-6,pg/mL,7.21,Treatment
+BIO-158,Week 2,2,IL-6,pg/mL,7.524,Treatment
+BIO-158,Week 4,4,IL-6,pg/mL,5.567,Treatment
+BIO-158,Week 8,8,IL-6,pg/mL,7.346,Treatment
+BIO-158,Week 12,12,IL-6,pg/mL,5.219,Treatment
+BIO-158,Baseline,0,CRP,mg/L,7.364,Treatment
+BIO-158,Week 2,2,CRP,mg/L,3.845,Treatment
+BIO-158,Week 4,4,CRP,mg/L,2.155,Treatment
+BIO-158,Week 8,8,CRP,mg/L,4.287,Treatment
+BIO-158,Week 12,12,CRP,mg/L,5.434,Treatment
+BIO-159,Baseline,0,IL-6,pg/mL,8.68,Treatment
+BIO-159,Week 2,2,IL-6,pg/mL,7.207,Treatment
+BIO-159,Week 4,4,IL-6,pg/mL,7.895,Treatment
+BIO-159,Week 8,8,IL-6,pg/mL,9.996,Treatment
+BIO-159,Week 12,12,IL-6,pg/mL,9.447,Treatment
+BIO-159,Baseline,0,CRP,mg/L,1.64,Treatment
+BIO-159,Week 2,2,CRP,mg/L,1.231,Treatment
+BIO-159,Week 4,4,CRP,mg/L,4.103,Treatment
+BIO-159,Week 8,8,CRP,mg/L,1.876,Treatment
+BIO-159,Week 12,12,CRP,mg/L,5.408,Treatment
+BIO-160,Baseline,0,IL-6,pg/mL,8.26,Treatment
+BIO-160,Week 2,2,IL-6,pg/mL,5.961,Treatment
+BIO-160,Week 8,8,IL-6,pg/mL,7.871,Treatment
+BIO-160,Week 12,12,IL-6,pg/mL,7.264,Treatment
+BIO-160,Baseline,0,CRP,mg/L,2.341,Treatment
+BIO-160,Week 2,2,CRP,mg/L,2.385,Treatment
+BIO-160,Week 8,8,CRP,mg/L,2.667,Treatment
+BIO-160,Week 12,12,CRP,mg/L,2.108,Treatment
+BIO-161,Baseline,0,IL-6,pg/mL,7.284,Placebo
+BIO-161,Week 2,2,IL-6,pg/mL,7.248,Placebo
+BIO-161,Week 4,4,IL-6,pg/mL,6.276,Placebo
+BIO-161,Week 8,8,IL-6,pg/mL,8.688,Placebo
+BIO-161,Week 12,12,IL-6,pg/mL,7.066,Placebo
+BIO-161,Baseline,0,CRP,mg/L,3.468,Placebo
+BIO-161,Week 2,2,CRP,mg/L,2.761,Placebo
+BIO-161,Week 4,4,CRP,mg/L,3.27,Placebo
+BIO-161,Week 8,8,CRP,mg/L,3.389,Placebo
+BIO-161,Week 12,12,CRP,mg/L,3.687,Placebo
+BIO-162,Baseline,0,IL-6,pg/mL,5.823,Treatment
+BIO-162,Week 2,2,IL-6,pg/mL,6.394,Treatment
+BIO-162,Week 4,4,IL-6,pg/mL,6.261,Treatment
+BIO-162,Week 8,8,IL-6,pg/mL,6.429,Treatment
+BIO-162,Week 12,12,IL-6,pg/mL,7.128,Treatment
+BIO-162,Baseline,0,CRP,mg/L,5.476,Treatment
+BIO-162,Week 2,2,CRP,mg/L,2.947,Treatment
+BIO-162,Week 4,4,CRP,mg/L,2.76,Treatment
+BIO-162,Week 8,8,CRP,mg/L,2.011,Treatment
+BIO-162,Week 12,12,CRP,mg/L,3.66,Treatment
+BIO-163,Baseline,0,IL-6,pg/mL,6.913,Placebo
+BIO-163,Week 2,2,IL-6,pg/mL,6.26,Placebo
+BIO-163,Week 4,4,IL-6,pg/mL,8.804,Placebo
+BIO-163,Week 8,8,IL-6,pg/mL,7.72,Placebo
+BIO-163,Week 12,12,IL-6,pg/mL,7.305,Placebo
+BIO-163,Baseline,0,CRP,mg/L,1.458,Placebo
+BIO-163,Week 2,2,CRP,mg/L,3.431,Placebo
+BIO-163,Week 4,4,CRP,mg/L,1.526,Placebo
+BIO-163,Week 8,8,CRP,mg/L,2.758,Placebo
+BIO-163,Week 12,12,CRP,mg/L,1.767,Placebo
+BIO-164,Baseline,0,IL-6,pg/mL,6.543,Treatment
+BIO-164,Week 2,2,IL-6,pg/mL,5.544,Treatment
+BIO-164,Week 4,4,IL-6,pg/mL,6.746,Treatment
+BIO-164,Week 8,8,IL-6,pg/mL,5.521,Treatment
+BIO-164,Week 12,12,IL-6,pg/mL,5.021,Treatment
+BIO-164,Baseline,0,CRP,mg/L,2.43,Treatment
+BIO-164,Week 2,2,CRP,mg/L,3.817,Treatment
+BIO-164,Week 4,4,CRP,mg/L,5,Treatment
+BIO-164,Week 8,8,CRP,mg/L,4.857,Treatment
+BIO-164,Week 12,12,CRP,mg/L,3.569,Treatment
+BIO-165,Baseline,0,IL-6,pg/mL,9.063,Treatment
+BIO-165,Week 2,2,IL-6,pg/mL,7.513,Treatment
+BIO-165,Week 4,4,IL-6,pg/mL,6.333,Treatment
+BIO-165,Week 8,8,IL-6,pg/mL,6.3,Treatment
+BIO-165,Week 12,12,IL-6,pg/mL,8.329,Treatment
+BIO-165,Baseline,0,CRP,mg/L,3.466,Treatment
+BIO-165,Week 2,2,CRP,mg/L,5.082,Treatment
+BIO-165,Week 4,4,CRP,mg/L,5.037,Treatment
+BIO-165,Week 8,8,CRP,mg/L,4.118,Treatment
+BIO-165,Week 12,12,CRP,mg/L,8.204,Treatment
+BIO-166,Baseline,0,IL-6,pg/mL,5.225,Treatment
+BIO-166,Week 2,2,IL-6,pg/mL,4.846,Treatment
+BIO-166,Week 4,4,IL-6,pg/mL,5.143,Treatment
+BIO-166,Week 8,8,IL-6,pg/mL,2.945,Treatment
+BIO-166,Week 12,12,IL-6,pg/mL,2.411,Treatment
+BIO-166,Baseline,0,CRP,mg/L,1.225,Treatment
+BIO-166,Week 2,2,CRP,mg/L,4.049,Treatment
+BIO-166,Week 4,4,CRP,mg/L,2.406,Treatment
+BIO-166,Week 8,8,CRP,mg/L,2.229,Treatment
+BIO-166,Week 12,12,CRP,mg/L,3.224,Treatment
+BIO-167,Baseline,0,IL-6,pg/mL,5.059,Treatment
+BIO-167,Week 2,2,IL-6,pg/mL,3.675,Treatment
+BIO-167,Week 4,4,IL-6,pg/mL,4.592,Treatment
+BIO-167,Week 8,8,IL-6,pg/mL,3.655,Treatment
+BIO-167,Week 12,12,IL-6,pg/mL,5.628,Treatment
+BIO-167,Baseline,0,CRP,mg/L,1.404,Treatment
+BIO-167,Week 2,2,CRP,mg/L,1.058,Treatment
+BIO-167,Week 4,4,CRP,mg/L,1.818,Treatment
+BIO-167,Week 8,8,CRP,mg/L,2.364,Treatment
+BIO-167,Week 12,12,CRP,mg/L,1.894,Treatment
+BIO-168,Baseline,0,IL-6,pg/mL,4.994,Placebo
+BIO-168,Week 2,2,IL-6,pg/mL,4.781,Placebo
+BIO-168,Week 4,4,IL-6,pg/mL,3.265,Placebo
+BIO-168,Week 8,8,IL-6,pg/mL,6.845,Placebo
+BIO-168,Week 12,12,IL-6,pg/mL,7.49,Placebo
+BIO-168,Baseline,0,CRP,mg/L,2.547,Placebo
+BIO-168,Week 2,2,CRP,mg/L,1.43,Placebo
+BIO-168,Week 4,4,CRP,mg/L,1.992,Placebo
+BIO-168,Week 8,8,CRP,mg/L,3.184,Placebo
+BIO-168,Week 12,12,CRP,mg/L,1.697,Placebo
+BIO-169,Baseline,0,IL-6,pg/mL,8.542,Treatment
+BIO-169,Week 2,2,IL-6,pg/mL,5.491,Treatment
+BIO-169,Week 4,4,IL-6,pg/mL,8.26,Treatment
+BIO-169,Week 8,8,IL-6,pg/mL,6.647,Treatment
+BIO-169,Week 12,12,IL-6,pg/mL,7.135,Treatment
+BIO-169,Baseline,0,CRP,mg/L,3.019,Treatment
+BIO-169,Week 2,2,CRP,mg/L,5.71,Treatment
+BIO-169,Week 4,4,CRP,mg/L,2.087,Treatment
+BIO-169,Week 8,8,CRP,mg/L,4.674,Treatment
+BIO-169,Week 12,12,CRP,mg/L,3.308,Treatment
+BIO-170,Baseline,0,IL-6,pg/mL,6.635,Placebo
+BIO-170,Week 2,2,IL-6,pg/mL,5.917,Placebo
+BIO-170,Week 4,4,IL-6,pg/mL,6.023,Placebo
+BIO-170,Week 8,8,IL-6,pg/mL,7.406,Placebo
+BIO-170,Week 12,12,IL-6,pg/mL,6.874,Placebo
+BIO-170,Baseline,0,CRP,mg/L,2.289,Placebo
+BIO-170,Week 2,2,CRP,mg/L,3.373,Placebo
+BIO-170,Week 4,4,CRP,mg/L,1.398,Placebo
+BIO-170,Week 8,8,CRP,mg/L,3.376,Placebo
+BIO-170,Week 12,12,CRP,mg/L,2.584,Placebo
+BIO-171,Baseline,0,IL-6,pg/mL,6.67,Treatment
+BIO-171,Week 2,2,IL-6,pg/mL,4.384,Treatment
+BIO-171,Week 4,4,IL-6,pg/mL,6.951,Treatment
+BIO-171,Week 8,8,IL-6,pg/mL,4.829,Treatment
+BIO-171,Week 12,12,IL-6,pg/mL,7.099,Treatment
+BIO-171,Baseline,0,CRP,mg/L,3.434,Treatment
+BIO-171,Week 2,2,CRP,mg/L,3.13,Treatment
+BIO-171,Week 4,4,CRP,mg/L,5.249,Treatment
+BIO-171,Week 8,8,CRP,mg/L,2.381,Treatment
+BIO-171,Week 12,12,CRP,mg/L,3.453,Treatment
+BIO-172,Baseline,0,IL-6,pg/mL,6.656,Treatment
+BIO-172,Week 2,2,IL-6,pg/mL,5.337,Treatment
+BIO-172,Week 4,4,IL-6,pg/mL,5.698,Treatment
+BIO-172,Week 8,8,IL-6,pg/mL,8.359,Treatment
+BIO-172,Week 12,12,IL-6,pg/mL,,Treatment
+BIO-172,Baseline,0,CRP,mg/L,3.994,Treatment
+BIO-172,Week 2,2,CRP,mg/L,8.518,Treatment
+BIO-172,Week 4,4,CRP,mg/L,3.062,Treatment
+BIO-172,Week 8,8,CRP,mg/L,3.759,Treatment
+BIO-172,Week 12,12,CRP,mg/L,5.132,Treatment
+BIO-173,Baseline,0,IL-6,pg/mL,5.851,Placebo
+BIO-173,Week 2,2,IL-6,pg/mL,6.012,Placebo
+BIO-173,Week 4,4,IL-6,pg/mL,4.876,Placebo
+BIO-173,Week 8,8,IL-6,pg/mL,5.265,Placebo
+BIO-173,Week 12,12,IL-6,pg/mL,4.229,Placebo
+BIO-173,Baseline,0,CRP,mg/L,2.412,Placebo
+BIO-173,Week 2,2,CRP,mg/L,2.535,Placebo
+BIO-173,Week 4,4,CRP,mg/L,2.132,Placebo
+BIO-173,Week 8,8,CRP,mg/L,2.195,Placebo
+BIO-173,Week 12,12,CRP,mg/L,1.808,Placebo
+BIO-174,Baseline,0,IL-6,pg/mL,7.685,Placebo
+BIO-174,Week 2,2,IL-6,pg/mL,8.742,Placebo
+BIO-174,Week 4,4,IL-6,pg/mL,7.175,Placebo
+BIO-174,Week 8,8,IL-6,pg/mL,8.357,Placebo
+BIO-174,Week 12,12,IL-6,pg/mL,7.902,Placebo
+BIO-174,Baseline,0,CRP,mg/L,1.443,Placebo
+BIO-174,Week 2,2,CRP,mg/L,1.762,Placebo
+BIO-174,Week 4,4,CRP,mg/L,1.4,Placebo
+BIO-174,Week 8,8,CRP,mg/L,2.057,Placebo
+BIO-174,Week 12,12,CRP,mg/L,1.138,Placebo
+BIO-175,Baseline,0,IL-6,pg/mL,8.421,Placebo
+BIO-175,Week 2,2,IL-6,pg/mL,9.22,Placebo
+BIO-175,Week 4,4,IL-6,pg/mL,8.918,Placebo
+BIO-175,Week 8,8,IL-6,pg/mL,,Placebo
+BIO-175,Week 12,12,IL-6,pg/mL,7.694,Placebo
+BIO-175,Baseline,0,CRP,mg/L,2.81,Placebo
+BIO-175,Week 2,2,CRP,mg/L,4.027,Placebo
+BIO-175,Week 4,4,CRP,mg/L,,Placebo
+BIO-175,Week 8,8,CRP,mg/L,3.348,Placebo
+BIO-175,Week 12,12,CRP,mg/L,1.883,Placebo
+BIO-176,Baseline,0,IL-6,pg/mL,9.083,Placebo
+BIO-176,Week 2,2,IL-6,pg/mL,7.953,Placebo
+BIO-176,Week 4,4,IL-6,pg/mL,8.732,Placebo
+BIO-176,Week 8,8,IL-6,pg/mL,9.306,Placebo
+BIO-176,Week 12,12,IL-6,pg/mL,9.445,Placebo
+BIO-176,Baseline,0,CRP,mg/L,2.922,Placebo
+BIO-176,Week 2,2,CRP,mg/L,3.144,Placebo
+BIO-176,Week 4,4,CRP,mg/L,5.364,Placebo
+BIO-176,Week 8,8,CRP,mg/L,2.241,Placebo
+BIO-176,Week 12,12,CRP,mg/L,3.724,Placebo
+BIO-177,Baseline,0,IL-6,pg/mL,7.18,Treatment
+BIO-177,Week 2,2,IL-6,pg/mL,6.372,Treatment
+BIO-177,Week 4,4,IL-6,pg/mL,7.83,Treatment
+BIO-177,Week 8,8,IL-6,pg/mL,6.419,Treatment
+BIO-177,Week 12,12,IL-6,pg/mL,7.258,Treatment
+BIO-177,Baseline,0,CRP,mg/L,2.657,Treatment
+BIO-177,Week 2,2,CRP,mg/L,5.26,Treatment
+BIO-177,Week 4,4,CRP,mg/L,2.511,Treatment
+BIO-177,Week 8,8,CRP,mg/L,3.31,Treatment
+BIO-177,Week 12,12,CRP,mg/L,,Treatment
+BIO-178,Baseline,0,IL-6,pg/mL,9.434,Placebo
+BIO-178,Week 2,2,IL-6,pg/mL,10.532,Placebo
+BIO-178,Week 4,4,IL-6,pg/mL,9.85,Placebo
+BIO-178,Week 8,8,IL-6,pg/mL,7.35,Placebo
+BIO-178,Week 12,12,IL-6,pg/mL,10.307,Placebo
+BIO-178,Baseline,0,CRP,mg/L,3.681,Placebo
+BIO-178,Week 2,2,CRP,mg/L,,Placebo
+BIO-178,Week 4,4,CRP,mg/L,1.469,Placebo
+BIO-178,Week 8,8,CRP,mg/L,4.674,Placebo
+BIO-178,Week 12,12,CRP,mg/L,3.416,Placebo
+BIO-179,Baseline,0,IL-6,pg/mL,6.886,Treatment
+BIO-179,Week 2,2,IL-6,pg/mL,3.075,Treatment
+BIO-179,Week 4,4,IL-6,pg/mL,3.864,Treatment
+BIO-179,Week 8,8,IL-6,pg/mL,4.47,Treatment
+BIO-179,Week 12,12,IL-6,pg/mL,5.118,Treatment
+BIO-179,Baseline,0,CRP,mg/L,2.005,Treatment
+BIO-179,Week 2,2,CRP,mg/L,2.613,Treatment
+BIO-179,Week 4,4,CRP,mg/L,,Treatment
+BIO-179,Week 8,8,CRP,mg/L,2.98,Treatment
+BIO-179,Week 12,12,CRP,mg/L,2.003,Treatment
+BIO-180,Baseline,0,IL-6,pg/mL,9.229,Placebo
+BIO-180,Week 2,2,IL-6,pg/mL,8.051,Placebo
+BIO-180,Week 4,4,IL-6,pg/mL,7.031,Placebo
+BIO-180,Week 8,8,IL-6,pg/mL,7.315,Placebo
+BIO-180,Week 12,12,IL-6,pg/mL,7.318,Placebo
+BIO-180,Baseline,0,CRP,mg/L,4.704,Placebo
+BIO-180,Week 2,2,CRP,mg/L,4.578,Placebo
+BIO-180,Week 4,4,CRP,mg/L,1.983,Placebo
+BIO-180,Week 8,8,CRP,mg/L,4.911,Placebo
+BIO-180,Week 12,12,CRP,mg/L,3.336,Placebo
+BIO-181,Baseline,0,IL-6,pg/mL,5.574,Treatment
+BIO-181,Week 2,2,IL-6,pg/mL,,Treatment
+BIO-181,Week 4,4,IL-6,pg/mL,7.273,Treatment
+BIO-181,Week 8,8,IL-6,pg/mL,6.157,Treatment
+BIO-181,Week 12,12,IL-6,pg/mL,5.901,Treatment
+BIO-181,Baseline,0,CRP,mg/L,7.369,Treatment
+BIO-181,Week 2,2,CRP,mg/L,3.557,Treatment
+BIO-181,Week 4,4,CRP,mg/L,6.681,Treatment
+BIO-181,Week 8,8,CRP,mg/L,5.942,Treatment
+BIO-181,Week 12,12,CRP,mg/L,6.191,Treatment
+BIO-182,Baseline,0,IL-6,pg/mL,8.313,Placebo
+BIO-182,Week 2,2,IL-6,pg/mL,7.819,Placebo
+BIO-182,Week 4,4,IL-6,pg/mL,9.621,Placebo
+BIO-182,Week 8,8,IL-6,pg/mL,9.313,Placebo
+BIO-182,Week 12,12,IL-6,pg/mL,7.767,Placebo
+BIO-182,Baseline,0,CRP,mg/L,2.988,Placebo
+BIO-182,Week 2,2,CRP,mg/L,2.201,Placebo
+BIO-182,Week 4,4,CRP,mg/L,3.242,Placebo
+BIO-182,Week 8,8,CRP,mg/L,2.649,Placebo
+BIO-182,Week 12,12,CRP,mg/L,1.996,Placebo
+BIO-183,Baseline,0,IL-6,pg/mL,8.09,Treatment
+BIO-183,Week 2,2,IL-6,pg/mL,7.265,Treatment
+BIO-183,Week 4,4,IL-6,pg/mL,4.309,Treatment
+BIO-183,Week 8,8,IL-6,pg/mL,5.788,Treatment
+BIO-183,Week 12,12,IL-6,pg/mL,7.094,Treatment
+BIO-183,Baseline,0,CRP,mg/L,8.958,Treatment
+BIO-183,Week 2,2,CRP,mg/L,11.908,Treatment
+BIO-183,Week 4,4,CRP,mg/L,6.675,Treatment
+BIO-183,Week 8,8,CRP,mg/L,5.906,Treatment
+BIO-183,Week 12,12,CRP,mg/L,11.867,Treatment
+BIO-184,Baseline,0,IL-6,pg/mL,6.771,Placebo
+BIO-184,Week 2,2,IL-6,pg/mL,7.591,Placebo
+BIO-184,Week 4,4,IL-6,pg/mL,10.221,Placebo
+BIO-184,Week 8,8,IL-6,pg/mL,8.942,Placebo
+BIO-184,Week 12,12,IL-6,pg/mL,8.281,Placebo
+BIO-184,Baseline,0,CRP,mg/L,2.263,Placebo
+BIO-184,Week 2,2,CRP,mg/L,4.022,Placebo
+BIO-184,Week 4,4,CRP,mg/L,3.894,Placebo
+BIO-184,Week 8,8,CRP,mg/L,4.594,Placebo
+BIO-184,Week 12,12,CRP,mg/L,3.372,Placebo
+BIO-185,Baseline,0,IL-6,pg/mL,6.561,Placebo
+BIO-185,Week 2,2,IL-6,pg/mL,7.459,Placebo
+BIO-185,Week 4,4,IL-6,pg/mL,6.248,Placebo
+BIO-185,Week 8,8,IL-6,pg/mL,7.917,Placebo
+BIO-185,Baseline,0,CRP,mg/L,9.376,Placebo
+BIO-185,Week 2,2,CRP,mg/L,5.814,Placebo
+BIO-185,Week 4,4,CRP,mg/L,2.981,Placebo
+BIO-185,Week 8,8,CRP,mg/L,2.611,Placebo
+BIO-186,Baseline,0,IL-6,pg/mL,8.353,Treatment
+BIO-186,Week 2,2,IL-6,pg/mL,6.394,Treatment
+BIO-186,Week 4,4,IL-6,pg/mL,5.681,Treatment
+BIO-186,Week 8,8,IL-6,pg/mL,4.42,Treatment
+BIO-186,Week 12,12,IL-6,pg/mL,5.355,Treatment
+BIO-186,Baseline,0,CRP,mg/L,1.372,Treatment
+BIO-186,Week 2,2,CRP,mg/L,1.846,Treatment
+BIO-186,Week 4,4,CRP,mg/L,2.602,Treatment
+BIO-186,Week 8,8,CRP,mg/L,2.426,Treatment
+BIO-186,Week 12,12,CRP,mg/L,4.075,Treatment
+BIO-187,Baseline,0,IL-6,pg/mL,7.718,Placebo
+BIO-187,Week 2,2,IL-6,pg/mL,6.977,Placebo
+BIO-187,Week 4,4,IL-6,pg/mL,8.179,Placebo
+BIO-187,Week 8,8,IL-6,pg/mL,,Placebo
+BIO-187,Week 12,12,IL-6,pg/mL,7.863,Placebo
+BIO-187,Baseline,0,CRP,mg/L,2.116,Placebo
+BIO-187,Week 2,2,CRP,mg/L,0.703,Placebo
+BIO-187,Week 4,4,CRP,mg/L,1.413,Placebo
+BIO-187,Week 8,8,CRP,mg/L,1.966,Placebo
+BIO-187,Week 12,12,CRP,mg/L,1.842,Placebo
+BIO-188,Baseline,0,IL-6,pg/mL,5.2,Treatment
+BIO-188,Week 2,2,IL-6,pg/mL,2.065,Treatment
+BIO-188,Week 4,4,IL-6,pg/mL,6.377,Treatment
+BIO-188,Week 8,8,IL-6,pg/mL,3.743,Treatment
+BIO-188,Week 12,12,IL-6,pg/mL,3.638,Treatment
+BIO-188,Baseline,0,CRP,mg/L,1.581,Treatment
+BIO-188,Week 2,2,CRP,mg/L,3.734,Treatment
+BIO-188,Week 4,4,CRP,mg/L,1.575,Treatment
+BIO-188,Week 8,8,CRP,mg/L,2.09,Treatment
+BIO-188,Week 12,12,CRP,mg/L,1.653,Treatment
+BIO-189,Baseline,0,IL-6,pg/mL,4.333,Placebo
+BIO-189,Week 4,4,IL-6,pg/mL,6.024,Placebo
+BIO-189,Week 8,8,IL-6,pg/mL,4.911,Placebo
+BIO-189,Week 12,12,IL-6,pg/mL,5.645,Placebo
+BIO-189,Baseline,0,CRP,mg/L,1.708,Placebo
+BIO-189,Week 4,4,CRP,mg/L,3.889,Placebo
+BIO-189,Week 8,8,CRP,mg/L,2.552,Placebo
+BIO-189,Week 12,12,CRP,mg/L,5.08,Placebo
+BIO-190,Baseline,0,IL-6,pg/mL,11.239,Placebo
+BIO-190,Week 2,2,IL-6,pg/mL,10.465,Placebo
+BIO-190,Week 4,4,IL-6,pg/mL,8.588,Placebo
+BIO-190,Week 8,8,IL-6,pg/mL,9.309,Placebo
+BIO-190,Week 12,12,IL-6,pg/mL,10.291,Placebo
+BIO-190,Baseline,0,CRP,mg/L,2.355,Placebo
+BIO-190,Week 2,2,CRP,mg/L,1.875,Placebo
+BIO-190,Week 4,4,CRP,mg/L,1.81,Placebo
+BIO-190,Week 8,8,CRP,mg/L,1.126,Placebo
+BIO-190,Week 12,12,CRP,mg/L,3.208,Placebo
+BIO-191,Baseline,0,IL-6,pg/mL,9.536,Treatment
+BIO-191,Week 2,2,IL-6,pg/mL,7.535,Treatment
+BIO-191,Week 4,4,IL-6,pg/mL,7.915,Treatment
+BIO-191,Week 8,8,IL-6,pg/mL,7.34,Treatment
+BIO-191,Week 12,12,IL-6,pg/mL,7.071,Treatment
+BIO-191,Baseline,0,CRP,mg/L,2.011,Treatment
+BIO-191,Week 2,2,CRP,mg/L,1.321,Treatment
+BIO-191,Week 4,4,CRP,mg/L,2.128,Treatment
+BIO-191,Week 8,8,CRP,mg/L,2.012,Treatment
+BIO-191,Week 12,12,CRP,mg/L,2.124,Treatment
+BIO-192,Baseline,0,IL-6,pg/mL,7.952,Treatment
+BIO-192,Week 2,2,IL-6,pg/mL,5.082,Treatment
+BIO-192,Week 4,4,IL-6,pg/mL,4.746,Treatment
+BIO-192,Baseline,0,CRP,mg/L,5.045,Treatment
+BIO-192,Week 2,2,CRP,mg/L,4.597,Treatment
+BIO-192,Week 4,4,CRP,mg/L,5.99,Treatment
+BIO-193,Baseline,0,IL-6,pg/mL,10.039,Treatment
+BIO-193,Week 2,2,IL-6,pg/mL,8.644,Treatment
+BIO-193,Week 4,4,IL-6,pg/mL,7.712,Treatment
+BIO-193,Week 8,8,IL-6,pg/mL,6.143,Treatment
+BIO-193,Week 12,12,IL-6,pg/mL,7.306,Treatment
+BIO-193,Baseline,0,CRP,mg/L,1.237,Treatment
+BIO-193,Week 2,2,CRP,mg/L,,Treatment
+BIO-193,Week 4,4,CRP,mg/L,0.879,Treatment
+BIO-193,Week 8,8,CRP,mg/L,1.255,Treatment
+BIO-193,Week 12,12,CRP,mg/L,1.582,Treatment
+BIO-194,Baseline,0,IL-6,pg/mL,7.9,Placebo
+BIO-194,Week 2,2,IL-6,pg/mL,6.884,Placebo
+BIO-194,Week 4,4,IL-6,pg/mL,8.233,Placebo
+BIO-194,Week 8,8,IL-6,pg/mL,7.483,Placebo
+BIO-194,Baseline,0,CRP,mg/L,2.463,Placebo
+BIO-194,Week 2,2,CRP,mg/L,1.628,Placebo
+BIO-194,Week 4,4,CRP,mg/L,2.675,Placebo
+BIO-194,Week 8,8,CRP,mg/L,1.622,Placebo
+BIO-195,Baseline,0,IL-6,pg/mL,10.128,Treatment
+BIO-195,Week 2,2,IL-6,pg/mL,9.152,Treatment
+BIO-195,Week 4,4,IL-6,pg/mL,7.531,Treatment
+BIO-195,Week 8,8,IL-6,pg/mL,8.627,Treatment
+BIO-195,Week 12,12,IL-6,pg/mL,9.346,Treatment
+BIO-195,Baseline,0,CRP,mg/L,1.44,Treatment
+BIO-195,Week 2,2,CRP,mg/L,1.618,Treatment
+BIO-195,Week 4,4,CRP,mg/L,1.976,Treatment
+BIO-195,Week 8,8,CRP,mg/L,1.509,Treatment
+BIO-195,Week 12,12,CRP,mg/L,2.181,Treatment
+BIO-196,Baseline,0,IL-6,pg/mL,6.179,Treatment
+BIO-196,Week 2,2,IL-6,pg/mL,4.508,Treatment
+BIO-196,Week 4,4,IL-6,pg/mL,4.146,Treatment
+BIO-196,Week 8,8,IL-6,pg/mL,5.023,Treatment
+BIO-196,Week 12,12,IL-6,pg/mL,5.792,Treatment
+BIO-196,Baseline,0,CRP,mg/L,3.286,Treatment
+BIO-196,Week 2,2,CRP,mg/L,4.181,Treatment
+BIO-196,Week 4,4,CRP,mg/L,1.527,Treatment
+BIO-196,Week 8,8,CRP,mg/L,3.15,Treatment
+BIO-196,Week 12,12,CRP,mg/L,2.296,Treatment
+BIO-197,Baseline,0,IL-6,pg/mL,5.623,Treatment
+BIO-197,Week 2,2,IL-6,pg/mL,5.704,Treatment
+BIO-197,Week 4,4,IL-6,pg/mL,5.6,Treatment
+BIO-197,Week 8,8,IL-6,pg/mL,5.048,Treatment
+BIO-197,Week 12,12,IL-6,pg/mL,6.745,Treatment
+BIO-197,Baseline,0,CRP,mg/L,2.899,Treatment
+BIO-197,Week 2,2,CRP,mg/L,3.273,Treatment
+BIO-197,Week 4,4,CRP,mg/L,1.493,Treatment
+BIO-197,Week 8,8,CRP,mg/L,3.128,Treatment
+BIO-197,Week 12,12,CRP,mg/L,1.338,Treatment
+BIO-198,Baseline,0,IL-6,pg/mL,7.951,Treatment
+BIO-198,Week 2,2,IL-6,pg/mL,6.875,Treatment
+BIO-198,Week 4,4,IL-6,pg/mL,5.326,Treatment
+BIO-198,Week 8,8,IL-6,pg/mL,6.833,Treatment
+BIO-198,Week 12,12,IL-6,pg/mL,5.65,Treatment
+BIO-198,Baseline,0,CRP,mg/L,4.1,Treatment
+BIO-198,Week 2,2,CRP,mg/L,19.637,Treatment
+BIO-198,Week 4,4,CRP,mg/L,5.181,Treatment
+BIO-198,Week 8,8,CRP,mg/L,10.793,Treatment
+BIO-198,Week 12,12,CRP,mg/L,11.894,Treatment
+BIO-199,Baseline,0,IL-6,pg/mL,8.907,Placebo
+BIO-199,Week 2,2,IL-6,pg/mL,8.569,Placebo
+BIO-199,Week 4,4,IL-6,pg/mL,9.443,Placebo
+BIO-199,Week 8,8,IL-6,pg/mL,9.629,Placebo
+BIO-199,Week 12,12,IL-6,pg/mL,9.652,Placebo
+BIO-199,Baseline,0,CRP,mg/L,1.474,Placebo
+BIO-199,Week 2,2,CRP,mg/L,0.975,Placebo
+BIO-199,Week 4,4,CRP,mg/L,0.534,Placebo
+BIO-199,Week 8,8,CRP,mg/L,1.372,Placebo
+BIO-199,Week 12,12,CRP,mg/L,1.259,Placebo
+BIO-200,Baseline,0,IL-6,pg/mL,9.599,Placebo
+BIO-200,Week 2,2,IL-6,pg/mL,8.06,Placebo
+BIO-200,Week 4,4,IL-6,pg/mL,7.922,Placebo
+BIO-200,Week 8,8,IL-6,pg/mL,7.152,Placebo
+BIO-200,Week 12,12,IL-6,pg/mL,6.75,Placebo
+BIO-200,Baseline,0,CRP,mg/L,2.007,Placebo
+BIO-200,Week 2,2,CRP,mg/L,1.961,Placebo
+BIO-200,Week 4,4,CRP,mg/L,3.183,Placebo
+BIO-200,Week 8,8,CRP,mg/L,2.98,Placebo
+BIO-200,Week 12,12,CRP,mg/L,2.952,Placebo

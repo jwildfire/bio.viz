@@ -1,0 +1,18 @@
+{
+  "file": "tests/e2e/fixtures/data/results-with-arm.csv",
+  "derived_by": "tools/derive-results-with-arm.mjs",
+  "rule": "The rows of site/data/synthetic-study/synthetic_results.csv whose TEST is one of IL-6, CRP, in their order, each with the participant's ARM from site/data/synthetic-study/synthetic_participants.csv added as a last column.",
+  "derived_from": [
+    {
+      "file": "site/data/synthetic-study/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5"
+    },
+    {
+      "file": "site/data/synthetic-study/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
+    }
+  ],
+  "sha256": "dc9efb1be4792a2ea814db95280ff90f004909d8f6d53dc18afb9463f07f2863",
+  "rows": 1912,
+  "columns": ["USUBJID", "VISIT", "VISITNUM", "TEST", "STRESU", "STRESN", "ARM"]
+}

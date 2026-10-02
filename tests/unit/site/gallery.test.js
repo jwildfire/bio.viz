@@ -25,6 +25,7 @@ const chart = module({
   module: 'group-comparison',
   title: 'Group comparison',
   kind: 'chart',
+  demo: 'group-comparison.js',
   blurb: 'One value across the levels of a category.',
   matrix: 'group-comparison.md',
   api: { doc: 'group-comparison.md', surface: ['groupComparison'], source: ['src/group'] }
@@ -64,8 +65,26 @@ describe('gallery', () => {
     expect(charts).toContain('One value across the levels of a category.');
     expect(charts).toContain('href="../group-comparison/evidence.html"');
     expect(charts).toContain('href="../group-comparison/api.html"');
+    // A chart has a live demo, and its card leads to it.
+    expect(charts).toContain('<a href="../group-comparison/index.html">Live demo</a>');
+    expect(section(html, 'shared-parts')).not.toContain('Live demo');
     // The shared part stays out of the list of charts.
     expect(charts).not.toContain('data-module="core"');
+  });
+
+  it('CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)', () => {
+    const without = section(renderGallery({ config: config(module(), chart), study }), 'charts');
+    expect(without).not.toContain('<img');
+    const withHero = section(
+      renderGallery({
+        config: config(module(), chart),
+        study,
+        heroes: { 'group-comparison': 'GC-DRAW-001-boxes-by-arm.png' }
+      }),
+      'charts'
+    );
+    expect(withHero).toContain('src="../group-comparison/evidence/GC-DRAW-001-boxes-by-arm.png"');
+    expect(withHero).toContain('alt="Group comparison: a screenshot captured by its tests"');
   });
 
   it('CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)', () => {
@@ -111,6 +130,15 @@ describe('gallery', () => {
     expect(html).toContain('No real participant');
   });
 
+  it('the home page says there are no charts yet only while none is published (#9)', () => {
+    const none = renderHome({ config: config(module()), version: '0.1.0', summaries: {} });
+    expect(none).toContain('<h2>No charts yet</h2>');
+    const one = renderHome({ config: config(module(), chart), version: '0.1.0', summaries: {} });
+    expect(one).not.toContain('No charts yet');
+    expect(one).toContain('<h2>The first chart</h2>');
+    expect(one).toContain('href="group-comparison/index.html">Live demo</a>');
+  });
+
   it('the home page links each module’s evidence page and API reference, and the gallery (#7)', () => {
     const html = renderHome({ config: config(module()), version: '0.1.0', summaries: {} });
     expect(html).toContain('href="core/evidence.html"');
@@ -122,7 +150,11 @@ describe('gallery', () => {
 describe('module registry', () => {
   it('CORE-SITE-005: the registry as committed is well formed (#7)', () => {
     expect(validateRegistry(realConfig)).toEqual([]);
-    expect(realConfig.modules.map((entry) => entry.kind)).toEqual(['shared', 'shared']);
+    expect(realConfig.modules.map((entry) => [entry.module, entry.kind])).toEqual([
+      ['core', 'shared'],
+      ['r-connection', 'shared'],
+      ['group-comparison', 'chart']
+    ]);
   });
 
   it('CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)', () => {
@@ -148,5 +180,14 @@ describe('module registry', () => {
     expect(problems(module({ module: 'Core Module' }))).toMatch(/lower-case name/);
     expect(validateRegistry(config(module(), module())).join('\n')).toMatch(/registered twice/);
     expect(validateRegistry({ modules: [] })).toEqual(['site/config.json registers no modules.']);
+    // A chart that is available names its demo; a shared part has none.
+    const { demo, ...undemoed } = chart;
+    expect(demo).toBe('group-comparison.js');
+    expect(problems(undemoed)).toMatch(/is an available chart, and needs `demo`/);
+    expect(problems({ ...undemoed, status: 'planned' })).toBe('');
+    expect(problems(module({ demo: 'core.js' }))).toMatch(/has a `demo`, and only a chart has one/);
+    expect(problems({ ...chart, hero: 'boxes.jpg' })).toMatch(/`hero`, when given, is the name/);
+    expect(problems({ ...chart, api: { ...chart.api, settings: 5 } })).toMatch(/`api\.settings`/);
+    expect(problems(chart)).toBe('');
   });
 });

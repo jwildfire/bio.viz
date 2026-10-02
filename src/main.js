@@ -27,3 +27,10 @@ export * as r from './r/index.js';
  * `BioViz.core.variable`, `BioViz.core.frame` and `BioViz.core.label`.
  */
 export * as core from './core/index.js';
+
+/**
+ * The group comparison chart: one value across the levels of a category, as
+ * boxes, violins or points. Built from safety.viz's kit, which the page loads
+ * beside this bundle.
+ */
+export { groupComparison } from './group-comparison.js';

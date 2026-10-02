@@ -195,6 +195,43 @@ describe('API reference: held to the code', () => {
     expect(check({ names: [] }).join('\n')).toMatch(/documents nothing/);
   });
 
+  it('GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)', async () => {
+    const entry = config.modules.find((module) => module.module === 'group-comparison');
+    expect(entry.api.settings).toBe('src/group-comparison/configure.js');
+    const { DEFAULT_SETTINGS } = await import(/* @vite-ignore */ `${ROOT}/${entry.api.settings}`);
+    const settings = Object.keys(DEFAULT_SETTINGS);
+    expect(settings.length).toBeGreaterThan(25);
+    const markdown = readFileSync(path.join(ROOT, 'docs', entry.api.doc), 'utf8');
+    const committed = await committedBundle();
+    const names = surfaceNames(committed, entry.api.surface);
+    const problems = (given) =>
+      checkApiReference({
+        module: entry.module,
+        doc: `docs/${entry.api.doc}`,
+        markdown,
+        names,
+        settings: given
+      });
+    expect(problems(settings)).toEqual([]);
+    expect(problems([...settings, 'whisker_rule'])).toEqual([
+      'group-comparison: docs/group-comparison.md has no table row for the setting `whisker_rule`, which the chart has.'
+    ]);
+    // A mention in passing is not a row: a setting named only in a sentence is a problem.
+    const renamed = markdown.replace('| `max_levels` ', '| `most_levels` ');
+    expect(renamed).toContain('at most `max_levels` different values');
+    expect(
+      checkApiReference({
+        module: entry.module,
+        doc: `docs/${entry.api.doc}`,
+        markdown: renamed,
+        names,
+        settings
+      })
+    ).toEqual([
+      'group-comparison: docs/group-comparison.md has no table row for the setting `max_levels`, which the chart has.'
+    ]);
+  });
+
   it('CORE-SITE-010: the committed references document everything the committed bundle exports (#7)', async () => {
     const committed = await committedBundle();
     expect(unclaimedExports(committed, config.modules)).toEqual([]);
@@ -207,7 +244,12 @@ describe('API reference: held to the code', () => {
           doc: `docs/${api.doc}`,
           markdown: readFileSync(path.join(ROOT, 'docs', api.doc), 'utf8'),
           names,
-          params: jsdocParams(readSources(ROOT, api.source))
+          params: jsdocParams(readSources(ROOT, api.source)),
+          settings: api.settings
+            ? Object.keys(
+                (await import(/* @vite-ignore */ `${ROOT}/${api.settings}`)).DEFAULT_SETTINGS
+              )
+            : []
         })
       ).toEqual([]);
     }

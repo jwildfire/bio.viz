@@ -54,6 +54,11 @@ jobs:
       - name: Vendored study equals gsm.bio at the recorded commit
         run: npm run data:check-source
 
+      # The same for safety.viz's bundle, which a chart's page loads beside
+      # bio.viz: fetched from safety.viz at the recorded commit and compared.
+      - name: Vendored safety.viz bundle equals safety.viz at the recorded commit
+        run: npm run kit:check-source
+
       # Desktop R, at the version that made site/r-check/expected.json, so the
       # step after it re-derives the R check page's expected results instead of
       # trusting the committed file. The survival package comes with R.

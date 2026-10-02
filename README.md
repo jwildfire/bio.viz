@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress and has no charts yet. It sets the repository up and measures what running R in the browser costs. The charts follow: group comparison, association scatter, correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
+Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first chart: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws but does not yet test. The others follow: association scatter, correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
 
 ## How it fits together
 
@@ -56,6 +56,27 @@ if (result.status === 'ok') {
 ```
 
 R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched from its public CDN on first use and never bundled. The full interface, including the format of stored results, is in [docs/r-connection.md](docs/r-connection.md), which the site publishes as the connection's [API reference](https://jwildfire.github.io/bio.viz/dev/r-connection/api.html).
+
+## The group comparison chart
+
+One value across the levels of a category, as boxes, violins or points, with the number in each group beneath. safety.viz is loaded first: the chart is built from its kit.
+
+```html
+<div id="chart"></div>
+<script src="vendor/safety.viz/safety.viz.js"></script>
+<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script>
+  BioViz.groupComparison('#chart', {
+    start_value: 'IL-6',
+    visits: 'Week 4',
+    value_type: 'change',
+    baseline_visits: 'Baseline',
+    group_by: 'ARM'
+  }).init({ results, participants });
+</script>
+```
+
+Only the results table is required. The settings, the controls and what the statistics line prints are in [docs/group-comparison.md](docs/group-comparison.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/group-comparison/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/group-comparison/) runs on the synthetic study.
 
 ## Naming a variable and getting one row per participant
 

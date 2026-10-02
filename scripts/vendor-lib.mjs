@@ -1,12 +1,14 @@
-// Vendoring, as a copy with a record. The synthetic biomarker study is made in
-// gsm.bio and copied here byte for byte; nothing in this repository retypes,
-// regenerates or reshapes it. Beside the copies sits a record, SOURCE.json,
-// naming the gsm.bio commit they came from and, for each file, its checksum,
-// size, column names and row count. `verifyVendored` is the check that fails
-// when a file and its record no longer agree.
+// Vendoring, as a copy with a record. Two things are made elsewhere and copied
+// here byte for byte: the synthetic biomarker study, from gsm.bio, and
+// safety.viz's script-tag bundle, which a chart's page loads beside bio.viz.
+// Nothing in this repository retypes, regenerates or reshapes either. Beside
+// each copy sits a record, SOURCE.json, naming the repository and commit it
+// came from and, for each file, its checksum and size (and, for a CSV file, its
+// column names and row count). `verifyVendored` is the check that fails when a
+// file and its record no longer agree.
 //
-// Pure functions over bytes and a folder; tools/vendor-synthetic-study.mjs is
-// the command line that fetches the bytes.
+// Pure functions over bytes and a folder; scripts/vendor-cli.mjs is the command
+// line that fetches the bytes.
 
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -27,6 +29,20 @@ export const STUDY = {
   ]
 };
 
+// safety.viz's script-tag bundle: the global `SafetyViz`, whose `kit` a chart is
+// built from. It is loaded beside bio.viz on a page and never bundled into it.
+// The path it is copied from carries safety.viz's version, which the vendoring
+// tool reads from safety.viz's own package.json at the commit; here it has one
+// name whatever the version, so no page needs editing when it is copied again.
+export const SAFETY_VIZ = {
+  name: 'safety.viz script-tag bundle',
+  // What the record calls the thing copied.
+  label: 'bundle',
+  repository: 'https://github.com/jwildfire/safety.viz',
+  directory: 'site/vendor/safety.viz',
+  files: [{ file: 'safety.viz.js', source: 'dist/safety.viz-{version}/safety.viz.js' }]
+};
+
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 // The column names and the number of data rows of a CSV file, counted without
@@ -43,25 +59,29 @@ export function describeCsv(bytes, file = 'file') {
   return { columns: lines[0].split(','), rows: lines.length - 1 };
 }
 
-// One record entry for one file's bytes.
+// One record entry for one file's bytes. A CSV file's columns and rows are
+// recorded with it; any other file is held by its checksum and size alone.
 export function describeFile({ file, source }, bytes) {
-  return { file, source, sha256: sha256(bytes), bytes: bytes.length, ...describeCsv(bytes, file) };
+  const csv = file.endsWith('.csv') ? describeCsv(bytes, file) : {};
+  return { file, source, sha256: sha256(bytes), bytes: bytes.length, ...csv };
 }
 
 // The record for a set of files as they were read from one commit. `read` is
-// given a path in the source repository and returns that file's bytes.
-export function buildRecord({ study = STUDY, ref, commit, license, read }) {
+// given a path in the source repository and returns that file's bytes. `more`
+// is recorded as given, after the commit: a version, a licence, a note.
+export function buildRecord({ study = STUDY, ref, commit, license, read, more = {} }) {
   if (!/^[0-9a-f]{40}$/.test(commit || '')) {
     throw new Error(`A source record needs the full 40-character commit, not "${commit}".`);
   }
   const contents = study.files.map((entry) => ({ entry, bytes: Buffer.from(read(entry.source)) }));
   return {
     record: {
-      study: study.name,
+      [study.label || 'study']: study.name,
       repository: study.repository,
       ref,
       commit,
-      license,
+      ...(license === undefined ? {} : { license }),
+      ...more,
       files: contents.map(({ entry, bytes }) => describeFile(entry, bytes))
     },
     contents
@@ -119,6 +139,7 @@ export function verifyVendored(directory) {
     if (bytes.length !== entry.bytes) {
       problems.push(`${entry.file}: ${bytes.length} bytes, and the record says ${entry.bytes}.`);
     }
+    if (!String(entry.file).endsWith('.csv')) continue;
     const { columns, rows } = describeCsv(bytes, entry.file);
     if (rows !== entry.rows) {
       problems.push(`${entry.file}: ${rows} rows, and the record says ${entry.rows}.`);
@@ -128,8 +149,9 @@ export function verifyVendored(directory) {
     }
   }
 
+  // The folder holds what its record names and nothing more.
   const recorded = new Set(files.map((entry) => entry.file));
-  for (const file of readdirSync(directory).filter((name) => name.endsWith('.csv'))) {
+  for (const file of readdirSync(directory).filter((name) => name !== RECORD_FILE)) {
     if (!recorded.has(file)) problems.push(`${file}: present, but not in ${RECORD_FILE}.`);
   }
   return problems;

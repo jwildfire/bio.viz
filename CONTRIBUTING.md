@@ -11,20 +11,21 @@ npx playwright install chromium
 
 ## Commands
 
-| Command                                    | Purpose                                                                                     |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `npm run build`                            | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`     |
-| `npm run build:check-dist`                 | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`        |
-| `npm test`                                 | Vitest unit tests (`tests/unit/`)                                                           |
-| `npm run test:e2e`                         | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site     |
-| `npm run format` / `npm run format:check`  | Prettier write / check                                                                      |
-| `npm run evidence` / `evidence:check`      | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard      |
-| `npm run evidence:update`                  | Rewrite the screenshot baselines; Linux only, run by the baseline workflow                  |
-| `npm run requirements` / `:check`          | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard  |
-| `npm run fixtures` / `fixtures:check`      | Write the R check page's expected results in desktop R / check the committed ones against R |
-| `npm run r-check:measure`                  | Run the live browser tests and record their megabytes and seconds for the R check page      |
-| `npm run data:check` / `data:check-source` | Hold the vendored synthetic study to its record / to gsm.bio at the recorded commit         |
-| `npm run site`                             | Build the site into `_site/` (gitignored); fails on a broken internal link                  |
+| Command                                    | Purpose                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `npm run build`                            | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`    |
+| `npm run build:check-dist`                 | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`       |
+| `npm test`                                 | Vitest unit tests (`tests/unit/`)                                                          |
+| `npm run test:e2e`                         | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site    |
+| `npm run format` / `npm run format:check`  | Prettier write / check                                                                     |
+| `npm run evidence` / `evidence:check`      | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard     |
+| `npm run evidence:update`                  | Rewrite the screenshot baselines; Linux only, run by the baseline workflow                 |
+| `npm run requirements` / `:check`          | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard |
+| `npm run fixtures` / `fixtures:check`      | Write the R fixtures in desktop R / check the committed ones against R                     |
+| `npm run r-check:measure`                  | Run the live browser tests and record their megabytes and seconds for the R check page     |
+| `npm run data:check` / `data:check-source` | Hold the vendored synthetic study to its record / to gsm.bio at the recorded commit        |
+| `npm run kit:check` / `kit:check-source`   | Hold the vendored safety.viz bundle to its record / to safety.viz at the recorded commit   |
+| `npm run site`                             | Build the site into `_site/` (gitignored); fails on a broken internal link                 |
 
 `dist/` is committed — after any change under `src/`, run `npm run build` and commit the regenerated bundle alongside it. CI's drift check fails the build otherwise. The browser fixtures load the bundle by its versioned path, and the same check fails if a fixture names a version other than the one in `package.json`.
 
@@ -99,6 +100,21 @@ Every demo and most chart tests run on one made-up study of 200 participants, ma
 - Nothing here retypes, regenerates or reshapes the study. `node tools/vendor-synthetic-study.mjs` copies the three files byte for byte from the head of gsm.bio's `dev` branch and writes `SOURCE.json` beside them: the gsm.bio commit, and each file's checksum, size, columns and row count. Rerun it when gsm.bio's study changes, and commit the result.
 - Never edit a file in that folder, the record included. `npm test` fails when a file and its record disagree (`npm run data:check` says the same from the command line), and `npm run data:check-source`, which continuous integration runs, fetches the recorded commit's files from gsm.bio and fails when a vendored file differs from them.
 
+## safety.viz's bundle
+
+A chart is built from safety.viz's kit, and safety.viz is loaded beside bio.viz on a page, never bundled into it. The site and the browser tests load one copy of safety.viz's script-tag bundle, `site/vendor/safety.viz/safety.viz.js`: the site publishes it at `vendor/safety.viz/safety.viz.js`, and a fixture page loads `/site/vendor/safety.viz/safety.viz.js` from the repository root the suite serves.
+
+- `node tools/vendor-safety-viz.mjs` copies the file byte for byte from the head of safety.viz's `dev` branch and writes `SOURCE.json` beside it: the safety.viz commit and version, and the file's checksum and size. `--ref` names another branch or a commit, and `--unmerged "<why, and what to do later>"` records that the commit is not on `dev`.
+- The copy in the repository now is from safety.viz's unmerged branch `154-kit`, and its record says so. When the kit lands on safety.viz `dev`, run the tool with no arguments, commit the result and rerun the tests.
+- Never edit that folder. `npm test` and the site build fail when the file and its record disagree (`npm run kit:check`), and `npm run kit:check-source`, which continuous integration runs, compares the file with safety.viz at the recorded commit.
+- Nothing under `src/` imports safety.viz or Chart.js. A chart finds the kit on the page, as `SafetyViz.kit`, when it is made. `tests/unit/group-comparison/bundle.test.js` fails if either library gets into bio.viz's bundle.
+
+## Drawing arithmetic, and R
+
+A chart may describe the values it draws: how many, the quantiles and mean a box is drawn from, the outline of a violin. It may not compare one group with another: no test, estimate, interval, p-value or adjustment. That line is the same one the rest of this file draws around statistical inference.
+
+What a chart does work out is held to desktop R. `tools/r-group-comparison.R` writes `tests/fixtures/group-comparison-r.json` from the vendored study with base R alone (`quantile(type = 7)`, `mean`, `bw.nrd0`, a Gaussian kernel density), the unit tests named `GC-BOX-*` and `GC-VIOLIN-*` compare the chart's numbers with it, and `npm run fixtures:check` reruns the script. Never type a number into that file.
+
 ## The site
 
 `npm run site` builds `_site/` from `site/` and the committed artifacts, with relative URLs throughout, so one build serves any path. Its pages:
@@ -109,6 +125,7 @@ Every demo and most chart tests run on one made-up study of 200 participants, ma
 | `gallery/index.html`     | the registry (the charts, then the shared parts) and the synthetic study's source record    |
 | `<module>/evidence.html` | `docs/requirements/<module>.json`, `docs/evidence/<module>/evidence.json` and its PNG files |
 | `<module>/api.html`      | the module's reference file in `docs/`                                                      |
+| `<module>/index.html`    | a chart's live demo: `site/demo/<demo>` on the synthetic study, with safety.viz's bundle    |
 | `r-check/index.html`     | `site/r-check/`                                                                             |
 
 ### Registering a module
@@ -123,14 +140,18 @@ A module is one entry in `site/config.json`, and that entry is all the site, the
   "status": "available",
   "blurb": "One sentence a statistician would recognise.",
   "matrix": "group-comparison.md",
+  "demo": "group-comparison.js",
+  "hero": "GC-DRAW-001-boxes-by-arm.png",
   "api": {
     "doc": "group-comparison.md",
     "surface": ["groupComparison"],
-    "source": ["src/group-comparison"]
+    "source": ["src/group-comparison.js"],
+    "settings": "src/group-comparison/configure.js"
   }
 }
 ```
 
+- A chart also names `demo`, its demo script in `site/demo/`, and may name `hero`, one of its evidence screenshots, shown on its gallery card once that screenshot is committed. Its `api.settings` is the source file that exports its `DEFAULT_SETTINGS`: the build fails when the reference file has no table row for one of them.
 - `kind` is `chart` or `shared`. A chart whose `status` is `available` is listed in the gallery under Charts; a shared part (the core, the connection to R) under Shared parts. The build refuses an entry without it.
 - `matrix` is the module's requirement matrix in `requirements/`. Its unit tests go in `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js`; its evidence page then lists every row with the tests named for it.
 - `api.doc` is the module's reference file in `docs/`. `api.surface` lists the top-level exports of the bundle the file documents; one that is a namespace (`r`) stands for every member of it. `api.source` lists the files or folders those exports are written in.
@@ -161,4 +182,4 @@ Every page must hold at a 390px-wide viewport with no horizontal scroll; `tests/
 
 ## Chart definition of done
 
-A chart is not done until it is on the site with a gallery card, a live demo against committed public or synthetic data, an evidence page green for every row of its matrix, an API reference, and its gsm.bio widget — the same gate safety.viz charts pass. The gallery card, the evidence page and the API reference come from the chart's registry entry; the live demo page is the chart's own to add.
+A chart is not done until it is on the site with a gallery card, a live demo against committed public or synthetic data, an evidence page green for every row of its matrix, an API reference, and its gsm.bio widget — the same gate safety.viz charts pass. The gallery card, the live demo page, the evidence page and the API reference all come from the chart's registry entry.

@@ -277,9 +277,13 @@ test.describe('evidence pages', () => {
     for (const module of modules) {
       await page.goto(`/_site/${module}/evidence.html`);
       await expect(page.locator('.requirement').first()).toBeVisible();
-      // Opened, so the tests it holds are laid out and measured too.
-      await page.locator('#shared-tests summary').click();
-      await expect(page.locator('#shared-tests .tests li').first()).toBeVisible();
+      // Opened, so the tests it holds are laid out and measured too. A module
+      // whose first evidence set has not been made yet has none to open.
+      const shared = page.locator('#shared-tests summary');
+      if (await shared.count()) {
+        await shared.click();
+        await expect(page.locator('#shared-tests .tests li').first()).toBeVisible();
+      }
       expect(await layout(page), module).toEqual(HOLDS);
     }
   });
