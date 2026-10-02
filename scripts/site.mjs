@@ -38,6 +38,7 @@ import {
   escapeHtml,
   renderApiPage,
   renderCheckPage,
+  renderDemoPage,
   renderEvidencePage,
   renderGallery,
   renderHome,
@@ -47,7 +48,7 @@ import {
   validateRegistry,
   validateSiteLinks
 } from './site-lib.mjs';
-import { STUDY, readRecord, verifyVendored } from './vendor-lib.mjs';
+import { SAFETY_VIZ, STUDY, readRecord, verifyVendored } from './vendor-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const siteDir = path.join(rootDir, '_site');
@@ -159,6 +160,41 @@ if (!studyProblems.length) {
   }
 }
 
+// safety.viz's bundle, which a chart's page loads beside bio.viz's: published
+// with its source record, and held to that record like the study.
+const kitSource = path.join(rootDir, SAFETY_VIZ.directory);
+const kitProblems = verifyVendored(kitSource);
+errors.push(...kitProblems.map((problem) => `${SAFETY_VIZ.directory}: ${problem}`));
+let kit;
+if (!kitProblems.length) {
+  kit = readRecord(kitSource);
+  const kitDir = path.join(siteDir, 'vendor/safety.viz');
+  mkdirSync(kitDir, { recursive: true });
+  for (const file of [...kit.files.map((entry) => entry.file), 'SOURCE.json']) {
+    copyFileSync(path.join(kitSource, file), path.join(kitDir, file));
+  }
+}
+
+// The demo scripts: one that reads the study, and one per chart.
+const demoSource = path.join(rootDir, 'site/demo');
+if (existsSync(demoSource)) {
+  mkdirSync(path.join(siteDir, 'demo'), { recursive: true });
+  for (const file of readdirSync(demoSource).filter((name) => name.endsWith('.js'))) {
+    copyFileSync(path.join(demoSource, file), path.join(siteDir, 'demo', file));
+  }
+}
+
+// A chart's gallery card shows its hero screenshot once that screenshot is
+// committed. Until then the card has no picture; it never has a broken one.
+const heroes = Object.fromEntries(
+  config.modules
+    .filter(
+      (entry) =>
+        entry.hero && existsSync(path.join(rootDir, 'docs/evidence', entry.module, entry.hero))
+    )
+    .map((entry) => [entry.module, entry.hero])
+);
+
 // The gallery: the charts that are published, the shared parts and the study.
 mkdirSync(path.join(siteDir, 'gallery'), { recursive: true });
 writeFileSync(
@@ -169,7 +205,7 @@ writeFileSync(
     description:
       'The charts in bio.viz, each with the tests that prove it and the reference for calling ' +
       'it, the shared parts they are built on, and the synthetic study the demos run on.',
-    content: renderGallery({ config, study }),
+    content: renderGallery({ config, study, heroes }),
     root: '../',
     version,
     build
@@ -200,19 +236,53 @@ for (const entry of modules) {
   const moduleDir = path.join(siteDir, module);
   mkdirSync(path.join(moduleDir, 'evidence'), { recursive: true });
 
+  // A chart's live demo, drawn by its demo script on the synthetic study.
+  if (entry.demo) {
+    if (!existsSync(path.join(demoSource, entry.demo))) {
+      errors.push(
+        `${module}: site/config.json names site/demo/${entry.demo}, which does not exist.`
+      );
+    } else {
+      writeFileSync(
+        path.join(moduleDir, 'index.html'),
+        renderShell({
+          shell,
+          title: `${entry.title}: live demo · bio.viz`,
+          description: `The bio.viz ${entry.title} chart, live, on the synthetic study: ${entry.blurb}`,
+          content: renderDemoPage({ entry, version, study, kit }),
+          root: '../',
+          version,
+          build,
+          mainClass: 'wide'
+        })
+      );
+    }
+  }
+
   // Evidence: the committed set joined to the requirement extract, with the
   // screenshots the set names copied beside the page.
   const evidenceDir = path.join(rootDir, 'docs/evidence', module);
-  const evidence = readJson(path.join(evidenceDir, 'evidence.json'));
+  // A module's first evidence set is made by a test run, and the browser tests
+  // build this site before they run: so a module with no evidence set yet still
+  // gets its page, which says that every requirement has no test recorded.
+  // `npm run evidence:check` is what fails on the missing set.
+  const recorded = readJson(path.join(evidenceDir, 'evidence.json'));
+  if (!recorded) {
+    console.warn(
+      `⚠ docs/evidence/${module}/evidence.json is missing: the evidence page shows no test ` +
+        'results. Run `npm run evidence` and commit.'
+    );
+  }
+  const evidence = recorded || { module, records: [] };
   const requirements = readJson(path.join(rootDir, 'docs/requirements', `${module}.json`));
-  if (!evidence)
-    errors.push(`missing docs/evidence/${module}/evidence.json — run \`npm run evidence\``);
   if (!requirements) {
     errors.push(`missing docs/requirements/${module}.json — run \`npm run requirements\``);
   }
   if (evidence && requirements) {
     errors.push(...validateEvidenceScreenshots(evidence, evidenceDir, `docs/evidence/${module}`));
-    const screenshots = readdirSync(evidenceDir).filter((name) => name.endsWith('.png'));
+    const screenshots = existsSync(evidenceDir)
+      ? readdirSync(evidenceDir).filter((name) => name.endsWith('.png'))
+      : [];
     for (const file of screenshots) {
       copyFileSync(path.join(evidenceDir, file), path.join(moduleDir, 'evidence', file));
     }
@@ -253,7 +323,14 @@ for (const entry of modules) {
         doc: `docs/${entry.api.doc}`,
         markdown,
         names: surfaceNames(bundle, entry.api.surface),
-        params: jsdocParams(readSources(rootDir, entry.api.source))
+        params: jsdocParams(readSources(rootDir, entry.api.source)),
+        // A chart's settings, from the source that defines them.
+        settings: entry.api.settings
+          ? Object.keys(
+              (await import(pathToFileURL(path.join(rootDir, entry.api.settings)).href))
+                .DEFAULT_SETTINGS
+            )
+          : []
       })
     );
   }
@@ -280,7 +357,7 @@ if (errors.length) fail();
 const charts = modules.filter((entry) => entry.kind === 'chart').length;
 console.log(
   `✓ Built _site/ — bio.viz ${version}: home page, R check page, gallery ` +
-    `(${charts} chart${charts === 1 ? '' : 's'}), and an evidence page and an API reference for ` +
-    `each of ${modules.length} module${modules.length === 1 ? '' : 's'}; all internal links ` +
-    'verified.'
+    `(${charts} chart${charts === 1 ? '' : 's'}, each with a live demo), and an evidence page ` +
+    `and an API reference for each of ${modules.length} module${modules.length === 1 ? '' : 's'}; ` +
+    'all internal links verified.'
 );

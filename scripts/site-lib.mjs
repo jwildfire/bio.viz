@@ -29,9 +29,11 @@ export function renderShell({
   root = '',
   version = '',
   description = '',
-  build = ''
+  build = '',
+  mainClass = ''
 }) {
   return shell
+    .replaceAll('{{mainClass}}', escapeHtml(mainClass))
     .replaceAll('{{title}}', escapeHtml(title))
     .replaceAll('{{description}}', escapeHtml(description))
     .replaceAll('{{version}}', escapeHtml(version))
@@ -91,14 +93,25 @@ export function renderHome({ config, version, summaries = {} }) {
   </p>
 </section>
 
-<aside class="callout">
+${
+  config.modules.some((entry) => entry.kind === 'chart' && entry.status === 'available')
+    ? `<aside class="callout">
+  <h2>The first chart</h2>
+  <p>
+    The <a href="gallery/index.html">gallery</a> has the charts that are published, each with a
+    live demo on a made-up study. A chart draws; it does not test. Every test is computed by R,
+    and the charts say so where one would be printed.
+  </p>
+</aside>`
+    : `<aside class="callout">
   <h2>No charts yet</h2>
   <p>
     This first release sets the repository up and measures what running R in the browser costs:
     how many megabytes it downloads and how many seconds pass before the first result. The charts
     follow once that is known.
   </p>
-</aside>
+</aside>`
+}
 
 <section>
   <h2>This build</h2>
@@ -339,6 +352,19 @@ export function validateRegistry(config) {
     if (!api || !isTextList(api.source)) {
       say('needs `api.source`, the source files or folders those exports are written in.');
     }
+    if (api && api.settings !== undefined && !isText(api.settings)) {
+      say('`api.settings`, when given, is the source file that exports its DEFAULT_SETTINGS.');
+    }
+    // A chart is drawn somewhere a reader can try it: it names its demo.
+    if (entry.kind === 'chart' && entry.status === 'available' && !isText(entry.demo)) {
+      say('is an available chart, and needs `demo`, the name of its demo script in site/demo/.');
+    }
+    if (entry.kind !== 'chart' && entry.demo !== undefined) {
+      say('has a `demo`, and only a chart has one.');
+    }
+    if (entry.hero !== undefined && !(isText(entry.hero) && entry.hero.endsWith('.png'))) {
+      say('`hero`, when given, is the name of one of its evidence screenshots.');
+    }
   });
   return errors;
 }
@@ -353,6 +379,7 @@ export function moduleLinks(entry, root = '') {
   const base = `${root}${escapeHtml(entry.module)}`;
   return (
     `<p class="module-links">` +
+    (entry.demo ? `<a href="${base}/index.html">Live demo</a> · ` : '') +
     `<a href="${base}/evidence.html">Evidence</a> · ` +
     `<a href="${base}/api.html">API reference</a>` +
     `</p>`
@@ -360,7 +387,7 @@ export function moduleLinks(entry, root = '') {
 }
 
 // The tabs at the top of a module's pages.
-function moduleTabs(active) {
+function moduleTabs(active, entry = {}) {
   const tab = (id, href, label) =>
     id === active
       ? `<a class="current" aria-current="page" href="${href}">${label}</a>`
@@ -368,6 +395,8 @@ function moduleTabs(active) {
   return (
     `<nav class="page-tabs" aria-label="Pages for this module">` +
     tab('gallery', '../gallery/index.html', 'Gallery') +
+    // A chart has a live demo; a shared part has none.
+    (entry.demo ? tab('demo', 'index.html', 'Live demo') : '') +
     tab('evidence', 'evidence.html', 'Evidence') +
     tab('api', 'api.html', 'API reference') +
     `</nav>`
@@ -386,9 +415,18 @@ const STUDY_TABLES = {
   'synthetic_outcomes.csv': ['Outcomes', 'One row per participant and endpoint']
 };
 
-function galleryCard(entry) {
+// A chart's card shows a picture of it when one of its evidence screenshots is
+// named as its `hero` and is committed (`heroes` lists the ones that are).
+function galleryCard(entry, heroes = {}) {
+  const hero = heroes[entry.module];
+  const picture = hero
+    ? `<a class="module-hero" href="../${escapeHtml(entry.module)}/index.html">` +
+      `<img src="../${escapeHtml(entry.module)}/evidence/${escapeHtml(hero)}" loading="lazy" ` +
+      `alt="${escapeHtml(entry.title)}: a screenshot captured by its tests"></a>`
+    : '';
   return (
     `<li class="module" data-module="${escapeHtml(entry.module)}">` +
+    picture +
     `<h3>${escapeHtml(entry.title)}</h3>` +
     `<p>${escapeHtml(entry.blurb)}</p>` +
     moduleLinks(entry, '../') +
@@ -433,12 +471,12 @@ function renderStudy(study) {
 
 // The gallery: the charts that are published, the shared parts they are built
 // on, and the data the demos run on. With no chart published it says so.
-export function renderGallery({ config, study }) {
+export function renderGallery({ config, study, heroes = {} }) {
   const modules = availableModules(config);
   const charts = modules.filter((entry) => entry.kind === 'chart');
   const shared = modules.filter((entry) => entry.kind !== 'chart');
   const chartList = charts.length
-    ? `<ul class="modules" id="charts-list">${charts.map(galleryCard).join('')}</ul>`
+    ? `<ul class="modules" id="charts-list">${charts.map((entry) => galleryCard(entry, heroes)).join('')}</ul>`
     : `<aside class="callout" id="no-charts">
     <p>
       No chart is published yet. When one is, it is listed here with a live demo on the synthetic
@@ -463,9 +501,59 @@ export function renderGallery({ config, study }) {
 <section id="shared-parts">
   <h2>Shared parts</h2>
   <p>What every chart is built on. Each has the same two pages a chart has.</p>
-  <ul class="modules" id="shared-list">${shared.map(galleryCard).join('')}</ul>
+  <ul class="modules" id="shared-list">${shared.map((entry) => galleryCard(entry)).join('')}</ul>
 </section>
 ${renderStudy(study)}
+`;
+}
+
+// ---- Demo page -------------------------------------------------------------
+
+// A chart's live demo: the chart, drawn on the synthetic study by the chart's
+// demo script. safety.viz's bundle is loaded first, as its own script tag, and
+// bio.viz's after it: the chart is built from safety.viz's kit and bundles none
+// of it.
+export function renderDemoPage({ entry, version, study, kit }) {
+  const bundle = `../dist/bio.viz-${version}/bio.viz.js`;
+  const source = study
+    ? ` The data is the <a href="../gallery/index.html#demo-data">synthetic study</a>: ` +
+      `${count(study.files[1] ? study.files[1].rows : 0)} made-up participants, and no real one.`
+    : '';
+  const built = kit
+    ? `<p class="sub" id="demo-kit">The controls, the filters, the listing, the participant ` +
+      `profile and the Chart.js this chart draws with are safety.viz's, version ` +
+      `${escapeHtml(kit.version)}, loaded beside bio.viz from ` +
+      `<a href="../vendor/safety.viz/SOURCE.json">a copy with a record of where it came from</a>.` +
+      (kit.merged_to_dev === false
+        ? ` That copy is from a branch of safety.viz that is not merged yet.`
+        : '') +
+      `</p>`
+    : '';
+  return `
+<section class="hero">
+  <p class="eyebrow">Live demo</p>
+  <h1>${escapeHtml(entry.title)}</h1>
+  <p class="lead">${escapeHtml(entry.blurb)}${source}</p>
+  ${moduleTabs('demo', entry)}
+</section>
+
+<section id="demo">
+  <div id="chart"></div>
+</section>
+
+<section id="about-demo">
+  <ul class="notes">
+    <li>Choose the biomarker, the value, the visits, the groups and how they are drawn in the controls. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
+    <li>Click a box, a violin or a point to list its participants. Click a row of the list to open that participant's profile.</li>
+    <li>The line under the chart is where a test of the groups is printed. Every test is computed by R, and no R is attached to this page, so the line says that statistics are unavailable. The chart computes none itself.</li>
+  </ul>
+  ${built}
+</section>
+
+<script src="../vendor/safety.viz/safety.viz.js"></script>
+<script src="${escapeHtml(bundle)}"></script>
+<script src="../demo/synthetic-study.js"></script>
+<script src="../demo/${escapeHtml(entry.demo)}"></script>
 `;
 }
 
@@ -615,7 +703,7 @@ export function renderEvidencePage({
     Every requirement of this module, the tests named for it, and what each test recorded the
     last time the evidence was rebuilt.
   </p>
-  ${moduleTabs('evidence')}
+  ${moduleTabs('evidence', entry)}
 </section>
 
 <section id="summary">
@@ -693,7 +781,7 @@ export function renderApiPage({ entry, config, markdown, pages = {} }) {
 <section class="hero">
   <p class="eyebrow">API reference</p>
   <h1>${escapeHtml(title)}</h1>
-  ${moduleTabs('api')}
+  ${moduleTabs('api', entry)}
 </section>
 
 <nav class="api-toc" aria-label="On this page">

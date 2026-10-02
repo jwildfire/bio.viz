@@ -10,11 +10,17 @@
 //   2. a function the file documents under a heading is really exported;
 //   3. every parameter the source documents (the `@param` lines of an export's
 //      JSDoc comment) is named in the file's section for that export;
-//   4. an exported constant's value is given in its section.
+//   4. an exported constant's value is given in its section;
+//   5. every setting of a chart (the keys of the DEFAULT_SETTINGS its registry
+//      entry points at) is named in the file.
 //
 // A module says what it documents in site/config.json:
 //
 //   "api": { "doc": "r-connection.md", "surface": ["r"], "source": ["src/r"] }
+//
+// and a chart adds where its settings are:
+//
+//   "api": { …, "settings": "src/group-comparison/configure.js" }
 //
 // `surface` lists top-level exports of the bundle. One that is a namespace
 // (`r`, which a page reads as `BioViz.r`) stands for every member of it.
@@ -131,7 +137,7 @@ const headingNames = (heading, name) =>
 //
 //   names   what the module must document, from `surfaceNames`
 //   params  the parameters the source documents, from `jsdocParams`
-export function checkApiReference({ module, doc, markdown, names, params = {} }) {
+export function checkApiReference({ module, doc, markdown, names, params = {}, settings = [] }) {
   const problems = [];
   const where = `${module}: ${doc}`;
   const all = sections(markdown);
@@ -162,6 +168,13 @@ export function checkApiReference({ module, doc, markdown, names, params = {} })
           `${where} does not name \`${param}\`, a parameter the source documents for \`${name}\`.`
         );
       }
+    }
+  }
+
+  // A chart's settings are part of its interface: each is named in the file.
+  for (const setting of settings) {
+    if (!markdown.includes('`' + setting + '`')) {
+      problems.push(`${where} does not name the setting \`${setting}\`, which the chart has.`);
     }
   }
 
