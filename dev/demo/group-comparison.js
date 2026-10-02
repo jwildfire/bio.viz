@@ -1,6 +1,8 @@
 // The group comparison chart's demo: the chart, on the synthetic study, opening
-// on the comparison the study was planted with — IL-6, change from Baseline to
-// Week 4, by arm — with R attached, in this browser.
+// on every biomarker at every visit, by arm, with R attached, in this browser.
+// A row of that overview opens one biomarker, and R is started then, the first
+// time a panel that prints a test is drawn. IL-6 is the biomarker the study was
+// planted with: its change from Baseline to Week 4 differs between the arms.
 //
 // What the page sets is kept on `BioVizDemo.groupComparison`, where a script can
 // read it without a page: tools/derive-group-statistics.mjs reads the settings
@@ -14,9 +16,12 @@
   ];
   var demo = (window.BioVizDemo.groupComparison = {
     settings: {
-      start_value: 'IL-6',
-      visits: 'Week 4',
-      value_type: 'change',
+      // No biomarker and no visit named: the overview, at every visit.
+      start_value: null,
+      visits: null,
+      // The result itself, so that the baseline visit is a panel like the rest;
+      // a change from baseline is one choice away in the Value control.
+      value_type: 'raw',
       baseline_visits: 'Baseline',
       group_by: 'ARM',
       // Arm and sex together make four groups: the study's own categories have
@@ -26,7 +31,8 @@
       profile_details: labelled.concat([{ value_col: 'AGE', label: 'Age' }]),
       // The participant profile's time axis; see synthetic-study.js.
       studyday_col: 'DAY',
-      // What the first test costs on this page, said while R starts. The
+      // What the first test costs on this page, said while R starts: by the
+      // first panel that waits, the first time a biomarker is opened. The
       // megabytes are the ones the browser tests measure (GC-STAT-041).
       waiting_note:
         'The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
@@ -53,7 +59,8 @@
     function (study) {
       // Making the connection fetches nothing. R is started the first time the
       // chart asks for a test, which is the first time it draws a panel that
-      // prints one.
+      // prints one: the overview this page opens on prints none, so R starts
+      // when a biomarker is opened.
       var connection = window.BioViz.r.createConnection({ browser: demo.browser });
       var chart = window.BioViz.groupComparison(
         '#chart',
