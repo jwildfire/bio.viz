@@ -9,12 +9,12 @@
       "title": "Library core",
       "kind": "shared",
       "status": "available",
-      "blurb": "The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.",
+      "blurb": "The entry point and the two committed bundles, each reporting the package version, and the two steps every chart shares before anything is drawn: a variable named one way, and named variables resolved to one row per participant with what was left out counted.",
       "matrix": "core.md",
       "api": {
         "doc": "core.md",
-        "surface": ["version"],
-        "source": ["src/main.js"]
+        "surface": ["version", "core"],
+        "source": ["src/main.js", "src/core"]
       }
     },
     {
