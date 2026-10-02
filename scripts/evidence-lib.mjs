@@ -179,3 +179,28 @@ export function compareEvidence(committed, fresh) {
   }
   return { stale: differences.length > 0, differences };
 }
+
+// Traceability guard: every requirement row has a test named for it, and no
+// test names a requirement that is in no matrix. `requirementIds` is every row
+// of every registered matrix; `sets` is what buildEvidenceSets returned. A row
+// with no test is a requirement nothing proves; a test naming a row that does
+// not exist (a typing slip, or a row since renamed) proves nothing a page can
+// show.
+export function findTraceabilityGaps({ requirementIds, sets }) {
+  const known = new Set(requirementIds);
+  const named = new Map();
+  for (const set of Object.values(sets || {})) {
+    for (const rec of set.records || []) {
+      for (const id of rec.requirementIds || []) {
+        if (!named.has(id)) named.set(id, rec.test);
+      }
+    }
+  }
+  return {
+    untested: [...known].filter((id) => !named.has(id)).sort(),
+    unknown: [...named]
+      .filter(([id]) => !known.has(id))
+      .map(([id, test]) => ({ id, test }))
+      .sort((a, b) => a.id.localeCompare(b.id))
+  };
+}

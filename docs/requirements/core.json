@@ -7,6 +7,25 @@
     "CORE-API-001": "`version` equals the `version` field of package.json: in the source, in both committed bundles, and as `BioViz.version` on a page that loads the script-tag bundle.",
     "CORE-DEP-001": "package.json declares no runtime dependencies: safety.viz and webR are loaded beside the bundle on a page and are never bundled into it.",
     "CORE-SITE-001": "The site's home page names the library and its version, and shows the version reported by the bundle that page loaded.",
-    "CORE-SITE-002": "The site's home page holds at a 390-pixel-wide viewport with no horizontal scroll."
+    "CORE-SITE-002": "The site's home page holds at a 390-pixel-wide viewport with no horizontal scroll.",
+    "CORE-DATA-001": "The synthetic biomarker study is vendored as three files in `site/data/synthetic-study/` (`synthetic_results.csv`, `synthetic_participants.csv`, `synthetic_outcomes.csv`) with a source record, `SOURCE.json`, beside them that names the gsm.bio repository, the commit the files were copied from and each file's path there.",
+    "CORE-DATA-002": "Each vendored file matches its entry in the source record: the SHA-256 checksum, the size in bytes, the column names and the row count. A file that is changed, missing, or present but not recorded fails the check, as does a record edited without its file.",
+    "CORE-DATA-003": "The results table has the columns `USUBJID`, `VISIT`, `VISITNUM`, `TEST`, `STRESU`, `STRESN` and 11,472 rows, one per participant, biomarker and visit: 200 participants, twelve biomarkers, and the visits Baseline, Week 2, Week 4, Week 8 and Week 12.",
+    "CORE-DATA-004": "The participant table has the columns `USUBJID`, `ARM`, `SEX`, `AGE`, `BMIBL`, `RESPONSE` and 200 rows, one per participant, and every participant in the results table is in it.",
+    "CORE-DATA-005": "The outcomes table has the columns `USUBJID`, `PARAMCD`, `PARAM`, `AVAL`, `CNSR` and 200 rows, one per participant and endpoint, and every participant in it is in the participant table.",
+    "CORE-DATA-006": "Vendoring is a copy: each file is written exactly as gsm.bio holds it at the recorded commit, with the checksum of those bytes recorded. Nothing is retyped, reordered or regenerated, and a second check fails when a vendored file differs from gsm.bio's file at that commit.",
+    "CORE-SITE-003": "The gallery page lists every chart the registry marks available, each with links to its evidence page and its API reference. When no chart is available it says that no chart is published yet.",
+    "CORE-SITE-004": "The gallery page lists the library's shared parts, each with links to its evidence page and its API reference.",
+    "CORE-SITE-005": "Every module in the registry (`site/config.json`) says whether it is a chart or a shared part and names its requirement matrix and its API reference. The site build refuses an entry that does not.",
+    "CORE-SITE-006": "Each module has an evidence page that lists every requirement in its matrix with the requirement's text, the tests named for it and the result each test recorded. A requirement with no test says so.",
+    "CORE-SITE-007": "An evidence page shows, under a requirement, each screenshot a test captured for it. The site build fails when the evidence set names a screenshot that is not committed.",
+    "CORE-SITE-008": "An evidence page says when its results were recorded and in what environment, and links the continuous-integration run when there was one.",
+    "CORE-SITE-009": "Each module has an API reference page rendered from the module's one reference file in `docs/`: its headings, paragraphs, lists, tables and code, with a list of its sections at the top.",
+    "CORE-SITE-010": "The site build fails when an API reference has drifted from the code: an export of the bundle that no reference documents, a function a reference documents that the bundle does not export, a parameter documented in the source that the reference leaves out, or a constant whose value the reference does not give.",
+    "CORE-SITE-011": "Every requirement row has at least one test named for it, and no test names a requirement that is in no matrix. The evidence run fails otherwise.",
+    "CORE-SITE-012": "The gallery page holds at a 390-pixel-wide viewport with no horizontal scroll.",
+    "CORE-SITE-013": "A module's evidence page holds at a 390-pixel-wide viewport with no horizontal scroll.",
+    "CORE-SITE-014": "A module's API reference page holds at a 390-pixel-wide viewport with no horizontal scroll; a table is restacked as a list rather than scrolled sideways.",
+    "CORE-SITE-015": "The site publishes the vendored synthetic study at `data/synthetic-study/` with its source record, and the gallery page says what each table holds, how many rows it has and which gsm.bio commit it was copied from."
   }
 }

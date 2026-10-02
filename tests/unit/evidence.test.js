@@ -6,7 +6,8 @@ import {
   normalizePlaywright,
   buildRun,
   buildEvidenceSets,
-  compareEvidence
+  compareEvidence,
+  findTraceabilityGaps
 } from '../../scripts/evidence-lib.mjs';
 
 // Evidence pipeline: reporter output → docs/evidence/<module>/evidence.json,
@@ -341,5 +342,53 @@ describe('evidence normalizer', () => {
       }
     });
     expect(compareEvidence(sets.histogram, fresh.histogram).stale).toBe(false);
+  });
+
+  it('CORE-SITE-011: a requirement row with no test named for it is reported (#7)', () => {
+    const sets = buildEvidenceSets({
+      modules: MODULES,
+      vitest: VITEST_FIXTURE,
+      playwright: PLAYWRIGHT_FIXTURE
+    });
+    const tested = [
+      'SH-DATA-002',
+      'SH-CTRL-006',
+      'SH-CTRL-004',
+      'SH-FUNC-004A',
+      'SH-FUNC-004B',
+      'SH-FUNC-011',
+      'SSP-DATA-001',
+      'SSP-CHART-001'
+    ];
+    expect(findTraceabilityGaps({ requirementIds: tested, sets })).toEqual({
+      untested: [],
+      unknown: []
+    });
+    expect(
+      findTraceabilityGaps({ requirementIds: [...tested, 'SSP-LIST-001', 'SH-LIST-009'], sets })
+    ).toEqual({ untested: ['SH-LIST-009', 'SSP-LIST-001'], unknown: [] });
+  });
+
+  it('CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)', () => {
+    const sets = {
+      histogram: {
+        records: [
+          { test: 'SH-DATA-002: rows are removed (#2)', requirementIds: ['SH-DATA-002'] },
+          { test: 'SH-DATA-200: a slip of the keys (#2)', requirementIds: ['SH-DATA-200'] }
+        ]
+      },
+      'shift-plot': {
+        records: [{ test: 'SH-DATA-200: a slip of the keys (#2)', requirementIds: ['SH-DATA-200'] }]
+      }
+    };
+    expect(findTraceabilityGaps({ requirementIds: ['SH-DATA-002'], sets })).toEqual({
+      untested: [],
+      unknown: [{ id: 'SH-DATA-200', test: 'SH-DATA-200: a slip of the keys (#2)' }]
+    });
+    // With no evidence at all, every row is untested: it never passes by comparing nothing.
+    expect(findTraceabilityGaps({ requirementIds: ['SH-DATA-002'], sets: {} })).toEqual({
+      untested: ['SH-DATA-002'],
+      unknown: []
+    });
   });
 });

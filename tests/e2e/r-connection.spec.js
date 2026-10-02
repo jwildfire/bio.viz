@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
 import { compareValues } from '../../site/r-check/check.mjs';
+import { captureEvidence } from './evidence.js';
 
 // The connection to R in a real page (#2), from the committed bundle. What these
 // tests add to the unit tests is the browser's own account of the network: which
@@ -338,6 +339,11 @@ test.describe('R check page, live', () => {
       []
     );
     expect(await page.evaluate(() => window.rCheck.browser)).toBe(null);
+    await captureEvidence(
+      page.locator('#precomputed'),
+      'RCON-LIVE-002',
+      'answers-shipped-with-the-page'
+    );
   });
 
   test('RCON-LIVE-003: R in the browser gives the rank-sum result desktop R gives, within the stated tolerance (#3)', async ({}, testInfo) => {

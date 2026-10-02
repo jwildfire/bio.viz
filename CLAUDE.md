@@ -15,6 +15,7 @@ npm run requirements          # requirements/*.md -> docs/requirements/<module>.
 npm run evidence              # run both suites -> docs/evidence/<module>/evidence.json (:check to verify)
 npm run site                  # build the site into _site/ (gitignored)
 npm run fixtures:check        # desktop R re-derives the R check page's expected results (needs R)
+npm run data:check            # the vendored synthetic study matches its record (:check-source asks gsm.bio)
 ```
 
 Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test:e2e`, `evidence:check` and `requirements:check` all pass. CI runs the same.
@@ -29,6 +30,10 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - The only file that knows webR's API is `src/r/webREngine.js`. Unit and browser tests of the connection use a stub engine or the stand-in at `tests/e2e/fixtures/fake-webr/`; they never reach the network.
 - The `RCON-LIVE-*` browser tests run real R from webR's public CDN and need the network. They fail when it is unreachable; do not make them skip or retry.
 - Never type a number into `site/r-check/expected.json`. It is written by `npm run fixtures` (desktop R) and checked by `npm run fixtures:check`.
+- Never edit `site/data/synthetic-study/`. It is gsm.bio's study, copied byte for byte by `node tools/vendor-synthetic-study.mjs`, with a checksum per file in `SOURCE.json`.
+- A module's API reference page is its reference file in `docs/`, rendered. After changing an export, a parameter or a constant, change that file; `npm run site` and `npm test` fail when they disagree.
+- Every requirement row needs a test named for it, and a test may name only a row that exists; `npm run evidence` fails otherwise.
+- Screenshot baselines (`docs/evidence/<module>/*.png`) are made only on the Linux CI runner: label the pull request `update-baselines`, download the `evidence-baselines` artifact, commit it. Never commit a capture from another system.
 - Public or synthetic data only.
 - Every page on the site holds at a 390px-wide viewport with no horizontal scroll; assert it in a browser test.
 - The browser suite serves the repository root on port 8199 and refuses to reuse a server already there; set `PW_PORT` to run two worktrees side by side.

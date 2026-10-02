@@ -1,13 +1,16 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T12:59:47.667Z",
+  "generatedAt": "2026-10-02T14:04:25.690Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37017251078",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37017251078"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -23,6 +26,94 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-002"],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: every module has an API reference page that documents each name it exports (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-012"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-013: each module’s evidence page holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-013"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-014: each module’s API reference holds at a 390px-wide viewport, with its tables restacked (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-014"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-015: the site serves the synthetic study, and the gallery gives its row counts and the commit it was copied from (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
       "screenshots": []
     },
     {
@@ -63,7 +154,7 @@
       "status": "pass",
       "requirementIds": ["RCON-LIVE-002"],
       "issueRefs": [3],
-      "screenshots": []
+      "screenshots": ["RCON-LIVE-002-answers-shipped-with-the-page.png"]
     },
     {
       "test": "RCON-LIVE-003: R in the browser gives the rank-sum result desktop R gives, within the stated tolerance (#3)",
@@ -143,6 +234,102 @@
       "status": "pass",
       "requirementIds": ["RCON-WEBR-001"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a function the reference documents that the bundle does not export is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a namespace in the surface stands for each of its members, and a constant carries its value (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a parameter the source documents and the reference leaves out is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a reference that documents every export, parameter and constant has no problems (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export no module claims, a surface the bundle lacks and an empty surface are each a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export with no heading in the reference is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the committed references document everything the committed bundle exports (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the connection’s reference is held to the parameters its source documents (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
       "screenshots": []
     },
     {
@@ -346,6 +533,22 @@
       "screenshots": []
     },
     {
+      "test": "evidence normalizer CORE-SITE-011: a requirement row with no test named for it is reported (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
       "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
       "suite": "unit",
       "status": "pass",
@@ -391,6 +594,86 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: a requirement with no test says so, and the summary counts it (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: results recorded on a developer’s machine say so, and absent provenance is not invented (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: the page says when and where the results were recorded and links the run (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page the page links the module’s requirement matrix and its committed evidence set (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
       "screenshots": []
     },
     {
@@ -479,6 +762,158 @@
       "status": "pass",
       "requirementIds": ["PVAL-RULE-007"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: the registry as committed lists the core and the connection to R as shared parts (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-015: the gallery says what each table of the synthetic study holds, its rows, and the commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page links each module’s evidence page and API reference, and the gallery (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a fenced block is code, escaped and left as written, and a # inside it is not a heading (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline mdText strips the marks and keeps the words (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline reads nothing inside a code span as a link or as emphasis (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline renders code, links, bold and italic, and escapes everything else (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry without its matrix or its API reference is refused, as is a name registered twice (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: the registry as committed is well formed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
       "screenshots": []
     },
     {

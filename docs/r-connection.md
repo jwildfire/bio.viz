@@ -153,6 +153,15 @@ Calls made while this is in progress wait for the same start; there is one R ses
 
 A copy of webR served from another location must be version 0.6.0. The version is pinned by the default location, not checked.
 
+## `WEBR_VERSION` and `WEBR_BASE_URL`
+
+Two constants, for a page that needs to say which R it runs or to load the same copy itself.
+
+| Constant        | Value                             | Meaning                                                         |
+| --------------- | --------------------------------- | --------------------------------------------------------------- |
+| `WEBR_VERSION`  | `0.6.0`                           | The version of webR the browser form is written for.            |
+| `WEBR_BASE_URL` | `https://webr.r-wasm.org/v0.6.0/` | Where webR is fetched from when `browser.baseUrl` is not given. |
+
 ## `formatStatistic(statistic)`
 
 The one place the rules for printing a p-value live. It formats what R returned and computes nothing.

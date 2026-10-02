@@ -16,10 +16,13 @@
     "format:check": "prettier --check .",
     "evidence": "node scripts/evidence.mjs",
     "evidence:check": "node scripts/evidence.mjs --check",
+    "evidence:update": "node scripts/evidence.mjs --update",
     "requirements": "node scripts/requirements.mjs",
     "requirements:check": "node scripts/requirements.mjs --check",
     "fixtures": "Rscript tools/r-fixtures.R",
-    "fixtures:check": "node scripts/check-r-fixtures.mjs"
+    "fixtures:check": "node scripts/check-r-fixtures.mjs",
+    "data:check": "node tools/vendor-synthetic-study.mjs --check",
+    "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

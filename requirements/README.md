@@ -6,7 +6,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 
 | Matrix                             | Module       | Rows |
 | ---------------------------------- | ------------ | ---: |
-| [core.md](core.md)                 | core         |    6 |
+| [core.md](core.md)                 | core         |   25 |
 | [r-connection.md](r-connection.md) | r-connection |   64 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
@@ -21,6 +21,7 @@ Worth knowing before editing:
 - Split rows (`CORE-API-001A` / `001B`) resolve individually. A test tagged with the un-suffixed base ID matches neither.
 - Text is compared verbatim. `npm run requirements:check` fails when a committed extract no longer matches its matrix, so a wording edit must be regenerated and committed.
 - A matrix file that no module registers fails `npm run requirements:check`, as does a registered matrix that is missing or has no recognizable rows. The check never passes by comparing nothing.
+- Every row needs a test. `npm run evidence` and `npm run evidence:check` fail when a row has no test named for it, and when a test names an ID that is in no matrix.
 
 ## Adding or changing requirements
 
@@ -31,7 +32,7 @@ The matrix and the code that satisfies it live in the same repository, so they b
 3. Name the tests that evidence the rows by their IDs, then run `npm run evidence` to regenerate the evidence set.
 4. Commit the matrix edit, the regenerated extract and evidence set, the implementation and its tests together.
 
-A new module needs no script changes: add its entry to [`site/config.json`](../site/config.json) with a `matrix` filename, drop the matrix here, put its unit tests under `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js`.
+A new module needs no script changes: add its entry to [`site/config.json`](../site/config.json) with a `matrix` filename, drop the matrix here, put its unit tests under `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js`. The entry also says whether the module is a chart or a shared part and names its API reference; [CONTRIBUTING.md](../CONTRIBUTING.md) has the whole entry. The module's evidence page on the site then lists every row of the matrix with the tests named for it.
 
 The `Status` and `AI Review` columns record review provenance. A row drafted by an agent says so, and is not approved by @jwildfire until its status says he reviewed it.
 
