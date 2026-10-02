@@ -99,6 +99,15 @@ export const CASES = [
     view: { valueType: 'baseline', groupBy: 'ARM_SEX' },
     test: 'anova'
   },
+  // IL-6 as the demo shows it when its row of the overview is opened: the
+  // result itself at every visit, one panel and one test per visit.
+  ...['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'].map((visit) => ({
+    case: `result-${visit.toLowerCase().replace(' ', '-')}`,
+    says: `Welch t-test between the arms on the result itself at ${visit}, one of five visit panels`,
+    view: { valueType: 'raw', visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'] },
+    panel: visit,
+    test: 't'
+  })),
   {
     case: 'welch-panel-women',
     says: 'Welch t-test between the arms in the panel for F, with panels by sex',
