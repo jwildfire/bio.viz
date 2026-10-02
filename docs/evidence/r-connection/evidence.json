@@ -1,0 +1,653 @@
+{
+  "module": "r-connection",
+  "generatedAt": "2026-10-02T12:37:08.035Z",
+  "environment": {
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
+    "playwright": "1.61.1",
+    "chromium": "149.0.7827.55"
+  },
+  "run": null,
+  "records": [
+    {
+      "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-002: the home page holds at a 390px-wide viewport with no horizontal scroll (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "PVAL-FMT-001: a page formats a result from the connection with its method and counts (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LAZY-003: when webR cannot be fetched the page answers unavailable with the cause (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LAZY-004: the browser form requests nothing until the first run, and two simultaneous first runs load webR once (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-PRE-001: with stored results the page answers without making a network request (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-RES-002: with neither form configured the page answers unavailable, and requests nothing (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-WEBR-001: by default the page asks the public CDN for webR 0.6.0, and only on the first run (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-API-005: BioViz.r.createConnection and BioViz.r.formatStatistic are exported by both committed bundles (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-001: the build bundles only files under src/ and does not resolve the webR import (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-002: the committed bundles keep the dynamic import and carry none of webR (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-003: the r module imports nothing from outside src/r (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-API-004: a browser form with a malformed setting is refused when the connection is created (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-ISO-001: two connections share nothing: each starts its own engine (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-ISO-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-001: creating a connection starts nothing; the first run starts the engine with its configuration (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-002: two simultaneous first calls cause one start, and later calls reuse it (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-003: a failed start answers unavailable for every waiting call, and the next run tries again (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-001: createConnection returns an object whose one call is run (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-002: run resolves and never rejects, whatever the engine throws (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-003: a call run cannot make sense of resolves to an error, without starting R (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-001: ok carries the value R returned and the form that answered (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-002: with neither form configured, run answers unavailable with a reason (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-003: error carries R's message when the R function fails (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-001: a stored result is answered with nothing loaded and no network request (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-002: a stored result is keyed by function name, arguments and data identity; argument order does not matter (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-003: a call with no stored result answers unavailable, never another result (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-004: stored results that are malformed or ambiguous are refused when the connection is created (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-005: with both forms, a call with no stored result goes to R in the browser (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-006: changing a returned value does not change the stored result (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildRun builds GitHub Actions run provenance from the environment (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence flags status drift and test-set changes, ignoring screenshots (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence ignores provenance so --check never drifts on generatedAt/environment/run (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizePlaywright walks nested suites into browser-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizeVitest maps assertion results to unit-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName extracts requirement IDs and issue refs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName recognizes any requirement-ID prefix, not just SH (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer provenance lives in dedicated top-level keys; the records array stays timestamp-free (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-001: an ordinary p-value is shown to three decimals with its method and counts (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-002: a small p-value is shown as p < 0.001, never as zero (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-003: a p-value that would print as 1.000 is shown as p > 0.999 (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-004: counts are printed for each group, or as one total (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-001: a p-value with no method named is refused, and no number is printed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-002: a p-value with no counts is refused, and no number is printed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-003: a result is labelled exploratory and unadjusted unless an adjustment is named (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-004: no stars and never the word significant, however small the p-value (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-005: a group too small to test shows the reason in place of a number (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-006: a p-value that is not a number between 0 and 1 is refused, not repaired (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-007: the same result always formats to the same text, and the result is not changed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-007"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags added and removed requirement IDs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags changed requirement text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard reports fresh when the committed set matches a fresh extraction (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing ignores the header, separator, and non-requirement content (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing keeps an escaped pipe inside a requirement cell as a single row (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing maps each requirement ID to its reviewed text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: requirement set wraps the parsed map with module + matrix provenance (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices passes when every matrix file is registered, ignoring the README and non-markdown files (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices reports a matrix file no module in site/config.json names (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages CORE-SITE-001: the home page names the library and its version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages escapeHtml escapes the five HTML-significant characters (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages renderShell fills title, description, version and root, and leaves no token behind (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages summarizeModule counts requirement rows and passing test records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page lists each registered module with its counts and a link to its matrix (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links flags internal links and asset references that do not resolve (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links passes a site whose internal links all resolve, ignoring external and fragment links (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-001: the records go to R as columns, with the function name and the arguments (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-002: recordsToColumns gives every column every row, with missing values as null (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-003: the list R returns becomes plain JavaScript (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-004: toPlain maps each kind of R value to one JavaScript shape (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-005: an R error is reported with R's message, and the R objects of the call are released (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-006: nested arguments go to R as nested lists, and a call with no data or arguments sends neither (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-007: the R that passes a table in and a result out uses base R only (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-007"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-LAZY-004: nothing is imported until the first run, and two simultaneous first runs import once (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-001: webR is pinned to 0.6.0 and loaded from the public CDN unless another location is given (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-002: webR is started on the PostMessage channel (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-003: the packages it was told to are installed and attached, and the R source is evaluated once (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-004: an R source given by URL is fetched on the first run, not before (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-005: a start that fails closes what it opened and reports why (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    }
+  ]
+}
