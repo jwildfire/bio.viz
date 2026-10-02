@@ -9,3 +9,10 @@ _site/
 # would rewrite every row on each edit and bury the one that changed.
 requirements/*.md
 !requirements/README.md
+
+# Written by scripts, and their bytes are the scripts': the desktop-R expected
+# results (tools/r-fixtures.R), the recorded measurement (the browser test), and
+# the R check page's tables with their source note (tools/cut-r-check-fixture.mjs).
+site/r-check/expected.json
+site/r-check/measured.json
+site/r-check/data/

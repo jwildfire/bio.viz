@@ -11,12 +11,15 @@
     "site": "node scripts/site.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "r-check:measure": "R_CHECK_RECORD=1 playwright test r-connection",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "evidence": "node scripts/evidence.mjs",
     "evidence:check": "node scripts/evidence.mjs --check",
     "requirements": "node scripts/requirements.mjs",
-    "requirements:check": "node scripts/requirements.mjs --check"
+    "requirements:check": "node scripts/requirements.mjs --check",
+    "fixtures": "Rscript tools/r-fixtures.R",
+    "fixtures:check": "node scripts/check-r-fixtures.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
