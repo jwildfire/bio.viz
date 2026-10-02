@@ -1,7 +1,7 @@
 {
   "fixture": "tests/fixtures/association-statistics",
   "derived_by": "tools/derive-association-statistics.mjs",
-  "rule": "Each case is one panel of the gallery's association scatter demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings, with x and y as the axes plot them, so on a logarithmic axis the base-10 logarithm of the value.",
+  "rule": "Each case is one panel of the gallery's association scatter demo in one view. Its rows are the rows the chart drew in that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings. On a logarithmic axis the chart hands R the base-10 logarithm of x or y, and the R script takes the same logarithm of these rows.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
@@ -157,11 +157,11 @@
     },
     {
       "file": "pearson-log.csv",
-      "sha256": "76fd0612c4afaf6efb978253c97aac04df472bd09fa416299f270fdeb502b1a9"
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
     },
     {
       "file": "pearson-log-x.csv",
-      "sha256": "601f37b138dc64e982ea8db1aa33d88f58c515b310c652c4aaa10581fa62b2e1"
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
     },
     {
       "file": "spearman-skewed.csv",
@@ -169,7 +169,7 @@
     },
     {
       "file": "spearman-log.csv",
-      "sha256": "76fd0612c4afaf6efb978253c97aac04df472bd09fa416299f270fdeb502b1a9"
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
     },
     {
       "file": "pearson-age.csv",
@@ -201,7 +201,7 @@
     },
     {
       "file": "linear-log.csv",
-      "sha256": "76fd0612c4afaf6efb978253c97aac04df472bd09fa416299f270fdeb502b1a9"
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
     },
     {
       "file": "linear-age-57-by-arm.csv",

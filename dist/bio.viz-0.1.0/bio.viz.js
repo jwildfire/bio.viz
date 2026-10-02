@@ -4679,6 +4679,10 @@ ${root} .sv-rail{max-width:100%;overflow-x:auto}`;
     selectRegion(panel, region) {
       const records = brushed(panel.records, region);
       this.clearSelection();
+      this.charts.forEach((chart) => {
+        chart.setActiveElements([]);
+        if (chart.tooltip) chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+      });
       if (!records.length) {
         this.footnote.textContent = `No participant is in that region. ${this.hint()}`;
         this.charts.forEach((chart) => chart.update("none"));

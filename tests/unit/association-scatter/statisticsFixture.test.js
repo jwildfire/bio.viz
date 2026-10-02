@@ -61,7 +61,7 @@ describe('the rows R is run on', () => {
     );
   });
 
-  it('AS-STAT-011: the rows are the chart’s: one per participant, the fields the chart hands R, the values as plotted, and the demo’s settings read from the demo’s own script (#26)', () => {
+  it('AS-STAT-011: the rows are the chart’s: one per participant, the fields the chart hands R, the values the chart drew, and the demo’s settings read from the demo’s own script (#26)', () => {
     // The demo opens on the planted pair, coloured by arm, with a linear fit.
     expect(demo.settings).toMatchObject({
       x: { measure: 'TNF-alpha', visit: 'Baseline' },
@@ -110,23 +110,31 @@ describe('the rows R is run on', () => {
       'y',
       'panel'
     ]);
-    // On logarithmic axes the file holds the logarithms, as the chart hands them over.
-    const skewed = text(`${ASSOCIATION_STATISTICS.directory}/pearson-skewed.csv`)
+    // On logarithmic axes the file holds the values the chart drew, which are
+    // the core's and the same in every engine; what the chart hands R is their
+    // base-10 logarithm, and the R script takes that logarithm itself.
+    expect(text(`${ASSOCIATION_STATISTICS.directory}/pearson-log.csv`)).toBe(
+      text(`${ASSOCIATION_STATISTICS.directory}/pearson-skewed.csv`)
+    );
+    const drawn = text(`${ASSOCIATION_STATISTICS.directory}/pearson-log.csv`)
       .trimEnd()
       .split('\n')
       .slice(1)
       .map((line) => line.split(','));
-    const logged = text(`${ASSOCIATION_STATISTICS.directory}/pearson-log.csv`)
-      .trimEnd()
-      .split('\n')
-      .slice(1)
-      .map((line) => line.split(','));
-    expect(logged).toHaveLength(skewed.length);
-    skewed.forEach(([id, x, y], index) => {
-      expect(logged[index][0]).toBe(id);
-      expect(Number(logged[index][1])).toBe(Math.log10(Number(x)));
-      expect(Number(logged[index][2])).toBe(Math.log10(Number(y)));
+    const handed = requestOf(demo, caseOf('pearson-log')).data;
+    expect(handed).toHaveLength(drawn.length);
+    drawn.forEach(([id, x, y], index) => {
+      expect(handed[index].USUBJID).toBe(id);
+      expect(handed[index].x).toBe(Math.log10(Number(x)));
+      expect(handed[index].y).toBe(Math.log10(Number(y)));
     });
+    const script = text('tools/r-association-statistics.R');
+    expect(script).toContain('if (identical(lView$x_scale, "log")) rows$x <- log10(rows$x)');
+    expect(script).toContain('if (identical(lView$y_scale, "log")) rows$y <- log10(rows$y)');
+    // One axis alone: only that column is a logarithm.
+    const xOnly = requestOf(demo, caseOf('pearson-log-x')).data;
+    expect(xOnly[0].x).toBe(Math.log10(Number(drawn[0][1])));
+    expect(xOnly[0].y).toBe(Number(drawn[0][2]));
     // A coefficient and a line of the same view are asked on the same rows.
     expect(text(`${ASSOCIATION_STATISTICS.directory}/linear.csv`)).toBe(
       text(`${ASSOCIATION_STATISTICS.directory}/pearson.csv`)

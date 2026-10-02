@@ -2,14 +2,19 @@
 // Each case is one panel of the gallery's demo chart in one view, with one
 // thing asked of R, a coefficient or a fitted line: this file works out that
 // panel's rows with the chart's own code (the core's frame, through
-// `buildScatter`, and `rowsForR`), from the demo's own tables and settings, and
-// writes them as a CSV file R can read with nothing but base R.
+// `buildScatter`), from the demo's own tables and settings, and writes them as
+// a CSV file R can read with nothing but base R.
 //
 // tools/r-association-statistics.R then reads the cases and the rows, runs
 // gsm.bio's vendored statistics file on them, and writes what R answered.
-// Nothing about a value type, a baseline, a filter or a logarithmic axis is
-// worked out a second time in R: the rows are the chart's, as it hands them
-// over.
+// Nothing about a value type, a baseline or a filter is worked out a second
+// time in R: the rows are the chart's.
+//
+// One thing is done on both sides. On a logarithmic axis the chart hands R the
+// base-10 logarithm of a value, and a logarithm is not the same to the last
+// binary place in every JavaScript engine. So the files hold the values the
+// chart drew, which are the core's and the same everywhere, and the R script
+// takes their logarithm itself, with R's `log10()`, as gsm.bio's widget does.
 //
 // Pure functions over text; tools/derive-association-statistics.mjs writes the
 // files.
@@ -313,14 +318,15 @@ export function deriveAssociationStatistics(sources) {
   // docs/association-scatter.md, and the unit tests hold it to the chart's.
   const cases = CASES.map((entry) => {
     const { config, state, panel } = panelOf(demo, entry);
-    const request = requestOf(demo, entry);
-    const columns = Object.keys(request.data[0]);
+    // The panel's rows as the chart drew them: the id, x and y, and the colour
+    // and the panel when the view has them.
+    const columns = Object.keys(panel.records[0]);
     const file = `${entry.case}.csv`;
     files.push({
       file,
       text: csv(
         columns,
-        request.data.map((record) => columns.map((column) => record[column])),
+        panel.records.map((record) => columns.map((column) => record[column])),
         file
       )
     });
@@ -381,9 +387,10 @@ export function deriveAssociationStatistics(sources) {
       derived_by: 'tools/derive-association-statistics.mjs',
       rule:
         "Each case is one panel of the gallery's association scatter demo in one view. Its rows " +
-        "are the rows the chart hands R for that panel: one per participant, made by the core's " +
-        'frame from the vendored synthetic study with the demo page’s own settings, with x and ' +
-        'y as the axes plot them, so on a logarithmic axis the base-10 logarithm of the value.',
+        "are the rows the chart drew in that panel: one per participant, made by the core's " +
+        'frame from the vendored synthetic study with the demo page’s own settings. On a ' +
+        'logarithmic axis the chart hands R the base-10 logarithm of x or y, and the R script ' +
+        'takes the same logarithm of these rows.',
       derived_from: Object.values(ASSOCIATION_STATISTICS.sources).map((file) => ({ file })),
       cases: CASES.map(({ case: name, says }) => ({ case: name, says })),
       files: files.map(({ file, text }) => ({ file, sha256: sha256(Buffer.from(text)) }))

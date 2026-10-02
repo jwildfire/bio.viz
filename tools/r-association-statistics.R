@@ -10,11 +10,16 @@
 # The rows are not worked out here. Each case in
 # tests/fixtures/association-statistics/ is one panel of the gallery's demo
 # chart, and its CSV file holds the rows the chart's own code made for that
-# panel (tools/derive-association-statistics.mjs): `x` and `y` as the axes plot
-# them, so on a logarithmic axis the base-10 logarithm of the value. This script
-# reads them, calls the function the chart calls with the arguments the chart
-# sends, and writes each answer as a stored result: the function's name, its
-# arguments, the identity of the rows, the number of rows and what R returned.
+# panel (tools/derive-association-statistics.mjs). This script reads them, calls
+# the function the chart calls with the arguments the chart sends, and writes
+# each answer as a stored result: the function's name, its arguments, the
+# identity of the rows, the number of rows and what R returned.
+#
+# One thing is done here as the chart does it: on a logarithmic axis the chart
+# hands R the base-10 logarithm of `x` or `y`, the values as plotted, so this
+# script takes log10() of that column before it calls the function. The files
+# hold the values themselves, because a logarithm taken in JavaScript is not the
+# same to the last binary place in every engine and a committed file must be.
 #
 # The name, the arguments and the identity are written by
 # `association_scatter_key` below from what an R user knows of a view: the
@@ -109,10 +114,14 @@ read_text <- function(file) {
                   stringsAsFactors = FALSE, check.names = FALSE)
 }
 
-read_rows <- function(file) {
+# The rows as the chart hands them to R: on a logarithmic axis, the base-10
+# logarithm of the value.
+read_rows <- function(file, lView) {
   rows <- read_text(file)
   rows$x <- as.numeric(rows$x)
   rows$y <- as.numeric(rows$y)
+  if (identical(lView$x_scale, "log")) rows$x <- log10(rows$x)
+  if (identical(lView$y_scale, "log")) rows$y <- log10(rows$y)
   rows
 }
 
@@ -152,8 +161,8 @@ read_view <- function(case) {
 cases <- read_text("cases.csv")
 results <- lapply(seq_len(nrow(cases)), function(i) {
   case <- as.list(cases[i, ])
-  rows <- read_rows(case$file)
   view <- read_view(case)
+  rows <- read_rows(case$file, view)
   key <- if (identical(case$kind, "fit")) {
     association_scatter_fit_key(rows, view)
   } else {
