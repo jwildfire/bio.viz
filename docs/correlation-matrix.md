@@ -87,7 +87,7 @@ A cell with fewer complete pairs than the minimum is hatched and holds a dash: i
 
 ### The list of pairs
 
-Under the grid is every pair R returned, in the order R returned them, with its count and its coefficient with the interval R gave: `IL-10 and TNF-alpha`, `200`, `0.6384 (0.5482 to 0.7139)`. A pair's name is a button that opens it. Download: CSV saves the list. It is where a narrow screen reads the numbers, and where a touch screen, which has no pointer to hover with, reads the counts.
+Under the grid is every pair R returned, in the order R returned them, with its count and its coefficient with the interval R gave: `IL-10 and TNF-alpha`, `200`, `0.6384 (0.5482 to 0.7139)`. A pair's name is a button that opens it. Where R warned of a pair, as it does of ties under Spearman, the pair is marked and the warning is said once beneath the table, as R worded it. Download: CSV saves the list, with a column for R's warning when there is one. It is where a narrow screen reads the numbers, and where a touch screen, which has no pointer to hover with, reads the counts.
 
 ### Small scatters
 

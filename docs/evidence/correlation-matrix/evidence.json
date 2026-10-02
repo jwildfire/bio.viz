@@ -1,5 +1,5 @@
 {
-  "module": "r-connection",
+  "module": "correlation-matrix",
   "generatedAt": "2026-10-02T22:32:44.534Z",
   "environment": {
     "os": "darwin 23.6.0",
@@ -9,6 +9,350 @@
   },
   "run": null,
   "records": [
+    {
+      "test": "CM-CTRL-001: the sidebar offers the mode, the value, the visit and the biomarkers or the biomarker and the visits, how the pairs are drawn, the method, the minimum pairs, a filter per category column, and Reset chart (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-CTRL-002: a change to the mode, the value, the visit, the biomarkers, the biomarker, the visits or a filter draws the grid again for what was chosen, and Reset chart returns every control to what the chart opened on (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-CTRL-003: with the setting `statistic` null there are no Statistics controls, R is asked for nothing, and the grid’s frame is drawn with empty cells (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-001: it opens on every biomarker at the first visit: a mark below the diagonal whose width and colour are those of R’s coefficient, and R’s coefficient above it (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-003: a key shows the mark for −1, −0.5, 0, 0.5 and 1 and says what width, darkness, colour and shape mean; in greyscale its marks still differ by size, by lightness and by shape (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-004: no p-value is printed anywhere in the chart, for either method: not in a cell, its name, the line, the list or the download (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-005: a cell with fewer complete pairs than the minimum shows R’s reason and no number, and the cells R did answer are drawn as ever (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-006: across visits the grid is one biomarker’s visits in visit order; for a change from baseline the baseline visit is not a variable, and the note says so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-006"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-007: for six variables or fewer the pairs can be drawn as small scatters, one point per participant with both values, with R’s coefficient above the diagonal; the view asks R nothing more, and is not offered for more than six (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-007"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-008: the chart says how many participants are in the frame and how many were left out, and that each cell has its own count; where participants have gaps the cells’ counts differ, and each is R’s (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-008"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-001: a click on a cell opens the association scatter for that pair in place of the grid, the column’s variable on its x axis and the row’s on its y axis, with a button back that takes the keyboard’s place (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-002: from the keyboard the arrow keys move among the cells, stepping over the diagonal, Enter or Space on a cell opens its pair, and Enter or Space on the button back returns (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-003: the scatter is handed the grid’s connection itself, its method, its columns and its filters as they are set, with the setting `scatter` beneath; from results stored in the page it prints the coefficient the cell holds (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-004: returning shows the grid exactly as it was, with the keyboard’s place on the cell that was opened, and R is not asked again for the grid (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-005: chart.open(x, y) opens a pair by its two labels and returns the scatter, chart.scatter() gives it, chart.close() returns to the grid; a label the grid does not have is refused; drawing the grid again closes the scatter (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-KIT-001: the chart is built from safety.viz’s kit on the page, its small scatters drawn with the kit’s Chart.js; without safety.viz it says what is missing (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-KIT-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIFE-001: init, setData, setSettings, render, resize and destroy drive the chart as they drive a safety.viz chart; setSettings moves the control of a setting, and destroy takes down the grid and a scatter a cell had opened (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIFE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIFE-002: tables the chart cannot read are refused with a message, shown in its place (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIFE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIMIT-002: thirty-six biomarkers open on the first twelve, 66 pairs, and the chart says so and how to choose others; unticking brings others in; with the limit raised it draws all 630 pairs, too narrow for numbers; the drawing is timed (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIMIT-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIST-001: under the grid is every pair R returned, in R’s order, with its count and its coefficient with R’s interval; a pair’s name opens the pair (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIST-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIST-002: the list downloads as a CSV file under this chart’s name, with the same columns (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIST-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-001: the demo draws the frame first and starts R when the grid first asks; the line waits, saying what the first start costs, and then every cell’s coefficient, interval and pair count are desktop R’s; the planted cell holds 0.6 inside its interval, and no p-value is printed (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-002: Spearman’s rho in every cell is the one desktop R gives, with no interval; where R’s own wording differs between the two versions both are recorded and nothing else differs (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-003: across the visits of one biomarker every cell is the one desktop R gives: for the result, for the change from baseline with the baseline visit left out, and for Spearman on another biomarker (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-004: a change shows the waiting state and then the new grid, as desktop R gives it, and never the old one: with a filter, with gaps, with six biomarkers, with a minimum some cells fall under, and where every cell does (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-005: a cell opens the scatter, which asks the same R, started once, and prints for the pair the coefficient the cell holds; returning shows the grid as it was and asks R nothing (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-006: on the fixture of thirty-six biomarkers, with real R, grids of twelve, twenty-four and thirty-six variables are each filled from one answer of R’s: 66, 276 and 630 pairs, with marks on both sides where cells are too narrow for numbers and every pair listed with its count (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-006"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-007: the megabytes and seconds of the first grid, and the seconds R takes for a grid of each size once started, are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-007"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-008: on a phone the demo fills its grid from R, with marks on both sides of the diagonal, lists every pair with its count and coefficient, and the page does not scroll sideways (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-008"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-MOBILE-001: at 390px the chart fills the width with its controls folded away; twelve variables fit with marks on both sides of the diagonal and the numbers in the list beneath, and six keep their numbers (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-MOBILE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-MOBILE-002: at 390px a tap on a cell, or on a pair in the list, opens the scatter and its button returns; a grid of more variables than fit scrolls inside its own box; the page never scrolls sideways (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-MOBILE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-002: the live demo draws the chart on the synthetic study, opening on its twelve biomarkers at Baseline, with R attached; where R cannot be reached it still draws the grid’s frame, and says so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the grid drawn, the controls open and a pair opened in the scatter (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-005: the two demos point at each other: the matrix’s page says a cell opens the association scatter, and the scatter’s page points to the matrix as the overview (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-004: until R answers the line reads that it is waiting, with the page’s note until R has answered once, and every cell is empty; then the cells, the list and the line are filled from R’s answer (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-005: a change to the mode, the value, the visit, the variables, the method, the minimum or a filter clears the cells, the list and the line and asks R again, and the answer to the question before is never shown (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-006: with no R attached the grid’s frame is drawn with empty cells that still open their pairs, no coefficient and no list, and the line says that statistics are unavailable; nothing is fetched to say so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-006"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-007: with R’s answers stored in the page the grid is filled from them with no R and no request; a view not stored says so and its cells stay empty, never another view’s numbers (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-007"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-008: chart.statistics() returns what the chart asked R for the grid now drawn and what R answered: one entry, with the function, the arguments, the identity and the number of rows (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-008"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-013: for Spearman the cells and the list give R’s rho with no interval, none being made up, and R’s notes and warning are printed as R worded them (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-013"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-014: where no pair has enough complete pairs the line prints R’s reason and no number, every cell is hatched with its own reason, and the list gives each pair’s count (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-014"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
       "suite": "browser",
@@ -111,126 +455,6 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
-      "screenshots": []
-    },
-    {
-      "test": "PVAL-FMT-001: a page formats a result from the connection with its method and counts (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["PVAL-FMT-001"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LAZY-003: when webR cannot be fetched the page answers unavailable with the cause (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LAZY-003"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LAZY-004: the browser form requests nothing until the first run, and two simultaneous first runs load webR once (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LAZY-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-001: with no R attached the page answers that statistics are unavailable (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-001"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-002: the precomputed form gives the desktop-R answers with no R loaded and no request to R's hosts (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-002"],
-      "issueRefs": [3],
-      "screenshots": ["RCON-LIVE-002-answers-shipped-with-the-page.png"]
-    },
-    {
-      "test": "RCON-LIVE-003: R in the browser gives the rank-sum result desktop R gives, within the stated tolerance (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-003"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-004: the survival package installs and loads, and the log-rank result is the one desktop R gives (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-004"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-005: cold, a first visit with nothing cached: megabytes, requests and seconds to the first result (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-005"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-006: reload, the page loaded again with the files cached: R starts again and gives the same answers (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-006"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-007: warm, R already running: a repeated call makes no request (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-007"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-008: the R check page holds at a 390px-wide viewport with its results shown (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-008"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-LIVE-009: the three measurements are recorded where a reader of the run can find them (#3)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-LIVE-009"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-PRE-001: with stored results the page answers without making a network request (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-PRE-001"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-RES-002: with neither form configured the page answers unavailable, and requests nothing (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-RES-002"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "RCON-WEBR-001: by default the page asks the public CDN for webR 0.6.0, and only on the first run (#2)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-001"],
-      "issueRefs": [2],
       "screenshots": []
     },
     {
@@ -338,171 +562,147 @@
       "screenshots": []
     },
     {
-      "test": "bundle: the connection ships, webR does not RCON-API-005: BioViz.r.createConnection and BioViz.r.formatStatistic are exported by both committed bundles (#2)",
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-002: BioViz.correlationMatrix is exported by both committed bundles, which hold none of safety.viz, no Chart.js and no webR, and defining it needs no safety.viz (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-API-005"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-KIT-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "bundle: the connection ships, webR does not RCON-BUILD-001: the build bundles only files under src/ and does not resolve the webR import (#2)",
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-003: the chart is built from the shared parts and writes none of them again; of another chart it imports only the association scatter’s public function, and no chart imports anything of this one (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-BUILD-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-KIT-003"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "bundle: the connection ships, webR does not RCON-BUILD-002: the committed bundles keep the dynamic import and carry none of webR (#2)",
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-004: the chart’s source holds no statistical inference: no arithmetic of a correlation, an interval or a p-value, nothing ordered by a coefficient, and no p-value read (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-BUILD-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-KIT-004"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "bundle: the connection ships, webR does not RCON-BUILD-003: the r module imports nothing from outside src/r (#2)",
+      "test": "correlation matrix: how many variables are drawn CM-LIMIT-001: no more than `limit` variables are drawn, the first of those chosen, and the chart says how many of how many and how to bring others in; thirty-six biomarkers open on twelve (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-BUILD-003"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-LIMIT-001"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the browser form starts R lazily and once RCON-API-004: a browser form with a malformed setting is refused when the connection is created (#2)",
+      "test": "correlation matrix: how many variables are drawn CM-LIMIT-003: a cell is as wide as the room allows, between 18 pixels and 72; below 34 it cannot hold a number (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-API-004"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-LIMIT-003"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the browser form starts R lazily and once RCON-ISO-001: two connections share nothing: each starts its own engine (#2)",
+      "test": "correlation matrix: how R’s answer is described CM-STAT-002: the method as R names it and how many pairs it returned; R’s notes and warnings as R worded them; R’s reason where no pair has enough; R’s error as an error; and a result with no method is refused (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-ISO-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the browser form starts R lazily and once RCON-LAZY-001: creating a connection starts nothing; the first run starts the engine with its configuration (#2)",
+      "test": "correlation matrix: how R’s answer is described CM-STAT-002: with no R the line says statistics are unavailable, with stored results a view not stored says so, and the desk waits and never shows an answer to the question before (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-LAZY-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the browser form starts R lazily and once RCON-LAZY-002: two simultaneous first calls cause one start, and later calls reuse it (#2)",
+      "test": "correlation matrix: how R’s answer is described CM-STAT-003: a cell’s sentence is the shared formatter’s: the pair by its labels, the coefficient by the method’s name, the interval R gave or none, and the count; a p-value on a row is neither read nor printed (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-LAZY-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-003"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the browser form starts R lazily and once RCON-LAZY-003: a failed start answers unavailable for every waiting call, and the next run tries again (#2)",
+      "test": "correlation matrix: settings CM-CFG-001: every setting has a default; the column and baseline defaults are the core’s; the chart opens on every biomarker at the first visit, twelve at a time, with Pearson and R’s own minimum (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-LAZY-003"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-CFG-001"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-API-001: createConnection returns an object whose one call is run (#2)",
+      "test": "correlation matrix: settings CM-CFG-002: a caller’s settings are laid over the defaults, a list given as one name is a list of one, and a setting that is not known, or a value a setting cannot take, is refused with a message naming it (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-API-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-CFG-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-API-002: run resolves and never rejects, whatever the engine throws (#2)",
+      "test": "correlation matrix: the API reference CM-SITE-004: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-API-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-SITE-004"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-API-003: a call run cannot make sense of resolves to an error, without starting R (#2)",
+      "test": "correlation matrix: the cells and a mark CM-DATA-005: every pair has a cell on each side of the diagonal, a number above it and a mark below, the diagonal holds nothing, and a pair is found by its variables in either order (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-API-003"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-005"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-RES-001: ok carries the value R returned and the form that answered (#2)",
+      "test": "correlation matrix: the cells and a mark CM-DATA-006: a mark’s width and darkness grow with the size of R’s coefficient, equally for either sign, so it reads without colour; the sign is the hue and the shape; a number is to two decimals with a true minus (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-RES-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-006"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-RES-002: with neither form configured, run answers unavailable with a reason (#2)",
+      "test": "correlation matrix: the frame CM-DATA-003: the frame is the core’s with none of the variables required: a participant with some of the values is kept with a gap, one with none is left out and counted, and the filters choose participants first (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-RES-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-003"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-RES-003: error carries R's message when the R function fails (#2)",
+      "test": "correlation matrix: the variables of the grid CM-DATA-001: across biomarkers the variables are the biomarkers chosen, in the control’s order, each at the one visit with the one value type, named v1, v2, … (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-RES-003"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-001"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the precomputed form RCON-PRE-001: a stored result is answered with nothing loaded and no network request (#2)",
+      "test": "correlation matrix: the variables of the grid CM-DATA-002: across visits the variables are the visits chosen of one biomarker, in visit order; for a change the one baseline visit is left out and named, and a baseline value has nothing to relate (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-PRE-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the precomputed form RCON-PRE-002: a stored result is keyed by function name, arguments and data identity; argument order does not matter (#2)",
+      "test": "correlation matrix: the variables of the grid CM-DATA-004: with fewer than two variables, or for a change at the one baseline visit, there is no grid and the chart says why and what to choose (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-PRE-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-DATA-004"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "connection: the precomputed form RCON-PRE-003: a call with no stored result answers unavailable, never another result (#2)",
+      "test": "correlation matrix: what R is asked CM-STAT-001: one request for the whole grid: the function, the frame, the names of its columns and the method; a minimum only when the reader set one; and an identity that names the chart, the variables in order, the baseline settings and the filters in force (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-PRE-003"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "connection: the precomputed form RCON-PRE-004: stored results that are malformed or ambiguous are refused when the connection is created (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-PRE-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "connection: the precomputed form RCON-PRE-005: with both forms, a call with no stored result goes to R in the browser (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-PRE-005"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "connection: the precomputed form RCON-PRE-006: changing a returned value does not change the stored result (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-PRE-006"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-001"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
@@ -679,182 +879,6 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [7],
-      "screenshots": []
-    },
-    {
-      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-001: a pair’s p-value comes with its method, the two groups’ counts and its adjustment label, by the rules a whole result is held to (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-ROW-001"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-002: a pair with no method, no counts or no groups is refused, and one R could not compute shows R’s words and no number (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-ROW-002"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatEstimate: an estimate and its interval PVAL-EST-001: an estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, to four significant figures (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-EST-001"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatEstimate: an estimate and its interval PVAL-EST-002: an estimate with no name or no number, or with half an interval, is refused and nothing is printed in its place (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-EST-002"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-001: a group’s estimate comes with its interval at the level R gave, and its p-value with its method, the group’s count and its label, by the rules a whole result is held to (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-GRP-001"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-002: a group with no name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words and no number (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-GRP-002"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-001: a pair’s estimate comes with its interval at the level R gave and its count, in parts for a cell and a table, and with no p-value even where a row carries one (#27)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-PAIR-001"],
-      "issueRefs": [27],
-      "screenshots": []
-    },
-    {
-      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-002: a pair with no two variables, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words with its count and no number (#27)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-PAIR-002"],
-      "issueRefs": [27],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the formatted text PVAL-FMT-001: an ordinary p-value is shown to three decimals with its method and counts (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-FMT-001"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the formatted text PVAL-FMT-002: a small p-value is shown as p < 0.001, never as zero (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-FMT-002"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the formatted text PVAL-FMT-003: a p-value that would print as 1.000 is shown as p > 0.999 (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-FMT-003"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the formatted text PVAL-FMT-004: counts are printed for each group, or as one total (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-FMT-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-001: a p-value with no method named is refused, and no number is printed (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-001"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-002: a p-value with no counts is refused, and no number is printed (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-002"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-003: a result is labelled exploratory and unadjusted unless an adjustment is named (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-003"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-004: no stars and never the word significant, however small the p-value (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-005: a group too small to test shows the reason in place of a number (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-005"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-006: a p-value that is not a number between 0 and 1 is refused, not repaired (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-006"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: the rules PVAL-RULE-007: the same result always formats to the same text, and the result is not changed (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-007"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-008: a reason that already says the result was not computed is printed as it is, and \"not computed\" is said once (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-008"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-009: a result R marked as an error is printed as R’s message, said to be an error, with no number (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-009"],
-      "issueRefs": [16],
-      "screenshots": []
-    },
-    {
-      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-010: an adjustment R names by its p.adjust method is printed by its usual name, and any other name as given (#16)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["PVAL-RULE-010"],
-      "issueRefs": [16],
       "screenshots": []
     },
     {
@@ -1058,54 +1082,6 @@
       "screenshots": []
     },
     {
-      "test": "R check page: comparing two answers from R RCON-CHECK-001: two numbers agree when they differ by no more than 1 part in 10^8, and not beyond (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-001"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "R check page: comparing two answers from R RCON-CHECK-002: every member is compared: numbers by the tolerance, text and structure exactly (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-002"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "R check page: comparing two answers from R RCON-CHECK-003: a number is shown in full, so a difference in the last digit is visible (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-003"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "R check page: comparing two answers from R RCON-CHECK-004: a table is read from CSV with its numeric columns as numbers and blanks as missing (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-004"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "R check page: the committed expected results RCON-CHECK-005: the expected results name the script, the R version and the survival version that made them (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-005"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
-      "test": "R check page: the committed expected results RCON-CHECK-006: each expected result is a stored result on its committed table, which the precomputed form answers (#3)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CHECK-006"],
-      "issueRefs": [3],
-      "screenshots": []
-    },
-    {
       "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
       "suite": "unit",
       "status": "pass",
@@ -1250,115 +1226,51 @@
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-001: the records go to R as columns, with the function name and the arguments (#2)",
+      "test": "the frames R is run on CM-STAT-010: a frame is the chart’s: one row per participant, the id and one column per variable of the grid, a gap an empty cell, and the demo’s settings read from the demo’s own script (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-001"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-010"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-002: recordsToColumns gives every column every row, with missing values as null (#2)",
+      "test": "the frames R is run on CM-STAT-010: deriving each case’s frame again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-002"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-010"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-003: the list R returns becomes plain JavaScript (#2)",
+      "test": "what desktop R answered, and the key it wrote CM-STAT-009: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with, and the recipe in the reference is the script’s (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-003"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-009"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-004: toPlain maps each kind of R value to one JavaScript shape (#2)",
+      "test": "what desktop R answered, and the key it wrote CM-STAT-009: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its view, and by no other view’s (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-004"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-009"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-005: an R error is reported with R's message, and the R objects of the call are released (#2)",
+      "test": "what desktop R answered, and the key it wrote CM-STAT-011: the expected results name the script, the R version and the vendored statistics file that made them, hold one result per case in both modes and both methods, and no p-value (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-005"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-011"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
-      "test": "webR engine: one call RCON-CALL-006: nested arguments go to R as nested lists, and a call with no data or arguments sends neither (#2)",
+      "test": "what desktop R answered, and the key it wrote CM-STAT-012: in desktop R’s grid of every biomarker at Baseline the planted pair’s cell, TNF-alpha with IL-10, holds 0.6 inside its interval, on all 200 participants (#27)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["RCON-CALL-006"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: one call RCON-CALL-007: the R that passes a table in and a result out uses base R only (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CALL-007"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: one call RCON-CALL-008: a data frame R returns becomes an array of row objects, whatever its size and depth (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-CALL-008"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-LAZY-004: nothing is imported until the first run, and two simultaneous first runs import once (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-LAZY-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-WEBR-001: webR is pinned to 0.6.0 and loaded from the public CDN unless another location is given (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-001"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-WEBR-002: webR is started on the PostMessage channel (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-002"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-WEBR-003: the packages it was told to are installed and attached, and the R source is evaluated once (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-003"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-WEBR-004: an R source given by URL is fetched on the first run, not before (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-004"],
-      "issueRefs": [2],
-      "screenshots": []
-    },
-    {
-      "test": "webR engine: what is loaded, and from where RCON-WEBR-005: a start that fails closes what it opened and reports why (#2)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["RCON-WEBR-005"],
-      "issueRefs": [2],
+      "requirementIds": ["CM-STAT-012"],
+      "issueRefs": [27],
       "screenshots": []
     }
   ]
