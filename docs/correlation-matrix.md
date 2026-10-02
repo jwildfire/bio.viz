@@ -55,15 +55,17 @@ Every variable has the same value type, `value_type`: the result, the baseline v
 
 The grid draws at most `limit` variables at a time, twelve by default: the first twelve of those chosen, in the control's order. The note above it says how many it is showing of how many, and how to bring others in: `12 of 36 biomarkers shown: the first 12 of those chosen, in the Biomarkers control’s order. The grid draws at most 12 at a time: untick biomarkers under Biomarkers to bring others in.` With no more chosen than the limit it reads `All 12 biomarkers chosen are shown.`
 
-A grid's cells grow as the square of its variables: twelve are 66 pairs, twenty-four are 276 and thirty-six are 630. Measured in headless Chromium on a laptop (Apple M3 Pro), on a fixture of thirty-six biomarkers:
+A grid's cells grow as the square of its variables: twelve are 66 pairs, twenty-four are 276 and thirty-six are 630. Measured in headless Chromium on a laptop (Apple M3 Pro), on a fixture of thirty-six biomarkers with 40 participants in the frame:
 
-| Variables | Pairs | Drawing | R in the browser, once started | A cell at a desk (920 pixels) | A cell on a phone (390 pixels) |
-| --------- | ----- | ------- | ------------------------------ | ----------------------------- | ------------------------------ |
-| 12        | 66    | 9 ms    | 0.2 s                          | 62 pixels, numbers shown      | 19 pixels, marks only          |
-| 24        | 276   | 18 ms   | 0.5 s                          | 30 pixels, marks only         | the grid scrolls in its box    |
-| 36        | 630   | 44 ms   | 0.75 s                         | 19 pixels, marks only         | the grid scrolls in its box    |
+| Variables | Pairs | Drawing | R in the browser, once started | A cell at a desk (1280 pixels) | On a phone (390 pixels)             |
+| --------- | ----- | ------- | ------------------------------ | ------------------------------ | ----------------------------------- |
+| 12        | 66    | 3 ms    | 0.1 s                          | 62 pixels, numbers shown       | cells of 19 pixels, marks only      |
+| 24        | 276   | 9 ms    | 0.3 s                          | 30 pixels, marks only          | the grid scrolls inside its own box |
+| 36        | 630   | 14 ms   | 0.7 s                          | 19 pixels, marks only          | the grid scrolls inside its own box |
 
-Neither the drawing nor R is what a grid runs out of at these sizes: it is room. Twelve is the most whose cells still hold their numbers at a desk, it is the number of biomarkers in the synthetic study, and it is the group comparison chart's limit for its overview. A page with more room, or a reader content with marks, sets `limit` higher.
+Drawing is the median of five draws of the grid from its tables; R's time is from the moment the line reads that it is waiting to the moment the grid is filled. The browser tests named `CM-LIMIT-002` and `CM-LIVE-006` measure both again on every run and print them in the run's log.
+
+Neither the drawing nor R is what a grid runs out of at these sizes: it is room. Twelve is the most variables a phone shows whole: with thirteen the cells reach their narrowest, 18 pixels, and the grid scrolls sideways inside its box. At a desk twelve leaves each cell 62 pixels, its number easy to read; the cells hold their numbers up to twenty-one variables and are marks alone from twenty-two. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart's limit for its overview. A page with more room, or a reader content with marks and the list, sets `limit` higher.
 
 ## What is drawn
 
@@ -289,7 +291,7 @@ Below 900 pixels of width safety.viz's shell stacks, and below 600 the controls 
 
 Twelve variables on a phone are cells of about 19 pixels: too small for a number, so both sides of the diagonal are marks and the grid is read as a picture. The numbers, the intervals and the counts are in the list beneath, in the order R returned them, and each pair in it is a button as well as its cell, which is the easier target for a finger. With six variables or fewer the cells are wide enough for their numbers, and for the small scatters.
 
-More variables than fit at 18 pixels a cell, which the default limit never reaches, scroll sideways inside the grid's own box.
+More than twelve variables do not fit at 18 pixels a cell: the grid then scrolls sideways inside its own box, and the page does not. The default limit is the most that never does.
 
 ## What is not here
 
