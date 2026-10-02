@@ -1,0 +1,16 @@
+<!--
+NEWS.md is the running release log and the draft of each release's notes.
+Newest release first. Each section is a text-only, functionality-first account of
+what a user can now do; the GitHub release publishes from the section here when the
+release-candidate pull request (dev -> main) merges and is tagged.
+-->
+
+# bio.viz v0.1.0 (Upcoming)
+
+bio.viz is a second chart library beside safety.viz, for comparing groups and relating variables in biomarker data. Every statistical test it shows is computed by R; the library holds no inference code of its own. This first release has no charts. It sets the repository up and measures what running R in the browser costs.
+
+## What's new
+
+- The library builds and reports its version. `npm run build` writes a script-tag bundle (global `BioViz`) and an ES module bundle to `dist/bio.viz-0.1.0/`, both committed, and `BioViz.version` reads the package version. Nothing is bundled into them: safety.viz and R are loaded beside bio.viz on a page.
+- The house machinery from safety.viz is in place: unit tests, browser tests against the committed bundle, requirement matrices with tests named by requirement, an evidence set rebuilt from each test run, and a check that the committed bundle matches the source. Continuous integration runs all of it on every pull request.
+- A site with a dev build. The released site is published at <https://jwildfire.github.io/bio.viz/> and the current `dev` branch at <https://jwildfire.github.io/bio.viz/dev/>. Its home page names the library, its version, and the version reported by the bundle that page loaded.
