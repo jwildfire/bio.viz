@@ -120,7 +120,17 @@ R in the browser is given one file, gsm.bio's `inst/statistics/statistics.R`, an
 - Rerun both, in that order, after copying the statistics file again or changing the demo's settings, the core's frame or what the chart sends R. The unit tests fail when the rows are not what the chart's code derives, and when the expected results were made from another copy of the statistics file than the one vendored.
 - Each expected result is a stored result: R writes the function's name, its arguments and the identity of the rows beside the answer, by the recipe in [`docs/group-comparison.md`](docs/group-comparison.md#stored-results-from-r). The unit tests named `GC-STAT-023` hold that key to the one the chart asks with. gsm.bio's widget writes stored results by the same recipe, so a change to what the chart sends R is a change to that page first.
 - The browser tests named `GC-STAT-034` to `GC-STAT-042` run the gallery's demo for real: R in the browser, from webR's public host. They hold every number to the committed desktop-R result within 1 part in 10^8, print both versions' answers and the megabytes and seconds of the first test, and write `test-results/group-comparison-measurements.json`. Like the `RCON-LIVE-*` tests they need the network, fail when R's host cannot be reached, and are not retried. Desktop R (4.3) and R in the browser (4.6) differ in one known case, `wilcox.test` with tied values in groups of fewer than 50, where the newer R computes an exact p-value and the older approximates: the tests check that a difference is that case, record both answers, and hold everything else equal. Do not widen the tolerance to pass it.
+- `GC-OVW-019` is live too, with a browser of its own: it opens the demo on its overview, sees that nothing is fetched for R, opens a biomarker and holds its five panels to desktop R.
 - A browser test that opens a page with R attached and is not one of those keeps R's hosts out of reach, so it stays on the machine: `blockR(page)` in `tests/e2e/group-comparison.spec.js`.
+
+## Derived fixtures
+
+Two fixtures are made from the vendored study by a recorded rule, each with a record beside it and a unit test that derives it again and compares: `scripts/derive-lib.mjs` holds the rules.
+
+- `tests/e2e/fixtures/data/results-with-arm.csv`, written by `node tools/derive-results-with-arm.mjs`: the results of two biomarkers with the participant's arm carried on the rows, for the chart with no participant table.
+- `tests/e2e/fixtures/data/results-many-biomarkers.csv`, written by `node tools/derive-many-biomarkers.mjs`: thirty-six biomarkers, three times the overview's limit, for the overview's pages. It is a part of the study written three times, twice with a letter added to each biomarker's name; the copies say nothing about any biomarker.
+
+Rerun both when the vendored study changes.
 
 ## Drawing arithmetic, and R
 
