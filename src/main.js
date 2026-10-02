@@ -3,9 +3,8 @@
 // in the IIFE bundle and as module exports in the ESM bundle.
 //
 // The library holds no statistical inference: every test is computed by R and
-// reaches a chart through the connection to R, which lands with its own
-// requirement. safety.viz and webR are loaded beside this bundle on a page and
-// are never bundled into it.
+// reaches a chart through the connection to R in src/r/. safety.viz and webR
+// are loaded beside this bundle on a page and are never bundled into it.
 
 /* global __BIO_VIZ_VERSION__ */
 
@@ -15,3 +14,9 @@
  * @type {string}
  */
 export const version = __BIO_VIZ_VERSION__;
+
+/**
+ * The connection to R and the p-value formatter: `BioViz.r.createConnection`
+ * and `BioViz.r.formatStatistic`.
+ */
+export * as r from './r/index.js';
