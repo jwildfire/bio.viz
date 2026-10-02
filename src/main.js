@@ -20,3 +20,10 @@ export const version = __BIO_VIZ_VERSION__;
  * and `BioViz.r.formatStatistic`.
  */
 export * as r from './r/index.js';
+
+/**
+ * The two steps every chart shares before anything is drawn: a variable named
+ * once, and named variables resolved to one row per participant.
+ * `BioViz.core.variable`, `BioViz.core.frame` and `BioViz.core.label`.
+ */
+export * as core from './core/index.js';
