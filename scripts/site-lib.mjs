@@ -554,11 +554,12 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
 
 <section id="about-demo">
   <ul class="notes">
-    <li>Choose the biomarker, the value, the visits, the groups and how they are drawn in the controls. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
-    <li>Click a box, a violin or a point to list its participants. Click a row of the list to open that participant's profile.</li>
-    <li>The line under the chart is a test of the groups, computed by R. The chart draws first. R is then started in this browser, the first time a panel that prints a test is drawn: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.</li>
+    <li>The chart opens on every biomarker at every visit: a row for each biomarker, and in the row a small panel for each visit, with the groups drawn in it and the number in each group beneath. Each biomarker has its own value axis, the same across its visits. Click a biomarker, or press Enter or Space on it, to view it alone; choose All Biomarkers under Biomarker in the controls to come back.</li>
+    <li>Choose the value, the visits, the groups and how they are drawn in the controls: they apply to every row. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
+    <li>With one biomarker open, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.</li>
+    <li>With one biomarker open, the line under each panel is a test of the groups, computed by R. The overview prints no test and asks R for nothing. R is started in this browser the first time a biomarker is opened: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.</li>
     <li>Choose the test under Statistics in the controls: a Welch t-test or a Wilcoxon rank-sum test between two groups, a one-way ANOVA or a Kruskal-Wallis test across more, or none. Group by Arm and sex for four groups, and switch on Pairwise comparisons to compare every pair, with the p-values adjusted across the pairs.</li>
-    <li>Every result is exploratory. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn.</li>
+    <li>Every result is exploratory, and each panel's test is its own: they are not adjusted for one another. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn.</li>
   </ul>
   ${built}
   ${computed}

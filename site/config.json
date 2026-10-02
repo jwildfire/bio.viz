@@ -35,7 +35,7 @@
       "title": "Group comparison",
       "kind": "chart",
       "status": "available",
-      "blurb": "Does this biomarker differ between these groups? One value across the levels of a category at chosen visits, as boxes, violins or points with the number in each group beneath, a second grouping by colour, panels by one further variable and a logarithmic scale. Click a box or a point to list its participants and open a participant's profile.",
+      "blurb": "Does this biomarker differ between these groups? One value across the levels of a category at chosen visits, as boxes, violins or points with the number in each group beneath, a second grouping by colour, panels by one further variable and a logarithmic scale. It opens on every biomarker at every visit, and a click on a biomarker opens it alone, with R's test of the groups under each visit. Click a box or a point to list its participants and open a participant's profile.",
       "matrix": "group-comparison.md",
       "demo": "group-comparison.js",
       "hero": "GC-DRAW-001-boxes-by-arm.png",

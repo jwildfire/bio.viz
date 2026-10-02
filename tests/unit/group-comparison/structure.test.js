@@ -386,7 +386,7 @@ describe('group comparison: what the controls offer', () => {
     expect(filterColumns(tables, syncSettings({ filters: [] }), categories)).toEqual([]);
   });
 
-  it('GC-CTRL-004: the biomarkers, the visits and the visit the chart opens on are read from the table (#9)', () => {
+  it('GC-CTRL-004: the biomarkers, the visits and the visits the chart opens on are read from the table (#9)', () => {
     expect(listMeasures(results, settings)).toHaveLength(12);
     expect(listMeasures(results, settings).slice(0, 3)).toEqual(['CRP', 'D-dimer', 'Ferritin']);
     expect(listMeasures(results, syncSettings({ measures: ['IL-6', 'ALT', 'CRP'] }))).toEqual([
@@ -394,17 +394,14 @@ describe('group comparison: what the controls offer', () => {
       'CRP'
     ]);
     expect(listMeasures(results, syncSettings({ measures: ['ALT'] }))).toHaveLength(12);
-    // Opens on the first visit after the baseline.
+    // Opens on every visit, in visit order, when the settings name none (#17).
     expect(listVisits(results, settings)).toEqual({
       all: ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'],
-      start: ['Week 2']
+      start: ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']
     });
     expect(
       listVisits(results, syncSettings({ visits: ['Week 12', 'Week 4', 'Week 99'] })).start
     ).toEqual(['Week 12', 'Week 4']);
-    expect(
-      listVisits(results, syncSettings({ baseline_visits: ['Baseline', 'Week 2'] })).start
-    ).toEqual(['Week 4']);
     const one = results.filter((row) => row.VISIT === 'Baseline');
     expect(listVisits(one, settings).start).toEqual(['Baseline']);
   });

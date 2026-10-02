@@ -311,9 +311,12 @@ export function createStatisticDesk({ connection, note = null }) {
     begin() {
       current += 1;
       const round = current;
+      // With several panels the note is said once, by the first that waits.
+      let noted = false;
       return {
         ask({ name, data, args, dataId }, show, context) {
-          show(plain('waiting', withNote(WAITING)));
+          show(plain('waiting', noted ? WAITING : withNote(WAITING)));
+          noted = true;
           return connection.run(name, { data, args, dataId }).then((result) => {
             if (result && result.status === 'ok' && result.form !== 'precomputed') answered = true;
             if (round !== current) return false;

@@ -975,6 +975,8 @@ var DEFAULT_SETTINGS2 = Object.freeze({
   groups: null,
   max_levels: 12,
   filters: null,
+  // The overview of every biomarker: the most drawn at a time.
+  overview_limit: 12,
   // The listing of participants.
   details: null,
   page_size: 10,
@@ -1070,7 +1072,7 @@ function syncSettings(overrides) {
   if (!BASELINE_STATS.includes(settings.baseline_stat)) {
     refuse4(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(", ")}.`);
   }
-  for (const key of ["page_size", "max_levels"]) {
+  for (const key of ["page_size", "max_levels", "overview_limit"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
       refuse4(`\`${key}\` must be a whole number, one or more.`);
     }
@@ -1276,9 +1278,11 @@ function createStatisticDesk({ connection, note = null }) {
     begin() {
       current += 1;
       const round = current;
+      let noted = false;
       return {
         ask({ name, data, args, dataId }, show, context) {
-          show(plain("waiting", withNote(WAITING)));
+          show(plain("waiting", noted ? WAITING : withNote(WAITING)));
+          noted = true;
           return connection.run(name, { data, args, dataId }).then((result) => {
             if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
             if (round !== current) return false;
@@ -1439,6 +1443,11 @@ function filterColumns({ participants }, settings, categories) {
   }
   return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
 }
+var RELATIVE = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
+function visitsDrawn(visits2, valueType, baselineVisits) {
+  if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits2;
+  return visits2.filter((visit) => visit !== baselineVisits[0]);
+}
 var EVERYONE = "All participants";
 var BAND = 0.8;
 function slots(colours) {
@@ -1471,7 +1480,9 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     rows = results.filter((row) => ids.has(String(row[idCol])));
   }
   const needsVisit = state.valueType !== "baseline";
-  const visitList = needsVisit ? state.visits : [null];
+  const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
+  const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
+  const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
   const variablesFor = (visit) => ({
     y: yOf(visit),
@@ -1558,7 +1569,9 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     colors,
     panelLevels,
     halfWidth,
-    baselineVisits: framed.length ? framed[0].made.baseline_visits : null,
+    baselineVisits: framed.length ? framed[0].made.baseline_visits : baselineVisits.length ? baselineVisits : null,
+    // The baseline visit that was chosen and not drawn, when there is one.
+    visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
     filtered: kept ? kept.length : null
   };
@@ -1586,15 +1599,54 @@ function yTitle(results, settings, state) {
 function listVisits(results, settings) {
   const config = coreSettings(settings);
   const all = visits(results, config);
-  const baseline = settings.baseline_visits || all.slice(0, 1);
   const asked = (settings.visits || []).filter((visit) => all.includes(visit));
-  const later = all.filter((visit) => !baseline.includes(visit));
-  const start = asked.length ? asked : later.length ? later.slice(0, 1) : all.slice(0, 1);
-  return { all, start };
+  return { all, start: asked.length ? asked : all };
+}
+function overviewPage(measures, limit, page = 0) {
+  const total = measures.length;
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
+  const shown2 = measures.slice(at * limit, (at + 1) * limit);
+  return {
+    measures: shown2,
+    page: at,
+    pages,
+    from: total ? at * limit + 1 : 0,
+    to: at * limit + shown2.length,
+    total
+  };
+}
+function overviewCount({ from, to, total, pages }) {
+  if (!total) return "No biomarker to show.";
+  if (pages === 1) {
+    return total === 1 ? "The one biomarker is shown." : `All ${total} biomarkers are shown.`;
+  }
+  const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
+  return `${to - from + 1} of ${total} biomarkers shown: ${which}, in the Biomarker control\u2019s order.`;
+}
+var ordinal = (n) => {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+  return `${n}${suffix}`;
+};
+function buildOverview(tables, settings, state, measures, options = {}) {
+  return measures.map((measure) => {
+    const row = { ...state, measure, panelBy: "" };
+    return {
+      measure,
+      title: yTitle(tables.results, settings, { ...row, visits: [] }),
+      model: buildPanels(tables, settings, row, options)
+    };
+  });
+}
+function columnLevels({ results, participants }, column) {
+  const rows = participants && participants.some((row) => column in row) ? participants : results;
+  return levelsOf(rows.map((row) => row[column]));
 }
 
 // src/group-comparison.js
 var NONE = "";
+var OVERVIEW = "bv_overview";
 var VALUE_LABELS = {
   raw: "Result",
   baseline: "Baseline",
@@ -1636,7 +1688,21 @@ var STYLES = `
 .bv-group-comparison .sv-listing table{table-layout:fixed}
 .bv-group-comparison .sv-listing th,.bv-group-comparison .sv-listing td{white-space:normal;overflow-wrap:anywhere}
 .bv-group-comparison .sv-rail{max-width:100%;overflow-x:auto}
+.bv-group-comparison .sv-multiples.bv-overview{display:block}
+.bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
+.bv-group-comparison .bv-overview-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--bv-panel-min,150px),1fr));gap:.4rem .6rem}
+.bv-group-comparison .bv-overview-panel{min-width:0;max-width:340px}
+.bv-group-comparison .bv-overview-panel h4{font-size:.78rem;font-weight:600;margin:0 0 .1rem;color:#52616f}
+.bv-group-comparison .bv-overview-canvas{height:150px;position:relative}
+.bv-group-comparison .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .8rem;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-overview-pager button{font:inherit;padding:.3rem .7rem;border:1px solid #c5ccd3;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+.bv-group-comparison .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
+.bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .6rem;font-size:.8rem;color:#1f2933}
+.bv-group-comparison .bv-legend-swatch{display:inline-block;width:.75em;height:.75em;margin-right:.35em;border-radius:2px}
+.bv-group-comparison .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
 @media (max-width:600px){
+.bv-group-comparison .bv-overview-canvas{height:118px}
+.bv-group-comparison .bv-overview-row{padding:.55rem .6rem}
 .bv-group-comparison .sv-chart-wrap{height:380px;padding:.5rem}
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
@@ -1657,6 +1723,7 @@ function findKit() {
   }
   return kit;
 }
+var NOTHING_AFTER_BASELINE = "The only visit chosen is the baseline visit, where this value is the same for everyone. Choose a later visit to draw.";
 var hexToRgba = (hex, alpha) => {
   const value = hex.replace("#", "");
   const part = (at) => parseInt(value.slice(at, at + 2), 16);
@@ -1679,6 +1746,7 @@ var GroupComparison = class {
     this.filterSpecs = [];
     this.state = {};
     this.asked = [];
+    this.overview = null;
     this.connect();
     this.renderShell();
   }
@@ -1793,7 +1861,8 @@ var GroupComparison = class {
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
    * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `test`, `pairwise`)
-   * moves its control.
+   * moves its control: `start_value: null` returns to the overview of every
+   * biomarker.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -1818,7 +1887,9 @@ var GroupComparison = class {
       y_scale: "yScale",
       test: "test",
       pairwise: "pairwise",
-      filters: "filters"
+      filters: "filters",
+      // Another limit is other pages: the overview starts at its first.
+      overview_limit: "page"
     };
     for (const [setting, key] of Object.entries(moved)) {
       if (setting in given2) this.state[key] = opening[key];
@@ -1839,13 +1910,32 @@ var GroupComparison = class {
     this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
       (spec) => this.kit.normalizeFilterSpec(spec)
     );
+    const named = this.settings.start_value;
+    if (results.length && named !== null && !this.measures.includes(named)) {
+      console.warn(
+        `The initial biomarker [${named}] does not exist. Defaulting to the all-biomarkers overview.`
+      );
+    }
+  }
+  // Whether the overview of every biomarker is what is drawn.
+  isOverview() {
+    return this.state.measure === null || this.state.measure === void 0;
+  }
+  // Opens one biomarker, or the overview (null), from the Biomarker control or
+  // from a row of the overview.
+  selectMeasure(measure) {
+    this.state.measure = measure;
+    this.buildControls();
+    this.render();
   }
   // What the chart opens on: the settings, where the tables have what they name.
   seedState() {
     const { settings, categories, measures } = this;
     const has = (column) => categories.some((entry) => entry.value_col === column);
     return {
-      measure: measures.includes(settings.start_value) ? settings.start_value : measures[0],
+      // No biomarker named, or one the table does not have: the overview.
+      measure: measures.includes(settings.start_value) ? settings.start_value : null,
+      page: 0,
       visits: [...this.visits.start],
       valueType: settings.value_type,
       groupBy: has(settings.group_by) ? settings.group_by : categories.length ? categories[0].value_col : NONE,
@@ -1863,7 +1953,9 @@ var GroupComparison = class {
   // is no longer offered; it returns to what the chart opens on.
   repairState(opening) {
     const has = (column) => this.categories.some((entry) => entry.value_col === column);
-    if (!this.measures.includes(this.state.measure)) this.state.measure = opening.measure;
+    if (this.state.measure !== null && !this.measures.includes(this.state.measure)) {
+      this.state.measure = opening.measure;
+    }
     this.state.visits = this.state.visits.filter((visit) => this.visits.all.includes(visit));
     if (!this.state.visits.length) this.state.visits = opening.visits;
     if (this.state.groupBy && !has(this.state.groupBy)) this.state.groupBy = opening.groupBy;
@@ -1890,16 +1982,15 @@ var GroupComparison = class {
       input.onchange = () => onChange(input.value);
       return addControl(labelText, input, parent);
     };
+    const overview = this.isOverview();
     const value = addSection("Value");
     select(
       "measure",
       "Biomarker",
-      this.measures.map((measure) => [measure, measure]),
-      state.measure,
-      (next) => {
-        state.measure = next;
-        redraw(false);
-      },
+      [[OVERVIEW, "All Biomarkers"], ...this.measures.map((measure) => [measure, measure])],
+      overview ? OVERVIEW : state.measure,
+      // The controls differ between the overview and one biomarker.
+      (next) => this.selectMeasure(next === OVERVIEW ? null : next),
       value
     );
     select(
@@ -1964,7 +2055,7 @@ var GroupComparison = class {
         },
         group
       );
-      select(
+      const panelBy = select(
         "panel-by",
         "Panel by",
         optional,
@@ -1975,6 +2066,16 @@ var GroupComparison = class {
         },
         group
       );
+      if (overview) {
+        panelBy.disabled = true;
+        panelBy.after(
+          kit.createElement(
+            "small",
+            "bv-control-note",
+            "Applies when one biomarker is open. In the overview each biomarker\u2019s panels are its visits."
+          )
+        );
+      }
     } else {
       group.append(
         kit.createElement(
@@ -2009,7 +2110,7 @@ var GroupComparison = class {
     );
     this.testControl = null;
     this.pairwiseControl = null;
-    if (this.settings.statistic) {
+    if (this.settings.statistic && !overview) {
       const statistics = addSection("Statistics");
       const test = document.createElement("select");
       test.dataset.control = "test";
@@ -2060,6 +2161,7 @@ var GroupComparison = class {
   // Every level of the group column in the tables, whatever the filters are set to.
   levelsOffered() {
     if (!this.state.groupBy) return [];
+    if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
     const model = buildPanels(
       this.tables,
       this.settings,
@@ -2105,17 +2207,23 @@ var GroupComparison = class {
     this.multiplesWrap.innerHTML = "";
     this.statLine.textContent = "";
     this.statLine.dataset.state = "empty";
+    this.multiplesWrap.classList.remove("bv-overview");
     this.chartWrap.classList.remove("sv-hidden");
     this.model = null;
+    this.overview = null;
     this.syncTestControls(0);
     const { results } = this.tables;
     const needsVisit = this.state.valueType !== "baseline";
-    if (!results.length || !this.state.measure) {
+    if (!results.length || !this.measures.length) {
       this.footnote.textContent = "No results to draw.";
       return;
     }
     if (needsVisit && !this.state.visits.length) {
       this.footnote.textContent = "Choose a visit to draw.";
+      return;
+    }
+    if (this.isOverview()) {
+      this.drawOverview();
       return;
     }
     const model = buildPanels(this.tables, this.settings, this.state, {
@@ -2126,7 +2234,7 @@ var GroupComparison = class {
     this.updateNotes(model);
     const drawn = model.panels.filter((panel) => panel.records.length);
     if (!drawn.length) {
-      this.footnote.textContent = "No participant has a value to draw for this choice.";
+      this.footnote.textContent = model.panels.length ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
       return;
     }
     this.footnote.textContent = this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`;
@@ -2163,6 +2271,167 @@ var GroupComparison = class {
       }
     });
   }
+  // ---- The overview -----------------------------------------------------------
+  // Every biomarker, a row each, in the Biomarker control's order; in a row one
+  // small panel per visit, all on that biomarker's own value axis. A row is a
+  // button: a click, or Enter or Space on it, opens its biomarker. Each panel
+  // is its own Chart.js chart, as safety.viz's small multiples are, so the
+  // number alive at once is the page's biomarkers times the visits, and
+  // `overview_limit` keeps that bounded.
+  drawOverview() {
+    const { kit, state, settings } = this;
+    const page = overviewPage(this.measures, settings.overview_limit, state.page);
+    state.page = page.page;
+    const rows = buildOverview(this.tables, settings, state, page.measures, {
+      filterMatches: kit.filterMatches
+    });
+    this.overview = { ...page, rows };
+    this.chartWrap.classList.add("sv-hidden");
+    this.multiplesWrap.classList.add("bv-overview");
+    this.updateOverviewNotes(rows);
+    const pager = () => this.overviewPager(page);
+    this.multiplesWrap.append(pager());
+    const drawn = rows.filter((row) => row.model.panels.some((panel) => panel.records.length));
+    if (!drawn.length) {
+      this.footnote.textContent = rows.some((row) => row.model.panels.length) ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
+      return;
+    }
+    this.footnote.textContent = "Click a biomarker to view it alone, with a test under each visit.";
+    const colors = drawn[0].model.colors;
+    if (colors.length > 1 || colors[0] !== null) {
+      const legend = kit.createElement("p", "bv-legend");
+      legend.append(kit.createElement("span", null, `${this.labelOf(state.colorBy)}:`));
+      colors.forEach((color, index) => {
+        const entry = kit.createElement("span");
+        const swatch = kit.createElement("span", "bv-legend-swatch");
+        swatch.style.background = this.colorOf(index);
+        entry.append(swatch, document.createTextNode(color));
+        legend.append(entry);
+      });
+      this.multiplesWrap.append(legend);
+    }
+    const groups = Math.max(...rows.map((row) => row.model.shownLevels.length), 1);
+    const narrow = this.root.clientWidth < 600;
+    const least = narrow ? 120 : 132;
+    this.multiplesWrap.style.setProperty(
+      "--bv-panel-min",
+      `${Math.min(300, Math.max(least, groups * (narrow ? 44 : 52) + 30))}px`
+    );
+    rows.forEach(({ measure, title, model }) => {
+      const row = kit.createElement("div", "sv-multiple sv-overview-panel bv-overview-row");
+      row.dataset.measure = measure;
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
+      row.setAttribute("aria-label", `View ${measure}`);
+      const open = () => this.openFromOverview(measure);
+      row.onclick = open;
+      row.onkeydown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open();
+        }
+      };
+      row.append(kit.createElement("h3", null, title));
+      const panels = kit.createElement("div", "bv-overview-panels");
+      row.append(panels);
+      this.multiplesWrap.append(row);
+      const shown2 = model.panels.filter((panel) => panel.records.length);
+      if (!shown2.length) {
+        row.append(kit.createElement("p", "bv-panel-note", "No participant has a value to draw."));
+        return;
+      }
+      const domain = this.domain({ extent: this.reach(model) });
+      model.panels.forEach((panel) => {
+        const cell = kit.createElement("div", "bv-overview-panel");
+        cell.dataset.visit = panel.visit ?? "";
+        cell.append(kit.createElement("h4", null, panel.title || panel.visit || "Baseline value"));
+        const wrap = kit.createElement("div", "bv-overview-canvas");
+        const canvas = document.createElement("canvas");
+        wrap.append(canvas);
+        cell.append(wrap);
+        panels.append(cell);
+        if (panel.records.length) {
+          const chart = this.drawPanel(canvas, panel, model, { title, domain, compact: true });
+          chart.$measure = measure;
+        }
+      });
+    });
+    if (page.pages > 1) this.multiplesWrap.append(pager());
+  }
+  // How many biomarkers are shown of how many, and, when there are more than
+  // one page of them, the way to the rest.
+  overviewPager(page) {
+    const { kit } = this;
+    const pager = kit.createElement("div", "bv-overview-pager");
+    pager.append(kit.createElement("span", "bv-overview-count", overviewCount(page)));
+    if (page.pages === 1) return pager;
+    const go = (label2, to, name) => {
+      const button = kit.createElement("button", null, label2);
+      button.type = "button";
+      button.dataset.go = name;
+      button.disabled = to < 0 || to >= page.pages;
+      button.onclick = () => {
+        this.state.page = to;
+        this.render();
+        if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+      };
+      return button;
+    };
+    pager.append(
+      go("Previous", page.page - 1, "previous"),
+      kit.createElement("span", "bv-overview-page", `Page ${page.page + 1} of ${page.pages}`),
+      go("Next", page.page + 1, "next")
+    );
+    return pager;
+  }
+  // Opens a biomarker from its row. The single view replaces the overview, so
+  // the page is brought back to the chart's top, and the keyboard's place is
+  // put on the Biomarker control when it is on screen.
+  openFromOverview(measure) {
+    this.selectMeasure(measure);
+    if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+    const control = this.controls.querySelector('select[data-control="measure"]');
+    if (control && control.offsetParent !== null) control.focus();
+  }
+  // Above the overview: what applies to every row. The counts of who was
+  // drawn and left out are a biomarker's own, and are given when it is opened.
+  updateOverviewNotes(rows) {
+    const { kit, state } = this;
+    const add = (text2) => this.notes.append(kit.createElement("span", null, text2));
+    const [first] = rows;
+    if (!first) return;
+    const { model } = first;
+    if (model.filtered !== null && model.filtered < this.tables.participants.length) {
+      add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
+    }
+    if (state.levels) {
+      const offered = this.levelsOffered();
+      const shown2 = offered.filter((level) => state.levels.includes(level));
+      if (shown2.length < offered.length) add(`${shown2.length} of ${offered.length} levels shown.`);
+    }
+    if (state.valueType === "baseline") {
+      add("A baseline value has no visit: each biomarker has one panel.");
+    }
+    this.addBaselineNote(model, add);
+  }
+  // The baseline visit of a value worked out against one, and that it is not
+  // drawn when it was chosen: there the value is the same for everyone.
+  addBaselineNote(model, add) {
+    if (!model.baselineVisits || this.state.valueType === "raw") return;
+    const notDrawn = model.visitsNotDrawn.length ? ` It is not drawn: there the ${VALUE_LABELS[this.state.valueType].toLowerCase()} is the same for everyone.` : "";
+    add(`Baseline visit: ${model.baselineVisits.join(", ")}.${notDrawn}`);
+  }
+  // How far a biomarker's marks reach across its panels. A box is drawn from
+  // its whiskers, the 5th and 95th percentiles; a violin and points reach the
+  // least and greatest value.
+  reach(model) {
+    if (this.state.mark !== "box") return model.extent;
+    const cells = model.panels.flatMap((panel) => panel.cells.filter((cell) => cell.n));
+    return [
+      Math.min(...cells.map((cell) => cell.stats.q5)),
+      Math.max(...cells.map((cell) => cell.stats.q95))
+    ];
+  }
   // The value axis: the extent of what is drawn, with a little room. On a
   // logarithmic axis the room is a ratio, so the lower end stays above zero.
   domain(model) {
@@ -2177,7 +2446,10 @@ var GroupComparison = class {
   colorOf(index) {
     return PALETTE[index % PALETTE.length];
   }
-  drawPanel(canvas, panel, model, { title, domain }) {
+  // `compact` is a panel of the overview: small, with no legend, no axis
+  // titles and nothing that answers the pointer, because the row it is in is
+  // what is clicked.
+  drawPanel(canvas, panel, model, { title, domain, compact = false }) {
     const { state } = this;
     const groupLabel = state.groupBy ? this.labelOf(state.groupBy) : "";
     const coloured = model.colors.length > 1 || model.colors[0] !== null;
@@ -2201,7 +2473,7 @@ var GroupComparison = class {
         showLine: false,
         backgroundColor: hexToRgba(hex, 0.55),
         borderColor: hex,
-        pointRadius: state.mark === "points" ? 3 : 0,
+        pointRadius: state.mark === "points" ? compact ? 1.5 : 3 : 0,
         pointHoverRadius: state.mark === "points" ? 5 : 0,
         pointHitRadius: state.mark === "points" ? 4 : 14
       };
@@ -2214,14 +2486,15 @@ var GroupComparison = class {
         maintainAspectRatio: false,
         responsive: true,
         interaction: { mode: "nearest", intersect: true },
-        onClick: (event) => this.onChartClick(chart, panel, event),
+        ...compact ? { events: [], layout: { padding: { top: 4, right: 4 } } } : { onClick: (event) => this.onChartClick(chart, panel, event) },
         plugins: {
           legend: {
-            display: coloured,
+            display: coloured && !compact,
             position: "top",
             title: { display: coloured, text: this.labelOf(state.colorBy) }
           },
           tooltip: {
+            enabled: !compact,
             callbacks: {
               title: () => "",
               label: (context) => this.tooltip(context.raw)
@@ -2234,10 +2507,12 @@ var GroupComparison = class {
             min: -0.5,
             max: model.shownLevels.length - 0.5,
             grid: { display: false },
-            title: { display: Boolean(groupLabel), text: groupLabel },
+            title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
             ticks: {
               autoSkip: false,
-              maxRotation: 0,
+              // A small panel turns its labels when they would run together.
+              maxRotation: compact ? 50 : 0,
+              ...compact ? { font: { size: 10 }, padding: 2 } : {},
               callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
             },
             afterBuildTicks: (axis) => {
@@ -2249,14 +2524,18 @@ var GroupComparison = class {
             min: domain[0],
             max: domain[1],
             // The ends of the axis are room about the data, not round numbers.
-            ticks: { includeBounds: false },
-            title: { display: true, text: title }
+            ticks: {
+              includeBounds: false,
+              ...compact ? { font: { size: 10 }, maxTicksLimit: 4 } : {}
+            },
+            title: { display: !compact, text: title }
           }
         }
       },
       plugins: [this.markPlugin(panel)]
     });
     chart.$panel = panel;
+    chart.$model = model;
     canvas.setAttribute("role", "img");
     canvas.setAttribute(
       "aria-label",
@@ -2366,9 +2645,7 @@ var GroupComparison = class {
     if (state.levels && model.shownLevels.length < model.levels.length) {
       add(`${model.shownLevels.length} of ${model.levels.length} levels shown.`);
     }
-    if (model.baselineVisits && state.valueType !== "raw") {
-      add(`Baseline visit: ${model.baselineVisits.join(", ")}.`);
-    }
+    this.addBaselineNote(model, add);
   }
   // ---- The statistics line ----------------------------------------------------
   // How many groups the chart draws: the levels on the axis. With no column to

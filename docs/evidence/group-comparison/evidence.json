@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T18:05:22.685Z",
+  "generatedAt": "2026-10-02T18:49:21.954Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37045025429",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37045025429"
+    "id": "37049898315",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37049898315"
   },
   "records": [
     {
@@ -298,6 +298,78 @@
       "status": "pass",
       "requirementIds": ["GC-MOBILE-002"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-011: with no biomarker named the chart opens on every biomarker at every visit: a row each, a panel per visit, the number in each group, and no statistics line (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-011"],
+      "issueRefs": [17],
+      "screenshots": ["GC-OVW-011-a-biomarker-row.png"]
+    },
+    {
+      "test": "GC-OVW-012: a biomarker’s row is a button that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the overview (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-012"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-013: the overview asks R for nothing: no call, no request to R’s hosts and no waiting text; opening a biomarker asks once per visit panel, and each waits and is answered for itself (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-013"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-014: the group, the levels, the colour, the mark, the scale, the value and the filters apply to the overview; Panel by waits for one biomarker and says so, and there is no Statistics section (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-014"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-015: with more biomarkers than the limit the overview draws a page of them, says how many of how many, and reaches the rest by pages (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-015"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-016: at 390px a biomarker’s row is a card as wide as the page, its visits two to a line, and a tap on it opens the biomarker; the page does not scroll sideways (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-016"],
+      "issueRefs": [17],
+      "screenshots": ["GC-OVW-016-a-biomarker-row-on-a-phone.png"]
+    },
+    {
+      "test": "GC-OVW-017: the first draw of twelve biomarkers at five visits is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-017"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-018: the live demo opens on the overview, twelve biomarkers at five visits, and fetches nothing for R until a biomarker is opened (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-018"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-019: on the demo the overview starts no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-019"],
+      "issueRefs": [17],
       "screenshots": []
     },
     {
@@ -1085,6 +1157,62 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: the overview GC-OVW-003: the overview has one row per biomarker, in the Biomarker control’s order, and in each row one panel per visit, in visit order (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-003"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-004: every panel of the overview is what that biomarker’s own view draws at that visit: one record per participant, and nothing pooled across visits or biomarkers (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-004"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-005: each biomarker has its own value axis, shared across its visits (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-005"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-006: the group, the levels, the colour, the scale and the filters apply to every row; panels by a further variable do not, because the panels are the visits (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-006"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-007: a baseline value has no visit, so each biomarker has one panel; and for a change from baseline the one baseline visit is not drawn, where the change is the same for everyone (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-007"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-008: a page of the overview holds at most the limit, in the control’s order, and says how many it shows of how many (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-008"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the overview GC-OVW-009: the levels the overview offers are the group column’s own, from the table that holds it (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-009"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: the statistics line GC-STAT-001: with no R attached the line reads exactly what the connection answers (#9)",
       "suite": "unit",
       "status": "pass",
@@ -1165,6 +1293,22 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: what the chart opens on GC-OVW-001: with no visit named the chart opens on every visit, in visit order, and with no biomarker named on none of them alone (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-001"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what the chart opens on GC-OVW-002: the most biomarkers the overview draws at a time is a setting, twelve by default, and a value it cannot take is refused (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-002"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: what the controls offer GC-CTRL-001: with participant data the columns offered as a group are the participant table’s categories (#9)",
       "suite": "unit",
       "status": "pass",
@@ -1189,7 +1333,7 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: what the controls offer GC-CTRL-004: the biomarkers, the visits and the visit the chart opens on are read from the table (#9)",
+      "test": "group comparison: what the controls offer GC-CTRL-004: the biomarkers, the visits and the visits the chart opens on are read from the table (#9)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-CTRL-004"],
@@ -1498,6 +1642,22 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the many-biomarkers fixture GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds three times the overview’s limit of biomarkers (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-010"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "the many-biomarkers fixture GC-OVW-010: every row of the fixture is a row of the vendored results, under its own biomarker’s name or that name with a letter added (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-010"],
+      "issueRefs": [17],
       "screenshots": []
     },
     {

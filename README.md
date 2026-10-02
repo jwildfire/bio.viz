@@ -59,7 +59,7 @@ R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched 
 
 ## The group comparison chart
 
-One value across the levels of a category, as boxes, violins or points, with the number in each group beneath, and under it R's test of the groups: a Welch t-test or a Wilcoxon rank-sum test between two, a one-way ANOVA or a Kruskal-Wallis test across more, with pairwise comparisons on request. safety.viz is loaded first: the chart is built from its kit. The test is asked of the connection the chart is given; with none, the line says that statistics are unavailable.
+One value across the levels of a category, as boxes, violins or points, with the number in each group beneath, and under it R's test of the groups: a Welch t-test or a Wilcoxon rank-sum test between two, a one-way ANOVA or a Kruskal-Wallis test across more, with pairwise comparisons on request. safety.viz is loaded first: the chart is built from its kit. The test is asked of the connection the chart is given; with none, the line says that statistics are unavailable. With no biomarker named the chart opens on an overview of every biomarker at every visit, and a row of it opens one.
 
 ```html
 <div id="chart"></div>

@@ -48,6 +48,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   groups: null,
   max_levels: 12,
   filters: null,
+  // The overview of every biomarker: the most drawn at a time.
+  overview_limit: 12,
   // The listing of participants.
   details: null,
   page_size: 10,
@@ -161,7 +163,7 @@ export function syncSettings(overrides) {
   if (!BASELINE_STATS.includes(settings.baseline_stat)) {
     refuse(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(', ')}.`);
   }
-  for (const key of ['page_size', 'max_levels']) {
+  for (const key of ['page_size', 'max_levels', 'overview_limit']) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
       refuse(`\`${key}\` must be a whole number, one or more.`);
     }

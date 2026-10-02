@@ -19,6 +19,10 @@ tests/fixtures/group-statistics-r.json
 site/r-check/measured.json
 site/r-check/data/
 
+# The derived fixtures and their records, written by tools/derive-*.mjs: the
+# unit tests hold each to what its tool writes.
+tests/e2e/fixtures/data/
+
 # The vendored synthetic study and its source record are written by
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/

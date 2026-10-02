@@ -261,6 +261,26 @@ export function filterColumns({ participants }, settings, categories) {
 
 // ---- The panels ---------------------------------------------------------------
 
+// The value types worked out against a baseline at a visit.
+const RELATIVE = new Set(['change', 'fold_change', 'percent_change']);
+
+/**
+ * The visits that are drawn, of the visits chosen. For a change, a fold change
+ * or a percent change from baseline, the baseline visit itself is left out when
+ * it is the only baseline visit: there every participant's value is the same by
+ * definition (no change, a fold of one), and there is nothing to compare. With
+ * several baseline visits a participant's value at one of them is measured
+ * against their baseline over all of them, and every visit is drawn.
+ * @param {string[]} visits The visits chosen.
+ * @param {string} valueType The value type.
+ * @param {string[]} baselineVisits The baseline visits.
+ * @returns {string[]} The visits to draw, in the order chosen.
+ */
+export function visitsDrawn(visits, valueType, baselineVisits) {
+  if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits;
+  return visits.filter((visit) => visit !== baselineVisits[0]);
+}
+
 /** The one group everyone is in when no column makes a group. */
 export const EVERYONE = 'All participants';
 
@@ -335,7 +355,13 @@ export function buildPanels({ results, participants }, settings, state, options 
   }
 
   const needsVisit = state.valueType !== 'baseline';
-  const visitList = needsVisit ? state.visits : [null];
+  // A change at the one baseline visit is the same for everyone, so that visit
+  // is not drawn: there is nothing in it to compare.
+  const baselineVisits = RELATIVE.has(state.valueType)
+    ? config.baseline_visits || visitsInOrder(rows, config).slice(0, 1)
+    : [];
+  const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
+  const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) =>
     needsVisit
       ? { measure: state.measure, visit, value: state.valueType }
@@ -442,7 +468,13 @@ export function buildPanels({ results, participants }, settings, state, options 
     colors,
     panelLevels,
     halfWidth,
-    baselineVisits: framed.length ? framed[0].made.baseline_visits : null,
+    baselineVisits: framed.length
+      ? framed[0].made.baseline_visits
+      : baselineVisits.length
+        ? baselineVisits
+        : null,
+    // The baseline visit that was chosen and not drawn, when there is one.
+    visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
     filtered: kept ? kept.length : null
   };
@@ -478,15 +510,98 @@ export function yTitle(results, settings, state) {
 
 /**
  * The visits the Visit control offers, and the ones it opens on: the visits in
- * the setting `visits` that the table has, or the first visit after the
- * baseline visits, or the first visit when there is no later one.
+ * the setting `visits` that the table has, or, when the setting names none,
+ * every visit.
  */
 export function listVisits(results, settings) {
   const config = coreSettings(settings);
   const all = visitsInOrder(results, config);
-  const baseline = settings.baseline_visits || all.slice(0, 1);
   const asked = (settings.visits || []).filter((visit) => all.includes(visit));
-  const later = all.filter((visit) => !baseline.includes(visit));
-  const start = asked.length ? asked : later.length ? later.slice(0, 1) : all.slice(0, 1);
-  return { all, start };
+  return { all, start: asked.length ? asked : all };
+}
+
+// ---- The overview ---------------------------------------------------------------
+
+/**
+ * The biomarkers one page of the overview draws: at most `limit` of them, in
+ * the Biomarker control's order. A page that does not exist is brought back to
+ * the nearest that does.
+ * @param {string[]} measures Every biomarker the control offers, in its order.
+ * @param {number} limit The most biomarkers drawn at a time.
+ * @param {number} [page=0] The page asked for, counted from zero.
+ * @returns {{measures: string[], page: number, pages: number, from: number,
+ *   to: number, total: number}} The page's biomarkers, which page it is of how
+ *   many, and the first and last of them counted from one.
+ */
+export function overviewPage(measures, limit, page = 0) {
+  const total = measures.length;
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
+  const shown = measures.slice(at * limit, (at + 1) * limit);
+  return {
+    measures: shown,
+    page: at,
+    pages,
+    from: total ? at * limit + 1 : 0,
+    to: at * limit + shown.length,
+    total
+  };
+}
+
+/**
+ * How many biomarkers a page of the overview shows, of how many, in words.
+ * @param {{from: number, to: number, total: number, pages: number}} page A page, as `overviewPage` gives it.
+ * @returns {string} A sentence.
+ */
+export function overviewCount({ from, to, total, pages }) {
+  if (!total) return 'No biomarker to show.';
+  if (pages === 1) {
+    return total === 1 ? 'The one biomarker is shown.' : `All ${total} biomarkers are shown.`;
+  }
+  const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
+  return `${to - from + 1} of ${total} biomarkers shown: ${which}, in the Biomarker control’s order.`;
+}
+
+const ordinal = (n) => {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? 'th' : { 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th';
+  return `${n}${suffix}`;
+};
+
+/**
+ * The overview: one row per biomarker of the page, each row one panel per visit
+ * drawn. A row is what the single-biomarker view of that biomarker would draw,
+ * without panels by a further variable: the same frames from the core, one
+ * record per participant in every panel, and one value axis for the row.
+ * Nothing is pooled across visits or across biomarkers.
+ *
+ * @param {{results: object[], participants: ?object[]}} tables The tables.
+ * @param {object} settings The chart's settings (syncSettings).
+ * @param {object} state What the controls are set to. Its `measure` is not
+ *   read, and its `panelBy` is not applied: the panels are the visits.
+ * @param {string[]} measures The biomarkers to draw, in order.
+ * @param {object} [options] As `buildPanels` takes them.
+ * @returns {Array<{measure: string, title: string, model: object}>} One entry
+ *   per biomarker: its name, the name of its value axis, and its panels.
+ */
+export function buildOverview(tables, settings, state, measures, options = {}) {
+  return measures.map((measure) => {
+    const row = { ...state, measure, panelBy: '' };
+    return {
+      measure,
+      title: yTitle(tables.results, settings, { ...row, visits: [] }),
+      model: buildPanels(tables, settings, row, options)
+    };
+  });
+}
+
+/**
+ * Every level of a column, read from the table that holds it: the participant
+ * table when it has the column, and otherwise the results rows. What the Levels
+ * control offers in the overview, where no one biomarker says which levels
+ * have values.
+ */
+export function columnLevels({ results, participants }, column) {
+  const rows = participants && participants.some((row) => column in row) ? participants : results;
+  return levelsOf(rows.map((row) => row[column]));
 }

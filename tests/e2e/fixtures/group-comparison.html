@@ -19,9 +19,11 @@
       vendored synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the
       results and the participant table, the default), <code>results</code> (the results table as
       vendored, alone), <code>results-with-arm</code> (the derived fixture: results with ARM carried
-      on the rows, and no participant table) or <code>arm-sex</code> (both tables, with the demo's
-      four-level column ARM_SEX added to the participants). The biomarker and the visit the chart
-      opens on are stated here, not left to the chart's defaults. The tests reach the chart as
+      on the rows, and no participant table), <code>arm-sex</code> (both tables, with the demo's
+      four-level column ARM_SEX added to the participants) or <code>many-biomarkers</code> (the
+      derived fixture of thirty-six biomarkers, with the participant table). The biomarker and the
+      visit the chart opens on are stated here, IL-6 at Week 4, not left to the chart's defaults; a
+      test of the overview sets them to null. The tests reach the chart as
       <code>window.__gc.chart</code>.
     </p>
     <div id="chart"></div>
@@ -38,6 +40,15 @@
           return BioVizDemo.read('/tests/e2e/fixtures/data/results-with-arm.csv').then(
             (results) => ({ results })
           );
+        }
+        if (which === 'many-biomarkers') {
+          return Promise.all([
+            BioVizDemo.read('/tests/e2e/fixtures/data/results-many-biomarkers.csv'),
+            BioVizDemo.read(study + 'synthetic_participants.csv')
+          ]).then(([results, participants]) => ({
+            results: BioVizDemo.withDay(results),
+            participants
+          }));
         }
         return BioVizDemo.loadStudy(study).then((loaded) => {
           if (which === 'results') return { results: loaded.results };
