@@ -5201,7 +5201,7 @@ ${C} .bv-matrix-title{margin:0 0 .6rem;font-size:.92rem;font-weight:600;color:#1
 ${C} .bv-matrix-scroll{max-width:100%;overflow-x:auto}
 ${C} .bv-matrix-grid{display:grid;grid-template-columns:fit-content(var(--bv-label)) repeat(var(--bv-n),var(--bv-cell));gap:2px;width:max-content;font-size:.78rem;color:#1f2933}
 ${C} .bv-col-head{writing-mode:vertical-rl;transform:rotate(180deg);max-height:var(--bv-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-self:center;align-self:end;padding:.3rem 0;line-height:1.1}
-${C} .bv-row-head{max-width:var(--bv-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:center;justify-self:end;padding:0 .4rem 0 0}
+${C} .bv-row-head{box-sizing:border-box;max-width:var(--bv-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:center;justify-self:end;padding:0 .4rem 0 0}
 ${C} .bv-cell,${C} .bv-diagonal{box-sizing:border-box;width:var(--bv-cell);height:var(--bv-cell)}
 ${C} .bv-diagonal{background:#eef1f4;border-radius:3px}
 ${C} .bv-cell{appearance:none;margin:0;padding:0;border:1px solid #e3e8ee;border-radius:3px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font:inherit;font-variant-numeric:tabular-nums;color:inherit;overflow:hidden}
@@ -5491,7 +5491,7 @@ var CorrelationMatrix = class {
         state.biomarkers,
         (next) => {
           state.biomarkers = next;
-          redraw(true);
+          redraw(false);
         },
         variables
       );
@@ -5514,33 +5514,27 @@ var CorrelationMatrix = class {
         state.visits,
         (next) => {
           state.visits = next;
-          redraw(true);
+          redraw(false);
         },
         variables
       );
     }
     const display = addSection("Display");
-    const count = this.drawnVariables().variables.length;
     const view = select(
       "view",
       "Draw as",
       VIEWS.map((entry) => [entry, VIEW_LABELS[entry]]),
-      this.viewDrawn(count),
+      state.view,
       (next) => {
         state.view = next;
         redraw(false);
       },
       display
     );
-    const offered = count <= SCATTER_LIMIT;
-    view.querySelector('option[value="scatters"]').disabled = !offered;
-    view.after(
-      kit.createElement(
-        "small",
-        "bv-control-note",
-        `Small scatters are offered for ${SCATTER_LIMIT} variables or fewer` + (offered ? "." : `; ${count} are drawn.`)
-      )
-    );
+    const note = kit.createElement("small", "bv-control-note");
+    view.after(note);
+    this.viewControl = { input: view.querySelector("select") || view, note };
+    this.syncViewControl();
     if (this.settings.statistic) {
       const statistics = addSection("Statistics");
       select(
@@ -5584,6 +5578,17 @@ var CorrelationMatrix = class {
       this.render();
     });
   }
+  // The Draw as control says what is drawn: the small scatters are offered for
+  // a few variables only, and with more the grid is drawn whatever was chosen.
+  syncViewControl() {
+    if (!this.viewControl) return;
+    const { input, note } = this.viewControl;
+    const count = this.tables.results.length ? this.drawnVariables().variables.length : 0;
+    const offered = count <= SCATTER_LIMIT;
+    input.querySelector('option[value="scatters"]').disabled = !offered;
+    input.value = this.viewDrawn(count);
+    note.textContent = `Small scatters are offered for ${SCATTER_LIMIT} variables or fewer` + (offered ? "." : `; ${count} are drawn.`);
+  }
   // ---- Drawing ----------------------------------------------------------------
   /**
    * Draw everything again from the tables, the settings and the controls. The
@@ -5606,6 +5611,7 @@ var CorrelationMatrix = class {
     this.statLine.dataset.state = "empty";
     this.model = null;
     const { kit, state, settings } = this;
+    this.syncViewControl();
     if (!this.tables.results.length || !this.measures.length) {
       this.footnote.textContent = "No results to draw.";
       return;
