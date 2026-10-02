@@ -7,7 +7,8 @@ import {
   DEFAULT_SETTINGS,
   DROPPED,
   UNUSED,
-  frame
+  frame,
+  visits
 } from '../../../src/core/index.js';
 import { createConnection } from '../../../src/r/index.js';
 import { participants, results, written } from './study.js';
@@ -387,6 +388,27 @@ describe('core: settings', () => {
     expect(got.dropped).toEqual(standard.dropped);
   });
 
+  it('CORE-FRAME-016: the visits of a results table are listed in visit order, the ones with a usable result only (#9)', () => {
+    expect(visits(results)).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
+    // The order is the order column's, whatever order the rows come in.
+    expect(visits([...results].reverse())).toEqual(visits(results));
+    // Without the order column: by name, with numbers counted as numbers.
+    const unordered = results.map(({ USUBJID, VISIT, TEST, STRESN }) => ({
+      USUBJID,
+      VISIT,
+      TEST,
+      STRESN
+    }));
+    expect(visits(unordered)).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
+    // A visit whose every result is empty is not listed.
+    const blanked = results.map((row) => (row.VISIT === 'Week 8' ? { ...row, STRESN: '' } : row));
+    expect(visits(blanked)).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 12']);
+    expect(visits([])).toEqual([]);
+    expect(refused(() => visits(results, { visit_col: 'AVISIT' }))).toBe(
+      'bio.viz: the results table has no column `AVISIT` (`visit_col`).'
+    );
+  });
+
   it('CORE-FRAME-013: a call that cannot be made is refused with a message naming what is wrong (#8)', () => {
     const y = { y: IL6_CHANGE };
     expect(refused(() => frame(results, y))).toMatch(
@@ -514,7 +536,8 @@ describe('core: what leaves the frame, and what the module is made of', () => {
       'VALUE_TYPES',
       'frame',
       'label',
-      'variable'
+      'variable',
+      'visits'
     ];
     expect(Object.keys(context.BioViz.core).sort()).toEqual(names);
     expect(Object.keys(esm.core).sort()).toEqual(names);

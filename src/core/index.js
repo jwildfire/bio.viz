@@ -5,6 +5,6 @@
 // imported from outside src/core.
 
 export { variable, label, VALUE_TYPES } from './variable.js';
-export { frame } from './frame.js';
+export { frame, visits } from './frame.js';
 export { DEFAULT_SETTINGS, BASELINE_STATS } from './settings.js';
 export { DROPPED, UNUSED } from './reasons.js';

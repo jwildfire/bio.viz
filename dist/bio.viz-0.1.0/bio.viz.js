@@ -422,7 +422,8 @@ var BioViz = (() => {
     VALUE_TYPES: () => VALUE_TYPES,
     frame: () => frame,
     label: () => label,
-    variable: () => variable
+    variable: () => variable,
+    visits: () => visits
   });
 
   // src/core/variable.js
@@ -642,6 +643,14 @@ var BioViz = (() => {
       return byName(a, b);
     });
   }
+  function visits(results, settings) {
+    const config = readSettings(settings);
+    const rows = readTable(results, "results");
+    if (!rows.length) return [];
+    needColumn(rows, config.visit_col, "visit_col", "results");
+    needColumn(rows, config.value_col, "value_col", "results");
+    return visitsInOrder(rows, config);
+  }
   var STATS = {
     mean: (values) => values.reduce((sum, value) => sum + value, 0) / values.length,
     min: (values) => Math.min(...values),
@@ -743,9 +752,9 @@ var BioViz = (() => {
     const consulted = /* @__PURE__ */ new Map();
     for (const { variable: variable2 } of measures) {
       if (!consulted.has(variable2.measure)) consulted.set(variable2.measure, /* @__PURE__ */ new Set());
-      const visits = consulted.get(variable2.measure);
-      if (variable2.visit !== null) visits.add(variable2.visit);
-      if (variable2.value !== "raw") baselineVisits.forEach((visit) => visits.add(visit));
+      const visits2 = consulted.get(variable2.measure);
+      if (variable2.visit !== null) visits2.add(variable2.visit);
+      if (variable2.value !== "raw") baselineVisits.forEach((visit) => visits2.add(visit));
     }
     const cells = /* @__PURE__ */ new Map();
     const cellKey = (id, measure, visit) => `${id}\0${measure}\0${visit}`;
