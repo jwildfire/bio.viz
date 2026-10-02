@@ -48,6 +48,8 @@
     "GC-FILTER-002": "Loaded with the synthetic results as vendored, which carry no group column, the chart says that no column can make a group and draws everyone as one group, with no filters.",
     "GC-FILTER-003": "Loaded with participant data the chart shows a filter per category column and offers the participant-level variables to group, colour and panel by.",
     "GC-FILTER-004": "A filter narrows the participants drawn, and the counts beneath the groups and the note above the chart follow.",
+    "GC-FILTER-005": "When the filters together let no participant through, the chart hands the core no results table of no rows, which the core refuses as malformed: one biomarker and the overview have no panels and say that nobody passed. With no kit on the page an empty selection is not a filter in force and lets everyone through.",
+    "GC-FILTER-006": "On the demo, filters with nobody in common leave the overview and one biomarker reading `No participant passes the filters.`, with the note that none of the participants pass; nothing is drawn, R is asked nothing, the filters and Reset chart stay usable, nothing is written to the console, and loosening a filter draws again.",
     "GC-LIST-001": "Clicking a box lists its participants in the kit's record listing, whose search and paging work on them.",
     "GC-LIST-002": "A change to a control or a filter empties the listing, so it never lists a box that is no longer drawn.",
     "GC-LIST-003": "The listing's export downloads the listed rows as CSV under this chart's name.",

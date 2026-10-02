@@ -5,6 +5,7 @@ import { test, expect, chromium } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js';
 import { captureEvidence } from './evidence.js';
+import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The correlation matrix in a real page (#27): safety.viz's vendored bundle and
 // bio.viz's committed bundle, loaded as two script tags, drawing the vendored
@@ -2333,6 +2334,28 @@ test.describe('correlation matrix: on a phone', () => {
 });
 
 test.describe('correlation matrix: on the site', () => {
+  test('CM-FILTER-001: on the demo, filters with nobody in common leave the chart saying, in words, that no participant passes the filters; no grid is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)', async ({
+    page
+  }) => {
+    const errors = await openDemo(page, 'correlation-matrix', 'correlationMatrix');
+    const cells = () =>
+      document.querySelector('#chart .bv-matrix').hidden
+        ? 0
+        : document.querySelectorAll('#chart .bv-matrix-grid .bv-cell').length;
+    await expect.poll(() => asked(page)).toBeGreaterThan(0);
+    const before = await letNobodyThrough(page);
+    await expectNobody(page, errors, { drawn: cells });
+    expect(await asked(page)).toBe(before);
+    await expect(page.locator('#chart .bv-pairs')).toHaveCount(0);
+    await page.locator('#chart select[data-filter="RESPONSE"]').selectOption('__all__');
+    await expect(page.locator('#chart .sv-notes')).toContainText(
+      '4 of 4 participants in the frame.'
+    );
+    expect(await page.evaluate(cells)).toBe(132);
+    await expect.poll(() => asked(page)).toBeGreaterThan(before);
+    await expect(page.locator('#chart .sv-footnote')).not.toHaveText(NOBODY_PASSES);
+  });
+
   test('CM-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#27)', async ({
     page
   }) => {

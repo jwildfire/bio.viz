@@ -221,6 +221,25 @@ export function buildPanels({ results, participants }, settings, state, options 
   );
 
   const needsVisit = state.valueType !== 'baseline';
+  // Nobody left to draw: the filters let no participant through, or those they
+  // let through have no results. The core is not handed a table of no rows,
+  // which it refuses as malformed; there are no panels, and the chart says why.
+  if (!rows.length) {
+    return {
+      panels: [],
+      levels: [],
+      shownLevels: [],
+      colors: [null],
+      panelLevels: [null],
+      halfWidth: slots(1).halfWidth,
+      baselineVisits: null,
+      visitsNotDrawn: [],
+      extent: null,
+      filtered: kept ? kept.length : null,
+      // No row to frame, as against rows that frame to no panel.
+      noRows: true
+    };
+  }
   // A change at the one baseline visit is the same for everyone, so that visit
   // is not drawn: there is nothing in it to compare.
   const baselineVisits = RELATIVE.has(state.valueType)

@@ -160,11 +160,19 @@ export function columnLevels({ results, participants }, column) {
   return levelsOf(rows.map((row) => row[column]));
 }
 
+/**
+ * What a chart says when its filters together let no participant through: it
+ * draws nothing and asks R for nothing. Every chart says it in these words.
+ */
+export const NOBODY_PASSES = 'No participant passes the filters.';
+
 // One value against one filter's selection, when the page's kit gives no test
-// of its own: a selection of nothing lets everything through.
+// of its own: a selection of nothing lets everything through, as a filter set
+// to nothing is not in force (filtersInForce).
 const matches = (value, selection) =>
   selection === null ||
   selection === undefined ||
+  selection === '' ||
   (Array.isArray(selection)
     ? selection.map(String).includes(String(value))
     : String(selection) === String(value));

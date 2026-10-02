@@ -1464,6 +1464,116 @@ function checkShared(settings, baselineStats) {
   }
 }
 
+// src/shared/tables.js
+var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
+var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
+function levelsOf(values) {
+  return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
+}
+function listMeasures(results, settings) {
+  const present3 = levelsOf(results.map((row) => row[settings.measure_col]));
+  if (!settings.measures) return present3;
+  const listed = settings.measures.filter((measure) => present3.includes(measure));
+  return listed.length ? listed : present3;
+}
+function unitOf(results, settings, measure) {
+  if (!settings.unit_col) return null;
+  const units = levelsOf(
+    results.filter((row) => String(row[settings.measure_col]) === measure).map((row) => row[settings.unit_col])
+  );
+  return units.length === 1 ? units[0] : null;
+}
+function categoryColumns({ results, participants }, settings) {
+  if (settings.groups) {
+    return settings.groups.map((spec) => ({ ...spec, table: "given" }));
+  }
+  const columns = [];
+  const taken = /* @__PURE__ */ new Set();
+  const offer = (name, table) => {
+    taken.add(name);
+    columns.push({ value_col: name, label: name, table });
+  };
+  const fewEnough = (values) => {
+    const levels = /* @__PURE__ */ new Set();
+    for (const value of values) {
+      if (isBlank2(value)) continue;
+      levels.add(String(value));
+      if (levels.size > settings.max_levels) return false;
+    }
+    return levels.size > 0;
+  };
+  if (participants && participants.length) {
+    const idCol = settings.participant_id_col || settings.id_col;
+    for (const name of Object.keys(participants[0])) {
+      if (name === idCol) continue;
+      if (fewEnough(participants.map((row) => row[name]))) offer(name, "participants");
+    }
+  }
+  const mapped = new Set(
+    [
+      settings.id_col,
+      settings.measure_col,
+      settings.value_col,
+      settings.visit_col,
+      settings.visit_order_col,
+      settings.unit_col,
+      settings.studyday_col,
+      settings.normal_col_high,
+      settings.normal_col_low
+    ].filter(Boolean)
+  );
+  for (const name of results.length ? Object.keys(results[0]) : []) {
+    if (mapped.has(name) || taken.has(name)) continue;
+    const byParticipant = /* @__PURE__ */ new Map();
+    let constant = true;
+    for (const row of results) {
+      if (isBlank2(row[name])) continue;
+      const id = String(row[settings.id_col]);
+      const value = String(row[name]);
+      if (!byParticipant.has(id)) byParticipant.set(id, value);
+      else if (byParticipant.get(id) !== value) {
+        constant = false;
+        break;
+      }
+    }
+    if (constant && fewEnough(byParticipant.values())) offer(name, "results");
+  }
+  return columns;
+}
+function filterColumns({ participants }, settings, categories) {
+  if (!participants || !participants.length) return [];
+  if (settings.filters) {
+    return settings.filters.filter((spec) => spec.value_col in participants[0]);
+  }
+  return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
+}
+function listVisits(results, settings) {
+  const config = coreSettings(settings);
+  const all = visits(results, config);
+  const asked = (settings.visits || []).filter((visit) => all.includes(visit));
+  return { all, start: asked.length ? asked : all };
+}
+function columnLevels({ results, participants }, column) {
+  const rows = participants && participants.some((row) => column in row) ? participants : results;
+  return levelsOf(rows.map((row) => row[column]));
+}
+var NOBODY_PASSES = "No participant passes the filters.";
+var matches = (value, selection) => selection === null || selection === void 0 || selection === "" || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value));
+function keepFiltered({ results, participants }, settings, filters, filterMatches) {
+  const test = filterMatches || matches;
+  if (!participants) return { results, participants: null };
+  const idCol = settings.id_col;
+  const participantIdCol = settings.participant_id_col || idCol;
+  const kept = participants.filter(
+    (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
+  );
+  const ids = new Set(kept.map((row) => String(row[participantIdCol])));
+  return {
+    participants: kept,
+    results: results.filter((row) => ids.has(String(row[idCol])))
+  };
+}
+
 // src/group-comparison/configure.js
 var MARKS = Object.freeze(["box", "violin", "points"]);
 var Y_SCALES = Object.freeze(["linear", "log"]);
@@ -1764,115 +1874,6 @@ function createStatisticDesk({ connection, note = null }) {
   });
 }
 
-// src/shared/tables.js
-var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
-var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
-function levelsOf(values) {
-  return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
-}
-function listMeasures(results, settings) {
-  const present3 = levelsOf(results.map((row) => row[settings.measure_col]));
-  if (!settings.measures) return present3;
-  const listed = settings.measures.filter((measure) => present3.includes(measure));
-  return listed.length ? listed : present3;
-}
-function unitOf(results, settings, measure) {
-  if (!settings.unit_col) return null;
-  const units = levelsOf(
-    results.filter((row) => String(row[settings.measure_col]) === measure).map((row) => row[settings.unit_col])
-  );
-  return units.length === 1 ? units[0] : null;
-}
-function categoryColumns({ results, participants }, settings) {
-  if (settings.groups) {
-    return settings.groups.map((spec) => ({ ...spec, table: "given" }));
-  }
-  const columns = [];
-  const taken = /* @__PURE__ */ new Set();
-  const offer = (name, table) => {
-    taken.add(name);
-    columns.push({ value_col: name, label: name, table });
-  };
-  const fewEnough = (values) => {
-    const levels = /* @__PURE__ */ new Set();
-    for (const value of values) {
-      if (isBlank2(value)) continue;
-      levels.add(String(value));
-      if (levels.size > settings.max_levels) return false;
-    }
-    return levels.size > 0;
-  };
-  if (participants && participants.length) {
-    const idCol = settings.participant_id_col || settings.id_col;
-    for (const name of Object.keys(participants[0])) {
-      if (name === idCol) continue;
-      if (fewEnough(participants.map((row) => row[name]))) offer(name, "participants");
-    }
-  }
-  const mapped = new Set(
-    [
-      settings.id_col,
-      settings.measure_col,
-      settings.value_col,
-      settings.visit_col,
-      settings.visit_order_col,
-      settings.unit_col,
-      settings.studyday_col,
-      settings.normal_col_high,
-      settings.normal_col_low
-    ].filter(Boolean)
-  );
-  for (const name of results.length ? Object.keys(results[0]) : []) {
-    if (mapped.has(name) || taken.has(name)) continue;
-    const byParticipant = /* @__PURE__ */ new Map();
-    let constant = true;
-    for (const row of results) {
-      if (isBlank2(row[name])) continue;
-      const id = String(row[settings.id_col]);
-      const value = String(row[name]);
-      if (!byParticipant.has(id)) byParticipant.set(id, value);
-      else if (byParticipant.get(id) !== value) {
-        constant = false;
-        break;
-      }
-    }
-    if (constant && fewEnough(byParticipant.values())) offer(name, "results");
-  }
-  return columns;
-}
-function filterColumns({ participants }, settings, categories) {
-  if (!participants || !participants.length) return [];
-  if (settings.filters) {
-    return settings.filters.filter((spec) => spec.value_col in participants[0]);
-  }
-  return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
-}
-function listVisits(results, settings) {
-  const config = coreSettings(settings);
-  const all = visits(results, config);
-  const asked = (settings.visits || []).filter((visit) => all.includes(visit));
-  return { all, start: asked.length ? asked : all };
-}
-function columnLevels({ results, participants }, column) {
-  const rows = participants && participants.some((row) => column in row) ? participants : results;
-  return levelsOf(rows.map((row) => row[column]));
-}
-var matches = (value, selection) => selection === null || selection === void 0 || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value));
-function keepFiltered({ results, participants }, settings, filters, filterMatches) {
-  const test = filterMatches || matches;
-  if (!participants) return { results, participants: null };
-  const idCol = settings.id_col;
-  const participantIdCol = settings.participant_id_col || idCol;
-  const kept = participants.filter(
-    (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
-  );
-  const ids = new Set(kept.map((row) => String(row[participantIdCol])));
-  return {
-    participants: kept,
-    results: results.filter((row) => ids.has(String(row[idCol])))
-  };
-}
-
 // src/group-comparison/structureData.js
 function quantile(sorted2, p) {
   if (!sorted2.length) return NaN;
@@ -1968,6 +1969,22 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     options.filterMatches
   );
   const needsVisit = state.valueType !== "baseline";
+  if (!rows.length) {
+    return {
+      panels: [],
+      levels: [],
+      shownLevels: [],
+      colors: [null],
+      panelLevels: [null],
+      halfWidth: slots(1).halfWidth,
+      baselineVisits: null,
+      visitsNotDrawn: [],
+      extent: null,
+      filtered: kept ? kept.length : null,
+      // No row to frame, as against rows that frame to no panel.
+      noRows: true
+    };
+  }
   const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
   const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
@@ -2149,6 +2166,10 @@ var STYLES = `${lineStyles(".bv-group-comparison")}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 var NOTHING_AFTER_BASELINE = "The only visit chosen is the baseline visit, where this value is the same for everyone. Choose a later visit to draw.";
+function nothingDrawn(model, rows = [{ model }]) {
+  if (model.filtered === 0) return NOBODY_PASSES;
+  return model.noRows || rows.some((row) => row.model.panels.length) ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
+}
 var GroupComparison = class {
   constructor(element, settings) {
     this.kit = findKit("the group comparison chart");
@@ -2563,7 +2584,7 @@ var GroupComparison = class {
     this.updateNotes(model);
     const drawn = model.panels.filter((panel) => panel.records.length);
     if (!drawn.length) {
-      this.footnote.textContent = model.panels.length ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
+      this.footnote.textContent = nothingDrawn(model);
       return;
     }
     this.footnote.textContent = this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`;
@@ -2622,7 +2643,7 @@ var GroupComparison = class {
     this.multiplesWrap.append(pager());
     const drawn = rows.filter((row) => row.model.panels.some((panel) => panel.records.length));
     if (!drawn.length) {
-      this.footnote.textContent = rows.some((row) => row.model.panels.length) ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
+      this.footnote.textContent = rows.length ? nothingDrawn(rows[0].model, rows) : NOTHING_AFTER_BASELINE;
       return;
     }
     this.footnote.textContent = "Click a biomarker to view it alone, with a test under each visit.";
@@ -4232,7 +4253,7 @@ var AssociationScatter = class {
     this.model = model;
     this.updateNotes(model);
     if (!model.drawn) {
-      this.footnote.textContent = model.filtered === 0 ? "No participant passes the filters." : "No participant has a value on both axes for this choice.";
+      this.footnote.textContent = model.filtered === 0 ? NOBODY_PASSES : "No participant has a value on both axes for this choice.";
       return;
     }
     this.footnote.textContent = this.hint();
@@ -5627,7 +5648,7 @@ var CorrelationMatrix = class {
       return;
     }
     if (!model.records.length) {
-      this.footnote.textContent = model.filtered === 0 ? "No participant passes the filters." : "No participant has a value for any variable of the grid.";
+      this.footnote.textContent = model.filtered === 0 ? NOBODY_PASSES : "No participant has a value for any variable of the grid.";
       return;
     }
     this.footnote.textContent = HINT;

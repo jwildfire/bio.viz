@@ -61,7 +61,13 @@ import {
   writeStatistic
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
-import { categoryColumns, filterColumns, listMeasures, listVisits } from './shared/tables.js';
+import {
+  NOBODY_PASSES,
+  categoryColumns,
+  filterColumns,
+  listMeasures,
+  listVisits
+} from './shared/tables.js';
 import { settingOf } from './shared/variables.js';
 
 const MODULE_CLASS = 'bv-correlation-matrix';
@@ -544,7 +550,7 @@ class CorrelationMatrix {
     if (!model.records.length) {
       this.footnote.textContent =
         model.filtered === 0
-          ? 'No participant passes the filters.'
+          ? NOBODY_PASSES
           : 'No participant has a value for any variable of the grid.';
       return;
     }

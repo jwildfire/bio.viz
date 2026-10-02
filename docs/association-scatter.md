@@ -48,7 +48,7 @@ A setting that is not known, or a value a setting cannot take, is refused: `asso
 
 Only the results table is required. With it alone the chart has no filters, and a colour, a panel or a participant-level number comes from a column carried on the results rows: one that is not mapped by a setting and holds one value for each participant. When the results rows carry no such column the chart offers no colour and no panel, and every axis is a biomarker.
 
-With a participant table the chart shows a filter for each of its category columns, offers those columns to colour and panel by, and offers its numeric columns on either axis. A category column is one with at most `max_levels` different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result.
+With a participant table the chart shows a filter for each of its category columns, offers those columns to colour and panel by, and offers its numeric columns on either axis. A category column is one with at most `max_levels` different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
 ## A variable on an axis
 
