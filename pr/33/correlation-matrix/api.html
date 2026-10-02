@@ -78,7 +78,7 @@
 <tr><td data-label="Variables">36</td><td data-label="Pairs">630</td><td data-label="Drawing">14 ms</td><td data-label="R in the browser, once started">0.7 s</td><td data-label="A cell at a desk (1280 pixels)">22 pixels, marks only</td><td data-label="On a phone (390 pixels)">the grid scrolls inside its own box</td></tr></tbody></table>
 <p>The cell widths are on the browser tests&#39; fixture page, whose chart has the width of the window less a 16-pixel margin on each side; a page that gives the chart less room has narrower cells.</p>
 <p>Drawing is the median of five draws of the grid from its tables; R&#39;s time is from the moment the line reads that it is waiting to the moment the grid is filled. The browser tests named <code>CM-LIMIT-002</code> and <code>CM-LIVE-006</code> measure both again on every run and print them in the run&#39;s log.</p>
-<p>Neither the drawing nor R is what a grid runs out of at these sizes: it is room. On a phone, cells reach their narrowest, 18 pixels, at about a dozen variables: on the fixture page thirteen still fit and fourteen scroll sideways inside the grid&#39;s box, and on the gallery&#39;s demo page, which gives the chart less room, twelve fit with 11 pixels to spare. Twelve is the default because it fits a phone whole on either page. At a desk it leaves each cell 67 pixels, its number easy to read; the cells hold their numbers up to twenty-three variables and are marks alone from twenty-four. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart&#39;s limit for its overview. A page with more room, or a reader content with marks and the list, sets <code>limit</code> higher.</p>
+<p>Neither the drawing nor R is what a grid runs out of at these sizes: it is room. On a phone, cells reach their narrowest, 18 pixels, at about a dozen variables: on the fixture page thirteen still fit and fourteen scroll sideways inside the grid&#39;s box, and on the gallery&#39;s demo page, which gives the chart less room, twelve fit with 11 pixels to spare. Twelve is the default because it fits a phone whole on either page. At a desk it leaves each cell 67 pixels, its number easy to read; the cells hold their numbers up to twenty-two or twenty-three variables, by how wide the names are in the fonts at hand, and are marks alone from there. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart&#39;s limit for its overview. A page with more room, or a reader content with marks and the list, sets <code>limit</code> higher.</p>
 <h2 id="what-is-drawn">What is drawn</h2>
 <p>A grid, with the variables along the top and down the side. The heading says what they are: <code>Result at Baseline, biomarker against biomarker</code>.</p>
 <table class="doc-table"><thead><tr><th scope="col">Where</th><th scope="col">What</th></tr></thead>
@@ -245,7 +245,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/e5b432c8ac9243af06aa37fd4fc5eda6a2f96a90"><code>e5b432c</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/39d20b8478f0bdb6c24f32de22ec41737b454fc6"><code>39d20b8</code></a>.
       </p>
       <p>
         Built in the open — follow the
