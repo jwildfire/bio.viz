@@ -1,13 +1,16 @@
 {
   "module": "association-scatter",
-  "generatedAt": "2026-10-02T20:41:13.554Z",
+  "generatedAt": "2026-10-02T20:52:10.141Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37063236302",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37063236302"
+  },
   "records": [
     {
       "test": "AS-BRUSH-001: dragging across the points lists the participants of the region, the others fade, and the statistics stay those of every participant drawn (#26)",
@@ -15,7 +18,7 @@
       "status": "pass",
       "requirementIds": ["AS-BRUSH-001"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-BRUSH-001-a-region-listed.png"]
     },
     {
       "test": "AS-BRUSH-002: with panels a region is in the panel it was dragged in and lists that panel’s participants; chart.brush() selects one by values, and a new region replaces the last (#26)",
@@ -31,7 +34,7 @@
       "status": "pass",
       "requirementIds": ["AS-BRUSH-003"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-BRUSH-003-a-region-on-a-phone.png"]
     },
     {
       "test": "AS-BRUSH-004: a change to a control or a filter, a click on nothing, or clearBrush() lets go of the region and empties the listing (#26)",
@@ -63,7 +66,7 @@
       "status": "pass",
       "requirementIds": ["AS-DRAW-001"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-DRAW-001-planted-pair.png"]
     },
     {
       "test": "AS-DRAW-002: a colour gives each level its own colour and a key, and the key does not switch a level off (#26)",
@@ -71,7 +74,7 @@
       "status": "pass",
       "requirementIds": ["AS-DRAW-002"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-DRAW-002-colour-by-arm.png"]
     },
     {
       "test": "AS-DRAW-003: panels by one further variable are each a chart of their own on the same two axes, with their own count (#26)",
@@ -79,7 +82,7 @@
       "status": "pass",
       "requirementIds": ["AS-DRAW-003"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-DRAW-003-panels-by-sex.png"]
     },
     {
       "test": "AS-DRAW-004: each axis can be logarithmic on its own, and values of zero or less are left out and counted by axis (#26)",
@@ -95,7 +98,7 @@
       "status": "pass",
       "requirementIds": ["AS-DRAW-005"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-DRAW-005-identity-line.png"]
     },
     {
       "test": "AS-FILTER-001: loaded with the results table alone it draws and shows no filters, and offers no colour and no panel when the rows carry none (#26)",
@@ -127,7 +130,7 @@
       "status": "pass",
       "requirementIds": ["AS-FIT-006"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-FIT-006-linear-fit-by-arm.png", "AS-FIT-006-linear-fit.png"]
     },
     {
       "test": "AS-KIT-001: the chart is built from safety.viz’s kit on the page and draws with the kit’s Chart.js; without safety.viz it says what is missing (#26)",
@@ -231,7 +234,7 @@
       "status": "pass",
       "requirementIds": ["AS-LIVE-008"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-LIVE-008-r-in-the-browser-on-a-phone.png"]
     },
     {
       "test": "AS-MOBILE-001: at 390px the chart fills the width with its controls folded away one tap from open, panels stack one to a row, and the page does not scroll sideways (#26)",
@@ -239,7 +242,7 @@
       "status": "pass",
       "requirementIds": ["AS-MOBILE-001"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-MOBILE-001-panels-on-a-phone.png"]
     },
     {
       "test": "AS-MOBILE-002: at 390px a point can be tapped, its listing read and a profile opened below the chart, with the coefficient and both tables beneath, and the page does not scroll sideways (#26)",
@@ -247,7 +250,7 @@
       "status": "pass",
       "requirementIds": ["AS-MOBILE-002"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-MOBILE-002-tables-on-a-phone.png"]
     },
     {
       "test": "AS-PROF-001: clicking a point lists that participant and opens their profile through the participantsSelected event; a row of the listing does the same (#26)",
@@ -279,7 +282,7 @@
       "status": "pass",
       "requirementIds": ["AS-SITE-003"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-SITE-003-demo-on-a-phone.png"]
     },
     {
       "test": "AS-STAT-015: with no R attached the statistics line of every panel reads that statistics are unavailable, and nothing is fetched to say so (#26)",
@@ -295,7 +298,7 @@
       "status": "pass",
       "requirementIds": ["AS-STAT-016"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-STAT-016-statistics-line.png"]
     },
     {
       "test": "AS-STAT-017: a change to a variable, a visit, a scale, the colour, the method or a filter each clears the line and asks R again, the answer to the question before is never shown, and a region asks nothing (#26)",
@@ -319,7 +322,7 @@
       "status": "pass",
       "requirementIds": ["AS-STAT-019"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-STAT-019-coefficient-by-arm.png"]
     },
     {
       "test": "AS-STAT-020: with an axis logarithmic the line says which scale the statistic was computed on, and R is handed the logarithms (#26)",
@@ -327,7 +330,7 @@
       "status": "pass",
       "requirementIds": ["AS-STAT-020"],
       "issueRefs": [26],
-      "screenshots": []
+      "screenshots": ["AS-STAT-020-logarithmic-axes.png"]
     },
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
