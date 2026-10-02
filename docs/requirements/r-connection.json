@@ -72,6 +72,8 @@
     "PVAL-EST-001": "An estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, each number to four significant figures; an estimate with no interval is printed without one.",
     "PVAL-EST-002": "An estimate with no name or no finite number, or with an interval that has a part missing, is refused, and no number is printed in its place.",
     "PVAL-ROW-001": "One comparison of two groups from a result's rows is formatted by the rules a whole result is held to: its p-value, the adjusted one, comes with its method, the two groups' counts and its label, and is handed over in parts for a table only with them.",
-    "PVAL-ROW-002": "A comparison with no method, no counts or no two groups is refused, and one R could not compute shows R's words and no number."
+    "PVAL-ROW-002": "A comparison with no method, no counts or no two groups is refused, and one R could not compute shows R's words and no number.",
+    "PVAL-GRP-001": "One group's result from a result's rows is formatted by the rules a whole result is held to: its estimate comes with its interval at the level R gave, or with none where R gave none, and its p-value with its method, the group's count and its label; all are handed over in parts for a table only together.",
+    "PVAL-GRP-002": "A group's result with no group name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R's words and no number."
   }
 }

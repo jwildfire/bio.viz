@@ -34,3 +34,10 @@ export * as core from './core/index.js';
  * beside this bundle.
  */
 export { groupComparison } from './group-comparison.js';
+
+/**
+ * The association scatter: two variables against one another, one point per
+ * participant, with R's correlation coefficient beneath. Built from
+ * safety.viz's kit, which the page loads beside this bundle.
+ */
+export { associationScatter } from './association-scatter.js';

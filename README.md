@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first chart: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them. The others follow: association scatter, correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
+Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first two charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, and [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient. The others follow: correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
 
 ## How it fits together
 
@@ -81,6 +81,26 @@ One value across the levels of a category, as boxes, violins or points, with the
 ```
 
 Only the results table is required. The settings, the controls and what the statistics line prints are in [docs/group-comparison.md](docs/group-comparison.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/group-comparison/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/group-comparison/) runs on the synthetic study.
+
+## The association scatter
+
+Two variables against one another, one point per participant, and under it R's Pearson or Spearman coefficient with its interval and p-value, for everyone drawn and within each colour. A fitted line, R's linear fit or smooth with its band, is drawn from the points R returns.
+
+```html
+<script>
+  BioViz.associationScatter('#chart', {
+    x: { measure: 'TNF-alpha', visit: 'Baseline' },
+    y: { measure: 'IL-10', visit: 'Baseline' },
+    color_by: 'ARM',
+    fit: 'linear',
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+    })
+  }).init({ results, participants });
+</script>
+```
+
+The settings, what R is asked and how a logarithmic axis is handled are in [docs/association-scatter.md](docs/association-scatter.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/association-scatter/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/association-scatter/) opens on the pair the synthetic study was planted with.
 
 ## Naming a variable and getting one row per participant
 

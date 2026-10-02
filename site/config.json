@@ -45,6 +45,22 @@
         "source": ["src/group-comparison.js"],
         "settings": "src/group-comparison/configure.js"
       }
+    },
+    {
+      "module": "association-scatter",
+      "title": "Association scatter",
+      "kind": "chart",
+      "status": "available",
+      "blurb": "Do these two variables move together? One point per participant, with either axis a biomarker at a visit or a participant-level number, coloured by a group, in panels by one further variable, each axis linear or logarithmic. Under it R's Pearson or Spearman coefficient with its interval and p-value, for everyone drawn and within each colour; over it the line y = x, or R's linear fit or smooth with its band. Drag across the points to list the participants in a region, and click a point to open that participant's profile.",
+      "matrix": "association-scatter.md",
+      "demo": "association-scatter.js",
+      "hero": "AS-DRAW-001-planted-pair.png",
+      "api": {
+        "doc": "association-scatter.md",
+        "surface": ["associationScatter"],
+        "source": ["src/association-scatter.js"],
+        "settings": "src/association-scatter/configure.js"
+      }
     }
   ]
 }

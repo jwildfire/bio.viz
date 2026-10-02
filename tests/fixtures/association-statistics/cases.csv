@@ -1,0 +1,25 @@
+case,file,statistic,kind,method,x_measure,x_value,x_visit,x_col,y_measure,y_value,y_visit,y_col,baseline_visits,baseline_stat,color_by,panel_by,panel,filters,x_scale,y_scale
+pearson,pearson.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,,linear,linear
+spearman,spearman.csv,Analyze_Correlation,coefficient,spearman,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,,linear,linear
+pearson-by-arm,pearson-by-arm.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,,linear,linear
+spearman-by-arm,spearman-by-arm.csv,Analyze_Correlation,coefficient,spearman,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,,linear,linear
+pearson-women,pearson-women.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,SEX=F,linear,linear
+pearson-panel-women,pearson-panel-women.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,SEX,F,,linear,linear
+pearson-age-57-by-arm,pearson-age-57-by-arm.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,AGE=57,linear,linear
+pearson-age-35,pearson-age-35.csv,Analyze_Correlation,coefficient,pearson,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,AGE=35,linear,linear
+pearson-skewed,pearson-skewed.csv,Analyze_Correlation,coefficient,pearson,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,linear,linear
+pearson-log,pearson-log.csv,Analyze_Correlation,coefficient,pearson,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,log,log
+pearson-log-x,pearson-log-x.csv,Analyze_Correlation,coefficient,pearson,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,log,linear
+spearman-skewed,spearman-skewed.csv,Analyze_Correlation,coefficient,spearman,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,linear,linear
+spearman-log,spearman-log.csv,Analyze_Correlation,coefficient,spearman,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,log,log
+pearson-age,pearson-age.csv,Analyze_Correlation,coefficient,pearson,,,,AGE,IL-6,change,Week 4,,Baseline,mean,,,,,linear,linear
+spearman-age,spearman-age.csv,Analyze_Correlation,coefficient,spearman,,,,AGE,IL-6,change,Week 4,,Baseline,mean,,,,,linear,linear
+linear,linear.csv,Analyze_Fit,fit,linear,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,,linear,linear
+smooth,smooth.csv,Analyze_Fit,fit,smooth,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,,linear,linear
+linear-by-arm,linear-by-arm.csv,Analyze_Fit,fit,linear,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,,linear,linear
+smooth-by-arm,smooth-by-arm.csv,Analyze_Fit,fit,smooth,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,,linear,linear
+linear-panel-women,linear-panel-women.csv,Analyze_Fit,fit,linear,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,SEX,F,,linear,linear
+linear-log,linear-log.csv,Analyze_Fit,fit,linear,CRP,raw,Baseline,,IFN-gamma,raw,Baseline,,Baseline,mean,,,,,log,log
+linear-age-57-by-arm,linear-age-57-by-arm.csv,Analyze_Fit,fit,linear,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,AGE=57,linear,linear
+smooth-age-57-by-arm,smooth-age-57-by-arm.csv,Analyze_Fit,fit,smooth,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,ARM,,,AGE=57,linear,linear
+linear-age-35,linear-age-35.csv,Analyze_Fit,fit,linear,TNF-alpha,raw,Baseline,,IL-10,raw,Baseline,,Baseline,mean,,,,AGE=35,linear,linear

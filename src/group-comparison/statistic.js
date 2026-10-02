@@ -18,12 +18,22 @@
 // by R, as a stored result.
 
 import { formatComparison, formatEstimate, formatStatistic } from '../r/formatStatistic.js';
+import {
+  createDesk,
+  failureOf,
+  filtersInForce,
+  filtersSaid,
+  remarksOf,
+  sentence,
+  sorted
+} from '../shared/statisticLine.js';
 
-export const WAITING = 'Statistics: waiting for R…';
+// The waiting state and the rule that a stale answer is never shown are every
+// chart's, in src/shared/statisticLine.js; what this file has always exported
+// of them is still reached from here.
+export { NOT_STORED, WAITING, sorted } from '../shared/statisticLine.js';
+
 export const NO_TEST_CHOSEN = 'Statistics: no test chosen.';
-export const NOT_STORED =
-  'Statistics are unavailable for this view: the page holds no stored result for it, and no R ' +
-  'is attached to compute one.';
 
 // ---- Which test ----------------------------------------------------------------
 
@@ -69,36 +79,8 @@ export function fitTest(test, groups) {
 
 // ---- What R is asked -----------------------------------------------------------
 
-// By Unicode code point, the order R's `sort(x, method = "radix")` puts text
-// in. An order both languages produce without a locale, so a list written by R
-// is the list written here.
-function byCodePoint(a, b) {
-  const [first, second] = [[...a], [...b]];
-  const shared = Math.min(first.length, second.length);
-  for (let index = 0; index < shared; index += 1) {
-    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
-    if (difference !== 0) return difference;
-  }
-  return first.length - second.length;
-}
-
-/** Distinct values as text, sorted by code point. */
-export const sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
-
 /** The groups a panel's rows hold: the distinct values of `x`, sorted by code point. */
 export const groupsOf = (records) => sorted(records.map((record) => record.x));
-
-// The filters in force, each as the list of values it lets through. A filter
-// set to all is not in force and is left out.
-function filtersInForce(filters) {
-  const inForce = {};
-  for (const [column, selection] of Object.entries(filters || {})) {
-    if (selection === null || selection === undefined || selection === '') continue;
-    const values = Array.isArray(selection) ? selection : [selection];
-    if (values.length) inForce[column] = sorted(values);
-  }
-  return inForce;
-}
 
 /**
  * What the chart asks R for one panel: the function, the rows, the arguments
@@ -149,11 +131,6 @@ export function statisticRequest({ name, test, pairwise, settings, state, panel 
 
 // ---- What the line says ---------------------------------------------------------
 
-const texts = (value) =>
-  (Array.isArray(value) ? value : value === undefined || value === null ? [] : [value]).filter(
-    (entry) => typeof entry === 'string' && entry.trim() !== ''
-  );
-
 const present = (value) => value !== undefined && value !== null;
 
 // The pairwise comparisons of a result, as a small table: each pair with its
@@ -198,14 +175,7 @@ function pairsOf(value) {
  * @param {string} said The sentence.
  * @returns {object} A description, as `describeAnswer` gives one.
  */
-export const plain = (state, said) => ({
-  state,
-  text: said,
-  estimates: [],
-  pairs: null,
-  remarks: [],
-  scope: null
-});
+export const plain = (state, said) => ({ ...sentence(state, said), pairs: null });
 
 /**
  * What one answer from the connection reads as on the line.
@@ -230,18 +200,12 @@ export function describeAnswer(result, context = {}) {
       described.pairs = pairsOf(value);
     }
     // What R said about its answer is printed with it, as R worded it.
-    described.remarks = [
-      ...texts(value.warnings).map((said) => ({ kind: 'warning', text: `R warned: ${said}` })),
-      ...texts(value.notes).map((said) => ({ kind: 'note', text: `R’s note: ${said}` }))
-    ];
+    described.remarks = remarksOf(value);
     described.scope = context.scope || null;
     return described;
   }
-  if (result && result.status === 'unavailable') {
-    return plain('unavailable', result.reason === 'not-precomputed' ? NOT_STORED : result.message);
-  }
-  const message = result && typeof result.message === 'string' ? result.message : 'no message';
-  return plain('error', `R reported an error: ${message}`);
+  const failure = failureOf(result);
+  return plain(failure.state, failure.text);
 }
 
 /**
@@ -281,11 +245,7 @@ export function scopeText({ group, n, panel, color, filters = [] }) {
   if (color) {
     said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
   }
-  if (filters.length) {
-    said.push(
-      `Filters: ${filters.map(({ label, values }) => `${label} is ${values.join(' or ')}`).join('; ')}.`
-    );
-  }
+  if (filters.length) said.push(filtersSaid(filters));
   return said.join(' ');
 }
 
@@ -302,29 +262,10 @@ export function scopeText({ group, n, panel, color, filters = [] }) {
  *   line that is not asking.
  */
 export function createStatisticDesk({ connection, note = null }) {
-  let current = 0;
-  // Whether R has answered: after that, starting it costs nothing more.
-  let answered = false;
-  const withNote = (said) => (note && !answered ? `${said} ${note}` : said);
-  return {
-    idle: withNote,
-    begin() {
-      current += 1;
-      const round = current;
-      // With several panels the note is said once, by the first that waits.
-      let noted = false;
-      return {
-        ask({ name, data, args, dataId }, show, context) {
-          show(plain('waiting', noted ? WAITING : withNote(WAITING)));
-          noted = true;
-          return connection.run(name, { data, args, dataId }).then((result) => {
-            if (result && result.status === 'ok' && result.form !== 'precomputed') answered = true;
-            if (round !== current) return false;
-            show(describeAnswer(result, context), result);
-            return true;
-          });
-        }
-      };
-    }
-  };
+  return createDesk({
+    connection,
+    note,
+    describe: describeAnswer,
+    waiting: (said) => plain('waiting', said)
+  });
 }

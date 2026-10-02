@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T18:49:21.954Z",
+  "generatedAt": "2026-10-02T21:10:21.377Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37049898315",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37049898315"
+    "id": "37065142574",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37065142574"
   },
   "records": [
     {
@@ -922,6 +922,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
       "screenshots": []
     },
     {

@@ -5,6 +5,19 @@
 
 import { VALUE_TYPES } from '../core/variable.js';
 import { BASELINE_STATS } from '../core/settings.js';
+import {
+  checkShared,
+  columnOrNull,
+  fieldList,
+  isText,
+  layOver,
+  refuse,
+  textList
+} from '../shared/settings.js';
+
+// What every chart's settings share is in src/shared/settings.js; the two this
+// file has always exported are still reached from here.
+export { coreSettings, fieldSpec } from '../shared/settings.js';
 
 /** The marks a value can be drawn as. */
 export const MARKS = Object.freeze(['box', 'violin', 'points']);
@@ -67,50 +80,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   normal_col_low: null
 });
 
-const isText = (value) => typeof value === 'string' && value.trim() !== '';
-const isPlainObject = (value) =>
-  value !== null && typeof value === 'object' && !Array.isArray(value);
-
-const refuse = (message) => {
-  throw new TypeError(`bio.viz: ${message}`);
-};
-
-// A column name, or { value_col, label }, as { value_col, label }.
-export function fieldSpec(value, setting) {
-  if (isText(value)) return { value_col: value, label: value };
-  if (isPlainObject(value) && isText(value.value_col)) {
-    return {
-      ...value,
-      value_col: value.value_col,
-      label: isText(value.label) ? value.label : value.value_col
-    };
-  }
-  return refuse(
-    `\`${setting}\` holds something that is not a column name or { value_col, label }.`
-  );
-}
-
-function fieldList(value, setting) {
-  if (value === null || value === undefined) return null;
-  const list = Array.isArray(value) ? value : [value];
-  return list.map((entry) => fieldSpec(entry, setting));
-}
-
-function textList(value, setting) {
-  if (value === null || value === undefined) return null;
-  const list = Array.isArray(value) ? value : [value];
-  if (!list.length || !list.every((entry) => isText(entry) || typeof entry === 'number')) {
-    refuse(`\`${setting}\` must be a name, or a list of names.`);
-  }
-  return [...new Set(list.map(String))];
-}
-
-const columnOrNull = (settings, key) => {
-  if (settings[key] !== null && !isText(settings[key])) {
-    refuse(`\`${key}\` must be the name of a column, or null.`);
-  }
-};
-
 /**
  * The settings in full: the caller's over the defaults, checked. A setting that
  * is not known, or a value a setting cannot take, is refused with a message
@@ -119,26 +88,9 @@ const columnOrNull = (settings, key) => {
  * @returns {object} The settings the chart reads.
  */
 export function syncSettings(overrides) {
-  if (overrides !== undefined && overrides !== null && !isPlainObject(overrides)) {
-    refuse('the group comparison chart takes its settings as an object.');
-  }
-  const given = overrides || {};
-  for (const key of Object.keys(given)) {
-    if (!(key in DEFAULT_SETTINGS)) {
-      refuse(
-        `\`${key}\` is not a setting of the group comparison chart. Its settings are ` +
-          `${Object.keys(DEFAULT_SETTINGS).join(', ')}.`
-      );
-    }
-  }
-  const settings = { ...DEFAULT_SETTINGS };
-  for (const [key, value] of Object.entries(given)) {
-    if (value !== undefined) settings[key] = value;
-  }
+  const settings = layOver(DEFAULT_SETTINGS, overrides, 'the group comparison chart');
+  checkShared(settings, BASELINE_STATS);
 
-  for (const key of ['id_col', 'measure_col', 'value_col', 'visit_col']) {
-    if (!isText(settings[key])) refuse(`\`${key}\` must be the name of a column.`);
-  }
   for (const key of [
     'visit_order_col',
     'unit_col',
@@ -160,28 +112,15 @@ export function syncSettings(overrides) {
   if (!Y_SCALES.includes(settings.y_scale)) {
     refuse(`\`y_scale\` must be one of ${Y_SCALES.join(', ')}.`);
   }
-  if (!BASELINE_STATS.includes(settings.baseline_stat)) {
-    refuse(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(', ')}.`);
-  }
   for (const key of ['page_size', 'max_levels', 'overview_limit']) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
       refuse(`\`${key}\` must be a whole number, one or more.`);
     }
   }
-  if (typeof settings.profile !== 'boolean') refuse('`profile` must be true or false.');
   if (!TESTS.includes(settings.test)) refuse(`\`test\` must be one of ${TESTS.join(', ')}.`);
   if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
-  if (settings.waiting_note !== null && !isText(settings.waiting_note)) {
-    refuse('`waiting_note` must be a sentence, or null for none.');
-  }
   if (settings.statistic !== null && !isText(settings.statistic)) {
     refuse('`statistic` must be the name of an R function, or null for no statistics line.');
-  }
-  if (
-    settings.connection !== null &&
-    (typeof settings.connection !== 'object' || typeof settings.connection.run !== 'function')
-  ) {
-    refuse('`connection` must be a connection to R (BioViz.r.createConnection), or null.');
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
@@ -193,18 +132,4 @@ export function syncSettings(overrides) {
   settings.details = fieldList(settings.details, 'details');
   settings.profile_details = fieldList(settings.profile_details, 'profile_details');
   return settings;
-}
-
-// The settings the core reads, taken from the chart's.
-export function coreSettings(settings) {
-  return {
-    id_col: settings.id_col,
-    measure_col: settings.measure_col,
-    value_col: settings.value_col,
-    visit_col: settings.visit_col,
-    visit_order_col: settings.visit_order_col,
-    participant_id_col: settings.participant_id_col,
-    baseline_visits: settings.baseline_visits,
-    baseline_stat: settings.baseline_stat
-  };
 }

@@ -1,6 +1,6 @@
 // `npm run fixtures:check`: reruns each R script that writes a committed
 // fixture, in desktop R, and compares what it writes with the committed file, so
-// a fixture can only be what its script produces. Three fixtures:
+// a fixture can only be what its script produces. Four fixtures:
 //
 //   tools/r-fixtures.R           site/r-check/expected.json, the expected
 //                                results on the R check page
@@ -10,6 +10,10 @@
 //   tools/r-group-statistics.R   tests/fixtures/group-statistics-r.json, what
 //                                gsm.bio's vendored statistics file answers for
 //                                the rows the group comparison chart hands R
+//   tools/r-association-statistics.R
+//                                tests/fixtures/association-statistics-r.json,
+//                                the same for the rows the association scatter
+//                                hands R
 //
 //   node scripts/check-r-fixtures.mjs               compare when R is installed;
 //                                                   say so loudly and exit 0
@@ -48,6 +52,11 @@ const FIXTURES = [
   {
     script: 'tools/r-group-statistics.R',
     committed: 'tests/fixtures/group-statistics-r.json',
+    body: 'results'
+  },
+  {
+    script: 'tools/r-association-statistics.R',
+    committed: 'tests/fixtures/association-statistics-r.json',
     body: 'results'
   }
 ];

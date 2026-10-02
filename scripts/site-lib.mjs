@@ -82,6 +82,9 @@ export function renderHome({ config, version, summaries = {} }) {
   const modules = config.modules
     .map((entry) => renderModule(entry, summaries[entry.module], config))
     .join('');
+  const published = config.modules.filter(
+    (entry) => entry.kind === 'chart' && entry.status === 'available'
+  );
   return `
 <section class="hero">
   <p class="eyebrow">Biomarker charts · every test computed by R</p>
@@ -94,9 +97,9 @@ export function renderHome({ config, version, summaries = {} }) {
 </section>
 
 ${
-  config.modules.some((entry) => entry.kind === 'chart' && entry.status === 'available')
+  published.length
     ? `<aside class="callout">
-  <h2>The first chart</h2>
+  <h2>${published.length === 1 ? 'The first chart' : 'The charts'}</h2>
   <p>
     The <a href="gallery/index.html">gallery</a> has the charts that are published, each with a
     live demo on a made-up study. A chart draws; it does not test. Every test is computed by R,
@@ -509,12 +512,35 @@ ${renderStudy(study)}
 
 // ---- Demo page -------------------------------------------------------------
 
+// What a reader is told under a chart's demo, by module: how to use the page.
+// A sentence may hold a link.
+const DEMO_NOTES = {
+  'group-comparison': [
+    'The chart opens on every biomarker at every visit: a row for each biomarker, and in the row a small panel for each visit, with the groups drawn in it and the number in each group beneath. Each biomarker has its own value axis, the same across its visits. Click a biomarker, or press Enter or Space on it, to view it alone; choose All Biomarkers under Biomarker in the controls to come back.',
+    'Choose the value, the visits, the groups and how they are drawn in the controls: they apply to every row. On a phone the controls are folded away above the chart: tap Controls to open them.',
+    "With one biomarker open, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.",
+    'With one biomarker open, the line under each panel is a test of the groups, computed by R. The overview prints no test and asks R for nothing. R is started in this browser the first time a biomarker is opened: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.',
+    'Choose the test under Statistics in the controls: a Welch t-test or a Wilcoxon rank-sum test between two groups, a one-way ANOVA or a Kruskal-Wallis test across more, or none. Group by Arm and sex for four groups, and switch on Pairwise comparisons to compare every pair, with the p-values adjusted across the pairs.',
+    "Every result is exploratory, and each panel's test is its own: they are not adjusted for one another. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn."
+  ],
+  'association-scatter': [
+    'The chart opens on the pair the synthetic study was planted with: TNF-alpha against IL-10 at Baseline, one point per participant, whose true Pearson correlation is 0.6. The points are coloured by arm.',
+    "Under the chart is R's coefficient with its interval and p-value, for everyone drawn and, in the table, within each arm. R is started in this browser when the page opens: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no statistic itself.",
+    'Choose the variable on each axis in the controls: any biomarker at any visit, as its result, its baseline, or its change, fold change or percent change from baseline; or a participant-level number, age or body-mass index. Each axis can be logarithmic, and the line then says that R was given the logarithms.',
+    "Choose Pearson or Spearman under Statistics. Spearman's coefficient has no interval in R, and none is made up.",
+    "Under Fitted line choose the identity line, y = x, which needs no statistics, or R's linear fit or smooth, each with its band: the straight line's slope and intercept are printed with their intervals. Every point of a line and its band is R's.",
+    'Drag across the points to list the participants in a region, and click a point to list its participant and open their profile. On a phone, tap Select a region first, so that a drag selects and does not scroll; the controls are folded away above the chart, one tap from open. A region lists participants and does not change what R is asked.',
+    'Every result is exploratory and unadjusted. A change to a variable, a scale, a colour, a panel, the method or a filter clears the line and asks R again, on the participants then drawn.'
+  ]
+};
+
 // A chart's live demo: the chart, drawn on the synthetic study by the chart's
 // demo script. safety.viz's bundle is loaded first, as its own script tag, and
 // bio.viz's after it: the chart is built from safety.viz's kit and bundles none
 // of it.
 export function renderDemoPage({ entry, version, study, kit, statistics }) {
   const bundle = `../dist/bio.viz-${version}/bio.viz.js`;
+  const notes = (DEMO_NOTES[entry.module] || []).map((note) => `<li>${note}</li>`).join('\n    ');
   const source = study
     ? ` The data is the <a href="../gallery/index.html#demo-data">synthetic study</a>: ` +
       `${count(study.files[1] ? study.files[1].rows : 0)} made-up participants, and no real one.`
@@ -532,7 +558,7 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
   // Which R functions answer, and from where: gsm.bio's statistics file, as
   // vendored, with the commit it was copied from.
   const computed = statistics
-    ? `<p class="sub" id="demo-statistics">The tests are gsm.bio's, version ` +
+    ? `<p class="sub" id="demo-statistics">The ${entry.module === 'group-comparison' ? 'tests' : 'statistics'} are gsm.bio's, version ` +
       `${escapeHtml(statistics.version || '')}: R in this browser is given ` +
       `<a href="../vendor/gsm.bio/statistics.R">one file of R</a>, copied from gsm.bio at commit ` +
       `<code>${escapeHtml(statistics.commit.slice(0, 7))}</code> with ` +
@@ -554,12 +580,7 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
 
 <section id="about-demo">
   <ul class="notes">
-    <li>The chart opens on every biomarker at every visit: a row for each biomarker, and in the row a small panel for each visit, with the groups drawn in it and the number in each group beneath. Each biomarker has its own value axis, the same across its visits. Click a biomarker, or press Enter or Space on it, to view it alone; choose All Biomarkers under Biomarker in the controls to come back.</li>
-    <li>Choose the value, the visits, the groups and how they are drawn in the controls: they apply to every row. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
-    <li>With one biomarker open, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.</li>
-    <li>With one biomarker open, the line under each panel is a test of the groups, computed by R. The overview prints no test and asks R for nothing. R is started in this browser the first time a biomarker is opened: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.</li>
-    <li>Choose the test under Statistics in the controls: a Welch t-test or a Wilcoxon rank-sum test between two groups, a one-way ANOVA or a Kruskal-Wallis test across more, or none. Group by Arm and sex for four groups, and switch on Pairwise comparisons to compare every pair, with the p-values adjusted across the pairs.</li>
-    <li>Every result is exploratory, and each panel's test is its own: they are not adjusted for one another. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn.</li>
+    ${notes}
   </ul>
   ${built}
   ${computed}

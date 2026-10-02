@@ -21,8 +21,9 @@
 //   adjustment  the name of the multiplicity adjustment applied, if any
 //   reason      why no number was computed, if none was
 //
-// `formatEstimate` formats one row of a result's `estimates`, and
-// `formatComparison` one row of its `rows` that compares two groups.
+// `formatEstimate` formats one row of a result's `estimates`,
+// `formatComparison` one row of its `rows` that compares two groups, and
+// `formatGroup` one row of its `rows` that is one group's own result.
 
 const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
 const isCount = (value) => Number.isInteger(value) && value >= 0;
@@ -222,5 +223,96 @@ export function formatComparison(comparison) {
     p: shown ? parts.p : null,
     adjustment: shown ? parts.adjustment : null,
     label: shown ? parts.label : null
+  };
+}
+
+/**
+ * Formats one group's result from a result's `rows`: an estimate R computed
+ * within one group, such as a correlation coefficient in one arm, with its
+ * interval, the group's count and its p-value. The p-value is held to the
+ * rules a whole result is held to, and is handed over in parts for a table
+ * only with its method, the count and its label.
+ *
+ * @param {{group?: string, counts?: number, estimate?: number, lower?: number,
+ *   upper?: number, level?: number, method?: string, p_value?: number,
+ *   adjustment?: string, status?: string, reason?: string}} row One row of
+ *   `rows`: one group's result.
+ * @returns {{status: 'shown'|'withheld'|'error'|'refused', text: string,
+ *   result: string, group: ?string, n: ?number, estimate: ?string,
+ *   interval: ?string, bounds: ?string, level: ?string, method: ?string,
+ *   p: ?string, adjustment: ?string, label: ?string}} `text` is the whole
+ *   sentence, and `result` the same without the group's name. The parts are
+ *   for a table: `group` and `n` are the group and its count; `estimate` is
+ *   the estimate as printed; `interval` is its interval in words with the
+ *   level R computed it at, `bounds` the two ends alone and `level` the level
+ *   alone, all three null where R gave no interval; `method`, `p` and `label`
+ *   are given only when `status` is `shown`, and `adjustment` is the
+ *   adjustment's name, or null when the p-value is unadjusted.
+ */
+export function formatGroup(row) {
+  const given = row && typeof row === 'object' ? row : {};
+  const group = text(given.group);
+  const counted = isCount(given.counts);
+  const none = {
+    estimate: null,
+    interval: null,
+    bounds: null,
+    level: null,
+    method: null,
+    p: null,
+    adjustment: null
+  };
+  const whole = (status, result) => ({
+    status,
+    text: group ? `${group}: ${result}` : result,
+    result,
+    group,
+    n: counted ? given.counts : null,
+    ...none,
+    label: null
+  });
+  if (!group) return whole('refused', refused('the row does not name its group').text);
+  const parts = read({
+    status: given.status,
+    method: given.method,
+    p_value: given.p_value,
+    adjustment: given.adjustment,
+    reason: given.reason,
+    counts: counted ? given.counts : undefined
+  });
+  if (parts.status !== 'shown') return whole(parts.status, parts.text);
+
+  // The estimate the p-value is of. A p-value with no estimate beside it, or
+  // with half an interval, is not printed.
+  const refuse = (what) => whole('refused', `Estimate not shown: ${what}.`);
+  if (!isNumber(given.estimate)) return refuse('the group’s estimate is not a number');
+  const bounds = [given.lower, given.upper, given.level];
+  const absent = (value) => value === undefined || value === null;
+  let ends = null;
+  let level = null;
+  if (!bounds.every(absent)) {
+    if (!bounds.every(isNumber) || !(given.level > 0 && given.level < 1)) {
+      return refuse('the interval of the group’s estimate is incomplete');
+    }
+    level = `${Number((given.level * 100).toPrecision(12))}%`;
+    ends = `${figure(given.lower)} to ${figure(given.upper)}`;
+  }
+  const interval = ends ? `${level} confidence interval ${ends}` : null;
+  const estimate = figure(given.estimate);
+  const result = `${estimate}${interval ? `, ${interval}` : ''}. ${parts.text}`;
+  return {
+    status: 'shown',
+    text: `${group}: ${result}`,
+    result,
+    group,
+    n: given.counts,
+    estimate,
+    interval,
+    bounds: ends,
+    level,
+    method: parts.method,
+    p: parts.p,
+    adjustment: parts.adjustment,
+    label: parts.label
   };
 }

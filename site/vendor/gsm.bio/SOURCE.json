@@ -2,15 +2,15 @@
   "statistics": "gsm.bio statistics functions",
   "repository": "https://github.com/jwildfire/gsm.bio",
   "ref": "dev",
-  "commit": "20e4a033e8196084556037c354f14c590e6d594f",
+  "commit": "bd0be68672021ba79f9f5df5c6688e830a8e133c",
   "license": "Apache License (>= 2)",
   "version": "0.1.0",
   "files": [
     {
       "file": "statistics.R",
       "source": "inst/statistics/statistics.R",
-      "sha256": "6109cbe4a2c31ad03b6b6a049ded6baa6ec1c8ac604475c87d2325d311594c45",
-      "bytes": 48260
+      "sha256": "ea129ee3a8b852eaa1a475692bf80ef021638bfa8e0f82db3bca2a0c113184a2",
+      "bytes": 56792
     }
   ]
 }

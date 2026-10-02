@@ -1,0 +1,223 @@
+{
+  "fixture": "tests/fixtures/association-statistics",
+  "derived_by": "tools/derive-association-statistics.mjs",
+  "rule": "Each case is one panel of the gallery's association scatter demo in one view. Its rows are the rows the chart drew in that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings. On a logarithmic axis the chart hands R the base-10 logarithm of x or y, and the R script takes the same logarithm of these rows.",
+  "derived_from": [
+    {
+      "file": "site/data/synthetic-study/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5"
+    },
+    {
+      "file": "site/data/synthetic-study/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
+    },
+    {
+      "file": "site/demo/synthetic-study.js",
+      "sha256": "fca703f516a464cdc2a3b70cc96c76d3f5e62e5f26af27f08286c49e9d095839"
+    },
+    {
+      "file": "site/demo/association-scatter.js",
+      "sha256": "0dee70957b33e9be30c9dff1f20be984127d08de2b1218c0adb3533a999e6cf2"
+    }
+  ],
+  "cases": [
+    {
+      "case": "pearson",
+      "says": "Pearson’s coefficient of the planted pair, TNF-alpha against IL-10 at Baseline"
+    },
+    {
+      "case": "spearman",
+      "says": "Spearman’s coefficient of the planted pair"
+    },
+    {
+      "case": "pearson-by-arm",
+      "says": "Pearson’s coefficient of the planted pair, overall and within each arm: the view the demo opens on"
+    },
+    {
+      "case": "spearman-by-arm",
+      "says": "Spearman’s coefficient of the planted pair, overall and within each arm"
+    },
+    {
+      "case": "pearson-women",
+      "says": "Pearson’s coefficient of the planted pair by arm, with the filter Sex set to F"
+    },
+    {
+      "case": "pearson-panel-women",
+      "says": "Pearson’s coefficient of the planted pair in the panel for F, with panels by sex"
+    },
+    {
+      "case": "pearson-age-57-by-arm",
+      "says": "Pearson’s coefficient by arm among participants aged 57: one arm is below the minimum number of pairs"
+    },
+    {
+      "case": "pearson-age-35",
+      "says": "Pearson’s coefficient among participants aged 35: fewer complete pairs than the minimum"
+    },
+    {
+      "case": "pearson-skewed",
+      "says": "Pearson’s coefficient of CRP against IFN-gamma at Baseline, both axes linear"
+    },
+    {
+      "case": "pearson-log",
+      "says": "Pearson’s coefficient of CRP against IFN-gamma at Baseline on two logarithmic axes: of the base-10 logarithms"
+    },
+    {
+      "case": "pearson-log-x",
+      "says": "Pearson’s coefficient of CRP against IFN-gamma at Baseline with the x axis alone logarithmic"
+    },
+    {
+      "case": "spearman-skewed",
+      "says": "Spearman’s coefficient of CRP against IFN-gamma at Baseline, both axes linear"
+    },
+    {
+      "case": "spearman-log",
+      "says": "Spearman’s coefficient of CRP against IFN-gamma at Baseline on two logarithmic axes, where the ranks are the same"
+    },
+    {
+      "case": "pearson-age",
+      "says": "Pearson’s coefficient of a participant-level number, age, against the change in IL-6 from Baseline to Week 4"
+    },
+    {
+      "case": "spearman-age",
+      "says": "Spearman’s coefficient of age against the change in IL-6: ages are whole numbers, so there are ties"
+    },
+    {
+      "case": "linear",
+      "says": "The linear fit of IL-10 on TNF-alpha at Baseline, the planted pair"
+    },
+    {
+      "case": "smooth",
+      "says": "The smooth of IL-10 on TNF-alpha at Baseline"
+    },
+    {
+      "case": "linear-by-arm",
+      "says": "The linear fit of the planted pair, of every point and within each arm: the view the demo opens on"
+    },
+    {
+      "case": "smooth-by-arm",
+      "says": "The smooth of the planted pair, of every point and within each arm"
+    },
+    {
+      "case": "linear-panel-women",
+      "says": "The linear fit of the planted pair in the panel for F, with panels by sex"
+    },
+    {
+      "case": "linear-log",
+      "says": "The linear fit of IFN-gamma on CRP at Baseline on two logarithmic axes: of the base-10 logarithms"
+    },
+    {
+      "case": "linear-age-57-by-arm",
+      "says": "The linear fit by arm among participants aged 57: one arm has too few pairs for a line"
+    },
+    {
+      "case": "smooth-age-57-by-arm",
+      "says": "The smooth by arm among participants aged 57: one arm has too few pairs for a curve"
+    },
+    {
+      "case": "linear-age-35",
+      "says": "The linear fit among participants aged 35: fewer complete pairs than the minimum"
+    }
+  ],
+  "files": [
+    {
+      "file": "pearson.csv",
+      "sha256": "6f4a0cc6b331e7493f8085832cb6458c11f7eec128c9f8314f3e8e4ce40d07aa"
+    },
+    {
+      "file": "spearman.csv",
+      "sha256": "6f4a0cc6b331e7493f8085832cb6458c11f7eec128c9f8314f3e8e4ce40d07aa"
+    },
+    {
+      "file": "pearson-by-arm.csv",
+      "sha256": "31421457def787d4238cce2ec2e76953a21b98207f350ff10f0b64bed7b6f77e"
+    },
+    {
+      "file": "spearman-by-arm.csv",
+      "sha256": "31421457def787d4238cce2ec2e76953a21b98207f350ff10f0b64bed7b6f77e"
+    },
+    {
+      "file": "pearson-women.csv",
+      "sha256": "e10305ee46afeb20ca6838e8d53abf22c9b67ed41c3944c3ee091eda8c86edd9"
+    },
+    {
+      "file": "pearson-panel-women.csv",
+      "sha256": "54ac42be14e91a761abc04d306229c57c292440e21c21954d617403c345d2dfc"
+    },
+    {
+      "file": "pearson-age-57-by-arm.csv",
+      "sha256": "1518cfe26def540d8b3779e93a98a60d645844ed8dfa76b9825df6c560acb584"
+    },
+    {
+      "file": "pearson-age-35.csv",
+      "sha256": "1ab9d7774537b2c0693ff8f8941c2bbfb4a34f6be3b63e07e39003bc5d7ec964"
+    },
+    {
+      "file": "pearson-skewed.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "pearson-log.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "pearson-log-x.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "spearman-skewed.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "spearman-log.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "pearson-age.csv",
+      "sha256": "a29b461ed7dee67f49d00d1e3b70338dc876755f1ba36e52c32bbcba5c9479b9"
+    },
+    {
+      "file": "spearman-age.csv",
+      "sha256": "a29b461ed7dee67f49d00d1e3b70338dc876755f1ba36e52c32bbcba5c9479b9"
+    },
+    {
+      "file": "linear.csv",
+      "sha256": "6f4a0cc6b331e7493f8085832cb6458c11f7eec128c9f8314f3e8e4ce40d07aa"
+    },
+    {
+      "file": "smooth.csv",
+      "sha256": "6f4a0cc6b331e7493f8085832cb6458c11f7eec128c9f8314f3e8e4ce40d07aa"
+    },
+    {
+      "file": "linear-by-arm.csv",
+      "sha256": "31421457def787d4238cce2ec2e76953a21b98207f350ff10f0b64bed7b6f77e"
+    },
+    {
+      "file": "smooth-by-arm.csv",
+      "sha256": "31421457def787d4238cce2ec2e76953a21b98207f350ff10f0b64bed7b6f77e"
+    },
+    {
+      "file": "linear-panel-women.csv",
+      "sha256": "54ac42be14e91a761abc04d306229c57c292440e21c21954d617403c345d2dfc"
+    },
+    {
+      "file": "linear-log.csv",
+      "sha256": "2b042425cb5be353bb6cd27430f8757f8b5b6aa7e1bb839015714afd0da82dad"
+    },
+    {
+      "file": "linear-age-57-by-arm.csv",
+      "sha256": "1518cfe26def540d8b3779e93a98a60d645844ed8dfa76b9825df6c560acb584"
+    },
+    {
+      "file": "smooth-age-57-by-arm.csv",
+      "sha256": "1518cfe26def540d8b3779e93a98a60d645844ed8dfa76b9825df6c560acb584"
+    },
+    {
+      "file": "linear-age-35.csv",
+      "sha256": "1ab9d7774537b2c0693ff8f8941c2bbfb4a34f6be3b63e07e39003bc5d7ec964"
+    },
+    {
+      "file": "cases.csv",
+      "sha256": "fee2742d7fa203feb1a708543e7b88800869dbd866da6256bea50dcfa2136b4d"
+    }
+  ]
+}
