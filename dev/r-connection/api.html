@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -87,7 +87,7 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="reason"><code>not-precomputed</code></td><td data-label="Meaning">The connection has only stored results, and none matches this call exactly. The message says what was missing.</td></tr>
 <tr><td data-label="reason"><code>load-failed</code></td><td data-label="Meaning">R could not be started in the browser. The message carries the cause. The next run tries again.</td></tr></tbody></table>
 <p>A call that cannot be made at all (no function name, <code>data</code> that is not an array, <code>args</code> that is not an object) also resolves to <code>{ status: &#39;error&#39;, message }</code>, with a message that begins <code>bio.viz:</code>.</p>
-<p>R warnings are not carried in the result. An R function that has something to say about its answer says it in the value it returns.</p>
+<p>R warnings are not carried in the result. An R function that has something to say about its answer says it in the value it returns, as gsm.bio&#39;s functions do in <code>warnings</code> and <code>notes</code>.</p>
 <h2 id="what-r-receives-and-returns">What R receives and returns</h2>
 <p>Going in, <code>data</code> becomes a data frame built with base R: one column per key found in any record, in the order first seen. Text becomes character (never a factor), numbers numeric, booleans logical. A value that is absent, <code>undefined</code>, <code>null</code> or not-a-number becomes <code>NA</code>. Keep each column to one type.</p>
 <p>Coming out, the value is converted with base R and nothing else; no package is needed in the R session:</p>
@@ -141,9 +141,10 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="Constant"><code>WEBR_BASE_URL</code></td><td data-label="Value"><code>https://webr.r-wasm.org/v0.6.0/</code></td><td data-label="Meaning">Where webR is fetched from when <code>browser.baseUrl</code> is not given.</td></tr></tbody></table>
 <h2 id="formatstatisticstatistic"><code>formatStatistic(statistic)</code></h2>
 <p>The one place the rules for printing a p-value live. It formats what R returned and computes nothing.</p>
-<p>It reads these members of a statistics result:</p>
+<p>It reads these members of a statistics result, the names gsm.bio&#39;s functions return:</p>
 <table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Type</th><th scope="col">Meaning</th></tr></thead>
-<tbody><tr><td data-label="Member"><code>method</code></td><td data-label="Type">string</td><td data-label="Meaning">The name of the test.</td></tr>
+<tbody><tr><td data-label="Member"><code>status</code></td><td data-label="Type">string</td><td data-label="Meaning"><code>&quot;ok&quot;</code>, <code>&quot;too_small&quot;</code> or <code>&quot;error&quot;</code>. Absent is read as <code>&quot;ok&quot;</code>.</td></tr>
+<tr><td data-label="Member"><code>method</code></td><td data-label="Type">string</td><td data-label="Meaning">The name of the test.</td></tr>
 <tr><td data-label="Member"><code>p_value</code></td><td data-label="Type">number, 0 to 1</td><td data-label="Meaning">The p-value.</td></tr>
 <tr><td data-label="Member"><code>counts</code></td><td data-label="Type">number or object</td><td data-label="Meaning">The counts used: one whole number, or an object of group name to whole number.</td></tr>
 <tr><td data-label="Member"><code>adjustment</code></td><td data-label="Type">string</td><td data-label="Meaning">The multiplicity adjustment applied, if any. Absent, empty or <code>&quot;none&quot;</code> means none.</td></tr>
@@ -151,13 +152,37 @@ if (result.status === &#39;ok&#39;) {
 <p>It returns <code>{ status, text }</code>:</p>
 <table class="doc-table"><thead><tr><th scope="col"><code>status</code></th><th scope="col">When</th><th scope="col"><code>text</code></th></tr></thead>
 <tbody><tr><td data-label="status"><code>shown</code></td><td data-label="When">Method, counts and a valid p-value are all present.</td><td data-label="text"><code>Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted.</code></td></tr>
-<tr><td data-label="status"><code>withheld</code></td><td data-label="When">The result carries a <code>reason</code>.</td><td data-label="text"><code>Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).</code></td></tr>
+<tr><td data-label="status"><code>withheld</code></td><td data-label="When">The result carries a <code>reason</code>.</td><td data-label="text"><code>Not computed: Treatment has 3. The minimum group size is 5. Counts: Placebo n = 95, Treatment n = 3.</code></td></tr>
+<tr><td data-label="status"><code>error</code></td><td data-label="When">The result&#39;s <code>status</code> is <code>&quot;error&quot;</code>.</td><td data-label="text"><code>R reported an error: Column &#39;y&#39; (strValueCol) is not numeric.</code></td></tr>
 <tr><td data-label="status"><code>refused</code></td><td data-label="When">The method, the counts or a valid p-value is missing.</td><td data-label="text"><code>p-value not shown: the result does not name its method.</code></td></tr></tbody></table>
 <p>The rules, from the design:</p>
-<ul><li>Never a p-value alone: without the method&#39;s name or the counts, the number is not printed.</li><li>Three decimals. Below 0.001 it prints <code>p &lt; 0.001</code>; where it would round to 1.000 it prints <code>p &gt; 0.999</code>.</li><li>Labelled <code>Exploratory, unadjusted.</code> unless the result names an adjustment, and then <code>Exploratory, adjusted (Holm).</code></li><li>No stars, and never the word significant.</li><li>A reason in place of a number when R declined to compute one.</li></ul>
+<ul><li>Never a p-value alone: without the method&#39;s name or the counts, the number is not printed.</li><li>Three decimals. Below 0.001 it prints <code>p &lt; 0.001</code>; where it would round to 1.000 it prints <code>p &gt; 0.999</code>.</li><li>Labelled <code>Exploratory, unadjusted.</code> unless the result names an adjustment, and then <code>Exploratory, adjusted (Holm).</code> An adjustment R names by its <code>p.adjust</code> method is printed by its usual name: <code>holm</code> as Holm, <code>hochberg</code> as Hochberg, <code>hommel</code> as Hommel, <code>bonferroni</code> as Bonferroni, <code>BH</code> and <code>fdr</code> as Benjamini-Hochberg, <code>BY</code> as Benjamini-Yekutieli. Any other name is printed as given.</li><li>No stars, and never the word significant.</li><li>A reason in place of a number when R declined to compute one, said once. A reason that already begins &quot;Not computed&quot;, as gsm.bio&#39;s do, is printed as it is, with the counts after it as a sentence of their own. Any other reason is led in by the method&#39;s name and the words <code>not computed</code>: <code>Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).</code></li><li>A result R marked as an error is printed as R&#39;s message, after <code>R reported an error:</code>, with the counts where R knew them and no number.</li></ul>
 <p>Stating the filter a result was computed under is the chart&#39;s footnote, not this function&#39;s.</p>
+<h2 id="formatestimateestimate"><code>formatEstimate(estimate)</code></h2>
+<p>Formats one estimate R returned: one row of a result&#39;s <code>estimates</code>. It reads <code>name</code>, <code>group</code> (what it is an estimate of), <code>estimate</code>, and the interval as <code>lower</code>, <code>upper</code> and <code>level</code>.</p>
+<p>It returns <code>{ status, text }</code>:</p>
+<table class="doc-table"><thead><tr><th scope="col"><code>status</code></th><th scope="col">When</th><th scope="col"><code>text</code></th></tr></thead>
+<tbody><tr><td data-label="status"><code>shown</code></td><td data-label="When">The estimate has a name and a number, and a whole interval.</td><td data-label="text"><code>Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.</code></td></tr>
+<tr><td data-label="status"><code>shown</code></td><td data-label="When">The estimate has a name and a number, and R gave no interval.</td><td data-label="text"><code>Mean (Placebo): 0.02473.</code></td></tr>
+<tr><td data-label="status"><code>refused</code></td><td data-label="When">It has no name, no finite number, or an interval with a part missing.</td><td data-label="text"><code>Estimate not shown: the interval of Difference in means is incomplete.</code></td></tr></tbody></table>
+<p>Each number is printed to four significant figures, without trailing zeros, and is otherwise R&#39;s: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, <code>0.95</code> as <code>95%</code>.</p>
+<h2 id="formatcomparisoncomparison"><code>formatComparison(comparison)</code></h2>
+<p>Formats one comparison of two groups from a result&#39;s <code>rows</code>, such as one pairwise comparison, by the rules a whole result is held to: its p-value is given only with its method, the two groups&#39; counts and its label. It reads <code>group_1</code>, <code>group_2</code>, <code>n_1</code>, <code>n_2</code>, <code>method</code>, <code>p_value</code> (the adjusted one, when R adjusted), <code>adjustment</code>, <code>status</code> and <code>reason</code>.</p>
+<p>It returns the sentence, and its parts for a chart that prints the comparisons as a table:</p>
+<table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>status</code></td><td data-label="Meaning"><code>shown</code>, <code>withheld</code>, <code>error</code> or <code>refused</code>, as <code>formatStatistic</code> gives them. A row that names no two groups is <code>refused</code>.</td></tr>
+<tr><td data-label="Member"><code>text</code></td><td data-label="Meaning">The whole sentence: <code>Placebo F and Treatment F: Welch Two Sample t-test: p &lt; 0.001 (Placebo F n = 42, Treatment F n = 42). Exploratory, adjusted (Holm).</code></td></tr>
+<tr><td data-label="Member"><code>result</code></td><td data-label="Meaning">The same without the pair&#39;s name.</td></tr>
+<tr><td data-label="Member"><code>groups</code></td><td data-label="Meaning">The two groups&#39; names, or null.</td></tr>
+<tr><td data-label="Member"><code>n</code></td><td data-label="Meaning">Their two counts, or null when either is not a whole number.</td></tr>
+<tr><td data-label="Member"><code>method</code></td><td data-label="Meaning">The method&#39;s name. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>p</code></td><td data-label="Meaning">The p-value as printed, <code>p = 0.031</code>. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>adjustment</code></td><td data-label="Meaning">The adjustment by its usual name, or null when the p-value is unadjusted or not shown.</td></tr>
+<tr><td data-label="Member"><code>label</code></td><td data-label="Meaning"><code>Exploratory, adjusted (Holm).</code> or <code>Exploratory, unadjusted.</code> Null unless <code>status</code> is <code>shown</code>.</td></tr></tbody></table>
+<p>A table built from the parts prints <code>p</code> only beside the pair&#39;s counts and under a caption that carries <code>method</code> and <code>label</code>.</p>
 <h2 id="checked-against-real-r">Checked against real R</h2>
 <p>The <a href="https://jwildfire.github.io/bio.viz/dev/r-check/">R check page</a> runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named <code>RCON-LIVE-*</code> run that page on every pull request.</p>
+<p>The <a href="../group-comparison/api.html#the-statistics-line">group comparison chart</a> is the first chart to use it: its demo starts R in the browser with gsm.bio&#39;s statistics file, and the browser tests named <code>GC-STAT-034</code> to <code>GC-STAT-042</code> hold what it prints to desktop R.</p>
 </article>
 
 <p class="sub" id="api-source">
@@ -169,7 +194,7 @@ if (result.status === &#39;ok&#39;) {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/311a87ca0b6436b78892d04d3fea72c96c60f127"><code>311a87c</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/f3890ce9f1f37d51c159f69b15cc95726a0fd297"><code>f3890ce</code></a>.
       </p>
       <p>
         Built in the open — follow the
