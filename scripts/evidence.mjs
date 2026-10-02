@@ -10,15 +10,24 @@
 //                                        run's test names + statuses against
 //                                        every committed evidence.json; exit 1
 //                                        on drift (provenance keys ignored)
+//   node scripts/evidence.mjs --update   screenshot baseline refresh: also runs
+//                                        Playwright with --update-snapshots,
+//                                        then rebuilds the evidence.json files.
+//                                        Linux only unless
+//                                        FORCE_EVIDENCE_UPDATE=1
+//
+// Every mode also fails when a requirement row has no test named for it, or a
+// test names a requirement that is in no matrix (findTraceabilityGaps).
 //
 // Modules are discovered from site/config.json's `modules` list (any status),
 // so a new module needs no edits here: add the config entry, put unit tests
 // under tests/unit/<module>/ and browser specs in tests/e2e/<module>.spec.js,
 // and its docs/evidence/<module>/evidence.json appears on the next run.
 //
-// Not carried over yet: screenshot baselines and the `--update` mode that
-// refreshes them on the Linux CI runner. No test here captures a screenshot;
-// both arrive with the first chart.
+// Screenshot baselines are the Linux continuous-integration runner's (see
+// tests/e2e/evidence.js): a capture made on another system differs by a few
+// pixels of font rendering, so only that runner writes them. The
+// "Update evidence baselines" workflow runs --update there.
 
 import { spawnSync } from 'node:child_process';
 import {
@@ -33,13 +42,32 @@ import { createRequire } from 'node:module';
 import os, { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildEvidenceSets, buildRun, compareEvidence } from './evidence-lib.mjs';
+import {
+  buildEvidenceSets,
+  buildRun,
+  compareEvidence,
+  findTraceabilityGaps
+} from './evidence-lib.mjs';
+import { parseRequirementMatrix } from './requirements-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const evidenceRoot = path.join(rootDir, 'docs', 'evidence');
 const evidencePathFor = (module) => path.join(evidenceRoot, module, 'evidence.json');
 
-const mode = process.argv.includes('--check') ? 'check' : 'run';
+const mode = process.argv.includes('--check')
+  ? 'check'
+  : process.argv.includes('--update')
+    ? 'update'
+    : 'run';
+
+if (mode === 'update' && process.platform !== 'linux' && !process.env.FORCE_EVIDENCE_UPDATE) {
+  console.error(
+    'evidence:update rewrites the screenshot baselines, which are the Linux continuous-\n' +
+      'integration runner\'s. Run the "Update evidence baselines" workflow instead (see\n' +
+      'CONTRIBUTING.md), or set FORCE_EVIDENCE_UPDATE=1 in a matching Linux container.'
+  );
+  process.exit(1);
+}
 
 // Module registry → module universe for test-file routing.
 const config = JSON.parse(readFileSync(path.join(rootDir, 'site', 'config.json'), 'utf8'));
@@ -96,9 +124,9 @@ console.log('▸ Vitest (json reporter)…');
 run('npx', ['vitest', 'run', '--reporter=default', '--reporter=json', `--outputFile=${vitestOut}`]);
 
 console.log('▸ Playwright (json reporter)…');
-run('npx', ['playwright', 'test', '--reporter=json'], {
-  PLAYWRIGHT_JSON_OUTPUT_NAME: playwrightOut
-});
+const playwrightArgs = ['playwright', 'test', '--reporter=json'];
+if (mode === 'update') playwrightArgs.push('--update-snapshots');
+run('npx', playwrightArgs, { PLAYWRIGHT_JSON_OUTPUT_NAME: playwrightOut });
 
 const screenshotsByModule = {};
 for (const module of modules) {
@@ -125,6 +153,32 @@ if (Object.keys(sets).length === 0) {
       `(${modules.join(', ') || 'none registered'}) — nothing to record or compare.`
   );
   process.exit(1);
+}
+
+// Every row of every registered matrix, read from the matrices themselves, held
+// against the requirement IDs the fresh run's tests carry.
+const requirementIds = config.modules
+  .filter((entry) => entry.matrix && existsSync(path.join(rootDir, 'requirements', entry.matrix)))
+  .flatMap((entry) =>
+    Object.keys(
+      parseRequirementMatrix(readFileSync(path.join(rootDir, 'requirements', entry.matrix), 'utf8'))
+    )
+  );
+const gaps = findTraceabilityGaps({ requirementIds, sets });
+function reportTraceability() {
+  if (gaps.untested.length === 0 && gaps.unknown.length === 0) {
+    console.log(
+      `✓ Traceability: each of ${requirementIds.length} requirement rows has a test named for ` +
+        'it, and no test names a row that is in no matrix.'
+    );
+    return true;
+  }
+  console.error('✗ Requirements and tests do not line up:');
+  gaps.untested.forEach((id) => console.error(`  - ${id}: no test is named for this requirement.`));
+  gaps.unknown.forEach(({ id, test }) =>
+    console.error(`  - ${id} is in no requirement matrix, and a test names it: ${test}`)
+  );
+  return false;
 }
 
 // Modules with a committed evidence.json — compared against the fresh sets so
@@ -159,6 +213,7 @@ if (mode === 'check') {
       console.log(`✓ ${rel} fresh: ${sets[module].records.length} records match.`);
     }
   }
+  if (!reportTraceability()) stale = true;
   if (stale) process.exit(1);
 } else {
   const written = [];
@@ -191,5 +246,6 @@ if (mode === 'check') {
     );
   }
   console.log(failures.size ? `✗ ${failures.size} FAILING tests` : '✓ All tests passing');
-  if (failures.size) process.exit(1);
+  const traced = reportTraceability();
+  if (failures.size || !traced) process.exit(1);
 }
