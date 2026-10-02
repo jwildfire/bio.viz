@@ -1686,6 +1686,35 @@ test.describe('association scatter: on a phone', () => {
     await expect(page.locator('.sv-listing table')).toHaveCount(0);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
 
+    // And where a browser hands the chart a finger's drag itself, without
+    // scrolling, the chart still does not take it for a region.
+    const handed = await page.evaluate(
+      ([start, end]) => {
+        const canvas = document.querySelector('.sv-chart-wrap canvas');
+        const fire = (type, at) =>
+          canvas.dispatchEvent(
+            new PointerEvent(type, {
+              pointerId: 7,
+              pointerType: 'touch',
+              isPrimary: true,
+              bubbles: true,
+              clientX: at.x,
+              clientY: at.y
+            })
+          );
+        const box = canvas.getBoundingClientRect();
+        const within = (point) => ({ x: point.x, y: Math.min(point.y, box.bottom - 40) });
+        fire('pointerdown', within(start));
+        fire('pointermove', within({ x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 }));
+        fire('pointermove', within(end));
+        fire('pointerup', within(end));
+        return window.__as.chart.selection === null;
+      },
+      await ends()
+    );
+    expect(handed).toBe(true);
+    await expect(page.locator('.sv-listing table')).toHaveCount(0);
+
     // On: the same drag selects a region, and the page stays where it is.
     await button.tap();
     await expect(button).toHaveAttribute('aria-pressed', 'true');
