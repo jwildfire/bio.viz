@@ -24,6 +24,8 @@ import { createConnection } from './r/connection.js';
 import { UNUSED } from './core/reasons.js';
 import {
   PALETTE,
+  SCALE_LABELS,
+  VALUE_LABELS,
   addFilterControls,
   buildProfileFeed,
   clearListing,
@@ -75,15 +77,7 @@ const NONE = '';
 // overview is a biomarker of null.
 const OVERVIEW = 'bv_overview';
 
-const VALUE_LABELS = {
-  raw: 'Result',
-  baseline: 'Baseline',
-  change: 'Change from baseline',
-  fold_change: 'Fold change from baseline',
-  percent_change: 'Percent change from baseline'
-};
 const MARK_LABELS = { box: 'Box', violin: 'Violin', points: 'Points' };
-const SCALE_LABELS = { linear: 'Linear', log: 'Logarithmic' };
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's

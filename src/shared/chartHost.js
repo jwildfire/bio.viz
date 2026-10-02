@@ -23,6 +23,18 @@ export const PALETTE = [
   '#ca8a04'
 ];
 
+/** What a control calls each value type of a biomarker at a visit. */
+export const VALUE_LABELS = Object.freeze({
+  raw: 'Result',
+  baseline: 'Baseline',
+  change: 'Change from baseline',
+  fold_change: 'Fold change from baseline',
+  percent_change: 'Percent change from baseline'
+});
+
+/** What a control calls each scale of an axis. */
+export const SCALE_LABELS = Object.freeze({ linear: 'Linear', log: 'Logarithmic' });
+
 export const hexToRgba = (hex, alpha) => {
   const value = hex.replace('#', '');
   const part = (at) => parseInt(value.slice(at, at + 2), 16);

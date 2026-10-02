@@ -111,7 +111,7 @@ export function failureOf(result) {
  *   has answered once: what starting R costs on this page.
  * @param {Function} parts.describe `(result, context)`: what one answer from
  *   the connection reads as on the chart's line.
- * @param {Function} [parts.waiting] `(text)`: the line while it waits.
+ * @param {Function} [parts.waiting] `(text, context)`: the line while it waits.
  * @returns {{begin: Function, idle: Function}} `begin()` starts a round and
  *   ends every earlier one; the round's `ask(request, show, context)` asks R
  *   and calls `show(description)` at once with the waiting state, and again
@@ -138,7 +138,7 @@ export function createDesk({
       let noted = false;
       return {
         ask({ name, data, args, dataId }, show, context) {
-          show(waiting(noted ? WAITING : withNote(WAITING)));
+          show(waiting(noted ? WAITING : withNote(WAITING), context));
           noted = true;
           return connection.run(name, { data, args, dataId }).then((result) => {
             if (result && result.status === 'ok' && result.form !== 'precomputed') answered = true;
