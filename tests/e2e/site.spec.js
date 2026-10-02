@@ -104,7 +104,7 @@ test.describe('site', () => {
 });
 
 test.describe('gallery', () => {
-  test('CORE-SITE-003: the gallery is reached from the home page and says that no chart is published yet (#7)', async ({
+  test('CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)', async ({
     page
   }) => {
     const errors = watch(page);
@@ -116,11 +116,19 @@ test.describe('gallery', () => {
     const charts = config.modules.filter(
       (entry) => entry.kind === 'chart' && entry.status === 'available'
     );
-    // When the first chart is registered this test is the one to change: the
-    // statement must go and the chart must be listed.
-    expect(charts).toEqual([]);
-    await expect(page.locator('#charts #no-charts')).toContainText('No chart is published yet.');
-    await expect(page.locator('#charts [data-module]')).toHaveCount(0);
+    // The registry decides which of the two the page shows.
+    if (charts.length === 0) {
+      await expect(page.locator('#charts #no-charts')).toContainText('No chart is published yet.');
+      await expect(page.locator('#charts [data-module]')).toHaveCount(0);
+    } else {
+      await expect(page.locator('#no-charts')).toHaveCount(0);
+      for (const entry of charts) {
+        const card = page.locator(`#charts [data-module="${entry.module}"]`);
+        await expect(card.locator('h3')).toHaveText(entry.title);
+        await expect(card.getByRole('link', { name: 'Evidence' })).toBeVisible();
+        await expect(card.getByRole('link', { name: 'API reference' })).toBeVisible();
+      }
+    }
     expect(errors).toEqual([]);
 
     await captureEvidence(page.locator('main'), 'CORE-SITE-003', 'gallery', { module: 'core' });
@@ -322,11 +330,25 @@ test.describe('API reference', () => {
     page
   }) => {
     await page.goto('/_site/index.html');
-    const exported = await page.evaluate(() => ({
-      core: ['version'],
-      'r-connection': Object.keys(window.BioViz.r)
-    }));
-    expect(Object.keys(exported).sort()).toEqual([...modules].sort());
+    // What the bundle this page loaded really exports, for each module's
+    // surface as the registry gives it: a namespace stands for its members.
+    const exported = await page.evaluate(
+      (entries) =>
+        Object.fromEntries(
+          entries.map(({ module, api }) => [
+            module,
+            api.surface.flatMap((key) =>
+              window.BioViz[key] !== null && typeof window.BioViz[key] === 'object'
+                ? Object.keys(window.BioViz[key])
+                : [key]
+            )
+          ])
+        ),
+      config.modules
+    );
+    expect(exported['r-connection']).toEqual(
+      expect.arrayContaining(['createConnection', 'formatStatistic'])
+    );
     for (const module of modules) {
       await page.goto(`/_site/${module}/api.html`);
       const headings = await page
