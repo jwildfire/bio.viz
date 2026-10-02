@@ -1,0 +1,111 @@
+{
+  "fixture": "tests/fixtures/matrix-statistics",
+  "derived_by": "tools/derive-matrix-statistics.mjs",
+  "rule": "Each case is the gallery's correlation matrix demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id and one column per variable of the grid (v1, v2, …), made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the values is kept, with an empty cell for each value they do not have.",
+  "derived_from": [
+    {
+      "file": "site/data/synthetic-study/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5"
+    },
+    {
+      "file": "site/data/synthetic-study/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
+    },
+    {
+      "file": "site/demo/synthetic-study.js",
+      "sha256": "fca703f516a464cdc2a3b70cc96c76d3f5e62e5f26af27f08286c49e9d095839"
+    },
+    {
+      "file": "site/demo/correlation-matrix.js",
+      "sha256": "d268c60c0788fd2327e168cb171ca3ce53124298b1b83e75c08051d3a4d82109"
+    }
+  ],
+  "cases": [
+    {
+      "case": "biomarkers-baseline",
+      "says": "Every biomarker at Baseline, Pearson: the view the demo opens on, with the planted pair"
+    },
+    {
+      "case": "biomarkers-baseline-spearman",
+      "says": "Every biomarker at Baseline, Spearman: no interval in any cell"
+    },
+    {
+      "case": "biomarkers-week-4-change",
+      "says": "Every biomarker’s change from Baseline to Week 4: participants with no result at Week 4 leave gaps, and the pair counts differ"
+    },
+    {
+      "case": "biomarkers-women",
+      "says": "Every biomarker at Baseline, with the filter Sex set to F"
+    },
+    {
+      "case": "six-biomarkers",
+      "says": "Six biomarkers at Baseline: as few as the small scatters are offered for"
+    },
+    {
+      "case": "visits-il-6",
+      "says": "IL-6 across its five visits, as its result"
+    },
+    {
+      "case": "visits-il-6-change",
+      "says": "IL-6’s change from Baseline across the four later visits: the baseline visit is not a variable"
+    },
+    {
+      "case": "visits-tnf-alpha-spearman",
+      "says": "TNF-alpha across its five visits, Spearman"
+    },
+    {
+      "case": "week-12-minimum-183",
+      "says": "Every biomarker at Week 12 with a minimum of 183 complete pairs set by the reader: R declines the cells with fewer and answers the rest"
+    },
+    {
+      "case": "age-35",
+      "says": "Every biomarker at Baseline among the four participants aged 35: no pair has enough complete pairs"
+    }
+  ],
+  "files": [
+    {
+      "file": "biomarkers-baseline.csv",
+      "sha256": "b873b2050fff9ab8aa2acca2a44da55a5c3da71c66d569fe63559d6738735b22"
+    },
+    {
+      "file": "biomarkers-baseline-spearman.csv",
+      "sha256": "b873b2050fff9ab8aa2acca2a44da55a5c3da71c66d569fe63559d6738735b22"
+    },
+    {
+      "file": "biomarkers-week-4-change.csv",
+      "sha256": "95cfe4a6f20c4234c3c518a6feac159f80850e01a6f6221bc2a949ef765ac2ea"
+    },
+    {
+      "file": "biomarkers-women.csv",
+      "sha256": "e7543bedd242008c1e4ecb2a56a4a637fe082c623656fafe47061d55e33df8d7"
+    },
+    {
+      "file": "six-biomarkers.csv",
+      "sha256": "3abaac49d9173a8ce6619b1270bd306990041ab46d6e0a528a07e7fd00b2d44f"
+    },
+    {
+      "file": "visits-il-6.csv",
+      "sha256": "7defb0594e68a97b3496e7bd6df514591380093bb1fd5161f890b579cfb92d67"
+    },
+    {
+      "file": "visits-il-6-change.csv",
+      "sha256": "a9528f2b375d85641b24fae050e988835e0857dc5eb7f9561541facc7f13cfa7"
+    },
+    {
+      "file": "visits-tnf-alpha-spearman.csv",
+      "sha256": "26b72af1c1366e04802cba447eb095f9bdfd8a99206908449625d31a376926b2"
+    },
+    {
+      "file": "week-12-minimum-183.csv",
+      "sha256": "0f59062565817356849416bad15785a95cd4cd35f7d190f2ab3ba2e9953f0c1c"
+    },
+    {
+      "file": "age-35.csv",
+      "sha256": "b08be38377b8f0d8b9e81608e30c9cebf434ad1100cd7522ee31fcfc0524badb"
+    },
+    {
+      "file": "cases.csv",
+      "sha256": "4623fefd3c274db0cee191be64c8c77ca58df9bb3858a20c762cac19802b6ed8"
+    }
+  ]
+}

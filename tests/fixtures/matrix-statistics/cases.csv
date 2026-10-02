@@ -1,0 +1,11 @@
+case,file,statistic,method,min_pairs,mode,value_type,visit,measure,variables,baseline_visits,baseline_stat,filters
+biomarkers-baseline,biomarkers-baseline.csv,Analyze_CorrelationMatrix,pearson,,biomarkers,raw,Baseline,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,
+biomarkers-baseline-spearman,biomarkers-baseline-spearman.csv,Analyze_CorrelationMatrix,spearman,,biomarkers,raw,Baseline,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,
+biomarkers-week-4-change,biomarkers-week-4-change.csv,Analyze_CorrelationMatrix,pearson,,biomarkers,change,Week 4,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,
+biomarkers-women,biomarkers-women.csv,Analyze_CorrelationMatrix,pearson,,biomarkers,raw,Baseline,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,SEX=F
+six-biomarkers,six-biomarkers.csv,Analyze_CorrelationMatrix,pearson,,biomarkers,raw,Baseline,,CRP|IFN-gamma|IL-2|IL-6|IL-10|TNF-alpha,Baseline,mean,
+visits-il-6,visits-il-6.csv,Analyze_CorrelationMatrix,pearson,,visits,raw,,IL-6,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,
+visits-il-6-change,visits-il-6-change.csv,Analyze_CorrelationMatrix,pearson,,visits,change,,IL-6,Week 2|Week 4|Week 8|Week 12,Baseline,mean,
+visits-tnf-alpha-spearman,visits-tnf-alpha-spearman.csv,Analyze_CorrelationMatrix,spearman,,visits,raw,,TNF-alpha,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,
+week-12-minimum-183,week-12-minimum-183.csv,Analyze_CorrelationMatrix,pearson,183,biomarkers,raw,Week 12,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,
+age-35,age-35.csv,Analyze_CorrelationMatrix,pearson,,biomarkers,raw,Baseline,,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,Baseline,mean,AGE=35
