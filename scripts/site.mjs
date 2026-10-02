@@ -9,8 +9,9 @@
 //
 // Fails, and so can never publish, on a malformed registry entry, a broken
 // internal link, a screenshot the evidence names but nobody committed, a
-// vendored file that no longer matches its record, or an API reference that has
-// drifted from the code (the same validation gates CI).
+// vendored file that no longer matches its record (the study, safety.viz's
+// bundle, gsm.bio's statistics file), or an API reference that has drifted from
+// the code (the same validation gates CI).
 //
 // SITE_COMMIT, when set by the deploy workflow, is printed in the footer so a
 // deployed page says which commit it was built from.
@@ -48,7 +49,7 @@ import {
   validateRegistry,
   validateSiteLinks
 } from './site-lib.mjs';
-import { SAFETY_VIZ, STUDY, readRecord, verifyVendored } from './vendor-lib.mjs';
+import { SAFETY_VIZ, STATISTICS, STUDY, readRecord, verifyVendored } from './vendor-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const siteDir = path.join(rootDir, '_site');
@@ -175,6 +176,21 @@ if (!kitProblems.length) {
   }
 }
 
+// gsm.bio's statistics functions, the one file R in the browser is given on a
+// chart's page: published with its source record, and held to that record.
+const statisticsSource = path.join(rootDir, STATISTICS.directory);
+const statisticsProblems = verifyVendored(statisticsSource);
+errors.push(...statisticsProblems.map((problem) => `${STATISTICS.directory}: ${problem}`));
+let statistics;
+if (!statisticsProblems.length) {
+  statistics = readRecord(statisticsSource);
+  const statisticsDir = path.join(siteDir, 'vendor/gsm.bio');
+  mkdirSync(statisticsDir, { recursive: true });
+  for (const file of [...statistics.files.map((entry) => entry.file), 'SOURCE.json']) {
+    copyFileSync(path.join(statisticsSource, file), path.join(statisticsDir, file));
+  }
+}
+
 // The demo scripts: one that reads the study, and one per chart.
 const demoSource = path.join(rootDir, 'site/demo');
 if (existsSync(demoSource)) {
@@ -249,7 +265,7 @@ for (const entry of modules) {
           shell,
           title: `${entry.title}: live demo · bio.viz`,
           description: `The bio.viz ${entry.title} chart, live, on the synthetic study: ${entry.blurb}`,
-          content: renderDemoPage({ entry, version, study, kit }),
+          content: renderDemoPage({ entry, version, study, kit, statistics }),
           root: '../',
           version,
           build,

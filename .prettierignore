@@ -15,6 +15,7 @@ requirements/*.md
 # the R check page's tables with their source note (tools/cut-r-check-fixture.mjs).
 site/r-check/expected.json
 tests/fixtures/group-comparison-r.json
+tests/fixtures/group-statistics-r.json
 site/r-check/measured.json
 site/r-check/data/
 
@@ -22,6 +23,7 @@ site/r-check/data/
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/
 
-# safety.viz's bundle, copied byte for byte by tools/vendor-safety-viz.mjs, with
-# its record.
+# safety.viz's bundle and gsm.bio's statistics file, each copied byte for byte
+# by its vendoring tool (tools/vendor-safety-viz.mjs, tools/vendor-statistics.mjs),
+# with its record.
 site/vendor/

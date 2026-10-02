@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T16:38:04.735Z",
+  "generatedAt": "2026-10-02T18:05:22.685Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37035194189",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37035194189"
+    "id": "37045025429",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37045025429"
   },
   "records": [
     {
@@ -317,7 +317,7 @@
       "screenshots": []
     },
     {
-      "test": "GC-SITE-002: the live demo draws the chart on the synthetic study, from safety.viz’s bundle and bio.viz’s, and says statistics are unavailable (#9)",
+      "test": "GC-SITE-002: the live demo draws the chart on the synthetic study, from safety.viz’s bundle and bio.viz’s, with R attached; where R cannot be reached it still draws, and says so (#9)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-SITE-002"],
@@ -355,6 +355,142 @@
       "requirementIds": ["GC-STAT-008"],
       "issueRefs": [9],
       "screenshots": []
+    },
+    {
+      "test": "GC-STAT-026: the Test control offers only the tests that fit the number of groups drawn, and the pairwise switch is there only when there are pairs (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-026"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-027: with one group drawn, or no test chosen, R is not asked, and the line says why (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-027"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-028: a change to the test, the pairwise switch, a filter or a variable each clears the line and asks R again, and the answer to the question before is never shown (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-028"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-029: each panel asks R for itself, on its own rows, and is answered for itself (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-029"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-030: a view R’s answer was stored for prints it with no R and no request, and a view it was not stored for reads unavailable, never another view’s numbers (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-030"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-031: the line prints what R returned: the result, the difference in means, the pairwise table, R’s warnings and notes, and R’s reason for a group too small (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-031"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-032: with a pairwise table under it the chart holds at a 390px-wide viewport, and the page does not scroll sideways (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-032"],
+      "issueRefs": [16],
+      "screenshots": ["GC-STAT-032-pairwise-table-on-a-phone.png"]
+    },
+    {
+      "test": "GC-STAT-033: with R attached and no test chosen the page asks for nothing; the first test chosen starts R, once (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-033"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-034: the demo draws first and starts R when its first panel asks for a test; the line waits, saying what the first start costs, and then prints the Welch t-test desktop R gives (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-034"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-035: choosing the Wilcoxon rank-sum test prints the result desktop R gives, and R is not started again (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-035"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-036: with four groups the control offers the several-group tests, and the one-way ANOVA is the one desktop R gives (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-036"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-037: the Kruskal-Wallis test is the one desktop R gives (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-037"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-038: pairwise comparisons are the ones desktop R gives, adjusted by Holm; where R’s own answer differs between the two versions, both are shown and nothing else differs (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-038"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-039: a filter change shows the waiting state and then the new result, and never the old one (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-039"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-040: a group below the minimum size prints R’s reason, once, and no number (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-040"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-041: the megabytes and seconds of the first test are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-041"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "GC-STAT-042: on a phone the demo prints R’s result and a pairwise table, and the page does not scroll sideways (#16)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-042"],
+      "issueRefs": [16],
+      "screenshots": ["GC-STAT-042-r-in-the-browser-on-a-phone.png"]
     },
     {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
@@ -733,6 +869,70 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: how R’s answer is printed GC-STAT-012: the result is printed with its method and counts, labelled exploratory and unadjusted, for each of the four tests (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-012"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-013: for two groups the difference in means is printed with its interval, from R’s estimates, with what it is the difference of (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-013"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-014: pairwise comparisons are printed as a table of each pair, its two counts and its adjusted p-value, under a caption naming the method and the adjustment (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-014"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-015: R’s warnings and notes are printed with the result, as R worded them (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-015"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-016: a group below the minimum size prints R’s reason once and no number, and a result R marked as an error prints R’s message (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-016"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-018: what one test covers is said under it: the rows, that each panel has its own, that a colour is not part of it, and the filters in force (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-018"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-019: the waiting text carries the page’s note on what starting R costs until R has answered once, and not after (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-019"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-020: a view with no stored result reads that statistics are unavailable for it, in the chart’s words (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-020"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: panels and cells GC-DATA-001: one panel holds one cell per level of the group, each with the participants the frame resolved there (#9)",
       "suite": "unit",
       "status": "pass",
@@ -829,11 +1029,19 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: settings GC-CFG-004: the chart has no setting that chooses a test, an adjustment or a cut (#9)",
+      "test": "group comparison: settings GC-CFG-004: the chart has no setting that chooses an adjustment, a confidence level, a minimum group size or a cut (#16)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-CFG-004"],
-      "issueRefs": [9],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: settings GC-CFG-005: the test and the pairwise comparisons each have a setting, with a stated default, and a value neither can take is refused (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CFG-005"],
+      "issueRefs": [16],
       "screenshots": []
     },
     {
@@ -925,6 +1133,38 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: what R is asked GC-STAT-010: the request is the function, the panel’s rows, and four arguments: the two column names, the test and whether to compare every pair (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-010"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what R is asked GC-STAT-011: a change to anything that changes the rows changes their identity (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-011"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what R is asked GC-STAT-011: the groups are the ones in the rows, and text is sorted by code point, the order R’s radix sort gives (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-011"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: what R is asked GC-STAT-011: the identity of a panel’s rows states what was drawn, by the settings’ names, and leaves out what is not set (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-011"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: what the controls offer GC-CTRL-001: with participant data the columns offered as a group are the participant table’s categories (#9)",
       "suite": "unit",
       "status": "pass",
@@ -970,6 +1210,22 @@
       "status": "pass",
       "requirementIds": ["GC-DATA-011"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: which test R is asked for GC-STAT-009: the tests offered are the ones that fit the number of groups drawn, and a test that does not fit gives way to its counterpart of the same kind (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-009"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: which test R is asked for GC-STAT-017: with fewer than two groups to compare the line says why there is no test (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-017"],
+      "issueRefs": [16],
       "screenshots": []
     },
     {
@@ -1269,6 +1525,22 @@
       "screenshots": []
     },
     {
+      "test": "the rows R is run on GC-STAT-021: deriving each case’s rows again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-021"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "the rows R is run on GC-STAT-021: the rows are the chart’s: one per participant, the fields the chart hands R, and the demo’s settings read from the demo’s own script (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-021"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
       "test": "the vendored safety.viz bundle GC-KIT-001: safety.viz’s bundle is in site/vendor/safety.viz/ with a record naming the repository, the commit, the version and the file it was copied from (#9)",
       "suite": "unit",
       "status": "pass",
@@ -1293,6 +1565,30 @@
       "screenshots": []
     },
     {
+      "test": "the vendored statistics file GC-STAT-024: gsm.bio’s statistics file is in site/vendor/gsm.bio/ with a record naming the repository, the commit and the file it was copied from (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-024"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored statistics file GC-STAT-024: the file is sourced with base R alone: it attaches no package, and names survival only inside its survival functions (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-024"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored statistics file GC-STAT-025: the vendored file matches its recorded checksum and size (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-025"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
       "test": "vendoring a bundle: the copy and its check GC-KIT-002: a changed bundle, a missing one, and a file beside it that is not recorded each fail the check (#9)",
       "suite": "unit",
       "status": "pass",
@@ -1306,6 +1602,46 @@
       "status": "pass",
       "requirementIds": ["GC-KIT-002"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring the statistics file: the copy and its check GC-STAT-025: an edited file, a missing one and a file beside it that is not recorded each fail the check, and a file that differs from gsm.bio’s at the recorded commit fails the check against the source (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-025"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring the statistics file: the copy and its check GC-STAT-025: the copy writes the file exactly as gsm.bio holds it and records the commit, the licence and the version (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-025"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-022: the expected results name the script, the R version and the vendored statistics file that made them (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-022"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-023: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-023"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-023: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its panel, and by no other view’s (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-023"],
+      "issueRefs": [16],
       "screenshots": []
     }
   ]

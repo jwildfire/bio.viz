@@ -9,6 +9,12 @@
 // a week number (VISITNUM: 0, 2, 4, 8, 12), and DAY is that number times seven.
 // It is the planned day of the visit, worked out here, not a column of the
 // study.
+//
+// `withArmSex` adds one column to the participant rows, for a page that wants a
+// category with more than two levels: `ARM_SEX`, the participant's arm and sex
+// joined by a space ("Placebo F"). Every category of the study has two levels,
+// and a comparison of several groups needs more. Nothing is cut or estimated:
+// the column is two of the study's own columns, side by side.
 (function () {
   function parse(text) {
     var lines = text.replace(/\n$/, '').split('\n');
@@ -36,10 +42,17 @@
     });
   }
 
+  function withArmSex(rows) {
+    return rows.map(function (row) {
+      return Object.assign({}, row, { ARM_SEX: row.ARM + ' ' + row.SEX });
+    });
+  }
+
   window.BioVizDemo = {
     parse: parse,
     read: read,
     withDay: withDay,
+    withArmSex: withArmSex,
     // `folder` is where the study is served from, with its closing slash.
     loadStudy: function (folder) {
       return Promise.all([

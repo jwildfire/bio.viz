@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T16:38:04.735Z",
+  "generatedAt": "2026-10-02T18:05:22.685Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37035194189",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37035194189"
+    "id": "37045025429",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37045025429"
   },
   "records": [
     {
@@ -685,6 +685,38 @@
       "screenshots": []
     },
     {
+      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-001: a pair’s p-value comes with its method, the two groups’ counts and its adjustment label, by the rules a whole result is held to (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-ROW-001"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-002: a pair with no method, no counts or no groups is refused, and one R could not compute shows R’s words and no number (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-ROW-002"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatEstimate: an estimate and its interval PVAL-EST-001: an estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, to four significant figures (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-EST-001"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatEstimate: an estimate and its interval PVAL-EST-002: an estimate with no name or no number, or with half an interval, is refused and nothing is printed in its place (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-EST-002"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
       "test": "formatStatistic: the formatted text PVAL-FMT-001: an ordinary p-value is shown to three decimals with its method and counts (#2)",
       "suite": "unit",
       "status": "pass",
@@ -770,6 +802,30 @@
       "status": "pass",
       "requirementIds": ["PVAL-RULE-007"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-008: a reason that already says the result was not computed is printed as it is, and \"not computed\" is said once (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-008"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-009: a result R marked as an error is printed as R’s message, said to be an error, with no number (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-009"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-010: an adjustment R names by its p.adjust method is printed by its usual name, and any other name as given (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-010"],
+      "issueRefs": [16],
       "screenshots": []
     },
     {

@@ -13,6 +13,12 @@ export const MARKS = Object.freeze(['box', 'violin', 'points']);
 export const Y_SCALES = Object.freeze(['linear', 'log']);
 
 /**
+ * The tests the statistics line can ask R for, by the names gsm.bio's
+ * `Analyze_GroupDifference` gives them, and `none` for no test.
+ */
+export const TESTS = Object.freeze(['t', 'wilcoxon', 'anova', 'kruskal', 'none']);
+
+/**
  * Every setting of the chart, with its default.
  */
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -48,6 +54,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // The statistics line.
   connection: null,
   statistic: 'Analyze_GroupDifference',
+  test: 't',
+  pairwise: false,
+  waiting_note: null,
   // safety.viz's participant profile.
   profile: true,
   profile_details: null,
@@ -158,6 +167,11 @@ export function syncSettings(overrides) {
     }
   }
   if (typeof settings.profile !== 'boolean') refuse('`profile` must be true or false.');
+  if (!TESTS.includes(settings.test)) refuse(`\`test\` must be one of ${TESTS.join(', ')}.`);
+  if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
+  if (settings.waiting_note !== null && !isText(settings.waiting_note)) {
+    refuse('`waiting_note` must be a sentence, or null for none.');
+  }
   if (settings.statistic !== null && !isText(settings.statistic)) {
     refuse('`statistic` must be the name of an R function, or null for no statistics line.');
   }

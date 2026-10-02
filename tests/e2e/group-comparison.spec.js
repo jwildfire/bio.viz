@@ -1,16 +1,44 @@
-import { readFileSync } from 'node:fs';
-import { test, expect } from '@playwright/test';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { test, expect, chromium } from '@playwright/test';
+import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
 
-// The group comparison chart in a real page (#9): safety.viz's vendored bundle
-// and bio.viz's committed bundle, loaded as two script tags, drawing the
-// vendored synthetic study. Nothing here reaches the network: the statistics
-// line is asked of a connection with no R attached, or of a stand-in for R.
+// The group comparison chart in a real page (#9, #16): safety.viz's vendored
+// bundle and bio.viz's committed bundle, loaded as two script tags, drawing the
+// vendored synthetic study.
+//
+// Every group but the last reaches no network and runs no R: the statistics
+// line is asked of a connection with no R attached, of a stand-in for R whose
+// answers arrive when the test says, or of results desktop R stored. The last
+// group, "live", is the opposite: it opens the gallery's demo and runs real R
+// from webR's public CDN.
 
 const readJson = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const fromR = readJson('../fixtures/group-comparison-r.json');
+// What desktop R answered for the rows the chart hands R, each with the key the
+// chart asks with (tools/r-group-statistics.R). No number below was typed.
+const statistics = readJson('../fixtures/group-statistics-r.json');
+const resultOf = (name) => statistics.results.find((result) => result.case === name);
+const stored = (...names) =>
+  names.map(resultOf).map(({ name, args, dataId, rows, value }) => ({
+    name,
+    args,
+    dataId,
+    rows,
+    value
+  }));
 const kitRecord = readJson('../../site/vendor/safety.viz/SOURCE.json');
+const statisticsRecord = readJson('../../site/vendor/gsm.bio/SOURCE.json');
 const FIXTURE = '/tests/e2e/fixtures/group-comparison.html';
+const R_HOSTS = ['webr.r-wasm.org', 'repo.r-wasm.org'];
+const isRHost = (url) => R_HOSTS.includes(new URL(url).hostname);
+
+// Keeps a page from reaching R's hosts, so a test of a page that would start R
+// stays on this machine. The page is then told that R could not be started.
+const blockR = (page) =>
+  page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
 
 function watch(page) {
   const errors = [];
@@ -417,7 +445,12 @@ test.describe('group comparison: with and without participant data', () => {
       expect(cell.median).toBeCloseTo(expected[index].median, 10)
     );
 
-    await expect(page.locator('.sv-section-title')).toHaveText(['Value', 'Groups', 'Display']);
+    await expect(page.locator('.sv-section-title')).toHaveText([
+      'Value',
+      'Groups',
+      'Display',
+      'Statistics'
+    ]);
     await expect(page.locator('.sv-sidebar [data-filter]')).toHaveCount(0);
     await expect(page.locator('select[data-control="group-by"] option')).toHaveText(['ARM']);
     expect(errors).toEqual([]);
@@ -444,6 +477,7 @@ test.describe('group comparison: with and without participant data', () => {
       'Value',
       'Groups',
       'Display',
+      'Statistics',
       'Filters'
     ]);
     await expect(page.locator('.sv-sidebar select[data-filter]')).toHaveCount(3);
@@ -624,39 +658,71 @@ test.describe('group comparison: listing and participant profile', () => {
   });
 });
 
-// A stand-in for R whose answers arrive when the test says so. gsm.bio's
-// result for a group difference, in the shape the connection hands back.
+// A stand-in for R whose answers arrive when the test says so, in the shape
+// gsm.bio's Analyze_GroupDifference returns. The counts are the ones in the
+// rows it was handed, so a line can be told from the line for other rows.
 const stubR = () => {
   window.__r = { calls: [] };
   window.__r.engine = {
     start: () => Promise.resolve(),
     call: (name, request) =>
       new Promise((resolve) => {
+        const counts = {};
+        request.data.forEach((row) => {
+          counts[row.x] = (counts[row.x] || 0) + 1;
+        });
         window.__r.calls.push({
           name,
           rows: request.data.length,
           args: request.args,
           fields: Object.keys(request.data[0]),
+          counts,
           resolve
         });
       })
   };
+  const METHODS = {
+    t: 'Welch Two Sample t-test',
+    wilcoxon: 'Wilcoxon rank sum test with continuity correction',
+    anova: 'One-way analysis of variance',
+    kruskal: 'Kruskal-Wallis rank sum test'
+  };
   window.__r.answer = (index, p) => {
     const call = window.__r.calls[index];
-    const counts = {};
-    call.rows > 100
-      ? Object.assign(counts, { Placebo: 95, Treatment: 91 })
-      : Object.assign(counts, { Placebo: 42, Treatment: 42 });
     call.resolve({
       status: 'ok',
       reason: null,
-      method: 'Welch Two Sample t-test',
+      test: call.args.strMethod,
+      method: METHODS[call.args.strMethod],
+      estimates: [],
       p_value: p,
       adjustment: 'none',
-      counts
+      counts: call.counts,
+      warnings: [],
+      notes: [],
+      rows: []
     });
   };
 };
+
+// Gives the chart a connection whose R is the stand-in.
+const attachStub = (page) =>
+  page.evaluate(() => {
+    window.__gc.chart.setSettings({
+      connection: window.BioViz.r.createConnection({ browser: { engine: window.__r.engine } })
+    });
+  });
+const calls = (page) =>
+  page.evaluate(() =>
+    window.__r.calls.map(({ name, rows, args, fields, counts }) => ({
+      name,
+      rows,
+      args,
+      fields,
+      counts
+    }))
+  );
+const WAITING = 'Statistics: waiting for R…';
 
 test.describe('group comparison: the statistics line', () => {
   test('GC-STAT-006: with no R attached the statistics line reads that statistics are unavailable (#9)', async ({
@@ -681,36 +747,29 @@ test.describe('group comparison: the statistics line', () => {
   test('GC-STAT-007: the line shows that it is waiting until R answers, and then prints the answer through the shared formatter (#9)', async ({
     page
   }) => {
-    await open(page, {
-      before: stubR,
-      settings: undefined
-    });
-    // The chart is given a connection whose R is the stand-in.
-    await page.evaluate(() => {
-      window.__gc.chart.setSettings({
-        connection: window.BioViz.r.createConnection({ browser: { engine: window.__r.engine } })
-      });
-    });
+    await open(page, { before: stubR });
+    await attachStub(page);
     const line = page.locator('.sv-main > .bv-statistic');
-    await expect(line).toHaveText('Statistics: waiting for R…');
+    await expect(line).toHaveText(WAITING);
     await expect(line).toHaveAttribute('data-state', 'waiting');
     await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
-    const call = await page.evaluate(() => {
-      const { name, rows, args, fields } = window.__r.calls[0];
-      return { name, rows, args, fields };
-    });
-    // R is asked about the rows that are drawn, by the names of their fields.
-    expect(call).toEqual({
+    // R is asked about the rows that are drawn, by the names of their fields,
+    // for the test the chart opens on.
+    expect((await calls(page))[0]).toEqual({
       name: 'Analyze_GroupDifference',
       rows: 186,
-      args: { strValueCol: 'y', strGroupCol: 'x' },
-      fields: ['USUBJID', 'y', 'x']
+      args: { strValueCol: 'y', strGroupCol: 'x', strMethod: 't', bPairwise: false },
+      fields: ['USUBJID', 'y', 'x'],
+      counts: { Placebo: 95, Treatment: 91 }
     });
     await page.evaluate(() => window.__r.answer(0, 0.0004));
-    await expect(line).toHaveText(
+    await expect(line.locator('.bv-stat-result')).toHaveText(
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
     );
     await expect(line).toHaveAttribute('data-state', 'shown');
+    await expect(line.locator('.bv-stat-scope')).toHaveText(
+      'This test compares the levels of ARM on the 186 participants drawn.'
+    );
     await captureEvidence(
       page.locator('.sv-main > .bv-statistic'),
       'GC-STAT-007',
@@ -722,11 +781,7 @@ test.describe('group comparison: the statistics line', () => {
     page
   }) => {
     await open(page, { before: stubR });
-    await page.evaluate(() => {
-      window.__gc.chart.setSettings({
-        connection: window.BioViz.r.createConnection({ browser: { engine: window.__r.engine } })
-      });
-    });
+    await attachStub(page);
     const line = page.locator('.sv-main > .bv-statistic');
     await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
     await page.evaluate(() => window.__r.answer(0, 0.03));
@@ -734,7 +789,7 @@ test.describe('group comparison: the statistics line', () => {
 
     // The filter changes: the answer for 186 rows goes at once.
     await page.locator('select[data-filter="SEX"]').selectOption('F');
-    await expect(line).toHaveText('Statistics: waiting for R…');
+    await expect(line).toHaveText(WAITING);
     await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(2);
     expect(await page.evaluate(() => window.__r.calls[1].rows)).toBe(84);
 
@@ -744,10 +799,530 @@ test.describe('group comparison: the statistics line', () => {
     // The answer for the 84 rows arrives now, late. It is not shown.
     await page.evaluate(() => window.__r.answer(1, 0.5));
     await page.waitForTimeout(100);
-    await expect(line).toHaveText('Statistics: waiting for R…');
+    await expect(line).toHaveText(WAITING);
     // The answer for the rows on screen is.
     await page.evaluate(() => window.__r.answer(2, 0.03));
     await expect(line).toContainText('p = 0.030 (Placebo n = 95, Treatment n = 91)');
+  });
+});
+
+test.describe('group comparison: the test R is asked for', () => {
+  const testControl = 'select[data-control="test"]';
+  const pairwise = 'input[data-control="pairwise"]';
+  const offered = (page) => page.locator(`${testControl} option`).allTextContents();
+
+  test('GC-STAT-026: the Test control offers only the tests that fit the number of groups drawn, and the pairwise switch is there only when there are pairs (#16)', async ({
+    page
+  }) => {
+    await open(page, { data: 'arm-sex', before: stubR });
+    await attachStub(page);
+    // Two arms: the two-group tests, opening on the Welch t-test.
+    expect(await offered(page)).toEqual(['Welch t-test', 'Wilcoxon rank-sum test', 'None']);
+    await expect(page.locator(testControl)).toHaveValue('t');
+    await expect(page.locator(pairwise)).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
+    expect((await calls(page))[0].args.strMethod).toBe('t');
+
+    // Four groups: the several-group tests, and the t-test gives way to the
+    // test of its kind, which is the one R is asked for.
+    await choose(page, 'group-by', 'ARM_SEX');
+    expect(await offered(page)).toEqual(['One-way ANOVA', 'Kruskal-Wallis test', 'None']);
+    await expect(page.locator(testControl)).toHaveValue('anova');
+    await expect(page.locator(pairwise)).toBeVisible();
+    await expect(page.locator(pairwise)).not.toBeChecked();
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(2);
+    expect((await calls(page))[1].args).toEqual({
+      strValueCol: 'y',
+      strGroupCol: 'x',
+      strMethod: 'anova',
+      bPairwise: false
+    });
+
+    // A rank test chosen among four groups stays a rank test among two.
+    await choose(page, 'test', 'kruskal');
+    await choose(page, 'group-by', 'ARM');
+    await expect(page.locator(testControl)).toHaveValue('wilcoxon');
+    expect((await calls(page)).at(-1).args.strMethod).toBe('wilcoxon');
+
+    // Two of the four levels are two groups: the two-group tests again.
+    await choose(page, 'group-by', 'ARM_SEX');
+    await page.locator('[data-control="levels"] summary').click();
+    await page.locator('[data-control="levels"] input[value="Placebo M"]').uncheck();
+    expect(await offered(page)).toEqual(['One-way ANOVA', 'Kruskal-Wallis test', 'None']);
+    await page.locator('[data-control="levels"] input[value="Treatment M"]').uncheck();
+    expect(await offered(page)).toEqual(['Welch t-test', 'Wilcoxon rank-sum test', 'None']);
+    await expect(page.locator(pairwise)).toBeHidden();
+    expect((await calls(page)).at(-1)).toMatchObject({
+      rows: 84,
+      args: { strMethod: 'wilcoxon', bPairwise: false },
+      counts: { 'Placebo F': 42, 'Treatment F': 42 }
+    });
+    // No test R was sent was one the control did not offer for its groups.
+    for (const call of await calls(page)) {
+      const groups = Object.keys(call.counts).length;
+      expect(groups === 2 ? ['t', 'wilcoxon'] : ['anova', 'kruskal']).toContain(
+        call.args.strMethod
+      );
+    }
+  });
+
+  test('GC-STAT-027: with one group drawn, or no test chosen, R is not asked, and the line says why (#16)', async ({
+    page
+  }) => {
+    await open(page, { before: stubR });
+    await attachStub(page);
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
+
+    // One level left: nothing to compare, and nothing fits.
+    await page.locator('[data-control="levels"] summary').click();
+    await page.locator('[data-control="levels"] input[value="Placebo"]').uncheck();
+    await expect(line).toHaveText(
+      'Statistics: no test. A test compares two or more groups, and only Treatment has values.'
+    );
+    await expect(line).toHaveAttribute('data-state', 'none');
+    await expect(page.locator(testControl)).toBeDisabled();
+    expect(await offered(page)).toEqual(['None: a test needs two or more groups']);
+    await page.locator('[data-control="levels"] input[value="Placebo"]').check();
+    await expect(page.locator(testControl)).toBeEnabled();
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(2);
+
+    // None chosen: the line says so, and R is not asked.
+    await choose(page, 'test', 'none');
+    await expect(line).toHaveText('Statistics: no test chosen.');
+    await choose(page, 'mark', 'violin');
+    await page.locator('select[data-filter="SEX"]').selectOption('F');
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => window.__r.calls.length)).toBe(2);
+    expect(await page.evaluate(() => window.__gc.chart.statistics())).toEqual([]);
+
+    // A panel with one group has no test, and says so for itself; the panel
+    // beside it is tested.
+    await choose(page, 'test', 't');
+    await page.locator('select[data-filter="SEX"]').selectOption('__all__');
+    await choose(page, 'panel-by', 'ARM');
+    await expect(page.locator('.bv-panel .bv-statistic')).toHaveText([
+      'Statistics: no test in this panel. A test compares two or more groups, and only Placebo has values here.',
+      'Statistics: no test in this panel. A test compares two or more groups, and only Treatment has values here.'
+    ]);
+
+    // With no column to group by there is no test either.
+    await open(page, { data: 'results', before: stubR });
+    await attachStub(page);
+    await expect(line).toHaveText(
+      'Statistics: no test. A test compares two or more groups, and no column makes a group.'
+    );
+    await expect(page.locator(testControl)).toBeDisabled();
+    expect(await page.evaluate(() => window.__r.calls.length)).toBe(0);
+  });
+
+  test('GC-STAT-028: a change to the test, the pairwise switch, a filter or a variable each clears the line and asks R again, and the answer to the question before is never shown (#16)', async ({
+    page
+  }) => {
+    await open(page, { data: 'arm-sex', before: stubR, settings: { group_by: 'ARM_SEX' } });
+    await attachStub(page);
+    const line = page.locator('.sv-main > .bv-statistic');
+    const result = line.locator('.bv-stat-result');
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
+    await page.evaluate(() => window.__r.answer(0, 0.011));
+    await expect(result).toContainText('One-way analysis of variance: p = 0.011 (Placebo F n = 42');
+
+    // Each change in turn: the line goes back to waiting at once, R is asked
+    // for what is now on screen, and the answer before is not printed when it
+    // comes late.
+    const changes = [
+      {
+        what: 'the test',
+        make: () => choose(page, 'test', 'kruskal'),
+        asked: { rows: 186, args: { strMethod: 'kruskal', bPairwise: false } },
+        prints: 'Kruskal-Wallis rank sum test: p = 0.022'
+      },
+      {
+        what: 'the pairwise switch',
+        make: () => page.locator(pairwise).check(),
+        asked: { rows: 186, args: { strMethod: 'kruskal', bPairwise: true } },
+        prints: 'Kruskal-Wallis rank sum test: p = 0.022'
+      },
+      {
+        what: 'a filter',
+        make: () => page.locator('select[data-filter="RESPONSE"]').selectOption('Responder'),
+        asked: { rows: 67, args: { strMethod: 'kruskal', bPairwise: true } },
+        prints: 'Kruskal-Wallis rank sum test: p = 0.022 (Placebo F n = 12'
+      },
+      {
+        what: 'the biomarker',
+        make: () => choose(page, 'measure', 'CRP'),
+        asked: { args: { strMethod: 'kruskal', bPairwise: true } },
+        prints: 'Kruskal-Wallis rank sum test: p = 0.022'
+      },
+      {
+        what: 'the value type',
+        make: () => choose(page, 'value-type', 'raw'),
+        asked: { args: { strMethod: 'kruskal', bPairwise: true } },
+        prints: 'Kruskal-Wallis rank sum test: p = 0.022'
+      },
+      {
+        what: 'the group',
+        make: () => choose(page, 'group-by', 'ARM'),
+        asked: { args: { strMethod: 'wilcoxon', bPairwise: false } },
+        prints: 'Wilcoxon rank sum test with continuity correction: p = 0.022 (Placebo n ='
+      }
+    ];
+    let asked = 1;
+    for (const change of changes) {
+      // The line holds an answer; a second question is left unanswered behind it.
+      await change.make();
+      await expect(line, change.what).toHaveText(WAITING);
+      await expect(line, change.what).toHaveAttribute('data-state', 'waiting');
+      await expect
+        .poll(() => page.evaluate(() => window.__r.calls.length), { message: change.what })
+        .toBe(asked + 1);
+      expect((await calls(page))[asked], change.what).toMatchObject(change.asked);
+      // Drawn again before R answers: one more question, for the same view.
+      await page.evaluate(() => window.__gc.chart.render());
+      await expect
+        .poll(() => page.evaluate(() => window.__r.calls.length), { message: change.what })
+        .toBe(asked + 2);
+      // The first of the two answers late, with a number that would be wrong here.
+      await page.evaluate((index) => window.__r.answer(index, 0.999), asked);
+      await page.waitForTimeout(50);
+      await expect(line, change.what).toHaveText(WAITING);
+      await page.evaluate((index) => window.__r.answer(index, 0.022), asked + 1);
+      await expect(result, change.what).toContainText(change.prints);
+      await expect(line, change.what).not.toContainText('0.999');
+      asked += 2;
+    }
+  });
+
+  test('GC-STAT-029: each panel asks R for itself, on its own rows, and is answered for itself (#16)', async ({
+    page
+  }) => {
+    // One biomarker at two visits: two panels.
+    await open(page, {
+      before: stubR,
+      settings: { start_value: 'IL-6', visits: ['Week 4', 'Week 12'] }
+    });
+    await attachStub(page);
+    const lines = page.locator('.bv-panel .bv-statistic');
+    await expect(lines).toHaveText([WAITING, WAITING]);
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(2);
+    expect((await calls(page)).map((call) => [call.rows, call.counts])).toEqual([
+      [186, { Placebo: 95, Treatment: 91 }],
+      [184, { Placebo: 92, Treatment: 92 }]
+    ]);
+    // Each panel's request names its own visit, and nothing else differs.
+    const asked = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.map((entry) => [entry.panel, entry.dataId.visit, entry.rows])).toEqual([
+      ['Week 4', 'Week 4', 186],
+      ['Week 12', 'Week 12', 184]
+    ]);
+    expect({ ...asked[0].dataId, visit: 'Week 12' }).toEqual(asked[1].dataId);
+    expect(asked[0].args).toEqual(asked[1].args);
+    expect(asked.map((entry) => entry.answer)).toEqual([null, null]);
+    // They are the keys desktop R wrote for the same two panels.
+    expect(asked[0].dataId).toEqual(resultOf('welch').dataId);
+    expect(asked[1].dataId).toEqual(resultOf('welch-week-12').dataId);
+
+    // The second panel is answered first: it prints, and the first still waits.
+    await page.evaluate(() => window.__r.answer(1, 0.04));
+    await expect(lines.nth(1).locator('.bv-stat-result')).toHaveText(
+      'Welch Two Sample t-test: p = 0.040 (Placebo n = 92, Treatment n = 92). Exploratory, unadjusted.'
+    );
+    await expect(lines.nth(0)).toHaveText(WAITING);
+    await page.evaluate(() => window.__r.answer(0, 0.2));
+    await expect(lines.nth(0).locator('.bv-stat-result')).toHaveText(
+      'Welch Two Sample t-test: p = 0.200 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
+    );
+    await expect(lines.nth(0).locator('.bv-stat-scope')).toHaveText(
+      'This test compares the levels of ARM on the 186 participants drawn in this panel (Week 4). ' +
+        'Each panel has a test of its own, and they are not adjusted for one another.'
+    );
+    // A colour is not part of a panel's test, and the line says so; the rows are the same.
+    await choose(page, 'color-by', 'SEX');
+    await expect(lines).toHaveText([WAITING, WAITING]);
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(4);
+    expect((await calls(page)).slice(2).map((call) => call.rows)).toEqual([186, 184]);
+    await page.evaluate(() => window.__r.answer(2, 0.2));
+    await expect(lines.nth(0).locator('.bv-stat-scope')).toContainText(
+      'Colour by SEX is not part of it: each level of ARM is tested whole.'
+    );
+  });
+});
+
+test.describe('group comparison: R’s answers, stored with the page', () => {
+  // The chart on the demo's tables, with what the demo opens on stated, and a
+  // connection that holds desktop R's answers and has no R to ask.
+  async function openStored(page, cases, settings = {}, { rows = true } = {}) {
+    await open(page, {
+      data: 'arm-sex',
+      settings: {
+        start_value: 'IL-6',
+        visits: 'Week 4',
+        value_type: 'change',
+        baseline_visits: 'Baseline',
+        group_by: 'ARM',
+        ...settings
+      }
+    });
+    await page.evaluate(
+      (results) => {
+        window.__gc.chart.setSettings({
+          connection: window.BioViz.r.createConnection({ results })
+        });
+      },
+      stored(...cases).map((entry) => (rows ? entry : { ...entry, rows: undefined }))
+    );
+  }
+  const NOT_STORED =
+    'Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.';
+
+  test('GC-STAT-030: a view R’s answer was stored for prints it with no R and no request, and a view it was not stored for reads unavailable, never another view’s numbers (#16)', async ({
+    page
+  }) => {
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    // Stored without the number of rows each was computed on, so that it is the
+    // stated identity alone that tells one view from another here.
+    await openStored(page, ['welch', 'welch-week-12'], {}, { rows: false });
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect(line.locator('.bv-stat-result')).toHaveText(
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
+    );
+    await expect(line.locator('.bv-stat-estimate')).toHaveText(
+      'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.'
+    );
+    const [asked] = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.answer).toEqual({
+      status: 'ok',
+      value: resultOf('welch').value,
+      form: 'precomputed'
+    });
+    // The key the chart asked with is the key desktop R wrote.
+    const { name, args, dataId, rows } = resultOf('welch');
+    expect({ name: asked.name, args: asked.args, dataId: asked.dataId, rows: asked.rows }).toEqual({
+      name,
+      args,
+      dataId,
+      rows
+    });
+
+    // Every other view: unavailable, and the stored numbers are not on the page.
+    const elsewhere = [
+      () => choose(page, 'test', 'wilcoxon'),
+      () => page.locator('select[data-filter="SEX"]').selectOption('F'),
+      () => choose(page, 'color-by', 'SEX'),
+      () => choose(page, 'measure', 'CRP'),
+      () => choose(page, 'value-type', 'percent_change'),
+      () => choose(page, 'y-scale', 'log'),
+      () => choose(page, 'group-by', 'RESPONSE')
+    ];
+    for (const move of elsewhere) {
+      await page.locator('.sv-reset').click();
+      await expect(line.locator('.bv-stat-result')).toContainText('Welch Two Sample t-test');
+      await move();
+      await expect(line).toHaveText(NOT_STORED);
+      await expect(line).toHaveAttribute('data-state', 'unavailable');
+      await expect(line).not.toContainText('p <');
+    }
+    // Back on the view that was stored, its answer is printed again.
+    await page.locator('.sv-reset').click();
+    await expect(line.locator('.bv-stat-result')).toContainText('p < 0.001 (Placebo n = 95');
+
+    // One biomarker at two visits is two panels, each with a stored result of
+    // its own; a third visit that was not stored says so for itself.
+    await page.locator('[data-control="visits"] summary').click();
+    await page.locator('[data-control="visits"] input[value="Week 12"]').check();
+    await page.locator('[data-control="visits"] input[value="Week 8"]').check();
+    await expect(page.locator('.bv-panel h3')).toHaveText(['Week 4', 'Week 8', 'Week 12']);
+    const panels = page.locator('.bv-panel .bv-statistic');
+    await expect(panels.nth(0).locator('.bv-stat-result')).toContainText(
+      '(Placebo n = 95, Treatment n = 91)'
+    );
+    await expect(panels.nth(1)).toHaveText(NOT_STORED);
+    await expect(panels.nth(2).locator('.bv-stat-result')).toContainText(
+      '(Placebo n = 92, Treatment n = 92)'
+    );
+    await expect(panels.nth(2).locator('.bv-stat-estimate')).toHaveText(
+      'Difference in means (Placebo - Treatment): 1.419, 95% confidence interval 1.016 to 1.822.'
+    );
+    // Nothing was fetched for any of it.
+    expect(requests.filter(isRHost)).toEqual([]);
+  });
+
+  test('GC-STAT-031: the line prints what R returned: the result, the difference in means, the pairwise table, R’s warnings and notes, and R’s reason for a group too small (#16)', async ({
+    page
+  }) => {
+    await openStored(page, ['wilcoxon', 'kruskal-pairwise', 'welch-age-57'], {
+      test: 'wilcoxon',
+      pairwise: true,
+      filters: ['ARM', 'SEX', 'RESPONSE', { value_col: 'AGE', label: 'Age' }]
+    });
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect(line.locator('p')).toHaveText([
+      'Wilcoxon rank sum test with continuity correction: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
+      'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.',
+      'R’s note: The difference in means and its interval are from t.test() (Welch), whatever the test.',
+      'This test compares the levels of ARM on the 186 participants drawn.'
+    ]);
+    await expect(line.locator('table')).toHaveCount(0);
+
+    // Four groups, pairs on: the table, with each pair's counts and adjusted p-value.
+    await choose(page, 'group-by', 'ARM_SEX');
+    await expect(line.locator('.bv-stat-result')).toHaveText(
+      'Kruskal-Wallis rank sum test: p < 0.001 (Placebo F n = 42, Placebo M n = 53, Treatment F n = 42, Treatment M n = 49). Exploratory, unadjusted.'
+    );
+    const table = line.locator('table.bv-stat-pairs');
+    await expect(table.locator('caption')).toHaveText(
+      'Pairwise comparisons, each by the test named with it. Exploratory, adjusted (Holm).'
+    );
+    await expect(table.locator('thead th')).toHaveText(['Pair', 'n', 'p, adjusted (Holm)']);
+    const expected = resultOf('kruskal-pairwise').value.rows;
+    expect(
+      await table
+        .locator('tbody tr')
+        .evaluateAll((rows) =>
+          rows.map((row) => [...row.children].map((cell) => cell.firstChild.textContent))
+        )
+    ).toEqual([
+      ['Placebo F and Placebo M', '42, 53', 'p > 0.999'],
+      ['Placebo F and Treatment F', '42, 42', 'p = 0.006'],
+      ['Placebo F and Treatment M', '42, 49', 'p < 0.001'],
+      ['Placebo M and Treatment F', '53, 42', 'p = 0.002'],
+      ['Placebo M and Treatment M', '53, 49', 'p < 0.001'],
+      ['Treatment F and Treatment M', '42, 49', 'p > 0.999']
+    ]);
+    await expect(table.locator('tbody .bv-stat-method')).toHaveText(
+      expected.map((row) => row.method)
+    );
+    await expect(line.locator('.bv-stat-remark')).toHaveText([
+      'R warned: cannot compute exact p-value with ties',
+      "R’s note: Pairwise: each pair is compared with wilcox.test(); p_value is adjusted across the pairs by p.adjust(method = 'holm'); the intervals are not adjusted."
+    ]);
+    await expect(line).not.toContainText('*');
+    await expect(line).not.toContainText(/significan/i);
+
+    // A group below the minimum size: R's reason, once, and no number.
+    await page.locator('.sv-reset').click();
+    await choose(page, 'test', 't');
+    await page.locator('select[data-filter="AGE"]').selectOption('57');
+    await expect(line.locator('p')).toHaveText([
+      'Not computed: Treatment has 1. The minimum group size is 5. Counts: Placebo n = 7, Treatment n = 1.',
+      'This test compares the levels of ARM on the 8 participants drawn. Filters: Age is 57.'
+    ]);
+    await expect(line).toHaveAttribute('data-state', 'withheld');
+    await expect(line.locator('.bv-stat-result')).not.toContainText(/p [=<>]/);
+  });
+
+  test('GC-STAT-032: with a pairwise table under it the chart holds at a 390px-wide viewport, and the page does not scroll sideways (#16)', async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openStored(page, ['kruskal-pairwise'], {
+      group_by: 'ARM_SEX',
+      test: 'kruskal',
+      pairwise: true
+    });
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect(line.locator('table.bv-stat-pairs tbody tr')).toHaveCount(6);
+    await line.scrollIntoViewIfNeeded();
+    expect(await layout(page)).toEqual(HOLDS);
+    const fit = await page.evaluate(() => {
+      const within = (element) => {
+        const box = element.getBoundingClientRect();
+        return box.left >= 0 && box.right <= document.documentElement.clientWidth + 0.5;
+      };
+      const statistic = document.querySelector('.sv-main > .bv-statistic');
+      return {
+        line: within(statistic),
+        table: within(statistic.querySelector('table')),
+        cells: [...statistic.querySelectorAll('th, td, p, caption')].every(within),
+        // The table is not scrolled inside a box either: all of it is on the page.
+        clipped: statistic.scrollWidth > statistic.clientWidth
+      };
+    });
+    expect(fit).toEqual({ line: true, table: true, cells: true, clipped: false });
+    // The controls, opened: the test and the switch are there and usable.
+    await page.locator('.sv-sidebar-toggle').click();
+    await expect(page.locator('select[data-control="test"]')).toHaveValue('kruskal');
+    await expect(page.locator('input[data-control="pairwise"]')).toBeChecked();
+    expect(await layout(page)).toEqual(HOLDS);
+    await page.locator('.sv-sidebar-toggle').click();
+    await captureEvidence(line, 'GC-STAT-032', 'pairwise-table-on-a-phone');
+  });
+});
+
+test.describe('group comparison: nothing is fetched until a test is asked for', () => {
+  test('GC-STAT-033: with R attached and no test chosen the page asks for nothing; the first test chosen starts R, once (#16)', async ({
+    page
+  }) => {
+    // R here is the stand-in module, served from this machine in webR's place.
+    await page.addInitScript(() => {
+      const leaf = (type, values, names = null) => ({ type, names, values });
+      window.__fakeWebR = {
+        evaluations: 0,
+        instances: [],
+        functions: {
+          Analyze_GroupDifference: () => ({
+            type: 'list',
+            names: ['status', 'method', 'p_value', 'adjustment', 'counts'],
+            values: [
+              leaf('character', ['ok']),
+              leaf('character', ['Welch Two Sample t-test']),
+              leaf('double', [0.25]),
+              leaf('character', ['none']),
+              leaf('integer', [95, 91], ['Placebo', 'Treatment'])
+            ]
+          })
+        }
+      };
+    });
+    // The stand-in evaluates no R, so the file of functions it is given is a
+    // stand-in too: what is watched is when it is asked for.
+    await page.route('**/stand-in/statistics.R', (route) =>
+      route.fulfill({ status: 200, contentType: 'text/plain', body: '# no R is run here\n' })
+    );
+    const requests = [];
+    page.on('request', (request) => requests.push(new URL(request.url()).pathname));
+    const note = 'The first test starts R here.';
+    await open(page, { settings: { test: 'none', waiting_note: note } });
+    await page.evaluate(() => {
+      window.__gc.chart.setSettings({
+        connection: window.BioViz.r.createConnection({
+          browser: {
+            baseUrl: '/tests/e2e/fixtures/fake-webr',
+            sourceUrl: '/stand-in/statistics.R'
+          }
+        })
+      });
+    });
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect(line).toHaveText(`Statistics: no test chosen. ${note}`);
+    await expect(page.locator('select[data-control="test"]')).toHaveValue('none');
+
+    // Drawn again and again with no test chosen: nothing is asked of R.
+    await choose(page, 'mark', 'violin');
+    await page.locator('select[data-filter="SEX"]').selectOption('F');
+    await page.locator('select[data-filter="SEX"]').selectOption('__all__');
+    await page.waitForTimeout(300);
+    const forR = () => requests.filter((url) => /fake-webr|statistics\.R$/.test(url));
+    expect(forR()).toEqual([]);
+    expect(await page.evaluate(() => window.__fakeWebR.instances.length)).toBe(0);
+
+    // The first test chosen: R is started, and its one file of functions fetched.
+    await choose(page, 'test', 't');
+    await expect(line.locator('.bv-stat-result')).toHaveText(
+      'Welch Two Sample t-test: p = 0.250 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
+    );
+    expect(forR()).toEqual(['/tests/e2e/fixtures/fake-webr/webr.mjs', '/stand-in/statistics.R']);
+    // Another test, and another view: the same R, started once.
+    await choose(page, 'test', 'wilcoxon');
+    await page.locator('select[data-filter="SEX"]').selectOption('F');
+    await expect(line.locator('.bv-stat-result')).toContainText('p = 0.250');
+    expect(forR()).toHaveLength(2);
+    expect(await page.evaluate(() => window.__fakeWebR.instances.length)).toBe(1);
+    // R has answered: the note about starting it is gone from the texts.
+    await choose(page, 'test', 'none');
+    await expect(line).toHaveText('Statistics: no test chosen.');
   });
 });
 
@@ -899,10 +1474,14 @@ test.describe('group comparison: on the site', () => {
     expect(errors).toEqual([]);
   });
 
-  test('GC-SITE-002: the live demo draws the chart on the synthetic study, from safety.viz’s bundle and bio.viz’s, and says statistics are unavailable (#9)', async ({
+  test('GC-SITE-002: the live demo draws the chart on the synthetic study, from safety.viz’s bundle and bio.viz’s, with R attached; where R cannot be reached it still draws, and says so (#9)', async ({
     page
   }) => {
-    const errors = watch(page);
+    // R's hosts are kept out of reach: this test stays on this machine. The
+    // tests named GC-STAT-034 and after run the same page against real R.
+    await blockR(page);
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
     const scripts = [];
     page.on('request', (request) => {
       const url = new URL(request.url());
@@ -936,10 +1515,29 @@ test.describe('group comparison: on the site', () => {
       group: 'Arm',
       drawsWithKit: true
     });
-    await expect(page.locator('.sv-main > .bv-statistic')).toHaveText(
-      'Statistics are unavailable: no R is attached to this chart.'
+    // The chart is drawn, and the line under it says that R could not be
+    // started rather than nothing at all.
+    const line = page.locator('.sv-main > .bv-statistic');
+    await expect(line).toHaveAttribute('data-state', 'unavailable');
+    await expect(line).toContainText(
+      'Statistics are unavailable: R could not be started (Failed to fetch dynamically imported module: https://webr.r-wasm.org/v0.6.0/webr.mjs).'
     );
     await expect(page.locator('.sv-sidebar select[data-filter]')).toHaveCount(3);
+    // The demo offers a category with four levels beside the study's own three.
+    await expect(page.locator('select[data-control="group-by"] option')).toHaveText([
+      'Arm',
+      'Sex',
+      'Response',
+      'Arm and sex'
+    ]);
+    // The page says where the R it runs comes from: gsm.bio's file, at the
+    // commit it was copied from, published beside the page.
+    await expect(page.locator('#demo-statistics')).toContainText(
+      `copied from gsm.bio at commit ${statisticsRecord.commit.slice(0, 7)}`
+    );
+    const file = await page.request.get('/_site/vendor/gsm.bio/statistics.R');
+    expect(file.ok()).toBe(true);
+    expect((await file.body()).length).toBe(statisticsRecord.files[0].bytes);
     // The page says where safety.viz's bundle came from, and that the copy is from a branch.
     await expect(page.locator('#demo-kit')).toContainText(`version ${kitRecord.version}`);
     if (kitRecord.merged_to_dev === false) {
@@ -957,9 +1555,18 @@ test.describe('group comparison: on the site', () => {
   test('GC-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll (#9)', async ({
     page
   }) => {
+    // This test stays on this machine: R's hosts are out of reach, and the chart
+    // is set to ask for no test, so the line under it says that none is chosen
+    // and what the first one would cost. GC-STAT-042 is the same page on a
+    // phone with R answering.
+    await blockR(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/_site/group-comparison/index.html');
     await page.evaluate(() => window.BioVizDemo.ready);
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ test: 'none' }));
+    await expect(page.locator('.sv-main > .bv-statistic')).toHaveText(
+      'Statistics: no test chosen. The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
+    );
     const measure = () =>
       page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
@@ -998,3 +1605,594 @@ async function clickDemoCell(page, index) {
   }, index);
   await page.mouse.click(point.x, point.y);
 }
+
+// ---------------------------------------------------------------------------
+// The gallery's demo, for real (#16). These tests need the network: they open
+// the built demo page, which starts webR 0.6.0 from its public host and gives it
+// gsm.bio's statistics file, and they hold what R in the browser answers to
+// what desktop R answered for the same rows (tests/fixtures/
+// group-statistics-r.json). If R's host cannot be reached the tests fail;
+// nothing here skips, and nothing retries.
+//
+// They run in order on one page, because R is started once and the cost of
+// starting it is one of the things measured. The browser is started on a new,
+// empty profile with a disk cache, the way a first-time visitor's is.
+//
+// Equality is 1 part in 10^8, the R check page's tolerance: desktop R and R in
+// the browser are different builds of different R versions. One difference
+// between those versions is not a rounding of the last digits and is not let
+// through by widening the tolerance: with tied values and fewer than 50 in each
+// group, `wilcox.test` in R 4.3 warns that it cannot compute an exact p-value
+// and approximates, where R 4.6 computes the exact one. Where desktop R recorded
+// that warning the two answers are printed side by side and every other number
+// is still held equal.
+
+const TIES = 'cannot compute exact p-value with ties';
+const megabytes = (bytes) => Number((bytes / 1e6).toFixed(2));
+
+test.describe('group comparison: the demo, with R in the browser, live', () => {
+  test.describe.configure({ mode: 'serial', timeout: 240_000 });
+
+  let context;
+  let page;
+  const finished = [];
+  const sideBySide = [];
+  const measured = {};
+  const session = {};
+  const line = () => page.locator('.sv-main > .bv-statistic');
+  const result = () => line().locator('.bv-stat-result');
+  const isRFile = (url) => isRHost(url) || new URL(url).pathname.endsWith('/statistics.R');
+
+  // What the chart asked R for the one panel drawn, and what R answered.
+  const asked = () => page.evaluate(() => window.BioVizDemo.chart.statistics()[0]);
+  // The rows the chart drew in that panel, which are the rows it handed R.
+  const drawnRows = () =>
+    page.evaluate(() =>
+      window.BioVizDemo.chart.model.panels[0].records.map((record) => Object.values(record))
+    );
+  // Waits until the line holds an answer from R for the view now drawn.
+  const answered = async () => {
+    await expect(line()).not.toHaveAttribute('data-state', /^(waiting|empty)$/, {
+      timeout: 200_000
+    });
+    return asked();
+  };
+  // Everything the line has read since the page opened, as it changed. A line
+  // that was cleared and not yet asked for is not something it read.
+  const lineLog = () =>
+    page.evaluate(() =>
+      window.__line
+        .filter((entry) => entry.state !== 'empty')
+        .map(({ state, text }) => [state, text])
+    );
+  // The view these tests start from, stated here and not left to what the demo
+  // opens on: one biomarker at one visit, by arm, with the Welch t-test.
+  const OPENING = {
+    start_value: 'IL-6',
+    visits: 'Week 4',
+    value_type: 'change',
+    group_by: 'ARM',
+    test: 't',
+    pairwise: false
+  };
+  const openView = async () => {
+    await page.evaluate(() => window.BioVizDemo.ready);
+    await page.evaluate((settings) => {
+      window.BioVizDemo.chart.setSettings(settings);
+    }, OPENING);
+  };
+  const clearLineLog = () =>
+    page.evaluate(() => {
+      window.__line = [];
+    });
+
+  // The rows desktop R ran on, from the committed file.
+  const fixtureRows = (file) =>
+    readFileSync(new URL(`../fixtures/group-statistics/${file}`, import.meta.url), 'utf8')
+      .trimEnd()
+      .split('\n')
+      .slice(1)
+      .map((row) => row.split(',').map((cell, index) => (index === 1 ? Number(cell) : cell)));
+
+  // Holds one answer from R in the browser to desktop R's for the same case:
+  // the chart asked with the key desktop R wrote, on the rows desktop R read,
+  // and every member of the answer is the same. Returns the members that are
+  // not, for the one case where that is expected.
+  async function holdToDesktop(name, testInfo) {
+    const expected = resultOf(name);
+    const answer = await answered();
+    expect(answer.answer.status, `${name}: ${answer.answer.message}`).toBe('ok');
+    expect(answer.answer.form).toBe('browser');
+    expect({
+      name: answer.name,
+      args: answer.args,
+      dataId: answer.dataId,
+      rows: answer.rows
+    }).toEqual({
+      name: expected.name,
+      args: expected.args,
+      dataId: expected.dataId,
+      rows: expected.rows
+    });
+    expect(await drawnRows()).toEqual(fixtureRows(expected.file));
+
+    const compared = compareValues(expected.value, answer.answer.value);
+    const differing = compared.filter((row) => !row.ok);
+    const numbers = compared.filter((row) => row.difference !== null);
+    sideBySide.push({
+      case: name,
+      method: expected.value.method,
+      p_value: { desktop: expected.value.p_value, browser: answer.answer.value.p_value },
+      statistic: {
+        desktop: expected.value.statistic.map((entry) => entry.value),
+        browser: (answer.answer.value.statistic || []).map((entry) => entry.value)
+      },
+      numbersCompared: numbers.length,
+      greatestRelativeDifference: Math.max(
+        0,
+        ...numbers
+          .filter((row) => row.ok)
+          .map(
+            (row) => row.difference / Math.max(Math.abs(row.expected), Math.abs(row.actual)) || 0
+          )
+      ),
+      differing: differing.map(({ path: where, expected: desktop, actual: browser }) => ({
+        where,
+        desktop,
+        browser
+      }))
+    });
+    await testInfo.attach(`${name}-desktop-R-and-webR.json`, {
+      body: JSON.stringify(
+        { desktopR: expected.value, webR: answer.answer.value, differing },
+        null,
+        2
+      ),
+      contentType: 'application/json'
+    });
+    return { expected: expected.value, actual: answer.answer.value, differing, compared };
+  }
+
+  test.beforeAll(async ({}, testInfo) => {
+    const profile = mkdtempSync(path.join(tmpdir(), 'bio-viz-group-comparison-'));
+    context = await chromium.launchPersistentContext(profile, {
+      headless: true,
+      baseURL: testInfo.project.use.baseURL,
+      viewport: { width: 1280, height: 800 }
+    });
+    // Every state and text the statistics line takes, with when it took it.
+    await context.addInitScript(() => {
+      window.__line = [];
+      new MutationObserver(() => {
+        const found = document.querySelector('.sv-main > .bv-statistic');
+        if (!found) return;
+        const entry = { state: found.dataset.state, text: found.textContent };
+        const last = window.__line[window.__line.length - 1];
+        if (!last || last.state !== entry.state || last.text !== entry.text) {
+          window.__line.push({ ...entry, at: performance.now() });
+        }
+      }).observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true
+      });
+    });
+    page = context.pages()[0] || (await context.newPage());
+    page.on('requestfinished', async (request) => {
+      const entry = { url: request.url(), bytes: 0 };
+      finished.push(entry);
+      const sizes = await request.sizes().catch(() => null);
+      if (sizes) entry.bytes = Math.max(0, sizes.responseBodySize);
+    });
+    await page.goto('/_site/group-comparison/index.html');
+    await openView();
+  });
+
+  test.afterAll(async () => {
+    await context?.close();
+  });
+
+  test('GC-STAT-034: the demo draws first and starts R when its first panel asks for a test; the line waits, saying what the first start costs, and then prints the Welch t-test desktop R gives (#16)', async ({}, testInfo) => {
+    // The chart is on the page before R has answered anything.
+    const drawn = await page.evaluate(() => window.BioVizDemo.chart.charts.length);
+    expect(drawn).toBe(1);
+    const { expected, differing } = await holdToDesktop('welch', testInfo);
+    expect(differing).toEqual([]);
+    expect(expected.method).toBe('Welch Two Sample t-test');
+
+    // What the line read, in order: waiting, with the page's note on the cost
+    // of the first start, and then R's answer. Nothing else, and no number
+    // before R's. (Where the page was slow to finish loading, R answered the
+    // view it opened on before this group stated the same view again: then the
+    // line waited and printed twice, and the same holds of both.)
+    const log = await lineLog();
+    expect(log[0]).toEqual([
+      'waiting',
+      'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
+    ]);
+    const states = log.map(([state]) => state);
+    expect([
+      ['waiting', 'shown'],
+      ['waiting', 'shown', 'waiting', 'shown']
+    ]).toContainEqual(states);
+    for (const [state, text] of log) {
+      if (state === 'waiting') expect(text).not.toMatch(/p [=<>]/);
+      else expect(text).toContain('p < 0.001 (Placebo n = 95, Treatment n = 91)');
+    }
+    await expect(line().locator('p')).toHaveText([
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
+      'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.',
+      'This test compares the levels of Arm on the 186 participants drawn.'
+    ]);
+    await expect(line()).not.toContainText('*');
+    await expect(line()).not.toContainText(/significan/i);
+
+    // R was started once, from the pinned version on its public host, and
+    // given gsm.bio's statistics file as this site publishes it.
+    const forR = finished.filter((request) => isRFile(request.url)).map((request) => request.url);
+    expect(forR.filter((url) => url.endsWith('/webr.mjs'))).toEqual([
+      'https://webr.r-wasm.org/v0.6.0/webr.mjs'
+    ]);
+    expect(forR.filter((url) => url.endsWith('/statistics.R'))).toEqual([
+      new URL('/_site/vendor/gsm.bio/statistics.R', page.url()).href
+    ]);
+    // No R package was installed: the file needs none to be sourced.
+    expect(forR.filter((url) => new URL(url).hostname === 'repo.r-wasm.org')).toEqual([]);
+
+    // The cost of that first start, kept for GC-STAT-041.
+    const times = await page.evaluate(() =>
+      ['waiting', 'shown'].map((state) => window.__line.find((entry) => entry.state === state).at)
+    );
+    const files = finished.filter((request) => isRFile(request.url));
+    measured.cold = {
+      megabytes: megabytes(files.reduce((total, file) => total + file.bytes, 0)),
+      bytes: files.reduce((total, file) => total + file.bytes, 0),
+      requests: files.length,
+      seconds: Number(((times[1] - times[0]) / 1000).toFixed(3)),
+      files
+    };
+  });
+
+  test('GC-STAT-035: choosing the Wilcoxon rank-sum test prints the result desktop R gives, and R is not started again (#16)', async ({}, testInfo) => {
+    const before = finished.filter((request) => isRFile(request.url)).length;
+    await clearLineLog();
+    await choose(page, 'test', 'wilcoxon');
+    const { differing } = await holdToDesktop('wilcoxon', testInfo);
+    expect(differing).toEqual([]);
+    await expect(line().locator('p')).toHaveText([
+      'Wilcoxon rank sum test with continuity correction: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
+      'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.',
+      'R’s note: The difference in means and its interval are from t.test() (Welch), whatever the test.',
+      'This test compares the levels of Arm on the 186 participants drawn.'
+    ]);
+    // R is running: the wait says only that it is waiting, and nothing more is fetched.
+    expect((await lineLog())[0]).toEqual(['waiting', WAITING]);
+    await page.waitForTimeout(500);
+    expect(finished.filter((request) => isRFile(request.url)).length).toBe(before);
+  });
+
+  test('GC-STAT-036: with four groups the control offers the several-group tests, and the one-way ANOVA is the one desktop R gives (#16)', async ({}, testInfo) => {
+    await choose(page, 'group-by', 'ARM_SEX');
+    await expect(page.locator('select[data-control="test"] option')).toHaveText([
+      'One-way ANOVA',
+      'Kruskal-Wallis test',
+      'None'
+    ]);
+    await choose(page, 'test', 'anova');
+    const { differing } = await holdToDesktop('anova', testInfo);
+    expect(differing).toEqual([]);
+    await expect(line().locator('p')).toHaveText([
+      'One-way analysis of variance: p < 0.001 (Placebo F n = 42, Placebo M n = 53, Treatment F n = 42, Treatment M n = 49). Exploratory, unadjusted.',
+      'This test compares the levels of Arm and sex on the 186 participants drawn.'
+    ]);
+  });
+
+  test('GC-STAT-037: the Kruskal-Wallis test is the one desktop R gives (#16)', async ({}, testInfo) => {
+    await choose(page, 'test', 'kruskal');
+    const { differing } = await holdToDesktop('kruskal', testInfo);
+    expect(differing).toEqual([]);
+    await expect(line().locator('p')).toHaveText([
+      'Kruskal-Wallis rank sum test: p < 0.001 (Placebo F n = 42, Placebo M n = 53, Treatment F n = 42, Treatment M n = 49). Exploratory, unadjusted.',
+      'This test compares the levels of Arm and sex on the 186 participants drawn.'
+    ]);
+  });
+
+  test('GC-STAT-038: pairwise comparisons are the ones desktop R gives, adjusted by Holm; where R’s own answer differs between the two versions, both are shown and nothing else differs (#16)', async ({}, testInfo) => {
+    const table = line().locator('table.bv-stat-pairs');
+    const cells = () =>
+      table
+        .locator('tbody tr')
+        .evaluateAll((rows) =>
+          rows.map((row) => [...row.children].map((cell) => cell.firstChild.textContent))
+        );
+
+    // Under the one-way ANOVA every pair is a Welch t-test: no ties to matter,
+    // and every number agrees.
+    await choose(page, 'test', 'anova');
+    await page.locator('input[data-control="pairwise"]').check();
+    const means = await holdToDesktop('anova-pairwise', testInfo);
+    expect(means.differing).toEqual([]);
+    expect(means.actual.rows).toHaveLength(6);
+    expect(means.actual.rows.every((row) => row.adjustment === 'holm')).toBe(true);
+    await expect(table.locator('caption')).toHaveText(
+      'Pairwise comparisons, each by Welch Two Sample t-test. Exploratory, adjusted (Holm).'
+    );
+    await expect(table.locator('thead th')).toHaveText(['Pair', 'n', 'p, adjusted (Holm)']);
+    expect(await cells()).toEqual([
+      ['Placebo F and Placebo M', '42, 53', 'p > 0.999'],
+      ['Placebo F and Treatment F', '42, 42', 'p < 0.001'],
+      ['Placebo F and Treatment M', '42, 49', 'p < 0.001'],
+      ['Placebo M and Treatment F', '53, 42', 'p < 0.001'],
+      ['Placebo M and Treatment M', '53, 49', 'p < 0.001'],
+      ['Treatment F and Treatment M', '42, 49', 'p > 0.999']
+    ]);
+    await expect(line().locator('.bv-stat-remark')).toHaveText([
+      "R’s note: Pairwise: each pair is compared with t.test() (Welch); p_value is adjusted across the pairs by p.adjust(method = 'holm'); the intervals are not adjusted."
+    ]);
+
+    // Under the Kruskal-Wallis test every pair is a Wilcoxon rank-sum test.
+    await choose(page, 'test', 'kruskal');
+    const ranks = await holdToDesktop('kruskal-pairwise', testInfo);
+    // The pairs where desktop R (4.3) met ties in two groups of fewer than 50
+    // and approximated. There R in the browser (4.6) computes the exact
+    // p-value instead: a different method, a different number, and no warning.
+    const tied = ranks.expected.rows
+      .map((row, index) => (row.warning === TIES ? index : null))
+      .filter((index) => index !== null);
+    expect(tied).toEqual([1, 5]);
+    const known = (where) =>
+      where === 'warnings' ||
+      tied.some((index) =>
+        ['method', 'p_unadjusted', 'p_value', 'warning'].some(
+          (member) => where === `rows[${index}].${member}`
+        )
+      );
+    // Every member outside that case agrees with desktop R: the whole-chart
+    // test, the counts, the statistics, and the four pairs with no ties to
+    // approximate, adjusted p-values included.
+    expect(ranks.differing.filter((row) => !known(row.path))).toEqual([]);
+    expect(ranks.compared.filter((row) => row.ok && !known(row.path)).length).toBeGreaterThan(80);
+    // And the case is the known one, not some other disagreement.
+    for (const index of tied) {
+      const [desktop, browser] = [ranks.expected.rows[index], ranks.actual.rows[index]];
+      expect(desktop.method).toBe('Wilcoxon rank sum test with continuity correction');
+      expect(browser.method).toBe('Wilcoxon rank sum exact test');
+      expect(browser.warning).toBe(null);
+      // The statistic is the same W: only how its p-value is worked out differs.
+      expect(browser.statistic).toBe(desktop.statistic);
+      expect(browser.n_1 < 50 && browser.n_2 < 50).toBe(true);
+    }
+    expect(ranks.expected.warnings).toEqual([TIES]);
+    session.ties = tied.map((index) => ({
+      pair: `${ranks.expected.rows[index].group_1} and ${ranks.expected.rows[index].group_2}`,
+      desktop: {
+        method: ranks.expected.rows[index].method,
+        p_unadjusted: ranks.expected.rows[index].p_unadjusted,
+        p_value: ranks.expected.rows[index].p_value,
+        warning: ranks.expected.rows[index].warning
+      },
+      browser: {
+        method: ranks.actual.rows[index].method,
+        p_unadjusted: ranks.actual.rows[index].p_unadjusted,
+        p_value: ranks.actual.rows[index].p_value,
+        warning: ranks.actual.rows[index].warning
+      }
+    }));
+
+    // The page prints what R in this browser returned.
+    await expect(line().locator('.bv-stat-result')).toHaveText(
+      'Kruskal-Wallis rank sum test: p < 0.001 (Placebo F n = 42, Placebo M n = 53, Treatment F n = 42, Treatment M n = 49). Exploratory, unadjusted.'
+    );
+    await expect(table.locator('caption')).toHaveText(
+      'Pairwise comparisons, each by the test named with it. Exploratory, adjusted (Holm).'
+    );
+    const printed = await cells();
+    expect(printed.map((row) => row.slice(0, 2))).toEqual([
+      ['Placebo F and Placebo M', '42, 53'],
+      ['Placebo F and Treatment F', '42, 42'],
+      ['Placebo F and Treatment M', '42, 49'],
+      ['Placebo M and Treatment F', '53, 42'],
+      ['Placebo M and Treatment M', '53, 49'],
+      ['Treatment F and Treatment M', '42, 49']
+    ]);
+    // The four pairs both versions agree on print what desktop R's numbers print.
+    expect([0, 2, 3, 4].map((index) => printed[index][2])).toEqual([
+      'p > 0.999',
+      'p < 0.001',
+      'p = 0.002',
+      'p < 0.001'
+    ]);
+    await expect(table.locator('tbody .bv-stat-method')).toHaveText(
+      ranks.actual.rows.map((row) => row.method)
+    );
+    session.printedPairs = printed;
+  });
+
+  test('GC-STAT-039: a filter change shows the waiting state and then the new result, and never the old one (#16)', async ({}, testInfo) => {
+    await page.locator('.sv-reset').click();
+    await expect(result()).toContainText('(Placebo n = 95, Treatment n = 91)');
+    await clearLineLog();
+
+    await page.locator('select[data-filter="SEX"]').selectOption('F');
+    const { differing } = await holdToDesktop('welch-women', testInfo);
+    expect(differing).toEqual([]);
+    await expect(line().locator('p')).toHaveText([
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 42, Treatment n = 42). Exploratory, unadjusted.',
+      'Difference in means (Placebo - Treatment): 1.098, 95% confidence interval 0.5471 to 1.649.',
+      'This test compares the levels of Arm on the 84 participants drawn. Filters: Sex is F.'
+    ]);
+    // From the moment of the change: waiting, then the answer for the 84. The
+    // answer for the 186 is not on the line at any point after it.
+    const log = await lineLog();
+    expect(log.map(([state]) => state)).toEqual(['waiting', 'shown']);
+    expect(log[0][1]).toBe(WAITING);
+    for (const [, text] of log) expect(text).not.toContain('Placebo n = 95');
+
+    // Back again, and the same holds the other way.
+    await clearLineLog();
+    await page.locator('select[data-filter="SEX"]').selectOption('__all__');
+    await expect(result()).toContainText('(Placebo n = 95, Treatment n = 91)');
+    const back = await lineLog();
+    expect(back.map(([state]) => state)).toEqual(['waiting', 'shown']);
+    for (const [, text] of back) expect(text).not.toContain('Placebo n = 42');
+  });
+
+  test('GC-STAT-040: a group below the minimum size prints R’s reason, once, and no number (#16)', async ({}, testInfo) => {
+    // The demo's filters, and one more: age, where one arm has a single
+    // participant aged 57 with a value.
+    await page.evaluate(() => {
+      const { chart, groupComparison } = window.BioVizDemo;
+      chart.setSettings({
+        filters: groupComparison.settings.filters.concat([{ value_col: 'AGE', label: 'Age' }])
+      });
+    });
+    await page.locator('select[data-filter="AGE"]').selectOption('57');
+    const { expected, actual, differing } = await holdToDesktop('welch-age-57', testInfo);
+    expect(differing).toEqual([]);
+    expect(actual.status).toBe('too_small');
+    expect(actual.p_value).toBe(null);
+    await expect(line()).toHaveAttribute('data-state', 'withheld');
+    await expect(line().locator('p')).toHaveText([
+      'Not computed: Treatment has 1. The minimum group size is 5. Counts: Placebo n = 7, Treatment n = 1.',
+      'This test compares the levels of Arm on the 8 participants drawn. Filters: Age is 57.'
+    ]);
+    const text = await result().textContent();
+    expect(text.startsWith(expected.reason)).toBe(true);
+    expect(text.match(/not computed/gi)).toHaveLength(1);
+    expect(text).not.toMatch(/p [=<>]/);
+    await expect(line().locator('.bv-stat-estimate')).toHaveCount(0);
+    await page.locator('select[data-filter="AGE"]').selectOption('__all__');
+    await expect(result()).toContainText('(Placebo n = 95, Treatment n = 91)');
+  });
+
+  test('GC-STAT-041: the megabytes and seconds of the first test are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#16)', async ({
+    browser
+  }, testInfo) => {
+    // What the page says the first start costs, and the number behind it.
+    const told = await page.evaluate(() => window.BioVizDemo.groupComparison);
+    expect(told.settings.waiting_note).toContain(`about ${told.megabytes} MB`);
+    expect(told.browser).toEqual({ sourceUrl: '../vendor/gsm.bio/statistics.R', packages: [] });
+    // Nothing was cached, and what came over the network is what the page said.
+    expect(measured.cold.megabytes).toBeGreaterThan(5);
+    expect(Math.abs(measured.cold.megabytes - told.megabytes)).toBeLessThan(1.5);
+    expect(measured.cold.seconds).toBeGreaterThan(0);
+
+    const record = {
+      recorded: new Date().toISOString(),
+      browser: `Chromium ${browser.version()}, headless`,
+      machine:
+        process.env.R_CHECK_MACHINE ||
+        (process.env.CI ? 'a GitHub Actions runner (ubuntu-latest)' : 'not named'),
+      profile: 'a new, empty browser profile with a disk cache',
+      sizes:
+        'compressed bytes of response bodies as received over the network; response headers are not counted',
+      firstTest: {
+        megabytes: measured.cold.megabytes,
+        bytes: measured.cold.bytes,
+        requests: measured.cold.requests,
+        seconds: measured.cold.seconds,
+        secondsAre:
+          'from the moment the line first read that it was waiting to the moment it printed R’s answer'
+      },
+      tolerance: `1 part in 10^${Math.round(-Math.log10(TOLERANCE.relative))}`,
+      desktopR: statistics.made_by,
+      answers: sideBySide,
+      knownDifference: session.ties,
+      files: measured.cold.files
+    };
+    const text = JSON.stringify(record, null, 2) + '\n';
+    await testInfo.attach('group-comparison-measurements.json', {
+      body: text,
+      contentType: 'application/json'
+    });
+    mkdirSync(new URL('../../test-results/', import.meta.url), { recursive: true });
+    writeFileSync(
+      new URL('../../test-results/group-comparison-measurements.json', import.meta.url),
+      text
+    );
+
+    console.log(`\nGroup comparison demo, first test — ${record.browser}, ${record.machine}`);
+    console.log(
+      `  ${record.firstTest.megabytes} MB over the network in ${record.firstTest.requests} ` +
+        `requests, ${record.firstTest.seconds} s from waiting to R's answer`
+    );
+    for (const file of measured.cold.files) {
+      console.log(`  ${String(file.bytes).padStart(9)} bytes  ${file.url}`);
+    }
+    console.log(
+      `\nDesktop R ${statistics.made_by.r_version} beside R in the browser, tolerance ${record.tolerance}`
+    );
+    for (const entry of sideBySide) {
+      console.log(
+        `  ${entry.case.padEnd(17)} p_value desktop ${String(entry.p_value.desktop).padEnd(24)} ` +
+          `browser ${String(entry.p_value.browser).padEnd(24)} ` +
+          `${entry.numbersCompared} numbers, greatest relative difference among those that agree ` +
+          `${entry.greatestRelativeDifference.toExponential(2)}, ${entry.differing.length} differing`
+      );
+    }
+    for (const tie of session.ties) {
+      console.log(
+        `  known difference, ${tie.pair}: desktop ${tie.desktop.method}, unadjusted ` +
+          `${tie.desktop.p_unadjusted}, adjusted ${tie.desktop.p_value}; browser ` +
+          `${tie.browser.method}, unadjusted ${tie.browser.p_unadjusted}, adjusted ${tie.browser.p_value}`
+      );
+    }
+    // Every case of the four tests and the pairwise comparisons was compared.
+    expect(sideBySide.map((entry) => entry.case)).toEqual([
+      'welch',
+      'wilcoxon',
+      'anova',
+      'kruskal',
+      'anova-pairwise',
+      'kruskal-pairwise',
+      'welch-women',
+      'welch-age-57'
+    ]);
+  });
+
+  test('GC-STAT-042: on a phone the demo prints R’s result and a pairwise table, and the page does not scroll sideways (#16)', async () => {
+    // The page as a phone opens it: loaded at that width, where the controls
+    // start folded away. R is started again, from the files the browser kept.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await openView();
+    const measure = () =>
+      page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        bodyScrollWidth: document.body.scrollWidth
+      }));
+    const holds = { viewport: 390, scrollWidth: 390, bodyScrollWidth: 390 };
+    await expect(page.locator('.sv-root')).toHaveClass(/sv-collapsed/);
+    // While it waits, with the note on what the first start costs, and after.
+    expect((await lineLog())[0][0]).toBe('waiting');
+    expect(await measure()).toEqual(holds);
+    await answered();
+    await expect(result()).toHaveText(
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
+    );
+    expect(await measure()).toEqual(holds);
+
+    // One tap opens the controls: four groups, every pair compared.
+    await page.locator('.sv-sidebar-toggle').click();
+    await choose(page, 'group-by', 'ARM_SEX');
+    await page.locator('input[data-control="pairwise"]').check();
+    await page.locator('.sv-sidebar-toggle').click();
+    await answered();
+    const table = line().locator('table.bv-stat-pairs');
+    await expect(table.locator('tbody tr')).toHaveCount(6);
+    await expect(table.locator('caption')).toHaveText(
+      'Pairwise comparisons, each by Welch Two Sample t-test. Exploratory, adjusted (Holm).'
+    );
+    expect(await measure()).toEqual(holds);
+    const overflowing = await page.evaluate(() =>
+      [...document.querySelectorAll('#demo .bv-statistic, #demo .bv-statistic *')]
+        .filter((element) => element.getBoundingClientRect().right > 390.5)
+        .map((element) => element.tagName.toLowerCase())
+    );
+    expect(overflowing).toEqual([]);
+    await line().scrollIntoViewIfNeeded();
+    await captureEvidence(line(), 'GC-STAT-042', 'r-in-the-browser-on-a-phone');
+  });
+});

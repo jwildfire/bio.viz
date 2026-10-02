@@ -14,9 +14,10 @@ npm run format:check          # Prettier (npm run format to fix)
 npm run requirements          # requirements/*.md -> docs/requirements/<module>.json (:check to verify)
 npm run evidence              # run both suites -> docs/evidence/<module>/evidence.json (:check to verify)
 npm run site                  # build the site into _site/ (gitignored)
-npm run fixtures:check        # desktop R re-derives the R check page's expected results (needs R)
+npm run fixtures:check        # desktop R re-derives every committed expected result (needs R)
 npm run data:check            # the vendored synthetic study matches its record (:check-source asks gsm.bio)
 npm run kit:check             # the vendored safety.viz bundle matches its record (:check-source asks safety.viz)
+npm run statistics:check      # the vendored gsm.bio statistics file matches its record (:check-source asks gsm.bio)
 ```
 
 Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test:e2e`, `evidence:check` and `requirements:check` all pass. CI runs the same.
@@ -26,13 +27,16 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - After any change under `src/`, run `npm run build` and commit `dist/` with it.
 - After adding, removing or renaming a test, run `npm run evidence` and commit `docs/evidence/`.
 - Name a test by the requirement ID it evidences and the issue it belongs to: `'CORE-API-001: … (#1)'`. Unit tests for a module go in `tests/unit/<module>/`, browser tests in `tests/e2e/<module>.spec.js`.
-- No statistical inference in JavaScript. A chart asks R through the connection and draws what comes back.
+- No statistical inference in JavaScript. A chart chooses which R function and arguments to ask for, asks R through the connection, and prints what comes back through `src/r/formatStatistic.js`. No test, estimate, interval, adjustment or minimum group size is worked out or defaulted in JavaScript.
 - `src/core/` is pure: no page, no chart, no network, nothing imported from outside it. A chart takes its variables through `core.variable` and its rows through `core.frame`; do not resolve a variable anywhere else.
 - A chart is built from `SafetyViz.kit`, found on the page when the chart is made. Nothing under `src/` imports safety.viz or Chart.js. Never edit `site/vendor/safety.viz/`: it is safety.viz's bundle, copied by `node tools/vendor-safety-viz.mjs`.
 - A chart may describe the values it draws (counts, quantiles, a mean, a density outline) and nothing more. Those numbers are held to desktop R by `tests/fixtures/group-comparison-r.json`, which `Rscript tools/r-group-comparison.R` writes; never type a number into it.
 - No runtime dependencies in package.json. safety.viz and webR are loaded beside the bundle on a page, never bundled; webR is loaded on first use.
 - The only file that knows webR's API is `src/r/webREngine.js`. Unit and browser tests of the connection use a stub engine or the stand-in at `tests/e2e/fixtures/fake-webr/`; they never reach the network.
-- The `RCON-LIVE-*` browser tests run real R from webR's public CDN and need the network. They fail when it is unreachable; do not make them skip or retry.
+- The `RCON-LIVE-*` browser tests, and the group comparison chart's `GC-STAT-034` to `GC-STAT-042`, run real R from webR's public CDN and need the network. They fail when it is unreachable; do not make them skip or retry. Every other test that opens a page with R attached keeps R's hosts out of reach (`blockR`).
+- Never edit `site/vendor/gsm.bio/`: it is gsm.bio's statistics file, copied by `node tools/vendor-statistics.mjs`. After copying it again, run `npm run fixtures`: the expected results name the copy they were made from.
+- Never type a number into `tests/fixtures/group-statistics-r.json`, or a row into `tests/fixtures/group-statistics/`. The rows are written by `node tools/derive-group-statistics.mjs` from the demo's own settings with the chart's own code, and the results by `Rscript tools/r-group-statistics.R` from those rows. Rerun both, in that order, when the demo's settings, the core's frame or what the chart sends R changes.
+- What the chart sends R (`statisticRequest` in `src/group-comparison/statistic.js`) is a contract with gsm.bio's widget, which writes stored results under the same key. Changing a member of `args` or `dataId` breaks pages already saved: change `docs/group-comparison.md` and the R recipe in `tools/r-group-statistics.R` with it.
 - Never type a number into `site/r-check/expected.json`. It is written by `npm run fixtures` (desktop R) and checked by `npm run fixtures:check`.
 - Never edit `site/data/synthetic-study/`. It is gsm.bio's study, copied byte for byte by `node tools/vendor-synthetic-study.mjs`, with a checksum per file in `SOURCE.json`.
 - A module's API reference page is its reference file in `docs/`, rendered. After changing an export, a parameter or a constant, change that file; `npm run site` and `npm test` fail when they disagree.
