@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bio.viz association scatter fixture</title>
+    <style>
+      body {
+        margin: 16px;
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Association scatter fixture</h1>
+    <p>
+      Playwright harness page for the association scatter (#26). It loads safety.viz's vendored
+      bundle and then bio.viz's committed bundle, as two script tags, and draws the chart on the
+      vendored synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the
+      results and the participant table, the default), <code>results</code> (the results table as
+      vendored, alone) or <code>results-with-arm</code> (the derived fixture: results with ARM
+      carried on the rows, and no participant table). The pair the chart opens on is stated here,
+      TNF-alpha against IL-10 at Baseline, not left to the chart's defaults; a test of the defaults
+      sets <code>x</code> and <code>y</code> to null. <code>?make=no</code> loads the tables and
+      makes no chart, for a test that makes its own. The tests reach the chart as
+      <code>window.__as.chart</code>.
+    </p>
+    <div id="chart"></div>
+    <script src="/site/vendor/safety.viz/safety.viz.js"></script>
+    <script src="/dist/bio.viz-0.1.0/bio.viz.js"></script>
+    <script src="/site/demo/synthetic-study.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const which = params.get('data') || 'both';
+      const study = '/site/data/synthetic-study/';
+
+      function tables() {
+        if (which === 'results-with-arm') {
+          return BioVizDemo.read('/tests/e2e/fixtures/data/results-with-arm.csv').then(
+            (results) => ({ results })
+          );
+        }
+        return BioVizDemo.loadStudy(study).then((loaded) =>
+          which === 'results' ? { results: loaded.results } : loaded
+        );
+      }
+
+      // A test may set these before the chart is made.
+      window.__asSettings = window.__asSettings || {};
+      window.__as = {
+        ready: tables().then((data) => {
+          window.__as.data = data;
+          if (params.get('make') === 'no') return null;
+          const settings = Object.assign(
+            {
+              x: { measure: 'TNF-alpha', visit: 'Baseline' },
+              y: { measure: 'IL-10', visit: 'Baseline' },
+              baseline_visits: 'Baseline',
+              studyday_col: which === 'results-with-arm' ? null : 'DAY'
+            },
+            window.__asSettings
+          );
+          const chart = BioViz.associationScatter('#chart', settings);
+          window.__as.chart = chart;
+          chart.init(data);
+          return chart;
+        })
+      };
+    </script>
+  </body>
+</html>

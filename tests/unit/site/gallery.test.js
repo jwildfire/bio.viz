@@ -139,6 +139,18 @@ describe('gallery', () => {
     expect(one).toContain('href="group-comparison/index.html">Live demo</a>');
   });
 
+  it('the home page heads its callout for one chart and for several (#26)', () => {
+    const second = { ...chart, module: 'association-scatter', title: 'Association scatter' };
+    const two = renderHome({
+      config: config(module(), chart, second),
+      version: '0.1.0',
+      summaries: {}
+    });
+    expect(two).toContain('<h2>The charts</h2>');
+    expect(two).not.toContain('The first chart');
+    expect(two).toContain('href="association-scatter/index.html">Live demo</a>');
+  });
+
   it('the home page links each module’s evidence page and API reference, and the gallery (#7)', () => {
     const html = renderHome({ config: config(module()), version: '0.1.0', summaries: {} });
     expect(html).toContain('href="core/evidence.html"');
@@ -153,7 +165,8 @@ describe('module registry', () => {
     expect(realConfig.modules.map((entry) => [entry.module, entry.kind])).toEqual([
       ['core', 'shared'],
       ['r-connection', 'shared'],
-      ['group-comparison', 'chart']
+      ['group-comparison', 'chart'],
+      ['association-scatter', 'chart']
     ]);
   });
 
