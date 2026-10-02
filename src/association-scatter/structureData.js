@@ -15,6 +15,12 @@ import { frame, visits as visitsInOrder } from '../core/frame.js';
 import { label as variableLabel } from '../core/variable.js';
 import { coreSettings } from '../shared/settings.js';
 import { isBlank, keepFiltered, levelsOf, unitOf } from '../shared/tables.js';
+import { axisOf, variableOf } from '../shared/variables.js';
+
+// A variable is kept and written the same way by every chart that has one on an
+// axis or in a grid, in src/shared/variables.js; this file has always exported
+// these, and still does.
+export { axisOf, sameAxis, settingOf, variableOf } from '../shared/variables.js';
 
 // The value types worked out against a baseline at a visit.
 const RELATIVE = new Set(['change', 'fold_change', 'percent_change']);
@@ -98,50 +104,6 @@ export function numberColumns({ results, participants }, settings) {
   }
   return columns;
 }
-
-/**
- * An axis as the chart keeps it, from a variable as the settings write one.
- * @param {object} spec `{ measure, visit, value }` or `{ col }`.
- * @returns {object} `{ kind: 'measure', measure, value, visit }` or
- *   `{ kind: 'column', col }`. A baseline value has a visit of null.
- */
-export function axisOf(spec) {
-  if (spec.col !== undefined && spec.col !== null) return { kind: 'column', col: spec.col };
-  const value = spec.value || 'raw';
-  return {
-    kind: 'measure',
-    measure: spec.measure,
-    value,
-    visit: value === 'baseline' ? null : (spec.visit ?? null)
-  };
-}
-
-/**
- * An axis as the core takes a variable. A column on an axis is read as a
- * number: a participant whose value is not one is left out, and counted.
- */
-export function variableOf(axis) {
-  if (axis.kind === 'column') return { col: axis.col, type: 'number' };
-  return axis.value === 'baseline'
-    ? { measure: axis.measure, value: 'baseline' }
-    : { measure: axis.measure, visit: axis.visit, value: axis.value };
-}
-
-/**
- * An axis as the settings write a variable, the way `x` and `y` are given:
- * `{ measure, value, visit }` or `{ col }`.
- */
-export function settingOf(axis) {
-  if (axis.kind === 'column') return { col: axis.col };
-  return {
-    measure: axis.measure,
-    value: axis.value,
-    ...(axis.value === 'baseline' ? {} : { visit: axis.visit })
-  };
-}
-
-/** Whether two axes are the same variable. */
-export const sameAxis = (a, b) => JSON.stringify(settingOf(a)) === JSON.stringify(settingOf(b));
 
 /**
  * Whether the tables can draw an axis: its biomarker and its visit are in the

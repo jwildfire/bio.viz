@@ -370,18 +370,29 @@ export function clearListing(chart) {
   chart.kit.resetProfileRail(host);
 }
 
-/** Downloads the rows the listing shows, searched and sorted as it shows them, as CSV. */
-export function downloadListing(chart, file) {
-  const { host, kit } = chart;
-  let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
-  if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
-  const blob = new Blob([kit.buildCsv(rows, host.settings.details)], { type: 'text/csv' });
+/**
+ * Downloads rows as a CSV file, written by the kit.
+ * @param {object} kit safety.viz's kit.
+ * @param {object[]} rows The rows.
+ * @param {Array<{value_col: string, label: string}>} columns The columns, in order.
+ * @param {string} file The name the file is downloaded under.
+ */
+export function downloadCsv(kit, rows, columns, file) {
+  const blob = new Blob([kit.buildCsv(rows, columns)], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = file;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+/** Downloads the rows the listing shows, searched and sorted as it shows them, as CSV. */
+export function downloadListing(chart, file) {
+  const { host, kit } = chart;
+  let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
+  if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
+  downloadCsv(kit, rows, host.settings.details, file);
 }
 
 function railColumns(settings) {

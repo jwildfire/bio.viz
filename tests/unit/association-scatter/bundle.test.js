@@ -59,13 +59,19 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
   it('AS-KIT-003: the chart is built from the parts every chart shares and from nothing of the group comparison chart; that chart is built from the same parts (#26)', () => {
     const scatter = ['src/association-scatter.js', ...sourceFiles('src/association-scatter')];
     const comparison = ['src/group-comparison.js', ...sourceFiles('src/group-comparison')];
-    const shared = sourceFiles('src/shared');
-    expect(shared).toEqual([
+    // What every chart is built from. One more shared part,
+    // src/shared/variables.js (#27), is how a variable is written in settings
+    // and in a request: this chart and the correlation matrix use it, and the
+    // group comparison chart, which names no variable that way, does not.
+    const everything = sourceFiles('src/shared');
+    expect(everything).toEqual([
       'src/shared/chartHost.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
-      'src/shared/tables.js'
+      'src/shared/tables.js',
+      'src/shared/variables.js'
     ]);
+    const shared = everything.filter((file) => file !== 'src/shared/variables.js');
     const reached = (files) => new Set(files.flatMap(importsOf));
     const fromScatter = reached(scatter);
     const fromComparison = reached(comparison);
@@ -79,10 +85,15 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
       expect(fromScatter.has(file), `association scatter: ${file}`).toBe(true);
       expect(fromComparison.has(file), `group comparison: ${file}`).toBe(true);
     }
-    // The shared parts depend on neither chart, and on nothing outside src/.
-    for (const target of reached(shared)) {
+    expect(fromScatter.has('src/shared/variables.js')).toBe(true);
+    expect(fromComparison.has('src/shared/variables.js')).toBe(false);
+    // This chart imports nothing of the correlation matrix either: the grid
+    // opens the scatter, never the other way about.
+    expect([...fromScatter].filter((file) => file.includes('correlation-matrix'))).toEqual([]);
+    // The shared parts depend on no chart, and on nothing outside src/.
+    for (const target of reached(everything)) {
       expect(target.startsWith('src/'), target).toBe(true);
-      expect(target).not.toMatch(/group-comparison|association-scatter/);
+      expect(target).not.toMatch(/group-comparison|association-scatter|correlation-matrix/);
     }
     // Each thing is written once: the chart's own files do not write it again.
     const own = scatter.map(source).join('\n');

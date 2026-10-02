@@ -94,7 +94,10 @@ export function checkShared(settings, baselineStats) {
   if (!baselineStats.includes(settings.baseline_stat)) {
     refuse(`\`baseline_stat\` must be one of ${baselineStats.join(', ')}.`);
   }
-  if (typeof settings.profile !== 'boolean') refuse('`profile` must be true or false.');
+  // A chart that opens no participant profile has no such setting.
+  if ('profile' in settings && typeof settings.profile !== 'boolean') {
+    refuse('`profile` must be true or false.');
+  }
   if (settings.waiting_note !== null && !isText(settings.waiting_note)) {
     refuse('`waiting_note` must be a sentence, or null for none.');
   }
