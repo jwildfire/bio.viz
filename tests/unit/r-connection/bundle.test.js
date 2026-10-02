@@ -53,11 +53,12 @@ describe('bundle: the connection ships, webR does not', () => {
       expect(code).toMatch(/\bimport\(\s*(?:\/\*[^*]*\*\/\s*)?url\s*\)/);
       expect(code).toContain('https://webr.r-wasm.org/v');
       // … and nothing of webR itself is inside: its worker, its channels, its
-      // WebAssembly loader. The bundle stays small.
+      // WebAssembly loader. The bundle stays small: webR is megabytes, and the
+      // whole of bio.viz, with its first chart, is under a fifth of one.
       for (const marker of ['webr-worker', 'SharedArrayBuffer', 'WebAssembly', 'R_HOME']) {
         expect(code).not.toContain(marker);
       }
-      expect(code.length).toBeLessThan(60_000);
+      expect(code.length).toBeLessThan(200_000);
     }
   });
 

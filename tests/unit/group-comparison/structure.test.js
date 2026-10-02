@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { syncSettings } from '../../../src/group-comparison/configure.js';
 import {
   BAND,
+  EVERYONE,
   bandwidth,
   buildPanels,
   categoryColumns,
@@ -310,6 +311,21 @@ describe('group comparison: panels and cells', () => {
   });
 });
 
+describe('group comparison: with nothing to group by', () => {
+  it('GC-DATA-013: with no column to group by, everyone is drawn as one group (#9)', () => {
+    const model = buildPanels({ results, participants: null }, settings, state({ groupBy: '' }));
+    expect(model.levels).toEqual([EVERYONE]);
+    expect(EVERYONE).toBe('All participants');
+    expect(model.panels[0].ticks).toEqual([['All participants', 'n = 186']]);
+    expect(model.panels[0].cells).toHaveLength(1);
+    expect(model.panels[0].cells[0].records[0]).toEqual({
+      USUBJID: 'BIO-001',
+      y: 5.9 - 6.927,
+      x: 'All participants'
+    });
+  });
+});
+
 describe('group comparison: what the controls offer', () => {
   it('GC-CTRL-001: with participant data the columns offered as a group are the participant table’s categories (#9)', () => {
     expect(categoryColumns(tables, settings)).toEqual([
@@ -422,9 +438,12 @@ describe('group comparison: what the controls offer', () => {
     expect(places).toEqual(ids.map(jitter));
     expect(Math.min(...places)).toBeGreaterThanOrEqual(-1);
     expect(Math.max(...places)).toBeLessThanOrEqual(1);
-    // Spread across the slot, not piled on one side.
-    expect(places.filter((place) => place < 0).length).toBeGreaterThan(60);
-    expect(places.filter((place) => place > 0).length).toBeGreaterThan(60);
+    // Spread across the slot, not piled up: each quarter of it holds a fair share.
+    for (const from of [-1, -0.5, 0, 0.5]) {
+      const share = places.filter((place) => place >= from && place < from + 0.5).length;
+      expect(share, `from ${from}`).toBeGreaterThan(30);
+      expect(share, `from ${from}`).toBeLessThan(70);
+    }
     expect(new Set(places).size).toBe(200);
   });
 });

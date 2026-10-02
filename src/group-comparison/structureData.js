@@ -131,6 +131,13 @@ export function jitter(id) {
     hash ^= character.codePointAt(0);
     hash = Math.imul(hash, 16777619);
   }
+  // Mixed once more, so ids that differ only in their last digits do not land
+  // side by side.
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x85ebca6b);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 0xc2b2ae35);
+  hash ^= hash >>> 16;
   return ((hash >>> 0) / 4294967295) * 2 - 1;
 }
 
@@ -254,6 +261,9 @@ export function filterColumns({ participants }, settings, categories) {
 
 // ---- The panels ---------------------------------------------------------------
 
+/** The one group everyone is in when no column makes a group. */
+export const EVERYONE = 'All participants';
+
 // The width of the x axis that one level's marks take, the rest being the gap
 // to the next level; the colours of a level share it in equal slots.
 export const BAND = 0.8;
@@ -332,7 +342,7 @@ export function buildPanels({ results, participants }, settings, state, options 
       : { measure: state.measure, value: 'baseline' };
   const variablesFor = (visit) => ({
     y: yOf(visit),
-    x: { col: state.groupBy },
+    ...(state.groupBy ? { x: { col: state.groupBy } } : {}),
     ...(state.colorBy ? { color: { col: state.colorBy } } : {}),
     ...(state.panelBy ? { panel: { col: state.panelBy } } : {})
   });
@@ -343,9 +353,10 @@ export function buildPanels({ results, participants }, settings, state, options 
       variablesFor(visit),
       config
     );
+    // With no column to group by, everyone is one group.
+    const all = state.groupBy ? made.data : made.data.map((record) => ({ ...record, x: EVERYONE }));
     // A logarithmic axis has no place for zero or less.
-    const positive =
-      state.yScale === 'log' ? made.data.filter((record) => record.y > 0) : made.data;
+    const positive = state.yScale === 'log' ? all.filter((record) => record.y > 0) : all;
     return { visit, made, data: positive, nonPositive: made.data.length - positive.length };
   });
 
