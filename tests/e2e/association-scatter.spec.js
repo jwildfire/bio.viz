@@ -1672,6 +1672,17 @@ test.describe('association scatter: on a phone', () => {
       'Tap a point to list its participant and open their profile. To list a region, tap Select ' +
         'a region, then drag on the chart.'
     );
+    // The switch is a button a finger taps: on, and off again.
+    await button.tap();
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.sv-chart-wrap canvas')).toHaveClass(/bv-region-on/);
+    await button.tap();
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('.sv-chart-wrap canvas')).not.toHaveClass(/bv-region-on/);
+    // From here the switch is pressed with a click. The drags below are sent
+    // through the browser's own touch input, and a tap synthesized after one of
+    // them was once not turned into a click on the Linux runner; what is under
+    // test from here is the drag, not the button.
     await page.locator('.sv-chart-wrap').scrollIntoViewIfNeeded();
     const ends = async () => [
       await placeOf(page, { x: 9, y: 7.5 }),
@@ -1717,7 +1728,7 @@ test.describe('association scatter: on a phone', () => {
     await expect(page.locator('.sv-listing table')).toHaveCount(0);
 
     // On: the same drag selects a region, and the page stays where it is.
-    await button.tap();
+    await button.click();
     await expect(button).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.sv-chart-wrap canvas')).toHaveClass(/bv-region-on/);
     await expect(page.locator('.sv-footnote')).toContainText(
@@ -1738,10 +1749,10 @@ test.describe('association scatter: on a phone', () => {
     await captureEvidence(page.locator('.sv-main'), 'AS-BRUSH-003', 'a-region-on-a-phone');
 
     // Off again: the chart scrolls the page once more, and the region stays listed.
-    await button.tap();
+    await button.click();
     await expect(button).toHaveAttribute('aria-pressed', 'false');
     await expect(page.locator('.sv-chart-wrap canvas')).not.toHaveClass(/bv-region-on/);
-    // With a mouse there is no button: a drag is always a region.
+    await expect(page.locator('.sv-listing table')).toHaveCount(1);
   });
 });
 
