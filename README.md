@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first chart: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws but does not yet test. The others follow: association scatter, correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
+Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first chart: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them. The others follow: association scatter, correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
 
 ## How it fits together
 
@@ -59,7 +59,7 @@ R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched 
 
 ## The group comparison chart
 
-One value across the levels of a category, as boxes, violins or points, with the number in each group beneath. safety.viz is loaded first: the chart is built from its kit.
+One value across the levels of a category, as boxes, violins or points, with the number in each group beneath, and under it R's test of the groups: a Welch t-test or a Wilcoxon rank-sum test between two, a one-way ANOVA or a Kruskal-Wallis test across more, with pairwise comparisons on request. safety.viz is loaded first: the chart is built from its kit. The test is asked of the connection the chart is given; with none, the line says that statistics are unavailable.
 
 ```html
 <div id="chart"></div>
@@ -71,7 +71,11 @@ One value across the levels of a category, as boxes, violins or points, with the
     visits: 'Week 4',
     value_type: 'change',
     baseline_visits: 'Baseline',
-    group_by: 'ARM'
+    group_by: 'ARM',
+    // gsm.bio's statistics functions, run by R in the browser on first use.
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R' }
+    })
   }).init({ results, participants });
 </script>
 ```

@@ -72,7 +72,7 @@ Reasons a result is unavailable:
 
 A call that cannot be made at all (no function name, `data` that is not an array, `args` that is not an object) also resolves to `{ status: 'error', message }`, with a message that begins `bio.viz:`.
 
-R warnings are not carried in the result. An R function that has something to say about its answer says it in the value it returns.
+R warnings are not carried in the result. An R function that has something to say about its answer says it in the value it returns, as gsm.bio's functions do in `warnings` and `notes`.
 
 ## What R receives and returns
 
@@ -166,10 +166,11 @@ Two constants, for a page that needs to say which R it runs or to load the same 
 
 The one place the rules for printing a p-value live. It formats what R returned and computes nothing.
 
-It reads these members of a statistics result:
+It reads these members of a statistics result, the names gsm.bio's functions return:
 
 | Member       | Type             | Meaning                                                                            |
 | ------------ | ---------------- | ---------------------------------------------------------------------------------- |
+| `status`     | string           | `"ok"`, `"too_small"` or `"error"`. Absent is read as `"ok"`.                      |
 | `method`     | string           | The name of the test.                                                              |
 | `p_value`    | number, 0 to 1   | The p-value.                                                                       |
 | `counts`     | number or object | The counts used: one whole number, or an object of group name to whole number.     |
@@ -178,22 +179,60 @@ It reads these members of a statistics result:
 
 It returns `{ status, text }`:
 
-| `status`   | When                                                  | `text`                                                                                                       |
-| ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `shown`    | Method, counts and a valid p-value are all present.   | `Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted.`                |
-| `withheld` | The result carries a `reason`.                        | `Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).` |
-| `refused`  | The method, the counts or a valid p-value is missing. | `p-value not shown: the result does not name its method.`                                                    |
+| `status`   | When                                                  | `text`                                                                                                 |
+| ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `shown`    | Method, counts and a valid p-value are all present.   | `Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted.`          |
+| `withheld` | The result carries a `reason`.                        | `Not computed: Treatment has 3. The minimum group size is 5. Counts: Placebo n = 95, Treatment n = 3.` |
+| `error`    | The result's `status` is `"error"`.                   | `R reported an error: Column 'y' (strValueCol) is not numeric.`                                        |
+| `refused`  | The method, the counts or a valid p-value is missing. | `p-value not shown: the result does not name its method.`                                              |
 
 The rules, from the design:
 
 - Never a p-value alone: without the method's name or the counts, the number is not printed.
 - Three decimals. Below 0.001 it prints `p < 0.001`; where it would round to 1.000 it prints `p > 0.999`.
-- Labelled `Exploratory, unadjusted.` unless the result names an adjustment, and then `Exploratory, adjusted (Holm).`
+- Labelled `Exploratory, unadjusted.` unless the result names an adjustment, and then `Exploratory, adjusted (Holm).` An adjustment R names by its `p.adjust` method is printed by its usual name: `holm` as Holm, `hochberg` as Hochberg, `hommel` as Hommel, `bonferroni` as Bonferroni, `BH` and `fdr` as Benjamini-Hochberg, `BY` as Benjamini-Yekutieli. Any other name is printed as given.
 - No stars, and never the word significant.
-- A reason in place of a number when R declined to compute one.
+- A reason in place of a number when R declined to compute one, said once. A reason that already begins "Not computed", as gsm.bio's do, is printed as it is, with the counts after it as a sentence of their own. Any other reason is led in by the method's name and the words `not computed`: `Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).`
+- A result R marked as an error is printed as R's message, after `R reported an error:`, with the counts where R knew them and no number.
 
 Stating the filter a result was computed under is the chart's footnote, not this function's.
+
+## `formatEstimate(estimate)`
+
+Formats one estimate R returned: one row of a result's `estimates`. It reads `name`, `group` (what it is an estimate of), `estimate`, and the interval as `lower`, `upper` and `level`.
+
+It returns `{ status, text }`:
+
+| `status`  | When                                                                  | `text`                                                                                      |
+| --------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `shown`   | The estimate has a name and a number, and a whole interval.           | `Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.` |
+| `shown`   | The estimate has a name and a number, and R gave no interval.         | `Mean (Placebo): 0.02473.`                                                                  |
+| `refused` | It has no name, no finite number, or an interval with a part missing. | `Estimate not shown: the interval of Difference in means is incomplete.`                    |
+
+Each number is printed to four significant figures, without trailing zeros, and is otherwise R's: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, `0.95` as `95%`.
+
+## `formatComparison(comparison)`
+
+Formats one comparison of two groups from a result's `rows`, such as one pairwise comparison, by the rules a whole result is held to: its p-value is given only with its method, the two groups' counts and its label. It reads `group_1`, `group_2`, `n_1`, `n_2`, `method`, `p_value` (the adjusted one, when R adjusted), `adjustment`, `status` and `reason`.
+
+It returns the sentence, and its parts for a chart that prints the comparisons as a table:
+
+| Member       | Meaning                                                                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`     | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row that names no two groups is `refused`.                                  |
+| `text`       | The whole sentence: `Placebo F and Treatment F: Welch Two Sample t-test: p < 0.001 (Placebo F n = 42, Treatment F n = 42). Exploratory, adjusted (Holm).` |
+| `result`     | The same without the pair's name.                                                                                                                         |
+| `groups`     | The two groups' names, or null.                                                                                                                           |
+| `n`          | Their two counts, or null when either is not a whole number.                                                                                              |
+| `method`     | The method's name. Null unless `status` is `shown`.                                                                                                       |
+| `p`          | The p-value as printed, `p = 0.031`. Null unless `status` is `shown`.                                                                                     |
+| `adjustment` | The adjustment by its usual name, or null when the p-value is unadjusted or not shown.                                                                    |
+| `label`      | `Exploratory, adjusted (Holm).` or `Exploratory, unadjusted.` Null unless `status` is `shown`.                                                            |
+
+A table built from the parts prints `p` only beside the pair's counts and under a caption that carries `method` and `label`.
 
 ## Checked against real R
 
 The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.
+
+The [group comparison chart](group-comparison.md#the-statistics-line) is the first chart to use it: its demo starts R in the browser with gsm.bio's statistics file, and the browser tests named `GC-STAT-034` to `GC-STAT-042` hold what it prints to desktop R.
