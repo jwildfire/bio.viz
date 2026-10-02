@@ -24,6 +24,14 @@ export function parseTestName(name) {
 //   tests/e2e/<module>.spec.js   → <module>  (the Playwright JSON reporter
 //                                  emits testDir-relative paths, so a bare
 //                                  `<module>.spec.js` matches too)
+//   tests/e2e/<group>-<module>.spec.js → <module>
+//
+// The last is for a spec that carries a word before its module's name so that
+// one filter runs several modules' specs together: `npm run test:e2e --
+// association` runs association-scatter.spec.js and
+// association-correlation-matrix.spec.js, the two charts of one requirement. A
+// name that is itself a module is that module; otherwise the module is the
+// longest registered one the name ends with, after a hyphen.
 //
 // Anything else — site.spec.js, tests/unit/evidence.test.js,
 // tests/unit/site/**, or a directory that is not a registered module — routes
@@ -37,8 +45,12 @@ export function moduleForFile(file, modules) {
   const unit = normalized.match(/(?:^|\/)tests\/unit\/([^/]+)\//);
   if (unit && modules.includes(unit[1])) return unit[1];
   const spec = normalized.match(/([^/]+)\.spec\.js$/);
-  if (spec && modules.includes(spec[1])) return spec[1];
-  return null;
+  if (!spec) return null;
+  if (modules.includes(spec[1])) return spec[1];
+  const grouped = modules
+    .filter((module) => spec[1].endsWith(`-${module}`))
+    .sort((a, b) => b.length - a.length);
+  return grouped[0] ?? null;
 }
 
 function record(test, suite, passed, file) {
