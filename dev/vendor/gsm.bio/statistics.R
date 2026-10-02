@@ -647,6 +647,198 @@ Analyze_CorrelationMatrix <- function(dfData, chrCols, strMethod = "pearson", nC
   })
 }
 
+# ---- Fitted line ------------------------------------------------------------
+
+# What each fit is called. lm() and loess() have no name for themselves; these
+# are ours.
+chrFitMethods <- c(linear = "Linear regression", smooth = "Local polynomial regression (loess)")
+
+# One fit on the complete pairs of two numeric vectors: lm() for a line, loess()
+# for a smooth, with the fitted values and their band at equally spaced x values
+# from the least to the greatest x used. Returns plain pieces, for the overall
+# answer or one group's.
+Stat_FitPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints) {
+  bPair <- !is.na(nX) & !is.na(nY)
+  lFit <- list(
+    status = "ok", reason = NA_character_, counts = sum(bPair), method = NA_character_,
+    estimates = Stat_Estimates(), statistic = Stat_Statistic(), t = NA_real_, df = NA_real_,
+    r_squared = NA_real_, p_value = NA_real_, warnings = character(0),
+    line = data.frame(x = numeric(0), fit = numeric(0), lower = numeric(0), upper = numeric(0))
+  )
+  if (lFit$counts < nMinGroup) {
+    lFit$status <- "too_small"
+    lFit$reason <- sprintf(
+      "Not computed: %d complete pairs. The minimum is %s.", lFit$counts, format(nMinGroup)
+    )
+    return(lFit)
+  }
+  dfPairs <- data.frame(x = nX[bPair], y = nY[bPair])
+  if (min(dfPairs$x) == max(dfPairs$x)) {
+    lFit$status <- "error"
+    lFit$reason <- sprintf(
+      "Not computed: every x value is %s, so there is no line to fit.", format(dfPairs$x[1])
+    )
+    return(lFit)
+  }
+  dfGrid <- data.frame(x = seq(min(dfPairs$x), max(dfPairs$x), length.out = nPoints))
+
+  lRun <- Stat_Capture(function() {
+    if (strMethod == "linear") {
+      lModel <- stats::lm(y ~ x, data = dfPairs)
+      list(
+        coefficients = stats::coef(lModel),
+        intervals = stats::confint(lModel, level = nConfLevel),
+        summary = summary(lModel),
+        band = stats::predict(lModel, newdata = dfGrid, interval = "confidence", level = nConfLevel)
+      )
+    } else {
+      lModel <- stats::loess(y ~ x, data = dfPairs)
+      list(enp = lModel$enp, band = stats::predict(lModel, newdata = dfGrid, se = TRUE))
+    }
+  })
+  lFit$warnings <- lRun$warnings
+  if (!is.na(lRun$error)) {
+    lFit$status <- "error"
+    lFit$reason <- lRun$error
+    return(lFit)
+  }
+  lFit$method <- chrFitMethods[[strMethod]]
+
+  if (strMethod == "linear") {
+    lSummary <- lRun$value$summary
+    lFit$estimates <- Stat_Estimates(
+      c("Intercept", "Slope"), NA_character_, unname(lRun$value$coefficients),
+      unname(lRun$value$intervals[, 1]), unname(lRun$value$intervals[, 2]), nConfLevel
+    )
+    # The slope's row of the coefficient table: its t value and the p-value of
+    # the test that the slope is zero.
+    lFit$t <- lSummary$coefficients["x", "t value"]
+    lFit$df <- lSummary$df[2]
+    lFit$r_squared <- lSummary$r.squared
+    lFit$p_value <- lSummary$coefficients["x", "Pr(>|t|)"]
+    lFit$statistic <- Stat_Statistic(c("t", "df", "r.squared"), c(lFit$t, lFit$df, lFit$r_squared))
+    lFit$line <- data.frame(
+      x = dfGrid$x,
+      fit = as.numeric(lRun$value$band[, "fit"]),
+      lower = as.numeric(lRun$value$band[, "lwr"]),
+      upper = as.numeric(lRun$value$band[, "upr"])
+    )
+  } else {
+    # The pointwise band: the fit, give or take the t quantile, on the degrees
+    # of freedom predict() returns, times the standard error of the fit.
+    lBand <- lRun$value$band
+    nHalfWidth <- stats::qt((1 + nConfLevel) / 2, lBand$df) * as.numeric(lBand$se.fit)
+    lFit$df <- lBand$df
+    lFit$statistic <- Stat_Statistic(
+      c("enp", "df", "residual.scale"), c(lRun$value$enp, lBand$df, lBand$residual.scale)
+    )
+    lFit$line <- data.frame(
+      x = dfGrid$x,
+      fit = as.numeric(lBand$fit),
+      lower = as.numeric(lBand$fit) - nHalfWidth,
+      upper = as.numeric(lBand$fit) + nHalfWidth
+    )
+  }
+  lFit
+}
+
+# One fit as rows: a row per point of its line, each carrying which fit it
+# belongs to and that fit's own answer. A fit with no line is one row, with its
+# reason and no point.
+Stat_FitRows <- function(strGroup, lFit, nConfLevel) {
+  bLine <- nrow(lFit$line) > 0L
+  nRows <- max(nrow(lFit$line), 1L)
+  data.frame(
+    group = rep(as.character(strGroup), nRows),
+    x = if (bLine) lFit$line$x else NA_real_,
+    fit = if (bLine) lFit$line$fit else NA_real_,
+    lower = if (bLine) lFit$line$lower else NA_real_,
+    upper = if (bLine) lFit$line$upper else NA_real_,
+    level = if (bLine) nConfLevel else NA_real_,
+    counts = lFit$counts,
+    method = lFit$method,
+    statistic = as.numeric(lFit$t),
+    df = as.numeric(lFit$df),
+    r_squared = as.numeric(lFit$r_squared),
+    p_value = as.numeric(lFit$p_value),
+    adjustment = "none",
+    status = lFit$status,
+    reason = lFit$reason,
+    warning = if (length(lFit$warnings) > 0L) paste(unique(lFit$warnings), collapse = "; ") else NA_character_,
+    stringsAsFactors = FALSE
+  )
+}
+
+Analyze_Fit <- function(dfData, strXCol, strYCol, strMethod = "linear", strGroupCol = NULL,
+                        chrGroups = NULL, nConfLevel = 0.95, nMinGroup = nMinGroupDefault,
+                        nPoints = 50L) {
+  Stat_Run(strMethod, function() {
+    Stat_CheckData(dfData)
+    Stat_CheckChoice(strMethod, names(chrFitMethods), "strMethod")
+    Stat_CheckNumber(nConfLevel, "nConfLevel", 0, 1)
+    Stat_CheckNumber(nMinGroup, "nMinGroup", 0)
+    Stat_CheckNumber(nPoints, "nPoints", 1, 1001)
+    if (nPoints != round(nPoints)) {
+      stop("nPoints must be a whole number.", call. = FALSE)
+    }
+    nX <- Stat_Numeric(dfData, strXCol, "strXCol")
+    nY <- Stat_Numeric(dfData, strYCol, "strYCol")
+    bPair <- !is.na(nX) & !is.na(nY)
+    chrReason <- "Incomplete pair"
+    nDropped <- sum(!bPair)
+
+    # The overall fit uses every complete pair, with or without a group. Its
+    # line is the first rows, with no group.
+    lAll <- Stat_FitPair(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints)
+    dfRows <- Stat_FitRows(NA_character_, lAll, nConfLevel)
+    dfEstimates <- lAll$estimates
+    chrWarnings <- lAll$warnings
+
+    # Per group, when a group column is named: the same fit within each group,
+    # its coefficients after the overall ones and its line after the overall one.
+    if (!is.null(strGroupCol)) {
+      chrGroup <- Stat_Category(dfData, strGroupCol, "strGroupCol")
+      chrLevels <- Stat_Levels(chrGroup, chrGroups, "chrGroups")
+      chrReason <- c(chrReason, "Missing group (left out of the per-group rows)", "Group not selected (left out of the per-group rows)")
+      nDropped <- c(nDropped, sum(bPair & is.na(chrGroup)), sum(bPair & !is.na(chrGroup) & !chrGroup %in% chrLevels))
+      for (strLevel in chrLevels) {
+        bGroup <- !is.na(chrGroup) & chrGroup == strLevel
+        lGroup <- Stat_FitPair(nX[bGroup], nY[bGroup], strMethod, nConfLevel, nMinGroup, nPoints)
+        dfRows <- rbind(dfRows, Stat_FitRows(strLevel, lGroup, nConfLevel))
+        if (nrow(lGroup$estimates) > 0L) {
+          lGroup$estimates$group <- strLevel
+          dfEstimates <- rbind(dfEstimates, lGroup$estimates)
+        }
+        chrWarnings <- c(chrWarnings, lGroup$warnings)
+      }
+    }
+    dfDropped <- Stat_Dropped(chrReason, nDropped)
+
+    if (lAll$status != "ok") {
+      return(Stat_Result(
+        strTest = strMethod, strStatus = lAll$status, strReason = lAll$reason, xCounts = lAll$counts,
+        dfDropped = dfDropped, chrWarnings = chrWarnings, dfRows = dfRows
+      ))
+    }
+    chrNotes <- if (strMethod == "linear") {
+      c(
+        "p_value is the t-test that the slope is zero, from summary(lm()); statistic gives its t value, the residual degrees of freedom and R-squared.",
+        "The line in rows is predict(lm(), interval = 'confidence') at equally spaced x values from the least to the greatest x used. The band is the confidence band of the fitted mean, not a prediction band."
+      )
+    } else {
+      c(
+        "A smooth has no slope, no intercept and no test, so none is reported.",
+        "The curve in rows is predict(loess(), se = TRUE) at equally spaced x values from the least to the greatest x used. The band is the conventional pointwise band, computed in R: the fit, give or take qt((1 + level) / 2, df) times its standard error, with the degrees of freedom predict() returns."
+      )
+    }
+    Stat_Result(
+      strTest = strMethod, strMethod = lAll$method, dfEstimates = dfEstimates,
+      dfStatistic = lAll$statistic, nPValue = lAll$p_value, xCounts = lAll$counts, dfDropped = dfDropped,
+      chrWarnings = chrWarnings, chrNotes = chrNotes, dfRows = dfRows
+    )
+  })
+}
+
 # ---- Contingency ------------------------------------------------------------
 
 Analyze_Contingency <- function(dfData, strRowCol, strColCol, strMethod = "chisq", chrRowGroups = NULL,

@@ -20,6 +20,7 @@ var BioViz = (() => {
   // src/main.js
   var main_exports = {};
   __export(main_exports, {
+    associationScatter: () => associationScatter,
     core: () => core_exports,
     groupComparison: () => groupComparison,
     r: () => r_exports,
@@ -34,6 +35,7 @@ var BioViz = (() => {
     createConnection: () => createConnection,
     formatComparison: () => formatComparison,
     formatEstimate: () => formatEstimate,
+    formatGroup: () => formatGroup,
     formatStatistic: () => formatStatistic
   });
 
@@ -450,8 +452,8 @@ var BioViz = (() => {
     };
   }
   function formatStatistic(statistic) {
-    const { status, text: sentence } = read(statistic);
-    return { status, text: sentence };
+    const { status, text: sentence2 } = read(statistic);
+    return { status, text: sentence2 };
   }
   var figure = (value) => String(Number(value.toPrecision(4)));
   var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
@@ -501,6 +503,70 @@ var BioViz = (() => {
       p: shown2 ? parts.p : null,
       adjustment: shown2 ? parts.adjustment : null,
       label: shown2 ? parts.label : null
+    };
+  }
+  function formatGroup(row) {
+    const given2 = row && typeof row === "object" ? row : {};
+    const group = text(given2.group);
+    const counted = isCount(given2.counts);
+    const none = {
+      estimate: null,
+      interval: null,
+      bounds: null,
+      level: null,
+      method: null,
+      p: null,
+      adjustment: null
+    };
+    const whole = (status, result2) => ({
+      status,
+      text: group ? `${group}: ${result2}` : result2,
+      result: result2,
+      group,
+      n: counted ? given2.counts : null,
+      ...none,
+      label: null
+    });
+    if (!group) return whole("refused", refused("the row does not name its group").text);
+    const parts = read({
+      status: given2.status,
+      method: given2.method,
+      p_value: given2.p_value,
+      adjustment: given2.adjustment,
+      reason: given2.reason,
+      counts: counted ? given2.counts : void 0
+    });
+    if (parts.status !== "shown") return whole(parts.status, parts.text);
+    const refuse5 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+    if (!isNumber(given2.estimate)) return refuse5("the group\u2019s estimate is not a number");
+    const bounds = [given2.lower, given2.upper, given2.level];
+    const absent = (value) => value === void 0 || value === null;
+    let ends = null;
+    let level = null;
+    if (!bounds.every(absent)) {
+      if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
+        return refuse5("the interval of the group\u2019s estimate is incomplete");
+      }
+      level = `${Number((given2.level * 100).toPrecision(12))}%`;
+      ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
+    }
+    const interval = ends ? `${level} confidence interval ${ends}` : null;
+    const estimate = figure(given2.estimate);
+    const result = `${estimate}${interval ? `, ${interval}` : ""}. ${parts.text}`;
+    return {
+      status: "shown",
+      text: `${group}: ${result}`,
+      result,
+      group,
+      n: given2.counts,
+      estimate,
+      interval,
+      bounds: ends,
+      level,
+      method: parts.method,
+      p: parts.p,
+      adjustment: parts.adjustment,
+      label: parts.label
     };
   }
 
@@ -966,6 +1032,401 @@ var BioViz = (() => {
     };
   }
 
+  // src/shared/chartHost.js
+  var PALETTE = [
+    "#2563eb",
+    "#059669",
+    "#d97706",
+    "#9333ea",
+    "#dc2626",
+    "#0891b2",
+    "#65a30d",
+    "#db2777",
+    "#4b5563",
+    "#ca8a04"
+  ];
+  var VALUE_LABELS = Object.freeze({
+    raw: "Result",
+    baseline: "Baseline",
+    change: "Change from baseline",
+    fold_change: "Fold change from baseline",
+    percent_change: "Percent change from baseline"
+  });
+  var SCALE_LABELS = Object.freeze({ linear: "Linear", log: "Logarithmic" });
+  var hexToRgba = (hex, alpha) => {
+    const value = hex.replace("#", "");
+    const part = (at) => parseInt(value.slice(at, at + 2), 16);
+    return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
+  };
+  var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
+  var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
+  function findKit(chart) {
+    const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
+    if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
+      throw new Error(
+        `bio.viz: ${chart} is built from safety.viz's kit, and \`SafetyViz.kit\` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart.`
+      );
+    }
+    return kit;
+  }
+  function applyStyles(id, styles) {
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = styles;
+    document.head.append(style);
+  }
+  var lineStyles = (root) => `
+${root} .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
+${root} .bv-statistic:empty{display:none}
+${root} .bv-statistic p{margin:0 0 .3rem}
+${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
+${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
+${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
+${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
+${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
+${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
+${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
+${root} .bv-stat-method{display:block;color:#52616f}
+${root} .bv-panel-canvas{height:300px;position:relative}
+${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
+${root} .sv-listing table{table-layout:fixed}
+${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
+${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+  function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
+    const { kit } = chart;
+    Object.assign(
+      chart,
+      kit.renderShell(chart.element, {
+        moduleClass,
+        onToggle: () => chart.resize()
+      })
+    );
+    applyStyles(styleId, styles);
+    chart.statLine = kit.createElement("div", "bv-statistic");
+    chart.statLine.setAttribute("role", "status");
+    chart.footnote.after(chart.statLine);
+    chart.host = {
+      settings: {
+        profile: chart.settings.profile,
+        id_col: chart.settings.id_col,
+        page_size: chart.settings.page_size,
+        details: []
+      },
+      root: chart.root,
+      railWrap: chart.railWrap,
+      listingWrap: chart.listingWrap,
+      currentTableData: [],
+      listingSearch: "",
+      listingSort: null,
+      listingSelectedId: null,
+      page: 1,
+      profileRows: [],
+      onListingRowClick: (row) => selectParticipant(chart, row[chart.settings.id_col])
+    };
+    chart.listingWrap.addEventListener(
+      "click",
+      (event) => {
+        const button = event.target.closest && event.target.closest("button");
+        if (!button || button.textContent !== "Export: CSV") return;
+        event.stopPropagation();
+        event.preventDefault();
+        downloadListing(chart, listingFile);
+      },
+      true
+    );
+    if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
+      chart.sidebarToggle.click();
+    }
+  }
+  function readGiven(chart, data) {
+    const tables = Array.isArray(data) ? { results: data } : data || {};
+    try {
+      if (!isRecordTable(tables.results)) {
+        throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
+      }
+      if (tables.participants != null && !isRecordTable(tables.participants)) {
+        throw new TypeError(
+          "bio.viz: `participants` must be an array of records, one object per row."
+        );
+      }
+      for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+        const column = chart.settings[key];
+        if (tables.results.length && !tables.results.some((row) => column in row)) {
+          throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+        }
+      }
+    } catch (error) {
+      chart.destroyCharts();
+      chart.element.innerHTML = "";
+      chart.element.append(chart.kit.createElement("div", "sv-warning", error.message));
+      throw error;
+    }
+    return {
+      results: tables.results,
+      participants: tables.participants && tables.participants.length ? tables.participants : null
+    };
+  }
+  function syncHost(chart) {
+    chart.host.settings.profile = chart.settings.profile;
+    chart.host.settings.id_col = chart.settings.id_col;
+    chart.host.settings.page_size = chart.settings.page_size;
+  }
+  function addFilterControls(chart, { addSection, addControl }, onChange) {
+    const { kit, state } = chart;
+    if (!chart.filterSpecs.length) return;
+    const filters = addSection("Filters");
+    const idCol = chart.settings.participant_id_col || chart.settings.id_col;
+    chart.filterSpecs.forEach((spec) => {
+      const values = [
+        ...new Set(
+          chart.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
+        )
+      ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+      if (spec.value_col === idCol) return;
+      const control = kit.renderFilterControl({
+        spec,
+        values,
+        selected: state.filters[spec.value_col],
+        onChange: (next) => {
+          state.filters[spec.value_col] = next;
+          onChange();
+        }
+      });
+      control.dataset.filter = spec.value_col;
+      addControl(spec.label, control, filters);
+    });
+  }
+  function filtersForScope(chart) {
+    return chart.filterSpecs.map((spec) => ({ label: spec.label, selection: chart.state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
+      label: label2,
+      values: (Array.isArray(selection) ? selection : [selection]).map(String)
+    })).filter(({ values }) => values.length);
+  }
+  function statTable({ caption, head, rows }, kit) {
+    const table = kit.createElement("table", "bv-stat-pairs");
+    table.append(kit.createElement("caption", null, caption));
+    const header = document.createElement("tr");
+    head.forEach((title) => {
+      const cell = kit.createElement("th", null, title);
+      cell.scope = "col";
+      header.append(cell);
+    });
+    const thead = document.createElement("thead");
+    thead.append(header);
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+      const line = document.createElement("tr");
+      line.dataset.status = row.status;
+      const lead = kit.createElement("th", null, row.head);
+      lead.scope = "row";
+      if (row.sub) lead.append(kit.createElement("span", "bv-stat-method", row.sub));
+      line.append(lead, ...row.cells.map((cell) => kit.createElement("td", null, cell)));
+      tbody.append(line);
+    });
+    table.append(thead, tbody);
+    return table;
+  }
+  function writeStatistic(kit, line, description) {
+    line.dataset.state = description.state;
+    line.innerHTML = "";
+    line.append(kit.createElement("p", "bv-stat-result", description.text));
+    description.estimates.forEach(
+      (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
+    );
+    if (description.table) line.append(statTable(description.table, kit));
+    description.remarks.forEach(({ kind, text: text2 }) => {
+      const remark = kit.createElement("p", "bv-stat-remark", text2);
+      remark.dataset.kind = kind;
+      line.append(remark);
+    });
+    if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
+  }
+  function showListing(chart, { columns, rows }) {
+    const { host, settings } = chart;
+    const participantIdCol = settings.participant_id_col || settings.id_col;
+    const byId = new Map(
+      (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+    );
+    host.settings.details = columns;
+    host.currentTableData = rows.map((row) => ({
+      ...byId.get(String(row[settings.id_col])) || {},
+      ...row
+    }));
+    host.listingSearch = "";
+    host.listingSort = null;
+    host.page = 1;
+    chart.kit.renderListing(host);
+  }
+  function selectParticipant(chart, id) {
+    const { host } = chart;
+    host.listingSelectedId = id == null ? null : String(id);
+    if (host.currentTableData.length) chart.kit.renderListing(host);
+    chart.root.dispatchEvent(
+      new CustomEvent("participantsSelected", {
+        detail: { data: id == null ? [] : [String(id)] },
+        bubbles: true
+      })
+    );
+  }
+  function clearListing(chart) {
+    const { host } = chart;
+    host.currentTableData = [];
+    host.listingSelectedId = null;
+    chart.listingWrap.innerHTML = "";
+    chart.kit.resetProfileRail(host);
+  }
+  function downloadListing(chart, file) {
+    const { host, kit } = chart;
+    let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
+    if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
+    const blob = new Blob([kit.buildCsv(rows, host.settings.details)], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  function railColumns(settings) {
+    return {
+      id_col: settings.id_col,
+      measure_col: settings.measure_col,
+      value_col: settings.value_col,
+      unit_col: settings.unit_col,
+      visit_col: settings.visit_col,
+      visitn_col: settings.visit_order_col,
+      studyday_col: settings.studyday_col,
+      normal_col_high: settings.normal_col_high,
+      normal_col_low: settings.normal_col_low
+    };
+  }
+  function railSettings(chart, axisType) {
+    const { settings } = chart;
+    const details = settings.profile_details || chart.categories.filter((entry) => entry.table !== "results" || !chart.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
+    const rail = {
+      ...railColumns(settings),
+      details,
+      // Every biomarker is a measure the rail shows, not only the four liver
+      // tests it was made for.
+      measure_values: Object.fromEntries(chart.measures.map((measure) => [measure, measure])),
+      axis_type: axisType === "log" ? "log" : "linear",
+      on_clear: () => selectParticipant(chart, null)
+    };
+    if (settings.normal_col_high) return rail;
+    const none = { relative_uln: null, relative_baseline: null };
+    return {
+      ...rail,
+      display: "relative_baseline",
+      display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
+      cuts: { defaults: none, TB: none, ALP: none }
+    };
+  }
+  function buildProfileFeed(chart, settingsOf) {
+    const { settings, host, kit } = chart;
+    host.profileRows = [];
+    if (!settings.profile) return;
+    const participantIdCol = settings.participant_id_col || settings.id_col;
+    const byId = new Map(
+      (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+    );
+    const ranged = Boolean(settings.normal_col_high);
+    const feed = chart.tables.results.map((row) => ({
+      ...byId.get(String(row[settings.id_col])) || {},
+      ...row,
+      ...ranged ? {} : { __bv_no_reference_range: 1 }
+    }));
+    host.profileRows = kit.buildProfileRows(feed, {
+      ...railColumns(settings),
+      normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
+    });
+    kit.mountProfileRail(host, settingsOf);
+  }
+
+  // src/shared/settings.js
+  var isText3 = (value) => typeof value === "string" && value.trim() !== "";
+  var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  var refuse4 = (message) => {
+    throw new TypeError(`bio.viz: ${message}`);
+  };
+  function fieldSpec(value, setting) {
+    if (isText3(value)) return { value_col: value, label: value };
+    if (isPlainObject4(value) && isText3(value.value_col)) {
+      return {
+        ...value,
+        value_col: value.value_col,
+        label: isText3(value.label) ? value.label : value.value_col
+      };
+    }
+    return refuse4(
+      `\`${setting}\` holds something that is not a column name or { value_col, label }.`
+    );
+  }
+  function fieldList(value, setting) {
+    if (value === null || value === void 0) return null;
+    const list = Array.isArray(value) ? value : [value];
+    return list.map((entry) => fieldSpec(entry, setting));
+  }
+  function textList2(value, setting) {
+    if (value === null || value === void 0) return null;
+    const list = Array.isArray(value) ? value : [value];
+    if (!list.length || !list.every((entry) => isText3(entry) || typeof entry === "number")) {
+      refuse4(`\`${setting}\` must be a name, or a list of names.`);
+    }
+    return [...new Set(list.map(String))];
+  }
+  var columnOrNull = (settings, key) => {
+    if (settings[key] !== null && !isText3(settings[key])) {
+      refuse4(`\`${key}\` must be the name of a column, or null.`);
+    }
+  };
+  function coreSettings(settings) {
+    return {
+      id_col: settings.id_col,
+      measure_col: settings.measure_col,
+      value_col: settings.value_col,
+      visit_col: settings.visit_col,
+      visit_order_col: settings.visit_order_col,
+      participant_id_col: settings.participant_id_col,
+      baseline_visits: settings.baseline_visits,
+      baseline_stat: settings.baseline_stat
+    };
+  }
+  function layOver(defaults, overrides, chart) {
+    if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
+      refuse4(`${chart} takes its settings as an object.`);
+    }
+    const given2 = overrides || {};
+    for (const key of Object.keys(given2)) {
+      if (!(key in defaults)) {
+        refuse4(
+          `\`${key}\` is not a setting of ${chart}. Its settings are ${Object.keys(defaults).join(", ")}.`
+        );
+      }
+    }
+    const settings = { ...defaults };
+    for (const [key, value] of Object.entries(given2)) {
+      if (value !== void 0) settings[key] = value;
+    }
+    return settings;
+  }
+  function checkShared(settings, baselineStats) {
+    for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+      if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
+    }
+    if (!baselineStats.includes(settings.baseline_stat)) {
+      refuse4(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
+    }
+    if (typeof settings.profile !== "boolean") refuse4("`profile` must be true or false.");
+    if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
+      refuse4("`waiting_note` must be a sentence, or null for none.");
+    }
+    if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
+      refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
+    }
+  }
+
   // src/group-comparison/configure.js
   var MARKS = Object.freeze(["box", "violin", "points"]);
   var Y_SCALES = Object.freeze(["linear", "log"]);
@@ -1015,61 +1476,9 @@ var BioViz = (() => {
     normal_col_high: null,
     normal_col_low: null
   });
-  var isText3 = (value) => typeof value === "string" && value.trim() !== "";
-  var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-  var refuse4 = (message) => {
-    throw new TypeError(`bio.viz: ${message}`);
-  };
-  function fieldSpec(value, setting) {
-    if (isText3(value)) return { value_col: value, label: value };
-    if (isPlainObject4(value) && isText3(value.value_col)) {
-      return {
-        ...value,
-        value_col: value.value_col,
-        label: isText3(value.label) ? value.label : value.value_col
-      };
-    }
-    return refuse4(
-      `\`${setting}\` holds something that is not a column name or { value_col, label }.`
-    );
-  }
-  function fieldList(value, setting) {
-    if (value === null || value === void 0) return null;
-    const list = Array.isArray(value) ? value : [value];
-    return list.map((entry) => fieldSpec(entry, setting));
-  }
-  function textList2(value, setting) {
-    if (value === null || value === void 0) return null;
-    const list = Array.isArray(value) ? value : [value];
-    if (!list.length || !list.every((entry) => isText3(entry) || typeof entry === "number")) {
-      refuse4(`\`${setting}\` must be a name, or a list of names.`);
-    }
-    return [...new Set(list.map(String))];
-  }
-  var columnOrNull = (settings, key) => {
-    if (settings[key] !== null && !isText3(settings[key])) {
-      refuse4(`\`${key}\` must be the name of a column, or null.`);
-    }
-  };
   function syncSettings(overrides) {
-    if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
-      refuse4("the group comparison chart takes its settings as an object.");
-    }
-    const given2 = overrides || {};
-    for (const key of Object.keys(given2)) {
-      if (!(key in DEFAULT_SETTINGS2)) {
-        refuse4(
-          `\`${key}\` is not a setting of the group comparison chart. Its settings are ${Object.keys(DEFAULT_SETTINGS2).join(", ")}.`
-        );
-      }
-    }
-    const settings = { ...DEFAULT_SETTINGS2 };
-    for (const [key, value] of Object.entries(given2)) {
-      if (value !== void 0) settings[key] = value;
-    }
-    for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-      if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
-    }
+    const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
+    checkShared(settings, BASELINE_STATS);
     for (const key of [
       "visit_order_col",
       "unit_col",
@@ -1091,25 +1500,15 @@ var BioViz = (() => {
     if (!Y_SCALES.includes(settings.y_scale)) {
       refuse4(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
     }
-    if (!BASELINE_STATS.includes(settings.baseline_stat)) {
-      refuse4(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(", ")}.`);
-    }
     for (const key of ["page_size", "max_levels", "overview_limit"]) {
       if (!Number.isInteger(settings[key]) || settings[key] < 1) {
         refuse4(`\`${key}\` must be a whole number, one or more.`);
       }
     }
-    if (typeof settings.profile !== "boolean") refuse4("`profile` must be true or false.");
     if (!TESTS.includes(settings.test)) refuse4(`\`test\` must be one of ${TESTS.join(", ")}.`);
     if (typeof settings.pairwise !== "boolean") refuse4("`pairwise` must be true or false.");
-    if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
-      refuse4("`waiting_note` must be a sentence, or null for none.");
-    }
     if (settings.statistic !== null && !isText3(settings.statistic)) {
       refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
-    }
-    if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
-      refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
     }
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.visits = textList2(settings.visits, "visits");
@@ -1121,23 +1520,90 @@ var BioViz = (() => {
     settings.profile_details = fieldList(settings.profile_details, "profile_details");
     return settings;
   }
-  function coreSettings(settings) {
+
+  // src/shared/statisticLine.js
+  var WAITING = "Statistics: waiting for R\u2026";
+  var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
+  var sentence = (state, said) => ({
+    state,
+    text: said,
+    estimates: [],
+    remarks: [],
+    scope: null
+  });
+  function byCodePoint(a, b) {
+    const [first, second] = [[...a], [...b]];
+    const shared = Math.min(first.length, second.length);
+    for (let index = 0; index < shared; index += 1) {
+      const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
+      if (difference !== 0) return difference;
+    }
+    return first.length - second.length;
+  }
+  var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
+  function filtersInForce(filters) {
+    const inForce = {};
+    for (const [column, selection] of Object.entries(filters || {})) {
+      if (selection === null || selection === void 0 || selection === "") continue;
+      const values = Array.isArray(selection) ? selection : [selection];
+      if (values.length) inForce[column] = sorted(values);
+    }
+    return inForce;
+  }
+  function filtersSaid(filters) {
+    if (!filters || !filters.length) return null;
+    return `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`;
+  }
+  var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
+    (entry) => typeof entry === "string" && entry.trim() !== ""
+  );
+  var remarksOf = (value) => [
+    ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
+    ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
+  ];
+  function failureOf(result) {
+    if (result && result.status === "unavailable") {
+      return {
+        state: "unavailable",
+        text: result.reason === "not-precomputed" ? NOT_STORED : result.message
+      };
+    }
+    const message = result && typeof result.message === "string" ? result.message : "no message";
+    return { state: "error", text: `R reported an error: ${message}` };
+  }
+  function createDesk({
+    connection,
+    note = null,
+    describe: describe2,
+    waiting = (said) => sentence("waiting", said)
+  }) {
+    let current = 0;
+    let answered = false;
+    const withNote = (said) => note && !answered ? `${said} ${note}` : said;
     return {
-      id_col: settings.id_col,
-      measure_col: settings.measure_col,
-      value_col: settings.value_col,
-      visit_col: settings.visit_col,
-      visit_order_col: settings.visit_order_col,
-      participant_id_col: settings.participant_id_col,
-      baseline_visits: settings.baseline_visits,
-      baseline_stat: settings.baseline_stat
+      idle: withNote,
+      begin() {
+        current += 1;
+        const round = current;
+        let noted = false;
+        return {
+          ask({ name, data, args, dataId }, show, context) {
+            show(waiting(noted ? WAITING : withNote(WAITING), context));
+            noted = true;
+            return connection.run(name, { data, args, dataId }).then((result) => {
+              if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
+              if (round !== current) return false;
+              show(describe2(result, context), result);
+              return true;
+            });
+          }
+        };
+      }
     };
   }
 
   // src/group-comparison/statistic.js
-  var WAITING = "Statistics: waiting for R\u2026";
   var NO_TEST_CHOSEN = "Statistics: no test chosen.";
-  var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
   var TEST_LABELS = Object.freeze({
     t: "Welch t-test",
     wilcoxon: "Wilcoxon rank-sum test",
@@ -1157,26 +1623,7 @@ var BioViz = (() => {
     if (!offered.length) return null;
     return offered.includes(test) ? test : COUNTERPART[test];
   }
-  function byCodePoint(a, b) {
-    const [first, second] = [[...a], [...b]];
-    const shared = Math.min(first.length, second.length);
-    for (let index = 0; index < shared; index += 1) {
-      const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
-      if (difference !== 0) return difference;
-    }
-    return first.length - second.length;
-  }
-  var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
   var groupsOf = (records) => sorted(records.map((record) => record.x));
-  function filtersInForce(filters) {
-    const inForce = {};
-    for (const [column, selection] of Object.entries(filters || {})) {
-      if (selection === null || selection === void 0 || selection === "") continue;
-      const values = Array.isArray(selection) ? selection : [selection];
-      if (values.length) inForce[column] = sorted(values);
-    }
-    return inForce;
-  }
   function statisticRequest({ name, test, pairwise, settings, state, panel }) {
     const groups = groupsOf(panel.records);
     const filters = filtersInForce(state.filters);
@@ -1208,9 +1655,6 @@ var BioViz = (() => {
       rows: panel.records.length
     };
   }
-  var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
-    (entry) => typeof entry === "string" && entry.trim() !== ""
-  );
   var present = (value) => value !== void 0 && value !== null;
   function pairsOf(value) {
     const rows = Array.isArray(value.rows) ? value.rows.filter((row) => "group_1" in row) : [];
@@ -1238,14 +1682,7 @@ var BioViz = (() => {
       }))
     };
   }
-  var plain = (state, said) => ({
-    state,
-    text: said,
-    estimates: [],
-    pairs: null,
-    remarks: [],
-    scope: null
-  });
+  var plain = (state, said) => ({ ...sentence(state, said), pairs: null });
   function describeAnswer(result, context = {}) {
     if (result && result.status === "ok") {
       const value = result.value && typeof result.value === "object" ? result.value : {};
@@ -1255,18 +1692,12 @@ var BioViz = (() => {
         described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present(row.lower) && present(row.upper)).map((row) => formatEstimate(row).text);
         described.pairs = pairsOf(value);
       }
-      described.remarks = [
-        ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
-        ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
-      ];
+      described.remarks = remarksOf(value);
       described.scope = context.scope || null;
       return described;
     }
-    if (result && result.status === "unavailable") {
-      return plain("unavailable", result.reason === "not-precomputed" ? NOT_STORED : result.message);
-    }
-    const message = result && typeof result.message === "string" ? result.message : "no message";
-    return plain("error", `R reported an error: ${message}`);
+    const failure = failureOf(result);
+    return plain(failure.state, failure.text);
   }
   function noTestText(groups, several) {
     const lead = `Statistics: no test${several ? " in this panel" : ""}. A test compares two or more groups, and `;
@@ -1284,115 +1715,29 @@ var BioViz = (() => {
     if (color) {
       said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
     }
-    if (filters.length) {
-      said.push(
-        `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`
-      );
-    }
+    if (filters.length) said.push(filtersSaid(filters));
     return said.join(" ");
   }
   function createStatisticDesk({ connection, note = null }) {
-    let current = 0;
-    let answered = false;
-    const withNote = (said) => note && !answered ? `${said} ${note}` : said;
-    return {
-      idle: withNote,
-      begin() {
-        current += 1;
-        const round = current;
-        let noted = false;
-        return {
-          ask({ name, data, args, dataId }, show, context) {
-            show(plain("waiting", noted ? WAITING : withNote(WAITING)));
-            noted = true;
-            return connection.run(name, { data, args, dataId }).then((result) => {
-              if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
-              if (round !== current) return false;
-              show(describeAnswer(result, context), result);
-              return true;
-            });
-          }
-        };
-      }
-    };
+    return createDesk({
+      connection,
+      note,
+      describe: describeAnswer,
+      waiting: (said) => plain("waiting", said)
+    });
   }
 
-  // src/group-comparison/structureData.js
+  // src/shared/tables.js
   var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
   var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
   function levelsOf(values) {
     return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
   }
-  function quantile(sorted2, p) {
-    if (!sorted2.length) return NaN;
-    const position = (sorted2.length - 1) * p;
-    const below = Math.floor(position);
-    const above = Math.ceil(position);
-    if (below === above) return sorted2[below];
-    return sorted2[below] + (sorted2[above] - sorted2[below]) * (position - below);
-  }
-  var sum = (values) => values.reduce((total, value) => total + value, 0);
-  function summarize(values) {
-    const sorted2 = [...values].sort((a, b) => a - b);
-    return {
-      n: sorted2.length,
-      min: sorted2.length ? sorted2[0] : NaN,
-      q5: quantile(sorted2, 0.05),
-      q25: quantile(sorted2, 0.25),
-      median: quantile(sorted2, 0.5),
-      q75: quantile(sorted2, 0.75),
-      q95: quantile(sorted2, 0.95),
-      max: sorted2.length ? sorted2[sorted2.length - 1] : NaN,
-      mean: sorted2.length ? sum(sorted2) / sorted2.length : NaN
-    };
-  }
-  function bandwidth(values) {
-    const n = values.length;
-    if (n < 2) return NaN;
-    const sorted2 = [...values].sort((a, b) => a - b);
-    const mean = sum(sorted2) / n;
-    const deviation = Math.sqrt(sum(sorted2.map((value) => (value - mean) ** 2)) / (n - 1));
-    const spread = (quantile(sorted2, 0.75) - quantile(sorted2, 0.25)) / 1.34;
-    let lesser = Math.min(deviation, spread);
-    if (lesser === 0) lesser = deviation || Math.abs(sorted2[0]) || 1;
-    return 0.9 * lesser * n ** -0.2;
-  }
-  function density(values, points = 64) {
-    const width = bandwidth(values);
-    const least = Math.min(...values);
-    const greatest = Math.max(...values);
-    if (!Number.isFinite(width) || !(greatest > least)) return null;
-    const at = Array.from(
-      { length: points },
-      (_, index) => least + (greatest - least) * index / (points - 1)
-    );
-    const scale = 1 / (values.length * width * Math.sqrt(2 * Math.PI));
-    return {
-      bandwidth: width,
-      at,
-      density: at.map(
-        (height) => scale * sum(values.map((value) => Math.exp(-0.5 * ((height - value) / width) ** 2)))
-      )
-    };
-  }
-  function jitter(id) {
-    let hash = 2166136261;
-    for (const character of String(id)) {
-      hash ^= character.codePointAt(0);
-      hash = Math.imul(hash, 16777619);
-    }
-    hash ^= hash >>> 16;
-    hash = Math.imul(hash, 2246822507);
-    hash ^= hash >>> 13;
-    hash = Math.imul(hash, 3266489909);
-    hash ^= hash >>> 16;
-    return (hash >>> 0) / 4294967295 * 2 - 1;
-  }
   function listMeasures(results, settings) {
-    const present2 = levelsOf(results.map((row) => row[settings.measure_col]));
-    if (!settings.measures) return present2;
-    const listed = settings.measures.filter((measure) => present2.includes(measure));
-    return listed.length ? listed : present2;
+    const present3 = levelsOf(results.map((row) => row[settings.measure_col]));
+    if (!settings.measures) return present3;
+    const listed = settings.measures.filter((measure) => present3.includes(measure));
+    return listed.length ? listed : present3;
   }
   function unitOf(results, settings, measure) {
     if (!settings.unit_col) return null;
@@ -1465,6 +1810,98 @@ var BioViz = (() => {
     }
     return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
   }
+  function listVisits(results, settings) {
+    const config = coreSettings(settings);
+    const all = visits(results, config);
+    const asked = (settings.visits || []).filter((visit) => all.includes(visit));
+    return { all, start: asked.length ? asked : all };
+  }
+  function columnLevels({ results, participants }, column) {
+    const rows = participants && participants.some((row) => column in row) ? participants : results;
+    return levelsOf(rows.map((row) => row[column]));
+  }
+  var matches = (value, selection) => selection === null || selection === void 0 || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value));
+  function keepFiltered({ results, participants }, settings, filters, filterMatches) {
+    const test = filterMatches || matches;
+    if (!participants) return { results, participants: null };
+    const idCol = settings.id_col;
+    const participantIdCol = settings.participant_id_col || idCol;
+    const kept = participants.filter(
+      (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
+    );
+    const ids = new Set(kept.map((row) => String(row[participantIdCol])));
+    return {
+      participants: kept,
+      results: results.filter((row) => ids.has(String(row[idCol])))
+    };
+  }
+
+  // src/group-comparison/structureData.js
+  function quantile(sorted2, p) {
+    if (!sorted2.length) return NaN;
+    const position = (sorted2.length - 1) * p;
+    const below = Math.floor(position);
+    const above = Math.ceil(position);
+    if (below === above) return sorted2[below];
+    return sorted2[below] + (sorted2[above] - sorted2[below]) * (position - below);
+  }
+  var sum = (values) => values.reduce((total, value) => total + value, 0);
+  function summarize(values) {
+    const sorted2 = [...values].sort((a, b) => a - b);
+    return {
+      n: sorted2.length,
+      min: sorted2.length ? sorted2[0] : NaN,
+      q5: quantile(sorted2, 0.05),
+      q25: quantile(sorted2, 0.25),
+      median: quantile(sorted2, 0.5),
+      q75: quantile(sorted2, 0.75),
+      q95: quantile(sorted2, 0.95),
+      max: sorted2.length ? sorted2[sorted2.length - 1] : NaN,
+      mean: sorted2.length ? sum(sorted2) / sorted2.length : NaN
+    };
+  }
+  function bandwidth(values) {
+    const n = values.length;
+    if (n < 2) return NaN;
+    const sorted2 = [...values].sort((a, b) => a - b);
+    const mean = sum(sorted2) / n;
+    const deviation = Math.sqrt(sum(sorted2.map((value) => (value - mean) ** 2)) / (n - 1));
+    const spread = (quantile(sorted2, 0.75) - quantile(sorted2, 0.25)) / 1.34;
+    let lesser = Math.min(deviation, spread);
+    if (lesser === 0) lesser = deviation || Math.abs(sorted2[0]) || 1;
+    return 0.9 * lesser * n ** -0.2;
+  }
+  function density(values, points = 64) {
+    const width = bandwidth(values);
+    const least = Math.min(...values);
+    const greatest = Math.max(...values);
+    if (!Number.isFinite(width) || !(greatest > least)) return null;
+    const at = Array.from(
+      { length: points },
+      (_, index) => least + (greatest - least) * index / (points - 1)
+    );
+    const scale = 1 / (values.length * width * Math.sqrt(2 * Math.PI));
+    return {
+      bandwidth: width,
+      at,
+      density: at.map(
+        (height) => scale * sum(values.map((value) => Math.exp(-0.5 * ((height - value) / width) ** 2)))
+      )
+    };
+  }
+  function jitter(id) {
+    let hash = 2166136261;
+    for (const character of String(id)) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 2246822507);
+    hash ^= hash >>> 13;
+    hash = Math.imul(hash, 3266489909);
+    hash ^= hash >>> 16;
+    return (hash >>> 0) / 4294967295 * 2 - 1;
+  }
   var RELATIVE = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
   function visitsDrawn(visits2, valueType, baselineVisits) {
     if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits2;
@@ -1486,21 +1923,13 @@ var BioViz = (() => {
     return lines;
   }
   function buildPanels({ results, participants }, settings, state, options = {}) {
-    const filterMatches = options.filterMatches || ((value, selection) => selection === null || selection === void 0 || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value)));
     const config = coreSettings(settings);
-    const idCol = settings.id_col;
-    let kept = participants || null;
-    let rows = results;
-    if (kept) {
-      const participantIdCol = settings.participant_id_col || idCol;
-      kept = kept.filter(
-        (row) => Object.entries(state.filters || {}).every(
-          ([column, selection]) => filterMatches(row[column], selection)
-        )
-      );
-      const ids = new Set(kept.map((row) => String(row[participantIdCol])));
-      rows = results.filter((row) => ids.has(String(row[idCol])));
-    }
+    const { participants: kept, results: rows } = keepFiltered(
+      { results, participants },
+      settings,
+      state.filters,
+      options.filterMatches
+    );
     const needsVisit = state.valueType !== "baseline";
     const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
     const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
@@ -1618,12 +2047,6 @@ var BioViz = (() => {
     const unit = unitOf(results, settings, measure);
     return unit ? `${words} (${unit})` : words;
   }
-  function listVisits(results, settings) {
-    const config = coreSettings(settings);
-    const all = visits(results, config);
-    const asked = (settings.visits || []).filter((visit) => all.includes(visit));
-    return { all, start: asked.length ? asked : all };
-  }
   function overviewPage(measures, limit, page = 0) {
     const total = measures.length;
     const pages = Math.max(1, Math.ceil(total / limit));
@@ -1661,55 +2084,14 @@ var BioViz = (() => {
       };
     });
   }
-  function columnLevels({ results, participants }, column) {
-    const rows = participants && participants.some((row) => column in row) ? participants : results;
-    return levelsOf(rows.map((row) => row[column]));
-  }
 
   // src/group-comparison.js
   var NONE = "";
   var OVERVIEW = "bv_overview";
-  var VALUE_LABELS = {
-    raw: "Result",
-    baseline: "Baseline",
-    change: "Change from baseline",
-    fold_change: "Fold change from baseline",
-    percent_change: "Percent change from baseline"
-  };
   var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
-  var SCALE_LABELS = { linear: "Linear", log: "Logarithmic" };
-  var PALETTE = [
-    "#2563eb",
-    "#059669",
-    "#d97706",
-    "#9333ea",
-    "#dc2626",
-    "#0891b2",
-    "#65a30d",
-    "#db2777",
-    "#4b5563",
-    "#ca8a04"
-  ];
   var STYLE_ID = "bio-viz-group-comparison-styles";
-  var STYLES = `
-.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
-.bv-group-comparison .bv-statistic:empty{display:none}
-.bv-group-comparison .bv-statistic p{margin:0 0 .3rem}
-.bv-group-comparison .bv-statistic[data-state=waiting],.bv-group-comparison .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
-.bv-group-comparison .bv-stat-remark,.bv-group-comparison .bv-stat-scope{font-size:.8rem;color:#52616f}
-.bv-group-comparison .bv-stat-remark[data-kind=warning]{color:#8a4b00}
-.bv-group-comparison .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
-.bv-group-comparison .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
-.bv-group-comparison .bv-stat-pairs th,.bv-group-comparison .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
-.bv-group-comparison .bv-stat-pairs thead th{font-weight:600;border-top:0}
-.bv-group-comparison .bv-stat-pairs td:nth-child(2){white-space:nowrap}
-.bv-group-comparison .bv-stat-method{display:block;color:#52616f}
-.bv-group-comparison .bv-panel-canvas{height:300px;position:relative}
-.bv-group-comparison .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
+  var STYLES = `${lineStyles(".bv-group-comparison")}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
-.bv-group-comparison .sv-listing table{table-layout:fixed}
-.bv-group-comparison .sv-listing th,.bv-group-comparison .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-.bv-group-comparison .sv-rail{max-width:100%;overflow-x:auto}
 .bv-group-comparison .sv-multiples.bv-overview{display:block}
 .bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
 .bv-group-comparison .bv-overview-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--bv-panel-min,150px),1fr));gap:.4rem .6rem}
@@ -1729,33 +2111,10 @@ var BioViz = (() => {
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
-  function applyStyles() {
-    if (document.getElementById(STYLE_ID)) return;
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLES;
-    document.head.append(style);
-  }
-  function findKit() {
-    const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
-    if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
-      throw new Error(
-        "bio.viz: the group comparison chart is built from safety.viz's kit, and `SafetyViz.kit` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart."
-      );
-    }
-    return kit;
-  }
   var NOTHING_AFTER_BASELINE = "The only visit chosen is the baseline visit, where this value is the same for everyone. Choose a later visit to draw.";
-  var hexToRgba = (hex, alpha) => {
-    const value = hex.replace("#", "");
-    const part = (at) => parseInt(value.slice(at, at + 2), 16);
-    return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
-  };
-  var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
-  var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
   var GroupComparison = class {
     constructor(element, settings) {
-      this.kit = findKit();
+      this.kit = findKit("the group comparison chart");
       this.element = typeof element === "string" ? document.querySelector(element) : element;
       if (!this.element) throw new Error(`bio.viz: group comparison target not found: ${element}`);
       this.settings = syncSettings(settings);
@@ -1782,50 +2141,12 @@ var BioViz = (() => {
       });
     }
     renderShell() {
-      const { kit } = this;
-      Object.assign(
-        this,
-        kit.renderShell(this.element, {
-          moduleClass: "bv-group-comparison",
-          onToggle: () => this.resize()
-        })
-      );
-      applyStyles();
-      this.statLine = kit.createElement("div", "bv-statistic");
-      this.statLine.setAttribute("role", "status");
-      this.footnote.after(this.statLine);
-      this.host = {
-        settings: {
-          profile: this.settings.profile,
-          id_col: this.settings.id_col,
-          page_size: this.settings.page_size,
-          details: []
-        },
-        root: this.root,
-        railWrap: this.railWrap,
-        listingWrap: this.listingWrap,
-        currentTableData: [],
-        listingSearch: "",
-        listingSort: null,
-        listingSelectedId: null,
-        page: 1,
-        profileRows: [],
-        onListingRowClick: (row) => this.select(row[this.settings.id_col])
-      };
-      this.listingWrap.addEventListener(
-        "click",
-        (event) => {
-          const button = event.target.closest && event.target.closest("button");
-          if (!button || button.textContent !== "Export: CSV") return;
-          event.stopPropagation();
-          event.preventDefault();
-          this.downloadListing();
-        },
-        true
-      );
-      if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
-        this.sidebarToggle.click();
-      }
+      mountShell(this, {
+        moduleClass: "bv-group-comparison",
+        styleId: STYLE_ID,
+        styles: STYLES,
+        listingFile: "bio.viz-group-comparison-listing.csv"
+      });
     }
     /**
      * Load the tables and draw: the same as `setData`.
@@ -1844,34 +2165,7 @@ var BioViz = (() => {
      * @returns {GroupComparison} The chart, for chaining.
      */
     setData(data) {
-      const tables = Array.isArray(data) ? { results: data } : data || {};
-      try {
-        if (!isRecordTable(tables.results)) {
-          throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
-        }
-        if (tables.participants != null && !isRecordTable(tables.participants)) {
-          throw new TypeError(
-            "bio.viz: `participants` must be an array of records, one object per row."
-          );
-        }
-        for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-          const column = this.settings[key];
-          if (tables.results.length && !tables.results.some((row) => column in row)) {
-            throw new TypeError(
-              `bio.viz: the results table has no column \`${column}\` (\`${key}\`).`
-            );
-          }
-        }
-      } catch (error) {
-        this.destroyCharts();
-        this.element.innerHTML = "";
-        this.element.append(this.kit.createElement("div", "sv-warning", error.message));
-        throw error;
-      }
-      this.tables = {
-        results: tables.results,
-        participants: tables.participants && tables.participants.length ? tables.participants : null
-      };
+      this.tables = readGiven(this, data);
       this.readTables();
       this.state = this.seedState();
       this.buildProfileFeed();
@@ -1891,9 +2185,7 @@ var BioViz = (() => {
     setSettings(settings) {
       const given2 = settings || {};
       this.settings = syncSettings({ ...this.settings, ...given2 });
-      this.host.settings.profile = this.settings.profile;
-      this.host.settings.id_col = this.settings.id_col;
-      this.host.settings.page_size = this.settings.page_size;
+      syncHost(this);
       if ("connection" in given2 || "waiting_note" in given2) this.connect();
       this.readTables();
       const opening = this.seedState();
@@ -2151,29 +2443,7 @@ var BioViz = (() => {
         };
         this.pairwiseControl = addControl("Pairwise comparisons", pairwise, statistics);
       }
-      if (this.filterSpecs.length) {
-        const filters = addSection("Filters");
-        const idCol = this.settings.participant_id_col || this.settings.id_col;
-        this.filterSpecs.forEach((spec) => {
-          const values = [
-            ...new Set(
-              this.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
-            )
-          ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
-          if (spec.value_col === idCol) return;
-          const control = kit.renderFilterControl({
-            spec,
-            values,
-            selected: state.filters[spec.value_col],
-            onChange: (next) => {
-              state.filters[spec.value_col] = next;
-              redraw(false);
-            }
-          });
-          control.dataset.filter = spec.value_col;
-          addControl(spec.label, control, filters);
-        });
-      }
+      addFilterControls(this, { addSection, addControl }, () => redraw(false));
       addReset(() => {
         this.state = this.seedState();
         this.buildControls();
@@ -2537,8 +2807,8 @@ var BioViz = (() => {
                 ...compact ? { font: { size: 10 }, padding: 2 } : {},
                 callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
               },
-              afterBuildTicks: (axis) => {
-                axis.ticks = model.shownLevels.map((_, index) => ({ value: index }));
+              afterBuildTicks: (axis2) => {
+                axis2.ticks = model.shownLevels.map((_, index) => ({ value: index }));
               }
             },
             y: {
@@ -2678,16 +2948,12 @@ var BioViz = (() => {
     // What one panel's test covers, said under its result.
     scope(panel, model) {
       const { state } = this;
-      const filters = this.filterSpecs.map((spec) => ({ label: spec.label, selection: state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
-        label: label2,
-        values: (Array.isArray(selection) ? selection : [selection]).map(String)
-      })).filter(({ values }) => values.length);
       return scopeText({
         group: this.labelOf(state.groupBy),
         n: panel.records.length,
         panel: model.panels.length > 1 ? panel.title : null,
         color: state.colorBy ? this.labelOf(state.colorBy) : null,
-        filters
+        filters: filtersForScope(this)
       });
     }
     // Asks R for one panel's test and prints the answer under the panel. Each
@@ -2735,45 +3001,22 @@ var BioViz = (() => {
     // interval for, the pairwise comparisons, what R said about its answer, and
     // what the test covers.
     showStatistic(line, description) {
-      const { kit } = this;
-      line.dataset.state = description.state;
-      line.innerHTML = "";
-      line.append(kit.createElement("p", "bv-stat-result", description.text));
-      description.estimates.forEach(
-        (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
-      );
-      if (description.pairs) line.append(this.pairsTable(description.pairs));
-      description.remarks.forEach(({ kind, text: text2 }) => {
-        const remark = kit.createElement("p", "bv-stat-remark", text2);
-        remark.dataset.kind = kind;
-        line.append(remark);
+      const { pairs } = description;
+      writeStatistic(this.kit, line, {
+        ...description,
+        // The pairwise comparisons, as the table every chart's line can carry:
+        // each pair, with its method beneath where the pairs' methods differ.
+        table: pairs && {
+          caption: pairs.caption,
+          head: pairs.head,
+          rows: pairs.rows.map((row) => ({
+            status: row.status,
+            head: row.pair,
+            sub: row.method,
+            cells: [row.n, row.p]
+          }))
+        }
       });
-      if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
-    }
-    pairsTable({ caption, head, rows }) {
-      const { kit } = this;
-      const table = kit.createElement("table", "bv-stat-pairs");
-      table.append(kit.createElement("caption", null, caption));
-      const header = document.createElement("tr");
-      head.forEach((title) => {
-        const cell = kit.createElement("th", null, title);
-        cell.scope = "col";
-        header.append(cell);
-      });
-      const thead = document.createElement("thead");
-      thead.append(header);
-      const tbody = document.createElement("tbody");
-      rows.forEach((row) => {
-        const line = document.createElement("tr");
-        line.dataset.status = row.status;
-        const pair = kit.createElement("th", null, row.pair);
-        pair.scope = "row";
-        if (row.method) pair.append(kit.createElement("span", "bv-stat-method", row.method));
-        line.append(pair, kit.createElement("td", null, row.n), kit.createElement("td", null, row.p));
-        tbody.append(line);
-      });
-      table.append(thead, tbody);
-      return table;
     }
     /**
      * What the chart has asked R for the panels now drawn, and what R answered:
@@ -2825,130 +3068,34 @@ var BioViz = (() => {
       return columns;
     }
     showListing(panel, cell, records) {
-      const { host, settings } = this;
       this.clearSelection();
-      const participantIdCol = settings.participant_id_col || settings.id_col;
-      const byId = new Map(
-        (this.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-      );
-      host.settings.details = this.listingColumns();
-      host.currentTableData = records.map((record) => ({
-        ...byId.get(String(record[settings.id_col])) || {},
-        ...record,
-        y: shown(record.y)
-      }));
-      host.listingSearch = "";
-      host.listingSort = null;
-      host.page = 1;
+      showListing(this, {
+        columns: this.listingColumns(),
+        rows: records.map((record) => ({ ...record, y: shown(record.y) }))
+      });
       this.listed = { panel, cell };
       const name = cell.color === null ? cell.level : `${cell.level}, ${cell.color}`;
       const where = panel.title ? ` (${panel.title})` : "";
       this.footnote.textContent = `${name}${where}: ${records.length} participant${records.length === 1 ? "" : "s"} listed. Click a row to open the participant's profile.`;
-      this.kit.renderListing(host);
     }
     // Select one participant, or none: mark the listing's row and raise
     // safety.viz's selection event, which the participant rail opens on and any
     // other chart on the page can listen for.
     select(id) {
-      const { host } = this;
-      host.listingSelectedId = id == null ? null : String(id);
-      if (host.currentTableData.length) this.kit.renderListing(host);
-      this.root.dispatchEvent(
-        new CustomEvent("participantsSelected", {
-          detail: { data: id == null ? [] : [String(id)] },
-          bubbles: true
-        })
-      );
+      selectParticipant(this, id);
     }
     // Empties the listing and the rail without raising an event: the chart is
     // about to show other rows.
     clearSelection() {
-      const { host } = this;
-      host.currentTableData = [];
-      host.listingSelectedId = null;
       this.listed = null;
-      this.listingWrap.innerHTML = "";
-      this.kit.resetProfileRail(host);
+      clearListing(this);
     }
-    downloadListing() {
-      const { host, kit } = this;
-      let rows = kit.searchRows(
-        [...host.currentTableData],
-        host.settings.details,
-        host.listingSearch
-      );
-      if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
-      const blob = new Blob([kit.buildCsv(rows, host.settings.details)], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "bio.viz-group-comparison-listing.csv";
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-    // The rows safety.viz's participant rail reads: every result, with the
-    // participant's own columns beside it for the rail's header.
-    //
-    // The rail was made for laboratory results that carry a reference range, and
-    // keeps only rows with an upper limit of normal above zero. Biomarker results
-    // often have none. When no `normal_col_high` is mapped the rows are given a
-    // stand-in so the rail keeps them, and the rail is told (railSettings) to
-    // show each result as a multiple of the participant's first result and to
-    // draw no reference range: nothing on screen claims one.
+    // The rows safety.viz's participant rail reads, and the rail, mounted.
     buildProfileFeed() {
-      const { settings, host, kit } = this;
-      host.profileRows = [];
-      if (!settings.profile) return;
-      const participantIdCol = settings.participant_id_col || settings.id_col;
-      const byId = new Map(
-        (this.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-      );
-      const ranged = Boolean(settings.normal_col_high);
-      const feed = this.tables.results.map((row) => ({
-        ...byId.get(String(row[settings.id_col])) || {},
-        ...row,
-        ...ranged ? {} : { __bv_no_reference_range: 1 }
-      }));
-      host.profileRows = kit.buildProfileRows(feed, {
-        ...this.railColumns(),
-        normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
-      });
-      kit.mountProfileRail(host, () => this.railSettings());
-    }
-    railColumns() {
-      const { settings } = this;
-      return {
-        id_col: settings.id_col,
-        measure_col: settings.measure_col,
-        value_col: settings.value_col,
-        unit_col: settings.unit_col,
-        visit_col: settings.visit_col,
-        visitn_col: settings.visit_order_col,
-        studyday_col: settings.studyday_col,
-        normal_col_high: settings.normal_col_high,
-        normal_col_low: settings.normal_col_low
-      };
+      buildProfileFeed(this, () => this.railSettings());
     }
     railSettings() {
-      const { settings } = this;
-      const details = settings.profile_details || this.categories.filter((entry) => entry.table !== "results" || !this.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
-      const rail = {
-        ...this.railColumns(),
-        details,
-        // Every biomarker is a measure the rail shows, not only the four liver
-        // tests it was made for.
-        measure_values: Object.fromEntries(this.measures.map((measure) => [measure, measure])),
-        axis_type: this.state.yScale === "log" ? "log" : "linear",
-        on_clear: () => this.select(null)
-      };
-      if (settings.normal_col_high) return rail;
-      const none = { relative_uln: null, relative_baseline: null };
-      return {
-        ...rail,
-        display: "relative_baseline",
-        display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
-        cuts: { defaults: none, TB: none, ALP: none }
-      };
+      return railSettings(this, this.state.yScale);
     }
     // ---- Lifecycle --------------------------------------------------------------
     /**
@@ -2978,6 +3125,1681 @@ var BioViz = (() => {
   };
   function groupComparison(element, settings) {
     return new GroupComparison(element, settings);
+  }
+
+  // src/association-scatter/configure.js
+  var SCALES = Object.freeze(["linear", "log"]);
+  var FITS = Object.freeze(["none", "identity", "linear", "smooth"]);
+  var METHODS = Object.freeze(["pearson", "spearman"]);
+  var DEFAULT_SETTINGS3 = Object.freeze({
+    // Columns of the results table, and of the participant table.
+    id_col: "USUBJID",
+    measure_col: "TEST",
+    value_col: "STRESN",
+    visit_col: "VISIT",
+    visit_order_col: "VISITNUM",
+    unit_col: "STRESU",
+    participant_id_col: null,
+    // How a baseline is found (the core's rules).
+    baseline_visits: null,
+    baseline_stat: "mean",
+    // What the chart opens on: the variable on each axis.
+    x: null,
+    y: null,
+    color_by: null,
+    panel_by: null,
+    x_scale: "linear",
+    y_scale: "linear",
+    fit: "none",
+    // What the controls offer.
+    measures: null,
+    numbers: null,
+    groups: null,
+    max_levels: 12,
+    filters: null,
+    // The listing of participants.
+    details: null,
+    page_size: 10,
+    // The statistics line.
+    connection: null,
+    statistic: "Analyze_Correlation",
+    method: "pearson",
+    fit_statistic: "Analyze_Fit",
+    waiting_note: null,
+    // A way back, when another chart opened this one.
+    back: null,
+    // safety.viz's participant profile.
+    profile: true,
+    profile_details: null,
+    studyday_col: null,
+    normal_col_high: null,
+    normal_col_low: null
+  });
+  function axis(value, setting) {
+    if (value === null || value === void 0) return null;
+    if (!isPlainObject4(value)) {
+      refuse4(
+        `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
+      );
+    }
+    const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
+    return read2.kind === "column" ? { col: read2.col } : {
+      measure: read2.measure,
+      value: read2.value,
+      ...read2.visit === null ? {} : { visit: read2.visit }
+    };
+  }
+  function syncSettings2(overrides) {
+    const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
+    checkShared(settings, BASELINE_STATS);
+    for (const key of [
+      "visit_order_col",
+      "unit_col",
+      "participant_id_col",
+      "color_by",
+      "panel_by",
+      "studyday_col",
+      "normal_col_high",
+      "normal_col_low"
+    ]) {
+      columnOrNull(settings, key);
+    }
+    for (const key of ["x_scale", "y_scale"]) {
+      if (!SCALES.includes(settings[key])) {
+        refuse4(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
+      }
+    }
+    if (!FITS.includes(settings.fit)) refuse4(`\`fit\` must be one of ${FITS.join(", ")}.`);
+    if (!METHODS.includes(settings.method)) {
+      refuse4(`\`method\` must be one of ${METHODS.join(", ")}.`);
+    }
+    for (const key of ["page_size", "max_levels"]) {
+      if (!Number.isInteger(settings[key]) || settings[key] < 1) {
+        refuse4(`\`${key}\` must be a whole number, one or more.`);
+      }
+    }
+    if (settings.statistic !== null && !isText3(settings.statistic)) {
+      refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
+    }
+    if (settings.fit_statistic !== null && !isText3(settings.fit_statistic)) {
+      refuse4(
+        "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
+      );
+    }
+    if (settings.back !== null && (!isPlainObject4(settings.back) || !isText3(settings.back.label) || typeof settings.back.action !== "function")) {
+      refuse4("`back` must be { label, action }, a sentence and a function, or null for none.");
+    }
+    settings.x = axis(settings.x, "x");
+    settings.y = axis(settings.y, "y");
+    settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+    settings.measures = textList2(settings.measures, "measures");
+    settings.numbers = fieldList(settings.numbers, "numbers");
+    settings.groups = fieldList(settings.groups, "groups");
+    settings.filters = fieldList(settings.filters, "filters");
+    settings.details = fieldList(settings.details, "details");
+    settings.profile_details = fieldList(settings.profile_details, "profile_details");
+    return settings;
+  }
+
+  // src/association-scatter/structureData.js
+  var RELATIVE2 = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
+  var isNumeric = (value) => {
+    if (typeof value === "number") return Number.isFinite(value);
+    return typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value));
+  };
+  function numberColumns({ results, participants }, settings) {
+    if (settings.numbers) return settings.numbers.map((spec) => ({ ...spec, table: "given" }));
+    const columns = [];
+    const taken = /* @__PURE__ */ new Set();
+    const numbers = (values) => {
+      const distinct = /* @__PURE__ */ new Set();
+      for (const value of values) {
+        if (isBlank2(value)) continue;
+        if (!isNumeric(value)) return false;
+        distinct.add(Number(value));
+      }
+      return distinct.size > 1;
+    };
+    if (participants && participants.length) {
+      const idCol = settings.participant_id_col || settings.id_col;
+      for (const name of Object.keys(participants[0])) {
+        if (name === idCol) continue;
+        taken.add(name);
+        if (numbers(participants.map((row) => row[name]))) {
+          columns.push({ value_col: name, label: name, table: "participants" });
+        }
+      }
+    }
+    const mapped = new Set(
+      [
+        settings.id_col,
+        settings.measure_col,
+        settings.value_col,
+        settings.visit_col,
+        settings.visit_order_col,
+        settings.unit_col,
+        settings.studyday_col,
+        settings.normal_col_high,
+        settings.normal_col_low
+      ].filter(Boolean)
+    );
+    for (const name of results.length ? Object.keys(results[0]) : []) {
+      if (mapped.has(name) || taken.has(name)) continue;
+      const byParticipant = /* @__PURE__ */ new Map();
+      let constant = true;
+      for (const row of results) {
+        if (isBlank2(row[name])) continue;
+        const id = String(row[settings.id_col]);
+        const value = String(row[name]);
+        if (!byParticipant.has(id)) byParticipant.set(id, value);
+        else if (byParticipant.get(id) !== value) {
+          constant = false;
+          break;
+        }
+      }
+      if (constant && numbers(byParticipant.values())) {
+        columns.push({ value_col: name, label: name, table: "results" });
+      }
+    }
+    return columns;
+  }
+  function axisOf(spec) {
+    if (spec.col !== void 0 && spec.col !== null) return { kind: "column", col: spec.col };
+    const value = spec.value || "raw";
+    return {
+      kind: "measure",
+      measure: spec.measure,
+      value,
+      visit: value === "baseline" ? null : spec.visit ?? null
+    };
+  }
+  function variableOf(axis2) {
+    if (axis2.kind === "column") return { col: axis2.col, type: "number" };
+    return axis2.value === "baseline" ? { measure: axis2.measure, value: "baseline" } : { measure: axis2.measure, visit: axis2.visit, value: axis2.value };
+  }
+  function settingOf(axis2) {
+    if (axis2.kind === "column") return { col: axis2.col };
+    return {
+      measure: axis2.measure,
+      value: axis2.value,
+      ...axis2.value === "baseline" ? {} : { visit: axis2.visit }
+    };
+  }
+  function axisOffered(axis2, { measures, visits: visits2, numbers }) {
+    if (!axis2) return false;
+    if (axis2.kind === "column") return numbers.some((entry) => entry.value_col === axis2.col);
+    if (!measures.includes(axis2.measure)) return false;
+    return axis2.value === "baseline" || visits2.includes(axis2.visit);
+  }
+  function openingAxes(settings, offered) {
+    const { measures, visits: visits2, numbers } = offered;
+    const missing = [];
+    const named = (key) => {
+      if (!settings[key]) return null;
+      const axis2 = axisOf(settings[key]);
+      if (axisOffered(axis2, offered)) return axis2;
+      missing.push(key);
+      return null;
+    };
+    const at = (measure, visit) => ({ kind: "measure", measure, value: "raw", visit });
+    const first = measures.length && visits2.length ? at(measures[0], visits2[0]) : numbers.length ? { kind: "column", col: numbers[0].value_col } : null;
+    const x = named("x") || first;
+    let y = named("y");
+    if (!y && x) {
+      if (measures.length > 1 && visits2.length) y = at(measures[1], visits2[0]);
+      else if (measures.length && visits2.length > 1) y = at(measures[0], visits2[1]);
+      else if (numbers.length) y = { kind: "column", col: numbers[0].value_col };
+      else y = x;
+    }
+    return { x, y, missing };
+  }
+  function axisTitle(results, settings, axis2, numbers = []) {
+    if (axis2.kind === "column") {
+      const found = numbers.find((entry) => entry.value_col === axis2.col);
+      return found ? found.label : axis2.col;
+    }
+    const words = label(variableOf(axis2));
+    if (axis2.value === "fold_change") return words;
+    if (axis2.value === "percent_change") return `${words} (%)`;
+    const unit = unitOf(results, settings, axis2.measure);
+    return unit ? `${words} (${unit})` : words;
+  }
+  function flatAtBaseline(axis2, results, settings) {
+    if (axis2.kind !== "measure" || !RELATIVE2.has(axis2.value)) return false;
+    const config = coreSettings(settings);
+    const baseline = config.baseline_visits || visits(results, config).slice(0, 1);
+    return baseline.length === 1 && baseline[0] === axis2.visit;
+  }
+  var VARIABLE_WORDS = Object.freeze({
+    x: "x axis",
+    y: "y axis",
+    color: "colour",
+    panel: "panel"
+  });
+  function buildScatter({ results, participants }, settings, state, options = {}) {
+    const config = coreSettings(settings);
+    const { participants: kept, results: rows } = keepFiltered(
+      { results, participants },
+      settings,
+      state.filters,
+      options.filterMatches
+    );
+    const empty = {
+      panels: [],
+      colors: [null],
+      panelLevels: [null],
+      participants: kept ? kept.length : 0,
+      drawn: 0,
+      dropped: [],
+      unused: [],
+      nonPositive: { x: 0, y: 0 },
+      baselineVisits: null,
+      extent: null,
+      filtered: kept ? kept.length : null
+    };
+    if (!rows.length) return empty;
+    const made = frame(
+      { results: rows, participants: kept || void 0 },
+      {
+        x: variableOf(state.x),
+        y: variableOf(state.y),
+        ...state.colorBy ? { color: { col: state.colorBy } } : {},
+        ...state.panelBy ? { panel: { col: state.panelBy } } : {}
+      },
+      config
+    );
+    const nonPositive = { x: 0, y: 0 };
+    const data = made.data.filter((record) => {
+      if (state.xScale === "log" && !(record.x > 0)) {
+        nonPositive.x += 1;
+        return false;
+      }
+      if (state.yScale === "log" && !(record.y > 0)) {
+        nonPositive.y += 1;
+        return false;
+      }
+      return true;
+    });
+    const colors = state.colorBy ? levelsOf(data.map((record) => record.color)) : [null];
+    const panelLevels = state.panelBy ? levelsOf(data.map((record) => record.panel)) : [null];
+    const panels = panelLevels.map((panelLevel) => {
+      const records = data.filter(
+        (record) => panelLevel === null || String(record.panel) === panelLevel
+      );
+      return {
+        key: panelLevel ?? "",
+        title: panelLevel ?? "",
+        panelLevel,
+        records,
+        // How many of the panel's points each colour has, in the colours' order.
+        counts: colors.map(
+          (color) => records.filter((record) => color === null || String(record.color) === color).length
+        )
+      };
+    });
+    const extent = data.length ? {
+      x: [
+        Math.min(...data.map((record) => record.x)),
+        Math.max(...data.map((record) => record.x))
+      ],
+      y: [
+        Math.min(...data.map((record) => record.y)),
+        Math.max(...data.map((record) => record.y))
+      ]
+    } : null;
+    return {
+      panels,
+      colors,
+      panelLevels,
+      participants: made.participants,
+      drawn: data.length,
+      dropped: made.dropped,
+      unused: made.unused,
+      nonPositive,
+      baselineVisits: made.baseline_visits,
+      extent,
+      filtered: kept ? kept.length : null
+    };
+  }
+  var plotted = (value, scale) => scale === "log" ? Math.log10(value) : value;
+  function domainOf([least, greatest], scale) {
+    if (scale === "log") {
+      const factor = greatest > least ? (greatest / least) ** 0.05 : 1.05;
+      return [least / factor, greatest * factor];
+    }
+    const room = (greatest - least) * 0.05 || Math.abs(greatest) * 0.05 || 1;
+    return [least - room, greatest + room];
+  }
+  function identityLine(xDomain, yDomain, scales = { x: "linear", y: "linear" }) {
+    const from = Math.max(xDomain[0], yDomain[0]);
+    const to = Math.min(xDomain[1], yDomain[1]);
+    if (!(to > from)) return null;
+    if (scales.x === scales.y) {
+      return [
+        { x: from, y: from },
+        { x: to, y: to }
+      ];
+    }
+    const steps = 48;
+    return Array.from({ length: steps + 1 }, (_, index) => {
+      const at = from * (to / from) ** (index / steps);
+      return { x: at, y: at };
+    });
+  }
+  function brushed(records, region) {
+    const [x0, x1] = [Math.min(...region.x), Math.max(...region.x)];
+    const [y0, y1] = [Math.min(...region.y), Math.max(...region.y)];
+    return records.filter(
+      (record) => record.x >= x0 && record.x <= x1 && record.y >= y0 && record.y <= y1
+    );
+  }
+
+  // src/association-scatter/statistic.js
+  var METHOD_LABELS = Object.freeze({
+    pearson: "Pearson",
+    spearman: "Spearman"
+  });
+  var FIT_LABELS = Object.freeze({
+    none: "None",
+    identity: "Identity (y = x)",
+    linear: "Linear",
+    smooth: "Smooth"
+  });
+  var FITS_FROM_R = Object.freeze(["linear", "smooth"]);
+  var COEFFICIENTS = { cor: "Pearson\u2019s r", rho: "Spearman\u2019s rho" };
+  var coefficient = (name) => Object.hasOwn(COEFFICIENTS, name) ? COEFFICIENTS[name] : name;
+  function rowsForR(settings, state, panel) {
+    return panel.records.map((record) => ({
+      [settings.id_col]: record[settings.id_col],
+      x: plotted(record.x, state.xScale),
+      y: plotted(record.y, state.yScale),
+      ...state.colorBy ? { color: record.color } : {},
+      ...state.panelBy ? { panel: record.panel } : {}
+    }));
+  }
+  function viewId(settings, state, panel) {
+    const filters = filtersInForce(state.filters);
+    return {
+      chart: "association-scatter",
+      x: settingOf(state.x),
+      y: settingOf(state.y),
+      ...settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
+      baseline_stat: settings.baseline_stat,
+      ...state.colorBy ? { color_by: state.colorBy, groups: sorted(panel.records.map((record) => record.color)) } : {},
+      ...state.panelBy ? { panel_by: state.panelBy, panel: panel.panelLevel } : {},
+      ...Object.keys(filters).length ? { filters } : {},
+      ...state.xScale === "log" ? { x_scale: "log" } : {},
+      ...state.yScale === "log" ? { y_scale: "log" } : {}
+    };
+  }
+  function correlationRequest({ name, method, settings, state, panel }) {
+    return {
+      name,
+      data: rowsForR(settings, state, panel),
+      args: {
+        strXCol: "x",
+        strYCol: "y",
+        strMethod: method,
+        // A coefficient within each colour, when there is a colour.
+        ...state.colorBy ? { strGroupCol: "color" } : {}
+      },
+      dataId: viewId(settings, state, panel),
+      rows: panel.records.length
+    };
+  }
+  var plain2 = (state, said) => ({ ...sentence(state, said), table: null });
+  function groupsTable(value, { color, name }) {
+    const rows = Array.isArray(value.rows) ? value.rows.filter((row) => row && "group" in row) : [];
+    if (!rows.length) return null;
+    const formatted = rows.map(formatGroup);
+    const shown2 = formatted.filter((row) => row.status === "shown");
+    const methods = [...new Set(shown2.map((row) => row.method))];
+    const labels = [...new Set(shown2.map((row) => row.label))];
+    const levels = [...new Set(shown2.map((row) => row.level).filter(Boolean))];
+    const by = methods.length === 1 ? `, each by ${methods[0]}` : "";
+    const head = name || "Coefficient";
+    return {
+      caption: `Within each level of ${color}${by}.` + (labels.length ? ` ${labels.join(" ")}` : ""),
+      head: [
+        color,
+        "n",
+        levels.length === 1 ? `${head} (${levels[0]} confidence interval)` : head,
+        "p"
+      ],
+      rows: formatted.map((row, index) => {
+        const warned = typeof rows[index].warning === "string" ? rows[index].warning : null;
+        const within = row.bounds && levels.length === 1 ? ` (${row.bounds})` : row.interval ? ` (${row.interval})` : "";
+        return {
+          status: row.status,
+          head: row.group || "",
+          // What R said of this level alone, and its method where the levels' differ.
+          sub: [
+            methods.length > 1 && row.status === "shown" ? row.method : null,
+            warned ? `R warned: ${warned}` : null
+          ].filter(Boolean).join(" ") || null,
+          cells: row.status === "shown" ? [String(row.n), `${row.estimate}${within}`, row.p] : (
+            // A level with no coefficient says why in its place.
+            [row.n === null ? "" : String(row.n), row.result, ""]
+          )
+        };
+      })
+    };
+  }
+  function describeCorrelation(result, context = {}) {
+    if (!result || result.status !== "ok") {
+      const failure = failureOf(result);
+      return plain2(failure.state, failure.text);
+    }
+    const value = result.value && typeof result.value === "object" ? result.value : {};
+    const formatted = formatStatistic(value);
+    const described = plain2(formatted.status, formatted.text);
+    if (formatted.status === "shown") {
+      const estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter(Boolean);
+      described.estimates = estimates.map(
+        (row) => formatEstimate({ ...row, name: coefficient(row.name) }).text
+      );
+      if (context.color) {
+        described.table = groupsTable(value, {
+          color: context.color,
+          name: estimates.length ? coefficient(estimates[0].name) : null
+        });
+      }
+    }
+    described.remarks = [
+      ...remarksOf(value),
+      ...context.scale ? [{ kind: "scale", text: context.scale }] : []
+    ];
+    described.scope = context.scope || null;
+    return described;
+  }
+  var ON_A_LOGARITHM = {
+    pearson: "Pearson\u2019s coefficient is of the values as plotted, not of the values themselves.",
+    spearman: "Spearman\u2019s coefficient is computed on ranks, which a logarithm does not change.",
+    linear: "The line is fitted to the values as plotted, so it is straight on these axes, and its slope and intercept are of the logarithms.",
+    smooth: "The curve is fitted to the values as plotted."
+  };
+  function scaleText({ xScale, yScale, x, y, method }) {
+    const logged = [xScale === "log" ? x : null, yScale === "log" ? y : null].filter(Boolean);
+    if (!logged.length) return null;
+    const which = logged.length === 2 ? "Both axes are logarithmic" : `The ${xScale === "log" ? "x" : "y"} axis is logarithmic`;
+    const given2 = logged.map((name) => `the base-10 logarithm of ${name}`).join(" and ");
+    return `${which}: R was given ${given2}. ${ON_A_LOGARITHM[method] || ""}`.trim();
+  }
+  function scopeText2({ n, panel, color, filters = [] }) {
+    const said = [
+      `This coefficient is of the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+    ];
+    if (panel) {
+      said.push(
+        "Each panel has a coefficient of its own, and they are not adjusted for one another."
+      );
+    }
+    if (color) {
+      said.push(
+        `It takes every level of ${color} together; the table gives each level its own, and they are not adjusted for one another.`
+      );
+    }
+    if (filters.length) said.push(filtersSaid(filters));
+    return said.join(" ");
+  }
+  function fitRequest({ name, fit, settings, state, panel }) {
+    return {
+      name,
+      data: rowsForR(settings, state, panel),
+      args: {
+        strXCol: "x",
+        strYCol: "y",
+        strMethod: fit,
+        // A line within each colour as well, when there is a colour.
+        ...state.colorBy ? { strGroupCol: "color" } : {}
+      },
+      dataId: viewId(settings, state, panel),
+      rows: panel.records.length
+    };
+  }
+  var FIT_WORDS = { linear: "linear fit", smooth: "smooth" };
+  var present2 = (value) => value !== void 0 && value !== null;
+  var isCount2 = (value) => Number.isInteger(value) && value >= 0;
+  function fitsByGroup(value) {
+    const rows = Array.isArray(value.rows) ? value.rows.filter(Boolean) : [];
+    const estimates = Array.isArray(value.estimates) ? value.estimates.filter(Boolean) : [];
+    const groups = [...new Set(rows.map((row) => row.group).filter(present2))];
+    return groups.map((group) => ({
+      group,
+      answer: rows.find((row) => row.group === group),
+      estimate: (name) => estimates.find((row) => row.group === group && row.name === name) || {}
+    }));
+  }
+  function fitTable(value, color) {
+    const fits = fitsByGroup(value);
+    if (!fits.length) return null;
+    const formatted = fits.map(({ group, answer, estimate }) => {
+      const of = (name) => formatGroup({
+        group,
+        counts: answer.counts,
+        method: answer.method,
+        p_value: answer.p_value,
+        adjustment: answer.adjustment,
+        status: answer.status,
+        reason: answer.reason,
+        estimate: estimate(name).estimate,
+        lower: estimate(name).lower,
+        upper: estimate(name).upper,
+        level: estimate(name).level
+      });
+      return { slope: of("Slope"), intercept: of("Intercept"), warning: answer.warning };
+    });
+    const shown2 = formatted.filter((row) => row.slope.status === "shown");
+    const methods = [...new Set(shown2.map((row) => row.slope.method))];
+    const labels = [...new Set(shown2.map((row) => row.slope.label))];
+    const levels = [...new Set(shown2.map((row) => row.slope.level).filter(Boolean))];
+    const interval = levels.length === 1 ? ` (${levels[0]} confidence interval)` : "";
+    const cell = (part) => `${part.estimate}${part.bounds ? ` (${part.bounds})` : ""}`;
+    return {
+      caption: `The line within each level of ${color}` + (methods.length === 1 ? `, each by ${methods[0]}` : "") + `.${labels.length ? ` ${labels.join(" ")}` : ""}`,
+      head: [color, "n", `Slope${interval}`, `Intercept${interval}`, "p, slope"],
+      rows: formatted.map(({ slope, intercept, warning }) => ({
+        status: slope.status,
+        head: slope.group || "",
+        sub: typeof warning === "string" ? `R warned: ${warning}` : null,
+        cells: slope.status === "shown" && intercept.status === "shown" ? [String(slope.n), cell(slope), cell(intercept), slope.p] : [slope.n === null ? "" : String(slope.n), slope.result, "", ""]
+      }))
+    };
+  }
+  function describeFit(result, context = {}) {
+    const words = FIT_WORDS[context.fit] || "fitted line";
+    if (!result || result.status !== "ok") {
+      const failure = failureOf(result);
+      return plain2(failure.state, `The ${words} is not drawn. ${failure.text}`);
+    }
+    const value = result.value && typeof result.value === "object" ? result.value : {};
+    const smooth = context.fit === "smooth" && (value.status === void 0 || value.status === "ok");
+    let described;
+    if (smooth) {
+      const method = typeof value.method === "string" ? value.method : "Smooth";
+      described = isCount2(value.counts) ? plain2("shown", `${method}: the curve and its band are R\u2019s (n = ${value.counts}).`) : plain2("refused", "Smooth not shown: the result does not give the counts it used.");
+    } else {
+      const formatted = formatStatistic(value);
+      described = plain2(formatted.status, formatted.text);
+    }
+    if (described.state !== "shown") described.text = `The ${words} is not drawn. ${described.text}`;
+    if (described.state === "shown") {
+      const estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter(Boolean);
+      const overall = estimates.filter((row) => !present2(row.group));
+      const slopeFirst = [...overall].sort(
+        (a, b) => Number(b.name === "Slope") - Number(a.name === "Slope")
+      );
+      const rSquared = (Array.isArray(value.statistic) ? value.statistic : []).find(
+        (row) => row && row.name === "r.squared"
+      );
+      described.estimates = [
+        ...slopeFirst.map((row) => formatEstimate(row).text),
+        ...rSquared ? [formatEstimate({ name: "R-squared", estimate: rSquared.value }).text] : []
+      ];
+      if (context.color && !smooth) described.table = fitTable(value, context.color);
+    }
+    const withheld = smooth && context.color ? fitsByGroup(value).filter(({ answer }) => answer.status && answer.status !== "ok").map(({ group, answer }) => ({
+      kind: "withheld",
+      text: formatGroup({ ...answer, group }).text
+    })) : [];
+    described.remarks = [
+      ...withheld,
+      ...remarksOf(value),
+      ...context.scale ? [{ kind: "scale", text: context.scale }] : []
+    ];
+    described.scope = context.scope || null;
+    return described;
+  }
+  function fitCurves(result, state) {
+    if (!result || result.status !== "ok" || !result.value) return null;
+    const rows = Array.isArray(result.value.rows) ? result.value.rows : [];
+    const isPoint = (row) => row && [row.x, row.fit, row.lower, row.upper].every((part) => typeof part === "number");
+    const placed = (value, scale) => scale === "log" ? 10 ** value : value;
+    const lines = /* @__PURE__ */ new Map();
+    for (const row of rows.filter(isPoint)) {
+      const group = present2(row.group) ? String(row.group) : null;
+      if (!lines.has(group)) lines.set(group, { group, curve: [], lower: [], upper: [] });
+      const line = lines.get(group);
+      const x = placed(row.x, state.xScale);
+      line.curve.push({ x, y: placed(row.fit, state.yScale) });
+      line.lower.push({ x, y: placed(row.lower, state.yScale) });
+      line.upper.push({ x, y: placed(row.upper, state.yScale) });
+    }
+    return lines.size ? [...lines.values()] : null;
+  }
+  function fitScopeText({ fit, n, panel, color }) {
+    const words = FIT_WORDS[fit] || "fitted line";
+    const whom = `the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel})` : "drawn");
+    if (!color) {
+      return `The line is R\u2019s ${words} of y on x for ${whom}, with R\u2019s band about it.`;
+    }
+    return `Each level of ${color} has R\u2019s ${words} of y on x in its colour, with R\u2019s band about it. The dashed line is the ${words} of ${whom} together, drawn without its band.`;
+  }
+  function createStatisticDesk2({ connection, note = null }) {
+    const isFit = (context) => Boolean(context && context.kind === "fit");
+    return createDesk({
+      connection,
+      note,
+      describe: (result, context) => isFit(context) ? describeFit(result, context) : describeCorrelation(result, context),
+      waiting: (said, context) => plain2("waiting", isFit(context) ? said.replace(/^Statistics/, "Fitted line") : said)
+    });
+  }
+
+  // src/association-scatter.js
+  var NONE2 = "";
+  var MODULE_CLASS = "bv-association-scatter";
+  var STYLE_ID2 = "bio-viz-association-scatter-styles";
+  var STYLES2 = `${lineStyles(`.${MODULE_CLASS}`)}
+.${MODULE_CLASS} .sv-chart-wrap canvas,.${MODULE_CLASS} .bv-panel-canvas canvas{cursor:crosshair}
+.${MODULE_CLASS} canvas.bv-region-on{touch-action:none}
+.${MODULE_CLASS} .bv-stat-remark[data-kind=scale]{color:#1f2933}
+.${MODULE_CLASS} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
+.${MODULE_CLASS} .bv-toolbar:empty{display:none}
+.${MODULE_CLASS} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+.${MODULE_CLASS} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
+.${MODULE_CLASS} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.${MODULE_CLASS} .bv-fit{margin:.5rem 0 0}
+.${MODULE_CLASS} .bv-stat-pairs{max-width:46rem}
+.${MODULE_CLASS} .bv-stat-pairs th[scope=row]{overflow-wrap:normal}
+.${MODULE_CLASS} .bv-stat-pairs td:last-child{white-space:nowrap}
+.${MODULE_CLASS} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
+@media (max-width:600px){
+.${MODULE_CLASS} .sv-chart-wrap{height:380px;padding:.5rem}
+.${MODULE_CLASS}.sv-collapsed .sv-sidebar-title{display:inline}
+.${MODULE_CLASS}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
+}`;
+  var HINT_POINTER = "Drag across the points to list the participants in a region. Click a point to list its participant and open their profile.";
+  var HINT_TOUCH = "Tap a point to list its participant and open their profile. To list a region, tap Select a region, then drag on the chart.";
+  var HINT_REGION = "Selecting a region: drag on the chart to list the participants inside it. The page does not scroll from the chart until you tap Select a region again.";
+  var NOTHING_AT_BASELINE = "An axis is a change at the baseline visit, where it is the same for everyone. Choose a later visit to draw.";
+  var CLICK_SLOP = 4;
+  var plural = (n, word = "participant") => `${n} ${word}${n === 1 ? "" : "s"}`;
+  var AssociationScatter = class {
+    constructor(element, settings) {
+      this.kit = findKit("the association scatter");
+      this.element = typeof element === "string" ? document.querySelector(element) : element;
+      if (!this.element) throw new Error(`bio.viz: association scatter target not found: ${element}`);
+      this.settings = syncSettings2(settings);
+      this.tables = { results: [], participants: null };
+      this.charts = [];
+      this.model = null;
+      this.measures = [];
+      this.visits = [];
+      this.numbers = [];
+      this.categories = [];
+      this.filterSpecs = [];
+      this.state = {};
+      this.asked = [];
+      this.selection = null;
+      this.regionMode = false;
+      this.connect();
+      this.renderShell();
+    }
+    // The connection the statistics line asks: the one given in settings, or one
+    // with no R attached, which answers that statistics are unavailable.
+    connect() {
+      this.connection = this.settings.connection || createConnection();
+      this.desk = createStatisticDesk2({
+        connection: this.connection,
+        note: this.settings.waiting_note
+      });
+    }
+    renderShell() {
+      const { kit } = this;
+      mountShell(this, {
+        moduleClass: MODULE_CLASS,
+        styleId: STYLE_ID2,
+        styles: STYLES2,
+        listingFile: "bio.viz-association-scatter-listing.csv"
+      });
+      this.toolbar = kit.createElement("div", "bv-toolbar");
+      this.notes.before(this.toolbar);
+      this.touch = Boolean(globalThis.matchMedia && globalThis.matchMedia("(pointer: coarse)").matches) || (globalThis.navigator ? globalThis.navigator.maxTouchPoints > 0 : false);
+      this.buildToolbar();
+    }
+    buildToolbar() {
+      const { kit, settings } = this;
+      this.toolbar.innerHTML = "";
+      if (settings.back) {
+        const back = kit.createElement("button", "bv-back", settings.back.label);
+        back.type = "button";
+        back.onclick = () => settings.back.action(this);
+        this.toolbar.append(back);
+      }
+      this.regionButton = null;
+      if (this.touch) {
+        const region = kit.createElement("button", "bv-region", "Select a region");
+        region.type = "button";
+        region.setAttribute("aria-pressed", String(this.regionMode));
+        region.onclick = () => this.setRegionMode(!this.regionMode);
+        this.regionButton = region;
+        this.toolbar.append(region);
+      }
+    }
+    // With a finger, a drag on the chart scrolls the page unless this is on.
+    setRegionMode(on) {
+      this.regionMode = Boolean(on);
+      if (this.regionButton) this.regionButton.setAttribute("aria-pressed", String(this.regionMode));
+      this.charts.forEach((chart) => chart.canvas.classList.toggle("bv-region-on", this.regionMode));
+      if (!this.selection && this.model) this.footnote.textContent = this.hint();
+    }
+    hint() {
+      if (!this.touch) return HINT_POINTER;
+      return this.regionMode ? HINT_REGION : HINT_TOUCH;
+    }
+    /**
+     * Load the tables and draw: the same as `setData`.
+     * @param {{results: object[], participants?: object[]}} data The tables.
+     * @returns {AssociationScatter} The chart, for chaining.
+     */
+    init(data) {
+      return this.setData(data);
+    }
+    /**
+     * Replace the tables and draw again. The controls are rebuilt from the new
+     * tables and return to what the settings open on.
+     * @param {{results: object[], participants?: object[]}} data The tables: the
+     *   results table, and the participant table when there is one. A bare array
+     *   is taken as the results table.
+     * @returns {AssociationScatter} The chart, for chaining.
+     */
+    setData(data) {
+      this.tables = readGiven(this, data);
+      this.readTables();
+      this.state = this.seedState();
+      this.buildProfileFeed();
+      this.buildControls();
+      this.render();
+      return this;
+    }
+    /**
+     * Lay new settings over the current ones and draw again. A setting that says
+     * what the chart opens on (`x`, `y`, `color_by`, `panel_by`, `x_scale`,
+     * `y_scale`, `fit`, `method`, `filters`) moves its control, so
+     * `setSettings({ x, y })` opens the chart on another pair of variables.
+     * @param {object} settings The settings to change.
+     * @returns {AssociationScatter} The chart, for chaining.
+     */
+    setSettings(settings) {
+      const given2 = settings || {};
+      this.settings = syncSettings2({ ...this.settings, ...given2 });
+      syncHost(this);
+      if ("connection" in given2 || "waiting_note" in given2) this.connect();
+      this.readTables();
+      const opening = this.seedState();
+      const moved = {
+        x: "x",
+        y: "y",
+        color_by: "colorBy",
+        panel_by: "panelBy",
+        x_scale: "xScale",
+        y_scale: "yScale",
+        fit: "fit",
+        method: "method",
+        filters: "filters"
+      };
+      for (const [setting, key] of Object.entries(moved)) {
+        if (setting in given2) this.state[key] = opening[key];
+      }
+      this.repairState(opening);
+      this.buildProfileFeed();
+      this.kit.syncProfileRail(this.host, () => this.railSettings());
+      this.buildToolbar();
+      this.buildControls();
+      this.render();
+      return this;
+    }
+    // What the controls can offer, read from the tables.
+    readTables() {
+      const { results } = this.tables;
+      const { settings } = this;
+      this.measures = results.length ? listMeasures(results, settings) : [];
+      this.visits = results.length ? listVisits(results, settings).all : [];
+      this.numbers = results.length ? numberColumns(this.tables, settings) : [];
+      this.categories = results.length ? categoryColumns(this.tables, settings) : [];
+      this.filterSpecs = filterColumns(this.tables, settings, this.categories).map(
+        (spec) => this.kit.normalizeFilterSpec(spec)
+      );
+      this.opening = openingAxes(settings, this.offered());
+      if (results.length) {
+        this.opening.missing.forEach(
+          (key) => console.warn(
+            `The initial ${key} variable ${JSON.stringify(settings[key])} cannot be drawn from these tables. Defaulting to the first variables the tables have.`
+          )
+        );
+      }
+    }
+    offered() {
+      return { measures: this.measures, visits: this.visits, numbers: this.numbers };
+    }
+    // What the chart opens on: the settings, where the tables have what they name.
+    seedState() {
+      const { settings, categories } = this;
+      const has = (column) => categories.some((entry) => entry.value_col === column);
+      return {
+        x: this.opening.x && { ...this.opening.x },
+        y: this.opening.y && { ...this.opening.y },
+        colorBy: has(settings.color_by) ? settings.color_by : NONE2,
+        panelBy: has(settings.panel_by) ? settings.panel_by : NONE2,
+        xScale: settings.x_scale,
+        yScale: settings.y_scale,
+        fit: settings.fit,
+        method: settings.method,
+        filters: this.kit.initFilterState(this.filterSpecs)
+      };
+    }
+    // After the tables or the settings change, a control may hold something that
+    // is no longer offered; it returns to what the chart opens on.
+    repairState(opening) {
+      const has = (column) => this.categories.some((entry) => entry.value_col === column);
+      for (const key of ["x", "y"]) {
+        if (!axisOffered(this.state[key], this.offered())) this.state[key] = opening[key];
+      }
+      if (this.state.colorBy && !has(this.state.colorBy)) this.state.colorBy = NONE2;
+      if (this.state.panelBy && !has(this.state.panelBy)) this.state.panelBy = NONE2;
+    }
+    labelOf(column) {
+      const found = this.categories.find((entry) => entry.value_col === column);
+      return found ? found.label : column;
+    }
+    titleOf(axis2) {
+      return axisTitle(this.tables.results, this.settings, axis2, this.numbers);
+    }
+    // ---- Controls ---------------------------------------------------------------
+    buildControls() {
+      const { kit, state } = this;
+      this.controls.innerHTML = "";
+      const { addSection, addControl, addReset } = kit.controlBuilders(this.controls);
+      const redraw = (rebuild) => {
+        if (rebuild) this.buildControls();
+        this.render();
+      };
+      const select = (name, labelText, options, selected, onChange, parent) => {
+        const input = document.createElement("select");
+        input.dataset.control = name;
+        input.setAttribute("aria-label", labelText);
+        options.forEach(([value, text2]) => kit.option(input, value, text2, value === selected));
+        input.onchange = () => onChange(input.value);
+        return addControl(labelText.replace(/^[XY] axis: /, ""), input, parent);
+      };
+      const axisControls = (key, title) => {
+        const axis2 = state[key];
+        if (!axis2) return;
+        const section = addSection(title);
+        const named = (text2) => `${title}: ${text2}`;
+        const variables = [
+          ...this.measures.map((measure) => [`m:${measure}`, measure]),
+          ...this.numbers.map((entry) => [`c:${entry.value_col}`, `${entry.label} (participant)`])
+        ];
+        select(
+          `${key}-variable`,
+          named("Variable"),
+          variables,
+          axis2.kind === "column" ? `c:${axis2.col}` : `m:${axis2.measure}`,
+          (next) => {
+            const name = next.slice(2);
+            state[key] = next.startsWith("c:") ? { kind: "column", col: name } : {
+              kind: "measure",
+              measure: name,
+              value: axis2.kind === "measure" ? axis2.value : "raw",
+              visit: axis2.kind === "measure" ? axis2.visit : this.visits[0] ?? null
+            };
+            redraw(true);
+          },
+          section
+        );
+        if (axis2.kind === "measure") {
+          select(
+            `${key}-value`,
+            named("Value"),
+            VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
+            axis2.value,
+            (next) => {
+              axis2.value = next;
+              axis2.visit = next === "baseline" ? null : axis2.visit ?? this.visits[0] ?? null;
+              redraw(true);
+            },
+            section
+          );
+          if (axis2.value !== "baseline") {
+            select(
+              `${key}-visit`,
+              named("Visit"),
+              this.visits.map((visit) => [visit, visit]),
+              axis2.visit,
+              (next) => {
+                axis2.visit = next;
+                redraw(false);
+              },
+              section
+            );
+          }
+        }
+        select(
+          `${key}-scale`,
+          named("Scale"),
+          SCALES.map((scale) => [scale, SCALE_LABELS[scale]]),
+          state[`${key}Scale`],
+          (next) => {
+            state[`${key}Scale`] = next;
+            redraw(false);
+          },
+          section
+        );
+      };
+      axisControls("x", "X axis");
+      axisControls("y", "Y axis");
+      const columns = this.categories.map((entry) => [entry.value_col, entry.label]);
+      if (columns.length) {
+        const group = addSection("Groups");
+        const optional = [[NONE2, "None"], ...columns];
+        select(
+          "color-by",
+          "Colour by",
+          optional,
+          state.colorBy,
+          (next) => {
+            state.colorBy = next;
+            redraw(false);
+          },
+          group
+        );
+        select(
+          "panel-by",
+          "Panel by",
+          optional,
+          state.panelBy,
+          (next) => {
+            state.panelBy = next;
+            redraw(false);
+          },
+          group
+        );
+      }
+      const display = addSection("Display");
+      const fit = select(
+        "fit",
+        "Fitted line",
+        FITS.filter((kind) => this.settings.fit_statistic || !FITS_FROM_R.includes(kind)).map(
+          (kind) => [kind, FIT_LABELS[kind]]
+        ),
+        state.fit,
+        (next) => {
+          state.fit = next;
+          redraw(false);
+        },
+        display
+      );
+      fit.after(
+        kit.createElement(
+          "small",
+          "bv-control-note",
+          "The identity line is y = x. A linear fit and a smooth are computed by R, with their band."
+        )
+      );
+      if (this.settings.statistic) {
+        const statistics = addSection("Statistics");
+        select(
+          "method",
+          "Method",
+          METHODS.map((method) => [method, METHOD_LABELS[method]]),
+          state.method,
+          (next) => {
+            state.method = next;
+            redraw(false);
+          },
+          statistics
+        );
+      }
+      addFilterControls(this, { addSection, addControl }, () => redraw(false));
+      addReset(() => {
+        this.state = this.seedState();
+        this.buildControls();
+        this.render();
+      });
+    }
+    // ---- Drawing ----------------------------------------------------------------
+    /**
+     * Draw everything again from the tables, the settings and the controls. The
+     * listing, the brushed region and the participant rail are emptied, and the
+     * statistics line and the fitted line are cleared and asked for again:
+     * nothing stays on screen that describes rows the chart no longer shows.
+     * @returns {void}
+     */
+    render() {
+      const round = this.desk.begin();
+      this.asked = [];
+      this.destroyCharts();
+      this.clearSelection();
+      this.notes.innerHTML = "";
+      this.multiplesWrap.innerHTML = "";
+      this.statLine.textContent = "";
+      this.statLine.dataset.state = "empty";
+      this.chartWrap.classList.remove("sv-hidden");
+      this.model = null;
+      const { results } = this.tables;
+      const { state } = this;
+      if (!results.length || !state.x || !state.y) {
+        this.footnote.textContent = "No results to draw.";
+        return;
+      }
+      if ([state.x, state.y].some((axis2) => flatAtBaseline(axis2, results, this.settings))) {
+        this.footnote.textContent = NOTHING_AT_BASELINE;
+        return;
+      }
+      const model = buildScatter(this.tables, this.settings, state, {
+        filterMatches: this.kit.filterMatches
+      });
+      this.model = model;
+      this.updateNotes(model);
+      if (!model.drawn) {
+        this.footnote.textContent = model.filtered === 0 ? "No participant passes the filters." : "No participant has a value on both axes for this choice.";
+        return;
+      }
+      this.footnote.textContent = this.hint();
+      const view = {
+        titles: { x: this.titleOf(state.x), y: this.titleOf(state.y) },
+        domains: {
+          x: domainOf(model.extent.x, state.xScale),
+          y: domainOf(model.extent.y, state.yScale)
+        }
+      };
+      if (model.panels.length === 1) {
+        const [panel] = model.panels;
+        const chart = this.drawPanel(this.canvas, panel, model, view);
+        this.ask(round, chart, panel, model, this.statLine);
+        return;
+      }
+      this.chartWrap.classList.add("sv-hidden");
+      model.panels.forEach((panel) => {
+        const card = this.kit.createElement("div", "sv-multiple bv-panel");
+        card.dataset.panel = panel.title;
+        card.append(this.kit.createElement("h3", null, panel.title));
+        card.append(
+          this.kit.createElement("p", "bv-panel-note", `${plural(panel.records.length)} drawn.`)
+        );
+        const wrap = this.kit.createElement("div", "bv-panel-canvas");
+        const canvas = document.createElement("canvas");
+        wrap.append(canvas);
+        const line = this.kit.createElement("div", "bv-statistic");
+        line.setAttribute("role", "status");
+        card.append(wrap, line);
+        this.multiplesWrap.append(card);
+        if (panel.records.length) {
+          const chart = this.drawPanel(canvas, panel, model, view);
+          this.ask(round, chart, panel, model, line);
+        }
+      });
+    }
+    // The axes run to the ends of what is drawn, and both panels of a pair share
+    // them. A point that is in the brushed region keeps its colour; the others
+    // fade while a region is selected.
+    drawPanel(canvas, panel, model, { titles, domains }) {
+      const { state, settings } = this;
+      const coloured = model.colors.length > 1 || model.colors[0] !== null;
+      const narrow = this.root.clientWidth < 600;
+      const datasets = model.colors.map((color, colorIndex) => {
+        const hex = PALETTE[colorIndex % PALETTE.length];
+        const records = panel.records.filter(
+          (record) => color === null || String(record.color) === color
+        );
+        const faded = (context) => {
+          const chosen = this.selection;
+          if (!chosen || chosen.panel !== panel || !context.raw) return false;
+          return !chosen.ids.has(String(context.raw.record[settings.id_col]));
+        };
+        return {
+          label: color === null ? "All participants" : color,
+          data: records.map((record) => ({ x: record.x, y: record.y, record })),
+          showLine: false,
+          backgroundColor: (context) => hexToRgba(hex, faded(context) ? 0.12 : 0.55),
+          borderColor: (context) => hexToRgba(hex, faded(context) ? 0.25 : 1),
+          pointRadius: narrow ? 2.5 : 3,
+          pointHoverRadius: 5,
+          pointHitRadius: 5
+        };
+      });
+      const axisOf2 = (key) => ({
+        type: state[`${key}Scale`] === "log" ? "logarithmic" : "linear",
+        min: domains[key][0],
+        max: domains[key][1],
+        // The ends of the axis are room about the data, not round numbers.
+        ticks: { includeBounds: false, ...narrow ? { maxTicksLimit: 6 } : {} },
+        title: { display: true, text: titles[key] }
+      });
+      const chart = new this.kit.Chart(canvas.getContext("2d"), {
+        type: "scatter",
+        data: { datasets },
+        options: {
+          animation: false,
+          maintainAspectRatio: false,
+          responsive: true,
+          interaction: { mode: "nearest", intersect: true },
+          plugins: {
+            legend: {
+              display: coloured,
+              position: "top",
+              labels: { usePointStyle: true },
+              title: { display: coloured, text: this.labelOf(state.colorBy) },
+              // A colour is not switched off from the key: the coefficient below
+              // is of every point drawn, and a hidden one would still be in it.
+              onClick: () => {
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: () => "",
+                label: (context) => this.tooltip(context.raw, titles)
+              }
+            }
+          },
+          scales: { x: axisOf2("x"), y: axisOf2("y") }
+        },
+        plugins: [this.linePlugin(domains, model.colors), this.regionPlugin(panel)]
+      });
+      chart.$panel = panel;
+      chart.$model = model;
+      chart.$fit = null;
+      canvas.classList.toggle("bv-region-on", this.regionMode);
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute(
+        "aria-label",
+        `${titles.y} against ${titles.x}${panel.title ? `, ${panel.title}` : ""}: ${plural(panel.records.length)} drawn`
+      );
+      this.attachPointer(chart, panel);
+      this.charts.push(chart);
+      return chart;
+    }
+    // The lines under the points. The identity line, y = x, is drawn here from
+    // the axes alone. A linear fit or a smooth is drawn from what R returned for
+    // the panel (`chart.$fit`): each line's points, and the band about them.
+    linePlugin(domains, colors) {
+      return {
+        id: `as-lines-${Math.random().toString(36).slice(2)}`,
+        beforeDatasetsDraw: (chart) => {
+          const { ctx, scales, chartArea } = chart;
+          const path = (points) => {
+            ctx.beginPath();
+            points.forEach((point, index) => {
+              const [x, y] = [scales.x.getPixelForValue(point.x), scales.y.getPixelForValue(point.y)];
+              if (index === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            });
+          };
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(
+            chartArea.left,
+            chartArea.top,
+            chartArea.right - chartArea.left,
+            chartArea.bottom - chartArea.top
+          );
+          ctx.clip();
+          if (this.state.fit === "identity") {
+            const line = identityLine(domains.x, domains.y, {
+              x: this.state.xScale,
+              y: this.state.yScale
+            });
+            chart.$identity = line;
+            if (line) {
+              path(line);
+              ctx.strokeStyle = "#52616f";
+              ctx.lineWidth = 1.5;
+              ctx.setLineDash([6, 4]);
+              ctx.stroke();
+            }
+          }
+          const lines = chart.$fit || [];
+          const grouped = lines.some((line) => line.group !== null);
+          lines.forEach((line) => {
+            const overall = line.group === null;
+            const index = overall ? -1 : colors.indexOf(line.group);
+            const hex = overall ? "#1f2933" : PALETTE[Math.max(index, 0) % PALETTE.length];
+            if (!(overall && grouped)) {
+              path([...line.upper, ...[...line.lower].reverse()]);
+              ctx.closePath();
+              ctx.fillStyle = hexToRgba(hex, 0.13);
+              ctx.fill();
+            }
+            path(line.curve);
+            ctx.setLineDash(overall && grouped ? [5, 4] : []);
+            ctx.strokeStyle = hex;
+            ctx.lineWidth = overall && !grouped ? 2 : 1.5;
+            ctx.stroke();
+          });
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+      };
+    }
+    // The region being dragged, and the one selected, in the values' own units,
+    // so it stays on its points when the chart changes size.
+    regionPlugin(panel) {
+      return {
+        id: `as-region-${Math.random().toString(36).slice(2)}`,
+        afterDatasetsDraw: (chart) => {
+          const chosen = this.selection;
+          const region = chart.$dragging || (chosen && chosen.panel === panel ? chosen.region : null);
+          if (!region) return;
+          const { ctx, scales } = chart;
+          const [left, right] = region.x.map((value) => scales.x.getPixelForValue(value));
+          const [bottom, top] = region.y.map((value) => scales.y.getPixelForValue(value));
+          ctx.save();
+          ctx.fillStyle = "rgba(120, 120, 120, 0.18)";
+          ctx.strokeStyle = "rgba(90, 90, 90, 0.65)";
+          ctx.lineWidth = 1;
+          ctx.fillRect(left, top, right - left, bottom - top);
+          ctx.strokeRect(left, top, right - left, bottom - top);
+          ctx.restore();
+        }
+      };
+    }
+    tooltip(raw, titles) {
+      if (!raw || !raw.record) return "";
+      const { record } = raw;
+      return [
+        `${record[this.settings.id_col]}${record.color === void 0 ? "" : ` (${record.color})`}`,
+        `${titles.x}: ${shown(record.x)}`,
+        `${titles.y}: ${shown(record.y)}`
+      ];
+    }
+    // The participants seen and drawn, and why any was left out.
+    updateNotes(model) {
+      const { kit, state } = this;
+      const add = (text2, warning) => this.notes.append(kit.createElement("span", warning ? "sv-warning" : null, text2));
+      add(`${model.drawn} of ${plural(model.participants)} drawn.`);
+      model.dropped.forEach((entry) => {
+        const where = entry.variable ? ` (${VARIABLE_WORDS[entry.variable]})` : "";
+        add(`${entry.n} left out: ${entry.reason}${where}.`, true);
+      });
+      for (const key of ["x", "y"]) {
+        if (model.nonPositive[key]) {
+          add(
+            `${model.nonPositive[key]} left out: zero or less on the ${key} axis, which a logarithmic scale cannot show.`,
+            true
+          );
+        }
+      }
+      model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
+        (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
+      );
+      if (model.filtered !== null && model.filtered < this.tables.participants.length) {
+        add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
+      }
+      if (model.baselineVisits && [state.x, state.y].some((axis2) => axis2.value !== "raw")) {
+        add(`Baseline visit: ${model.baselineVisits.join(", ")}.`);
+      }
+    }
+    // ---- The statistics line, and the fitted line ---------------------------------
+    // Asks R for one panel: its coefficient, printed under the panel, and, when a
+    // linear fit or a smooth is chosen, its line, drawn on the panel. Each panel
+    // asks for itself, on its own rows, and is answered for itself.
+    ask(round, chart, panel, model, line) {
+      const { settings, state, kit } = this;
+      const several = model.panels.length > 1;
+      const lineFromR = FITS_FROM_R.includes(state.fit) && Boolean(settings.fit_statistic);
+      const coefficient2 = kit.createElement("div", "bv-coefficient");
+      const fit = kit.createElement("div", "bv-fit");
+      if (settings.statistic) line.append(coefficient2);
+      if (lineFromR) line.append(fit);
+      const show = (target, description) => {
+        writeStatistic(kit, target, description);
+        line.dataset.state = (settings.statistic ? coefficient2 : fit).dataset.state || "empty";
+      };
+      const record = (request2, kind) => {
+        const asked2 = {
+          panel: panel.title,
+          kind,
+          name: request2.name,
+          args: request2.args,
+          dataId: request2.dataId,
+          rows: request2.rows,
+          answer: null
+        };
+        this.asked.push(asked2);
+        return asked2;
+      };
+      const color = state.colorBy ? this.labelOf(state.colorBy) : null;
+      const scaleOf = (method) => scaleText({
+        xScale: state.xScale,
+        yScale: state.yScale,
+        x: this.titleOf(state.x),
+        y: this.titleOf(state.y),
+        method
+      });
+      if (settings.statistic) {
+        const request2 = correlationRequest({
+          name: settings.statistic,
+          method: state.method,
+          settings,
+          state,
+          panel
+        });
+        const asked2 = record(request2, "coefficient");
+        round.ask(
+          request2,
+          (description, answer) => {
+            if (answer) asked2.answer = answer;
+            show(coefficient2, description);
+          },
+          {
+            scope: scopeText2({
+              n: panel.records.length,
+              panel: several ? panel.title : null,
+              color,
+              filters: filtersForScope(this)
+            }),
+            color,
+            scale: scaleOf(state.method)
+          }
+        );
+      }
+      if (!lineFromR) return;
+      const request = fitRequest({
+        name: settings.fit_statistic,
+        fit: state.fit,
+        settings,
+        state,
+        panel
+      });
+      const asked = record(request, "fit");
+      round.ask(
+        request,
+        (description, answer) => {
+          if (answer) asked.answer = answer;
+          chart.$fit = answer ? fitCurves(answer, state) : null;
+          chart.draw();
+          show(fit, description);
+        },
+        {
+          kind: "fit",
+          fit: state.fit,
+          color,
+          scope: fitScopeText({
+            fit: state.fit,
+            n: panel.records.length,
+            panel: several ? panel.title : null,
+            color
+          }),
+          scale: scaleOf(state.fit)
+        }
+      );
+    }
+    /**
+     * What the chart has asked R for the panels now drawn, and what R answered:
+     * one entry per request, in the order the panels are drawn, a panel's
+     * coefficient before its fitted line. A request is exactly what the
+     * connection was given, so it is the key a stored result must carry to be
+     * found.
+     * @returns {Array<{panel: string, kind: string, name: string, args: object,
+     *   dataId: object, rows: number, answer: ?object}>} `kind` is `coefficient`
+     *   or `fit`; `answer` is what the connection resolved to, or null while R
+     *   has not answered.
+     */
+    statistics() {
+      return structuredClone(this.asked);
+    }
+    // ---- Region, listing and participant profile ---------------------------------
+    // A drag selects a region and a click picks a point. With a mouse or a pen a
+    // drag is always a region. With a finger a drag scrolls the page, so it is a
+    // region only while Select a region is on.
+    attachPointer(chart, panel) {
+      const { canvas } = chart;
+      const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+      const position = (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const area = chart.chartArea;
+        return {
+          x: clamp(event.clientX - rect.left, area.left, area.right),
+          y: clamp(event.clientY - rect.top, area.top, area.bottom)
+        };
+      };
+      const regionOf = (from, to) => ({
+        x: [Math.min(from.x, to.x), Math.max(from.x, to.x)].map(
+          (pixel) => chart.scales.x.getValueForPixel(pixel)
+        ),
+        // The lower pixel is the greater value.
+        y: [Math.max(from.y, to.y), Math.min(from.y, to.y)].map(
+          (pixel) => chart.scales.y.getValueForPixel(pixel)
+        )
+      });
+      let start = null;
+      let pointer = null;
+      let dragged = false;
+      let swallowClick = false;
+      const onDown = (event) => {
+        if (event.pointerType === "touch" && !this.regionMode) return;
+        if (event.button) return;
+        start = position(event);
+        pointer = event.pointerId;
+        dragged = false;
+        if (canvas.setPointerCapture) {
+          try {
+            canvas.setPointerCapture(pointer);
+          } catch {
+          }
+        }
+      };
+      const onMove = (event) => {
+        if (!start || event.pointerId !== pointer) return;
+        const at = position(event);
+        if (!dragged && Math.hypot(at.x - start.x, at.y - start.y) < CLICK_SLOP) return;
+        dragged = true;
+        chart.$dragging = regionOf(start, at);
+        chart.draw();
+      };
+      const onUp = (event) => {
+        if (!start || event.pointerId !== pointer) return;
+        const from = start;
+        start = null;
+        chart.$dragging = null;
+        if (!dragged) return;
+        swallowClick = true;
+        setTimeout(() => {
+          swallowClick = false;
+        }, 0);
+        this.selectRegion(panel, regionOf(from, position(event)));
+      };
+      const onCancel = () => {
+        start = null;
+        if (chart.$dragging) {
+          chart.$dragging = null;
+          chart.draw();
+        }
+      };
+      const onClick = (event) => {
+        if (swallowClick) {
+          swallowClick = false;
+          return;
+        }
+        const [hit] = chart.getElementsAtEventForMode(event, "nearest", { intersect: true }, false);
+        if (!hit) {
+          if (this.selection) {
+            this.clearSelection();
+            this.select(null);
+            this.footnote.textContent = this.hint();
+          }
+          return;
+        }
+        const { record } = chart.data.datasets[hit.datasetIndex].data[hit.index];
+        this.pick(panel, record);
+      };
+      canvas.addEventListener("pointerdown", onDown);
+      canvas.addEventListener("pointermove", onMove);
+      canvas.addEventListener("pointerup", onUp);
+      canvas.addEventListener("pointercancel", onCancel);
+      canvas.addEventListener("click", onClick);
+      chart.$detach = () => {
+        canvas.removeEventListener("pointerdown", onDown);
+        canvas.removeEventListener("pointermove", onMove);
+        canvas.removeEventListener("pointerup", onUp);
+        canvas.removeEventListener("pointercancel", onCancel);
+        canvas.removeEventListener("click", onClick);
+      };
+    }
+    // The panel a caller names: by its title, or the only one.
+    panelNamed(name) {
+      if (!this.model) return null;
+      const { panels } = this.model;
+      if (name === void 0 || name === null) return panels.length === 1 ? panels[0] : null;
+      return panels.find((panel) => panel.title === String(name)) || null;
+    }
+    /**
+     * Select a region, as a drag across the points does: its participants are
+     * listed under the chart. The statistics do not follow it: they stay those
+     * of every participant drawn.
+     * @param {{x: number[], y: number[], panel?: string}} region The region's two
+     *   ends on each axis, in the values' own units, and, when the chart has
+     *   panels, the title of the panel it is in.
+     * @returns {AssociationScatter} The chart, for chaining.
+     */
+    brush(region) {
+      const given2 = region || {};
+      const panel = this.panelNamed(given2.panel);
+      const pair = (ends) => Array.isArray(ends) && ends.length === 2 && ends.every((end) => Number.isFinite(end));
+      if (!panel || !pair(given2.x) || !pair(given2.y)) {
+        throw new TypeError(
+          "bio.viz: brush() takes { x: [from, to], y: [from, to] }, and `panel`, the title of a panel, when the chart has more than one."
+        );
+      }
+      this.selectRegion(panel, {
+        x: [Math.min(...given2.x), Math.max(...given2.x)],
+        y: [Math.min(...given2.y), Math.max(...given2.y)]
+      });
+      return this;
+    }
+    /**
+     * Let go of the region and empty the listing.
+     * @returns {AssociationScatter} The chart, for chaining.
+     */
+    clearBrush() {
+      this.clearSelection();
+      if (this.model && this.model.drawn) this.footnote.textContent = this.hint();
+      this.charts.forEach((chart) => chart.update("none"));
+      return this;
+    }
+    selectRegion(panel, region) {
+      const records = brushed(panel.records, region);
+      this.clearSelection();
+      this.charts.forEach((chart) => {
+        chart.setActiveElements([]);
+        if (chart.tooltip) chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+      });
+      if (!records.length) {
+        this.footnote.textContent = `No participant is in that region. ${this.hint()}`;
+        this.charts.forEach((chart) => chart.update("none"));
+        return;
+      }
+      this.selection = {
+        panel,
+        region,
+        ids: new Set(records.map((record) => String(record[this.settings.id_col])))
+      };
+      this.list(panel, records, "in the region");
+      this.charts.forEach((chart) => chart.update("none"));
+    }
+    // A point: its participant is listed, and their profile opened.
+    pick(panel, record) {
+      this.clearSelection();
+      const id = String(record[this.settings.id_col]);
+      this.selection = { panel, region: null, ids: /* @__PURE__ */ new Set([id]) };
+      this.list(panel, [record], "at the point");
+      this.charts.forEach((chart) => chart.update("none"));
+      this.select(id);
+    }
+    // The columns of the listing: the ones named in settings, or the participant,
+    // the two values drawn, the colour and the panel.
+    listingColumns() {
+      if (this.settings.details) return this.settings.details;
+      const { state, settings } = this;
+      const columns = [
+        { value_col: settings.id_col, label: "Participant" },
+        { value_col: "x", label: this.titleOf(state.x) },
+        { value_col: "y", label: this.titleOf(state.y) }
+      ];
+      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+      if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
+      return columns;
+    }
+    list(panel, records, where) {
+      showListing(this, {
+        columns: this.listingColumns(),
+        rows: records.map((record) => ({ ...record, x: shown(record.x), y: shown(record.y) }))
+      });
+      const drawn = panel.records.length;
+      const of = panel.title ? ` in this panel (${panel.title})` : "";
+      this.footnote.textContent = `${plural(records.length)} ${where} listed, of the ${drawn} drawn${of}. ` + (this.settings.statistic ? `The statistics are still of all ${drawn}: a region lists participants and does not change what R is asked. ` : "") + "Click a row to open the participant's profile.";
+    }
+    // Select one participant, or none: mark the listing's row and raise
+    // safety.viz's selection event, which the participant rail opens on and any
+    // other chart on the page can listen for.
+    select(id) {
+      selectParticipant(this, id);
+    }
+    // Empties the listing, the region and the rail without raising an event: the
+    // chart is about to show other rows.
+    clearSelection() {
+      this.selection = null;
+      clearListing(this);
+    }
+    // The rows safety.viz's participant rail reads, and the rail, mounted.
+    buildProfileFeed() {
+      buildProfileFeed(this, () => this.railSettings());
+    }
+    railSettings() {
+      return railSettings(this, this.state.yScale);
+    }
+    /**
+     * What the chart is drawn on, as settings: the two variables, the colour, the
+     * panels, the scales, the line and the method the controls are set to. Given
+     * back to `associationScatter` or `setSettings`, it opens the same view.
+     * @returns {object} `x`, `y`, `color_by`, `panel_by`, `x_scale`, `y_scale`,
+     *   `fit` and `method`.
+     */
+    view() {
+      const { state } = this;
+      return {
+        x: state.x ? settingOf(state.x) : null,
+        y: state.y ? settingOf(state.y) : null,
+        color_by: state.colorBy || null,
+        panel_by: state.panelBy || null,
+        x_scale: state.xScale,
+        y_scale: state.yScale,
+        fit: state.fit,
+        method: state.method
+      };
+    }
+    // ---- Lifecycle --------------------------------------------------------------
+    /**
+     * Fit the chart to its container, for a page that changes the container's
+     * size without resizing the window.
+     * @returns {void}
+     */
+    resize() {
+      this.charts.forEach((chart) => chart.resize());
+    }
+    destroyCharts() {
+      this.charts.forEach((chart) => {
+        if (chart.$detach) chart.$detach();
+        chart.destroy();
+      });
+      this.charts = [];
+    }
+    /**
+     * Take the chart down: its Chart.js charts, its participant rail and
+     * everything in its element. A destroyed chart cannot be used again; make a
+     * new one.
+     * @returns {void}
+     */
+    destroy() {
+      this.desk.begin();
+      this.destroyCharts();
+      this.kit.unmountProfileRail(this.host);
+      this.element.innerHTML = "";
+    }
+  };
+  function associationScatter(element, settings) {
+    return new AssociationScatter(element, settings);
   }
 
   // src/main.js

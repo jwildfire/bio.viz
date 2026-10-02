@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#formatgrouprow"><code>formatGroup(row)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -180,6 +180,24 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="Member"><code>adjustment</code></td><td data-label="Meaning">The adjustment by its usual name, or null when the p-value is unadjusted or not shown.</td></tr>
 <tr><td data-label="Member"><code>label</code></td><td data-label="Meaning"><code>Exploratory, adjusted (Holm).</code> or <code>Exploratory, unadjusted.</code> Null unless <code>status</code> is <code>shown</code>.</td></tr></tbody></table>
 <p>A table built from the parts prints <code>p</code> only beside the pair&#39;s counts and under a caption that carries <code>method</code> and <code>label</code>.</p>
+<h2 id="formatgrouprow"><code>formatGroup(row)</code></h2>
+<p>Formats one group&#39;s result from a result&#39;s <code>rows</code>: an estimate R computed within one group, such as a correlation coefficient in one arm, with its interval, the group&#39;s count and its p-value. The p-value is held to the rules a whole result is held to. It reads <code>group</code>, <code>counts</code>, <code>estimate</code>, <code>lower</code>, <code>upper</code>, <code>level</code>, <code>method</code>, <code>p_value</code>, <code>adjustment</code>, <code>status</code> and <code>reason</code>.</p>
+<p>It returns the sentence, and its parts for a chart that prints the groups as a table:</p>
+<table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>status</code></td><td data-label="Meaning"><code>shown</code>, <code>withheld</code>, <code>error</code> or <code>refused</code>, as <code>formatStatistic</code> gives them. A row that names no group, or has no estimate or half an interval, is <code>refused</code>.</td></tr>
+<tr><td data-label="Member"><code>text</code></td><td data-label="Meaning">The whole sentence: <code>Placebo: 0.5918, 95% confidence interval 0.4474 to 0.7061. Pearson&#39;s product-moment correlation: p &lt; 0.001 (n = 100). Exploratory, unadjusted.</code></td></tr>
+<tr><td data-label="Member"><code>result</code></td><td data-label="Meaning">The same without the group&#39;s name.</td></tr>
+<tr><td data-label="Member"><code>group</code></td><td data-label="Meaning">The group&#39;s name, or null.</td></tr>
+<tr><td data-label="Member"><code>n</code></td><td data-label="Meaning">Its count, or null when it is not a whole number.</td></tr>
+<tr><td data-label="Member"><code>estimate</code></td><td data-label="Meaning">The estimate as printed, to four significant figures. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>interval</code></td><td data-label="Meaning">Its interval in words, <code>95% confidence interval 0.4474 to 0.7061</code>. Null where R gave none, as for Spearman&#39;s rho, and unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>bounds</code></td><td data-label="Meaning">The two ends alone, <code>0.4474 to 0.7061</code>, for a table whose header carries the level. Null where <code>interval</code> is.</td></tr>
+<tr><td data-label="Member"><code>level</code></td><td data-label="Meaning">The level alone, <code>95%</code>. Null where <code>interval</code> is.</td></tr>
+<tr><td data-label="Member"><code>method</code></td><td data-label="Meaning">The method&#39;s name. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>p</code></td><td data-label="Meaning">The p-value as printed, <code>p = 0.031</code>. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>adjustment</code></td><td data-label="Meaning">The adjustment by its usual name, or null when the p-value is unadjusted or not shown.</td></tr>
+<tr><td data-label="Member"><code>label</code></td><td data-label="Meaning"><code>Exploratory, adjusted (Holm).</code> or <code>Exploratory, unadjusted.</code> Null unless <code>status</code> is <code>shown</code>.</td></tr></tbody></table>
+<p>No interval is made up: where R returned none, none is printed. A group R could not compute for, one with too few pairs, gives R&#39;s reason and its count and no number: <code>Treatment: Not computed: 2 complete pairs. The minimum is 5. Counts: n = 2.</code></p>
 <h2 id="checked-against-real-r">Checked against real R</h2>
 <p>The <a href="https://jwildfire.github.io/bio.viz/dev/r-check/">R check page</a> runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named <code>RCON-LIVE-*</code> run that page on every pull request.</p>
 <p>The <a href="../group-comparison/api.html#the-statistics-line">group comparison chart</a> is the first chart to use it: its demo starts R in the browser with gsm.bio&#39;s statistics file, and the browser tests named <code>GC-STAT-034</code> to <code>GC-STAT-042</code> hold what it prints to desktop R.</p>
@@ -194,7 +212,7 @@ if (result.status === &#39;ok&#39;) {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/1dba79810813d44354c605c5d3f5573fb331a61e"><code>1dba798</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/ac9ea6f21ab965db7a8b4e41442d96ada373c49d"><code>ac9ea6f</code></a>.
       </p>
       <p>
         Built in the open — follow the
