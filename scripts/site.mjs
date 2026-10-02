@@ -9,11 +9,20 @@
 // SITE_COMMIT, when set by the deploy workflow, is printed in the footer so a
 // deployed page says which commit it was built from.
 
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   escapeHtml,
+  renderCheckPage,
   renderHome,
   renderShell,
   summarizeModule,
@@ -75,6 +84,36 @@ writeFileSync(
   })
 );
 
+// The R check page: its frame, the files it reads when it runs, and the
+// measurement recorded with this build, when there is one.
+const checkSource = path.join(rootDir, 'site/r-check');
+const checkDir = path.join(siteDir, 'r-check');
+mkdirSync(path.join(checkDir, 'data'), { recursive: true });
+for (const file of ['check.mjs', 'page.mjs', 'statistics.R', 'expected.json']) {
+  copyFileSync(path.join(checkSource, file), path.join(checkDir, file));
+}
+for (const file of readdirSync(path.join(checkSource, 'data')).filter((f) => f.endsWith('.csv'))) {
+  copyFileSync(path.join(checkSource, 'data', file), path.join(checkDir, 'data', file));
+}
+writeFileSync(
+  path.join(checkDir, 'index.html'),
+  renderShell({
+    shell,
+    title: 'R check · bio.viz',
+    description:
+      'Two real tests run through R in the browser and compared with desktop R, with the ' +
+      'megabytes and seconds that starting R in a browser costs.',
+    content: renderCheckPage({
+      version,
+      expected: readJson(path.join(checkSource, 'expected.json')),
+      measured: readJson(path.join(checkSource, 'measured.json'))
+    }),
+    root: '../',
+    version,
+    build
+  })
+);
+
 errors.push(...validateSiteLinks(siteDir));
 
 if (errors.length) {
@@ -84,6 +123,6 @@ if (errors.length) {
 }
 
 console.log(
-  `✓ Built _site/ — bio.viz ${version} home page, ${config.modules.length} ` +
+  `✓ Built _site/ — bio.viz ${version} home page and R check page, ${config.modules.length} ` +
     `module${config.modules.length === 1 ? '' : 's'} listed, all internal links verified.`
 );

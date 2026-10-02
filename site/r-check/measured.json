@@ -1,0 +1,31 @@
+{
+  "recorded": "2026-10-02T12:56:58.432Z",
+  "browser": "Chromium 149.0.7827.55, headless",
+  "machine": "a MacBook Pro (Apple M3 Pro, macOS 14.6)",
+  "network": "Wi-Fi, speed not measured",
+  "profile": "a new, empty browser profile with a disk cache",
+  "sizes": "compressed bytes of response bodies as received over the network; response headers are not counted, and a file served from the browser cache counts as zero",
+  "states": {
+    "cold": {
+      "megabytes": 26.22,
+      "bytes": 26222557,
+      "requests": 12,
+      "requestsOverNetwork": 12,
+      "seconds": 3.568
+    },
+    "reload": {
+      "megabytes": 0,
+      "bytes": 621,
+      "requests": 12,
+      "requestsOverNetwork": 1,
+      "seconds": 2.143
+    },
+    "warm": {
+      "megabytes": 0,
+      "bytes": 0,
+      "requests": 0,
+      "requestsOverNetwork": 0,
+      "seconds": 0.004
+    }
+  }
+}
