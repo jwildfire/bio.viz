@@ -16,3 +16,7 @@ requirements/*.md
 site/r-check/expected.json
 site/r-check/measured.json
 site/r-check/data/
+
+# The vendored synthetic study and its source record are written by
+# tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
+site/data/
