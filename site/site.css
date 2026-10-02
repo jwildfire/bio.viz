@@ -9,6 +9,7 @@
      3. Site chrome: full-bleed header and footer bands
      4. Page components: hero, callout, facts, module list
      5. R check page: answers, comparisons, measurement tables
+     6. Module pages: tabs, evidence lists, the API reference
 
    Every rule has to hold at a 390px-wide viewport with no horizontal scroll;
    tests/e2e/site.spec.js measures it.
@@ -184,7 +185,9 @@ pre code {
 }
 
 .site-main > section,
-.site-main > aside {
+.site-main > aside,
+.site-main > nav,
+.site-main > article {
   margin-bottom: 2.5rem;
 }
 
@@ -318,6 +321,10 @@ th .sub {
 
 .notes li + li {
   margin-top: 0.35rem;
+}
+
+.modules + .notes {
+  margin-top: 1rem;
 }
 
 button {
@@ -471,4 +478,226 @@ button:disabled {
 
 .comparison-block details .comparison {
   margin-top: 0.6rem;
+}
+
+/* ---- 6. Module pages ------------------------------------------------------ */
+
+.module-links {
+  font-weight: 600;
+}
+
+.page-tabs {
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 1.25rem;
+  padding-bottom: 0.6rem;
+}
+
+.page-tabs a {
+  text-decoration: none;
+}
+
+.page-tabs a.current {
+  border-bottom: 3px solid var(--accent-bright);
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: calc(-0.6rem - 2px);
+  padding-bottom: 0.6rem;
+}
+
+.chip {
+  border-radius: 999px;
+  display: inline-block;
+  font: 600 0.72rem var(--mono);
+  letter-spacing: 0.02em;
+  padding: 0.1rem 0.55rem;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+
+.chip.status-pass {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.chip.status-fail {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.chip.status-none {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.chip-link {
+  text-decoration: none;
+}
+
+.requirements {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.requirement {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.requirement[data-status='fail'] {
+  border-left: 4px solid #b91c1c;
+}
+
+.requirement h3 {
+  font: 600 0.95rem var(--mono);
+  margin-bottom: 0.5rem;
+}
+
+.req-text {
+  margin-bottom: 0.75rem;
+}
+
+.tests {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.9rem;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suite {
+  font: 0.72rem var(--mono);
+  text-transform: uppercase;
+}
+
+.screenshots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.screenshot {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+details > summary {
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.api-toc {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.api-toc h2 {
+  font-size: 1.3rem;
+}
+
+.api-toc ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.api-toc li + li {
+  margin-top: 0.25rem;
+}
+
+.api-body h2 {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+}
+
+.api-body h3 {
+  margin-top: 1.5rem;
+}
+
+.api-body ul,
+.api-body ol {
+  margin: 0 0 1rem;
+  padding-left: 1.3rem;
+}
+
+.api-body li + li {
+  margin-top: 0.35rem;
+}
+
+.doc-table {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.doc-table th,
+.doc-table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-table thead th {
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.75rem;
+  overflow-wrap: normal;
+}
+
+/* On a narrow screen a table becomes a list of rows, each cell under the name
+   of its column, so no table ever needs a sideways scroll. */
+@media (max-width: 44rem) {
+  .doc-table,
+  .doc-table tbody,
+  .doc-table tr,
+  .doc-table td {
+    display: block;
+  }
+
+  .doc-table thead {
+    display: none;
+  }
+
+  .doc-table tr {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .doc-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .doc-table td {
+    border: 0;
+    padding: 0.2rem 0;
+  }
+
+  .doc-table td::before {
+    color: var(--muted);
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
 }

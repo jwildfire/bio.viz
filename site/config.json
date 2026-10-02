@@ -7,16 +7,28 @@
     {
       "module": "core",
       "title": "Library core",
+      "kind": "shared",
       "status": "available",
       "blurb": "The entry point and the two committed bundles: a script-tag build that defines the global BioViz and an ES module build, each reporting the package version.",
-      "matrix": "core.md"
+      "matrix": "core.md",
+      "api": {
+        "doc": "core.md",
+        "surface": ["version"],
+        "source": ["src/main.js"]
+      }
     },
     {
       "module": "r-connection",
       "title": "Connection to R",
+      "kind": "shared",
       "status": "available",
       "blurb": "The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.",
-      "matrix": "r-connection.md"
+      "matrix": "r-connection.md",
+      "api": {
+        "doc": "r-connection.md",
+        "surface": ["r"],
+        "source": ["src/r"]
+      }
     }
   ]
 }
