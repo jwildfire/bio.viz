@@ -1,7 +1,8 @@
-// Vendoring, as a copy with a record. Two things are made elsewhere and copied
-// here byte for byte: the synthetic biomarker study, from gsm.bio, and
-// safety.viz's script-tag bundle, which a chart's page loads beside bio.viz.
-// Nothing in this repository retypes, regenerates or reshapes either. Beside
+// Vendoring, as a copy with a record. Three things are made elsewhere and
+// copied here byte for byte: the synthetic biomarker study, from gsm.bio;
+// safety.viz's script-tag bundle, which a chart's page loads beside bio.viz; and
+// gsm.bio's statistics functions, the one file R in the browser is given.
+// Nothing in this repository retypes, regenerates or reshapes any of them. Beside
 // each copy sits a record, SOURCE.json, naming the repository and commit it
 // came from and, for each file, its checksum and size (and, for a CSV file, its
 // column names and row count). `verifyVendored` is the check that fails when a
@@ -41,6 +42,18 @@ export const SAFETY_VIZ = {
   repository: 'https://github.com/jwildfire/safety.viz',
   directory: 'site/vendor/safety.viz',
   files: [{ file: 'safety.viz.js', source: 'dist/safety.viz-{version}/safety.viz.js' }]
+};
+
+// gsm.bio's statistics functions: one file of R that defines every Analyze_*
+// function, written to stand alone. A page hands it to R in the browser as the
+// connection's `sourceUrl`, and the desktop-R fixture script sources the same
+// copy, so both run one source. It is never edited here.
+export const STATISTICS = {
+  name: 'gsm.bio statistics functions',
+  label: 'statistics',
+  repository: 'https://github.com/jwildfire/gsm.bio',
+  directory: 'site/vendor/gsm.bio',
+  files: [{ file: 'statistics.R', source: 'inst/statistics/statistics.R' }]
 };
 
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
