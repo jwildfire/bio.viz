@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
+import { moduleForFile } from '../../scripts/evidence-lib.mjs';
 
 // Evidence capture, carried over from safety.viz. On the Linux
 // continuous-integration runner a capture is an assertion against the committed
@@ -11,9 +13,14 @@ import { test, expect } from '@playwright/test';
 // The file is named `${requirementId}-${slug}.png`; the evidence pipeline
 // attaches it to every test record that carries that requirement ID.
 //
-// The module is the calling spec's file name (tests/e2e/<module>.spec.js)
+// The module is the calling spec's, by the rule the evidence pipeline routes
+// its records with (tests/e2e/<module>.spec.js, or <group>-<module>.spec.js),
 // unless `module` is given. tests/e2e/site.spec.js gives it: that file tests
 // the site, whose requirement rows are in the core matrix.
+
+const MODULES = JSON.parse(
+  readFileSync(new URL('../../site/config.json', import.meta.url), 'utf8')
+).modules.map((entry) => entry.module);
 
 export const CANONICAL = process.platform === 'linux';
 
@@ -40,7 +47,9 @@ async function fontsLoaded(page) {
  * `target` is the page, for the viewport, or a locator, for one part of it.
  */
 export async function captureEvidence(target, requirementId, slug, { module } = {}) {
-  const owner = module || path.basename(test.info().file).replace(/\.spec\.js$/, '');
+  const file = test.info().file;
+  const owner =
+    module || moduleForFile(file, MODULES) || path.basename(file).replace(/\.spec\.js$/, '');
   const name = `${requirementId}-${slug}.png`;
   const page = typeof target.page === 'function' ? target.page() : target;
   if (CANONICAL) {

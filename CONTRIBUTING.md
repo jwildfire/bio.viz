@@ -63,6 +63,7 @@ Each module owns one evidence set: `docs/evidence/<module>/evidence.json`. `npm 
 
 - `tests/unit/<module>/**` → `<module>`
 - `tests/e2e/<module>.spec.js` → `<module>`
+- `tests/e2e/<group>-<module>.spec.js` → `<module>`: a spec may carry a word before its module's name, so that one filter runs several modules' specs together
 - everything else (`tests/e2e/site.spec.js`, `tests/unit/evidence.test.js`, `tests/unit/site/`, `tests/unit/no-absolute-paths.test.js`) is shared scaffold evidence, included in every module's `evidence.json`
 
 `<module>` must match a `module` entry in `site/config.json` — that registry is the module universe, so plugging a new module in takes no pipeline edits: add the config entry, name the test paths as above, and its evidence set appears on the next `npm run evidence`.
@@ -73,7 +74,7 @@ The same run checks traceability, in every mode: it fails when a requirement row
 
 ### Screenshots
 
-A browser test captures a screenshot with `captureEvidence(target, requirementId, slug)` from `tests/e2e/evidence.js`. The file is `docs/evidence/<module>/<requirementId>-<slug>.png`, and it is three things at once: the baseline the test compares against, the evidence, and the image the module's evidence page shows under that requirement. The module is the spec file's name; `tests/e2e/site.spec.js` passes `{ module: 'core' }`, because the site's requirement rows are in the core matrix.
+A browser test captures a screenshot with `captureEvidence(target, requirementId, slug)` from `tests/e2e/evidence.js`. The file is `docs/evidence/<module>/<requirementId>-<slug>.png`, and it is three things at once: the baseline the test compares against, the evidence, and the image the module's evidence page shows under that requirement. The module is the spec file's, by the rule above; `tests/e2e/site.spec.js` passes `{ module: 'core' }`, because the site's requirement rows are in the core matrix.
 
 Baselines belong to the Linux runner continuous integration uses. Font rendering differs between systems, so a capture is compared with its baseline only there; on any other system `captureEvidence` writes a preview under `test-results/evidence-preview/` and asserts nothing. A new or changed capture therefore fails in continuous integration until its baseline is made on that runner:
 
@@ -103,7 +104,7 @@ Every demo and most chart tests run on one made-up study of 200 participants, ma
 
 ## safety.viz's bundle
 
-What two charts share is written once, in `src/shared/`, and a chart imports nothing of another chart: `tests/unit/association-scatter/bundle.test.js` holds both.
+What two charts share is written once, in `src/shared/`, and a chart imports nothing of another chart, with one exception: the correlation matrix opens the association scatter for a pair, so its entry file imports that chart's public function, `associationScatter`, the one a page calls, and nothing under that chart's folder. `tests/unit/association-scatter/bundle.test.js` and `tests/unit/correlation-matrix/bundle.test.js` hold all of it.
 
 A chart is built from safety.viz's kit, and safety.viz is loaded beside bio.viz on a page, never bundled into it. The site and the browser tests load one copy of safety.viz's script-tag bundle, `site/vendor/safety.viz/safety.viz.js`: the site publishes it at `vendor/safety.viz/safety.viz.js`, and a fixture page loads `/site/vendor/safety.viz/safety.viz.js` from the repository root the suite serves.
 
@@ -127,6 +128,8 @@ R in the browser is given one file, gsm.bio's `inst/statistics/statistics.R`, an
 - The association scatter is held to desktop R by the same pattern, with its own files: `node tools/derive-association-statistics.mjs` writes the rows of each case under `tests/fixtures/association-statistics/`, `Rscript tools/r-association-statistics.R` writes `tests/fixtures/association-statistics-r.json` from them (`Analyze_Correlation` and `Analyze_Fit`), `npm run fixtures` and `npm run fixtures:check` run and check it with the others, the unit tests named `AS-STAT-013` hold R's keys to the chart's requests, and the browser tests named `AS-LIVE-*` run the gallery's demo against real R in the browser. The recipe for a stored result's key is in [`docs/association-scatter.md`](docs/association-scatter.md#stored-results-from-r).
 - A logarithm is never written to a committed file. On a logarithmic axis the association scatter hands R the base-10 logarithm of a value, and `Math.log10` does not give the same last binary place in every JavaScript engine: Node and Chromium on one machine differ. So the committed rows are the values the chart drew, and the R script takes `log10()` of them itself, as a widget in R does. The browser's answer, on its own logarithms, agrees with desktop R's far inside the tolerance.
 - R's own wording can differ between its versions as well as its numbers: R 4.3 warns `Cannot compute exact p-value with ties` from `cor.test` and R 4.6 `cannot compute exact p-value with ties`. `AS-LIVE-002` holds every number equal, checks that a difference is that sentence in another case, and records both.
+- The correlation matrix is held to desktop R the same way: `node tools/derive-matrix-statistics.mjs` writes the frame of each case under `tests/fixtures/matrix-statistics/`, one row per participant with a column per variable of the grid and an empty cell for a value the participant does not have, and `Rscript tools/r-matrix-statistics.R` writes `tests/fixtures/matrix-statistics-r.json` from them (`Analyze_CorrelationMatrix`). The unit tests named `CM-STAT-009` hold R's keys to the chart's requests, and the function in that script is the recipe in [`docs/correlation-matrix.md`](docs/correlation-matrix.md#stored-results-from-r), character for character. The browser tests named `CM-LIVE-*` run the gallery's demo against real R in the browser and hold every cell's coefficient, interval and pair count to desktop R's; `CM-LIVE-006` runs real R on the fixture of thirty-six biomarkers and times grids of 66, 276 and 630 pairs. They write `test-results/correlation-matrix-measurements.json`.
+- The two charts of one requirement run together: `npm run test:e2e -- association` runs `tests/e2e/association-scatter.spec.js` and `tests/e2e/association-correlation-matrix.spec.js`, the association scatter's tests and the correlation matrix's. The second file is named for that filter; its module is still `correlation-matrix`, by the routing rule under [Evidence pipeline](#evidence-pipeline). `npm run test:e2e -- correlation-matrix` runs the matrix's alone.
 
 ## Derived fixtures
 
@@ -181,7 +184,7 @@ A module is one entry in `site/config.json`, and that entry is all the site, the
 
 - A chart also names `demo`, its demo script in `site/demo/`, and may name `hero`, one of its evidence screenshots, shown on its gallery card once that screenshot is committed. Its `api.settings` is the source file that exports its `DEFAULT_SETTINGS`: the build fails when the reference file has no table row for one of them.
 - `kind` is `chart` or `shared`. A chart whose `status` is `available` is listed in the gallery under Charts; a shared part (the core, the connection to R) under Shared parts. The build refuses an entry without it.
-- `matrix` is the module's requirement matrix in `requirements/`. Its unit tests go in `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js`; its evidence page then lists every row with the tests named for it.
+- `matrix` is the module's requirement matrix in `requirements/`. Its unit tests go in `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js` (or `<group>-<module>.spec.js`); its evidence page then lists every row with the tests named for it.
 - `api.doc` is the module's reference file in `docs/`. `api.surface` lists the top-level exports of the bundle the file documents; one that is a namespace (`r`) stands for every member of it. `api.source` lists the files or folders those exports are written in.
 
 ### The API reference

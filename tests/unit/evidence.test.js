@@ -171,6 +171,16 @@ describe('evidence normalizer', () => {
     // testDir-relative paths).
     expect(moduleForFile('histogram.spec.js', MODULES)).toBe('histogram');
     expect(moduleForFile('tests/e2e/shift-plot.spec.js', MODULES)).toBe('shift-plot');
+    // A spec may carry a word before its module's name, so that one filter
+    // runs several modules' specs: it is still its module's (bio.viz#27).
+    expect(moduleForFile('tests/e2e/association-shift-plot.spec.js', MODULES)).toBe('shift-plot');
+    expect(moduleForFile('lab-histogram.spec.js', MODULES)).toBe('histogram');
+    // A name that is itself a module is that module, whatever it ends with,
+    // and the longest module a name ends with wins.
+    expect(moduleForFile('a-b.spec.js', ['b', 'a-b'])).toBe('a-b');
+    expect(moduleForFile('x-a-b.spec.js', ['b', 'a-b'])).toBe('a-b');
+    // A hyphen, not any ending: `xhistogram` is no module's.
+    expect(moduleForFile('xhistogram.spec.js', MODULES)).toBe(null);
     // Everything else is shared scaffold evidence.
     for (const shared of [
       'site.spec.js',

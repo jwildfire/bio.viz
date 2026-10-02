@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first two charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, and [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient. The others follow: correlation matrix, cross-tabulation, stratified survival and a biomarker screen.
+Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first three charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, and [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter. The others follow: cross-tabulation, stratified survival and a biomarker screen.
 
 ## How it fits together
 
@@ -101,6 +101,23 @@ Two variables against one another, one point per participant, and under it R's P
 ```
 
 The settings, what R is asked and how a logarithmic axis is handled are in [docs/association-scatter.md](docs/association-scatter.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/association-scatter/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/association-scatter/) opens on the pair the synthetic study was planted with.
+
+## The correlation matrix
+
+Which of these biomarkers, or which visits of one biomarker, are related? A grid over a set of variables: below the diagonal each pair is a mark sized and coloured by R's Pearson or Spearman coefficient, above it the number, and every cell has its own pair count. It prints no p-value, by design. A click on a cell opens that pair in the association scatter, in place, with a way back.
+
+```html
+<script>
+  BioViz.correlationMatrix('#chart', {
+    baseline_visits: 'Baseline',
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+    })
+  }).init({ results, participants });
+</script>
+```
+
+With nothing else named it opens on every biomarker at the first visit, twelve at a time. The settings, the limit and what was measured for it, what R is asked and what a phone shows are in [docs/correlation-matrix.md](docs/correlation-matrix.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/) runs on the synthetic study, where one pair of the twelve biomarkers was planted with a correlation.
 
 ## Naming a variable and getting one row per participant
 

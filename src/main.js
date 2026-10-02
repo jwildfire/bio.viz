@@ -41,3 +41,10 @@ export { groupComparison } from './group-comparison.js';
  * safety.viz's kit, which the page loads beside this bundle.
  */
 export { associationScatter } from './association-scatter.js';
+
+/**
+ * The correlation matrix: every pair among a set of variables as a grid, with
+ * R's coefficient in each cell, and the way into the association scatter.
+ * Built from safety.viz's kit, which the page loads beside this bundle.
+ */
+export { correlationMatrix } from './correlation-matrix.js';

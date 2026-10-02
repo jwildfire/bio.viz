@@ -7,7 +7,7 @@
     "GC-KIT-003": "The source record says whether the commit is on safety.viz's `dev` branch and, when it is not, says why and that the copy is to be made again from `dev`.",
     "GC-KIT-004": "The chart is built from `SafetyViz.kit`, found on the page: safety.viz's bundle and bio.viz's are two script tags, and every chart is drawn with the kit's Chart.js constructor.",
     "GC-KIT-005": "On a page without safety.viz the chart refuses to be made, with a message saying that `SafetyViz.kit` was not found.",
-    "GC-KIT-006": "bio.viz's committed bundles contain none of safety.viz and no Chart.js: the build takes in only files under `src/`, the chart's source imports nothing from outside it, and the bundles hold none of either library's code.",
+    "GC-KIT-006": "bio.viz's committed bundles contain none of safety.viz and no Chart.js: the build takes in only files under `src/`, the chart's source imports nothing from outside it, every file a committed bundle names as one it was made from is a file under `src/`, and the bundles hold no known marker of either library's code.",
     "GC-CFG-001": "Every setting has a default, and the column and baseline settings carry the core's names and defaults.",
     "GC-CFG-002": "A caller's settings are laid over the defaults; a column list is read the same whether written as names or as `{ value_col, label }`, and a single name the same as a list of one.",
     "GC-CFG-003": "A setting that is not known, or a value a setting cannot take, is refused with a message naming it.",

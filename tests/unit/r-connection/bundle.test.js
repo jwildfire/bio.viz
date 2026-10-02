@@ -53,12 +53,24 @@ describe('bundle: the connection ships, webR does not', () => {
       expect(code).toMatch(/\bimport\(\s*(?:\/\*[^*]*\*\/\s*)?url\s*\)/);
       expect(code).toContain('https://webr.r-wasm.org/v');
       // … and nothing of webR itself is inside: its worker, its channels, its
-      // WebAssembly loader. The bundle stays small: webR is megabytes, and the
-      // whole of bio.viz, with its first chart, is under a fifth of one.
-      for (const marker of ['webr-worker', 'SharedArrayBuffer', 'WebAssembly', 'R_HOME']) {
-        expect(code).not.toContain(marker);
+      // WebAssembly loader, its file system and its R session.
+      for (const marker of [
+        'webr-worker',
+        'SharedArrayBuffer',
+        'WebAssembly',
+        'R_HOME',
+        'emscripten',
+        'class WebR',
+        'node_modules'
+      ]) {
+        expect(code, `${file}: ${marker}`).not.toContain(marker);
       }
-      expect(code.length).toBeLessThan(200_000);
+      // Every file the bundle was made from is one of this repository's own,
+      // under src/: esbuild writes each one's path above its code, and a webR
+      // that had been bundled in would be listed by its path in a package.
+      const modules = [...code.matchAll(/^ {0,2}\/\/ (\S+\.[cm]?js)$/gm)].map((match) => match[1]);
+      expect(modules).toContain('src/r/webREngine.js');
+      expect(modules.filter((module) => !module.startsWith('src/'))).toEqual([]);
     }
   });
 

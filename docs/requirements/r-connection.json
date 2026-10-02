@@ -35,7 +35,7 @@
     "RCON-CALL-007": "The R code that passes a table in and a result out uses base R only, and computes no statistic.",
     "RCON-CALL-008": "A data frame R returns, at any depth, comes back as an array of row objects, one per row, with every column in every row and NA as null: an empty array for no rows and an array of one object for one row, the same shape `data` has going in.",
     "RCON-BUILD-001": "The build bundles only files under `src/` and does not resolve the webR import.",
-    "RCON-BUILD-002": "The committed bundles keep the import of webR as a run-time import of a URL and contain none of webR.",
+    "RCON-BUILD-002": "The committed bundles keep the import of webR as a run-time import of a URL and contain none of webR: every file a bundle names as one it was made from is a file under `src/`, and the bundles hold no known marker of webR's code.",
     "RCON-BUILD-003": "The `r` module imports nothing from outside `src/r/`, so the connection can be handed to a chart in another library.",
     "RCON-CHECK-001": "On the R check page two numbers count as the same answer when they differ by no more than 1 part in 10^8 of the larger; zero equals only zero, and something that is not a number equals nothing.",
     "RCON-CHECK-002": "Every member of an answer is compared with the expected one: numbers by the tolerance; text, counts, warnings and the shape of the answer exactly. A member missing or added fails.",
@@ -74,6 +74,8 @@
     "PVAL-ROW-001": "One comparison of two groups from a result's rows is formatted by the rules a whole result is held to: its p-value, the adjusted one, comes with its method, the two groups' counts and its label, and is handed over in parts for a table only with them.",
     "PVAL-ROW-002": "A comparison with no method, no counts or no two groups is refused, and one R could not compute shows R's words and no number.",
     "PVAL-GRP-001": "One group's result from a result's rows is formatted by the rules a whole result is held to: its estimate comes with its interval at the level R gave, or with none where R gave none, and its p-value with its method, the group's count and its label; all are handed over in parts for a table only together.",
-    "PVAL-GRP-002": "A group's result with no group name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R's words and no number."
+    "PVAL-GRP-002": "A group's result with no group name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R's words and no number.",
+    "PVAL-PAIR-001": "One pair's result from a correlation matrix's rows is formatted without a p-value: its estimate to four significant figures, its interval at the level R gave, or none where R gave none, and the number of complete pairs; all are handed over in parts for a cell and a table. A p-value on the row is neither read nor printed.",
+    "PVAL-PAIR-002": "A pair's result that does not name its two variables, or has no count, no estimate or half an interval, is refused, and one R could not compute shows R's words with its count and no number."
   }
 }

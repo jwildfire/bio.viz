@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T21:10:21.377Z",
+  "generatedAt": "2026-10-02T23:03:28.143Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37065142574",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37065142574"
+    "id": "37075634503",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37075634503"
   },
   "records": [
     {
@@ -730,6 +730,22 @@
       "status": "pass",
       "requirementIds": ["PVAL-GRP-002"],
       "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-001: a pair’s estimate comes with its interval at the level R gave and its count, in parts for a cell and a table, and with no p-value even where a row carries one (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-PAIR-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-002: a pair with no two variables, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words with its count and no number (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-PAIR-002"],
+      "issueRefs": [27],
       "screenshots": []
     },
     {
