@@ -428,8 +428,8 @@ function read(statistic) {
   };
 }
 function formatStatistic(statistic) {
-  const { status, text: sentence } = read(statistic);
-  return { status, text: sentence };
+  const { status, text: sentence2 } = read(statistic);
+  return { status, text: sentence2 };
 }
 var figure = (value) => String(Number(value.toPrecision(4)));
 var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
@@ -944,6 +944,393 @@ function frame(tables, variables, settings) {
   };
 }
 
+// src/shared/chartHost.js
+var PALETTE = [
+  "#2563eb",
+  "#059669",
+  "#d97706",
+  "#9333ea",
+  "#dc2626",
+  "#0891b2",
+  "#65a30d",
+  "#db2777",
+  "#4b5563",
+  "#ca8a04"
+];
+var hexToRgba = (hex, alpha) => {
+  const value = hex.replace("#", "");
+  const part = (at) => parseInt(value.slice(at, at + 2), 16);
+  return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
+};
+var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
+var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
+function findKit(chart) {
+  const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
+  if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
+    throw new Error(
+      `bio.viz: ${chart} is built from safety.viz's kit, and \`SafetyViz.kit\` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart.`
+    );
+  }
+  return kit;
+}
+function applyStyles(id, styles) {
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = styles;
+  document.head.append(style);
+}
+var lineStyles = (root) => `
+${root} .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
+${root} .bv-statistic:empty{display:none}
+${root} .bv-statistic p{margin:0 0 .3rem}
+${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
+${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
+${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
+${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
+${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
+${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
+${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
+${root} .bv-stat-method{display:block;color:#52616f}
+${root} .bv-panel-canvas{height:300px;position:relative}
+${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
+${root} .sv-listing table{table-layout:fixed}
+${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
+${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
+  const { kit } = chart;
+  Object.assign(
+    chart,
+    kit.renderShell(chart.element, {
+      moduleClass,
+      onToggle: () => chart.resize()
+    })
+  );
+  applyStyles(styleId, styles);
+  chart.statLine = kit.createElement("div", "bv-statistic");
+  chart.statLine.setAttribute("role", "status");
+  chart.footnote.after(chart.statLine);
+  chart.host = {
+    settings: {
+      profile: chart.settings.profile,
+      id_col: chart.settings.id_col,
+      page_size: chart.settings.page_size,
+      details: []
+    },
+    root: chart.root,
+    railWrap: chart.railWrap,
+    listingWrap: chart.listingWrap,
+    currentTableData: [],
+    listingSearch: "",
+    listingSort: null,
+    listingSelectedId: null,
+    page: 1,
+    profileRows: [],
+    onListingRowClick: (row) => selectParticipant(chart, row[chart.settings.id_col])
+  };
+  chart.listingWrap.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest && event.target.closest("button");
+      if (!button || button.textContent !== "Export: CSV") return;
+      event.stopPropagation();
+      event.preventDefault();
+      downloadListing(chart, listingFile);
+    },
+    true
+  );
+  if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
+    chart.sidebarToggle.click();
+  }
+}
+function readGiven(chart, data) {
+  const tables = Array.isArray(data) ? { results: data } : data || {};
+  try {
+    if (!isRecordTable(tables.results)) {
+      throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
+    }
+    if (tables.participants != null && !isRecordTable(tables.participants)) {
+      throw new TypeError(
+        "bio.viz: `participants` must be an array of records, one object per row."
+      );
+    }
+    for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+      const column = chart.settings[key];
+      if (tables.results.length && !tables.results.some((row) => column in row)) {
+        throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+      }
+    }
+  } catch (error) {
+    chart.destroyCharts();
+    chart.element.innerHTML = "";
+    chart.element.append(chart.kit.createElement("div", "sv-warning", error.message));
+    throw error;
+  }
+  return {
+    results: tables.results,
+    participants: tables.participants && tables.participants.length ? tables.participants : null
+  };
+}
+function syncHost(chart) {
+  chart.host.settings.profile = chart.settings.profile;
+  chart.host.settings.id_col = chart.settings.id_col;
+  chart.host.settings.page_size = chart.settings.page_size;
+}
+function addFilterControls(chart, { addSection, addControl }, onChange) {
+  const { kit, state } = chart;
+  if (!chart.filterSpecs.length) return;
+  const filters = addSection("Filters");
+  const idCol = chart.settings.participant_id_col || chart.settings.id_col;
+  chart.filterSpecs.forEach((spec) => {
+    const values = [
+      ...new Set(
+        chart.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
+      )
+    ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+    if (spec.value_col === idCol) return;
+    const control = kit.renderFilterControl({
+      spec,
+      values,
+      selected: state.filters[spec.value_col],
+      onChange: (next) => {
+        state.filters[spec.value_col] = next;
+        onChange();
+      }
+    });
+    control.dataset.filter = spec.value_col;
+    addControl(spec.label, control, filters);
+  });
+}
+function filtersForScope(chart) {
+  return chart.filterSpecs.map((spec) => ({ label: spec.label, selection: chart.state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
+    label: label2,
+    values: (Array.isArray(selection) ? selection : [selection]).map(String)
+  })).filter(({ values }) => values.length);
+}
+function statTable({ caption, head, rows }, kit) {
+  const table = kit.createElement("table", "bv-stat-pairs");
+  table.append(kit.createElement("caption", null, caption));
+  const header = document.createElement("tr");
+  head.forEach((title) => {
+    const cell = kit.createElement("th", null, title);
+    cell.scope = "col";
+    header.append(cell);
+  });
+  const thead = document.createElement("thead");
+  thead.append(header);
+  const tbody = document.createElement("tbody");
+  rows.forEach((row) => {
+    const line = document.createElement("tr");
+    line.dataset.status = row.status;
+    const lead = kit.createElement("th", null, row.head);
+    lead.scope = "row";
+    if (row.sub) lead.append(kit.createElement("span", "bv-stat-method", row.sub));
+    line.append(lead, ...row.cells.map((cell) => kit.createElement("td", null, cell)));
+    tbody.append(line);
+  });
+  table.append(thead, tbody);
+  return table;
+}
+function writeStatistic(kit, line, description) {
+  line.dataset.state = description.state;
+  line.innerHTML = "";
+  line.append(kit.createElement("p", "bv-stat-result", description.text));
+  description.estimates.forEach(
+    (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
+  );
+  if (description.table) line.append(statTable(description.table, kit));
+  description.remarks.forEach(({ kind, text: text2 }) => {
+    const remark = kit.createElement("p", "bv-stat-remark", text2);
+    remark.dataset.kind = kind;
+    line.append(remark);
+  });
+  if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
+}
+function showListing(chart, { columns, rows }) {
+  const { host, settings } = chart;
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  const byId = new Map(
+    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+  );
+  host.settings.details = columns;
+  host.currentTableData = rows.map((row) => ({
+    ...byId.get(String(row[settings.id_col])) || {},
+    ...row
+  }));
+  host.listingSearch = "";
+  host.listingSort = null;
+  host.page = 1;
+  chart.kit.renderListing(host);
+}
+function selectParticipant(chart, id) {
+  const { host } = chart;
+  host.listingSelectedId = id == null ? null : String(id);
+  if (host.currentTableData.length) chart.kit.renderListing(host);
+  chart.root.dispatchEvent(
+    new CustomEvent("participantsSelected", {
+      detail: { data: id == null ? [] : [String(id)] },
+      bubbles: true
+    })
+  );
+}
+function clearListing(chart) {
+  const { host } = chart;
+  host.currentTableData = [];
+  host.listingSelectedId = null;
+  chart.listingWrap.innerHTML = "";
+  chart.kit.resetProfileRail(host);
+}
+function downloadListing(chart, file) {
+  const { host, kit } = chart;
+  let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
+  if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
+  const blob = new Blob([kit.buildCsv(rows, host.settings.details)], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+function railColumns(settings) {
+  return {
+    id_col: settings.id_col,
+    measure_col: settings.measure_col,
+    value_col: settings.value_col,
+    unit_col: settings.unit_col,
+    visit_col: settings.visit_col,
+    visitn_col: settings.visit_order_col,
+    studyday_col: settings.studyday_col,
+    normal_col_high: settings.normal_col_high,
+    normal_col_low: settings.normal_col_low
+  };
+}
+function railSettings(chart, axisType) {
+  const { settings } = chart;
+  const details = settings.profile_details || chart.categories.filter((entry) => entry.table !== "results" || !chart.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
+  const rail = {
+    ...railColumns(settings),
+    details,
+    // Every biomarker is a measure the rail shows, not only the four liver
+    // tests it was made for.
+    measure_values: Object.fromEntries(chart.measures.map((measure) => [measure, measure])),
+    axis_type: axisType === "log" ? "log" : "linear",
+    on_clear: () => selectParticipant(chart, null)
+  };
+  if (settings.normal_col_high) return rail;
+  const none = { relative_uln: null, relative_baseline: null };
+  return {
+    ...rail,
+    display: "relative_baseline",
+    display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
+    cuts: { defaults: none, TB: none, ALP: none }
+  };
+}
+function buildProfileFeed(chart, settingsOf) {
+  const { settings, host, kit } = chart;
+  host.profileRows = [];
+  if (!settings.profile) return;
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  const byId = new Map(
+    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+  );
+  const ranged = Boolean(settings.normal_col_high);
+  const feed = chart.tables.results.map((row) => ({
+    ...byId.get(String(row[settings.id_col])) || {},
+    ...row,
+    ...ranged ? {} : { __bv_no_reference_range: 1 }
+  }));
+  host.profileRows = kit.buildProfileRows(feed, {
+    ...railColumns(settings),
+    normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
+  });
+  kit.mountProfileRail(host, settingsOf);
+}
+
+// src/shared/settings.js
+var isText3 = (value) => typeof value === "string" && value.trim() !== "";
+var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+var refuse4 = (message) => {
+  throw new TypeError(`bio.viz: ${message}`);
+};
+function fieldSpec(value, setting) {
+  if (isText3(value)) return { value_col: value, label: value };
+  if (isPlainObject4(value) && isText3(value.value_col)) {
+    return {
+      ...value,
+      value_col: value.value_col,
+      label: isText3(value.label) ? value.label : value.value_col
+    };
+  }
+  return refuse4(
+    `\`${setting}\` holds something that is not a column name or { value_col, label }.`
+  );
+}
+function fieldList(value, setting) {
+  if (value === null || value === void 0) return null;
+  const list = Array.isArray(value) ? value : [value];
+  return list.map((entry) => fieldSpec(entry, setting));
+}
+function textList2(value, setting) {
+  if (value === null || value === void 0) return null;
+  const list = Array.isArray(value) ? value : [value];
+  if (!list.length || !list.every((entry) => isText3(entry) || typeof entry === "number")) {
+    refuse4(`\`${setting}\` must be a name, or a list of names.`);
+  }
+  return [...new Set(list.map(String))];
+}
+var columnOrNull = (settings, key) => {
+  if (settings[key] !== null && !isText3(settings[key])) {
+    refuse4(`\`${key}\` must be the name of a column, or null.`);
+  }
+};
+function coreSettings(settings) {
+  return {
+    id_col: settings.id_col,
+    measure_col: settings.measure_col,
+    value_col: settings.value_col,
+    visit_col: settings.visit_col,
+    visit_order_col: settings.visit_order_col,
+    participant_id_col: settings.participant_id_col,
+    baseline_visits: settings.baseline_visits,
+    baseline_stat: settings.baseline_stat
+  };
+}
+function layOver(defaults, overrides, chart) {
+  if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
+    refuse4(`${chart} takes its settings as an object.`);
+  }
+  const given2 = overrides || {};
+  for (const key of Object.keys(given2)) {
+    if (!(key in defaults)) {
+      refuse4(
+        `\`${key}\` is not a setting of ${chart}. Its settings are ${Object.keys(defaults).join(", ")}.`
+      );
+    }
+  }
+  const settings = { ...defaults };
+  for (const [key, value] of Object.entries(given2)) {
+    if (value !== void 0) settings[key] = value;
+  }
+  return settings;
+}
+function checkShared(settings, baselineStats) {
+  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+    if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
+  }
+  if (!baselineStats.includes(settings.baseline_stat)) {
+    refuse4(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
+  }
+  if (typeof settings.profile !== "boolean") refuse4("`profile` must be true or false.");
+  if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
+    refuse4("`waiting_note` must be a sentence, or null for none.");
+  }
+  if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
+    refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
+  }
+}
+
 // src/group-comparison/configure.js
 var MARKS = Object.freeze(["box", "violin", "points"]);
 var Y_SCALES = Object.freeze(["linear", "log"]);
@@ -993,61 +1380,9 @@ var DEFAULT_SETTINGS2 = Object.freeze({
   normal_col_high: null,
   normal_col_low: null
 });
-var isText3 = (value) => typeof value === "string" && value.trim() !== "";
-var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-var refuse4 = (message) => {
-  throw new TypeError(`bio.viz: ${message}`);
-};
-function fieldSpec(value, setting) {
-  if (isText3(value)) return { value_col: value, label: value };
-  if (isPlainObject4(value) && isText3(value.value_col)) {
-    return {
-      ...value,
-      value_col: value.value_col,
-      label: isText3(value.label) ? value.label : value.value_col
-    };
-  }
-  return refuse4(
-    `\`${setting}\` holds something that is not a column name or { value_col, label }.`
-  );
-}
-function fieldList(value, setting) {
-  if (value === null || value === void 0) return null;
-  const list = Array.isArray(value) ? value : [value];
-  return list.map((entry) => fieldSpec(entry, setting));
-}
-function textList2(value, setting) {
-  if (value === null || value === void 0) return null;
-  const list = Array.isArray(value) ? value : [value];
-  if (!list.length || !list.every((entry) => isText3(entry) || typeof entry === "number")) {
-    refuse4(`\`${setting}\` must be a name, or a list of names.`);
-  }
-  return [...new Set(list.map(String))];
-}
-var columnOrNull = (settings, key) => {
-  if (settings[key] !== null && !isText3(settings[key])) {
-    refuse4(`\`${key}\` must be the name of a column, or null.`);
-  }
-};
 function syncSettings(overrides) {
-  if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
-    refuse4("the group comparison chart takes its settings as an object.");
-  }
-  const given2 = overrides || {};
-  for (const key of Object.keys(given2)) {
-    if (!(key in DEFAULT_SETTINGS2)) {
-      refuse4(
-        `\`${key}\` is not a setting of the group comparison chart. Its settings are ${Object.keys(DEFAULT_SETTINGS2).join(", ")}.`
-      );
-    }
-  }
-  const settings = { ...DEFAULT_SETTINGS2 };
-  for (const [key, value] of Object.entries(given2)) {
-    if (value !== void 0) settings[key] = value;
-  }
-  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-    if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
-  }
+  const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
+  checkShared(settings, BASELINE_STATS);
   for (const key of [
     "visit_order_col",
     "unit_col",
@@ -1069,25 +1404,15 @@ function syncSettings(overrides) {
   if (!Y_SCALES.includes(settings.y_scale)) {
     refuse4(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
   }
-  if (!BASELINE_STATS.includes(settings.baseline_stat)) {
-    refuse4(`\`baseline_stat\` must be one of ${BASELINE_STATS.join(", ")}.`);
-  }
   for (const key of ["page_size", "max_levels", "overview_limit"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
       refuse4(`\`${key}\` must be a whole number, one or more.`);
     }
   }
-  if (typeof settings.profile !== "boolean") refuse4("`profile` must be true or false.");
   if (!TESTS.includes(settings.test)) refuse4(`\`test\` must be one of ${TESTS.join(", ")}.`);
   if (typeof settings.pairwise !== "boolean") refuse4("`pairwise` must be true or false.");
-  if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
-    refuse4("`waiting_note` must be a sentence, or null for none.");
-  }
   if (settings.statistic !== null && !isText3(settings.statistic)) {
     refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
-  }
-  if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
-    refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.visits = textList2(settings.visits, "visits");
@@ -1099,23 +1424,90 @@ function syncSettings(overrides) {
   settings.profile_details = fieldList(settings.profile_details, "profile_details");
   return settings;
 }
-function coreSettings(settings) {
+
+// src/shared/statisticLine.js
+var WAITING = "Statistics: waiting for R\u2026";
+var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
+var sentence = (state, said) => ({
+  state,
+  text: said,
+  estimates: [],
+  remarks: [],
+  scope: null
+});
+function byCodePoint(a, b) {
+  const [first, second] = [[...a], [...b]];
+  const shared = Math.min(first.length, second.length);
+  for (let index = 0; index < shared; index += 1) {
+    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
+    if (difference !== 0) return difference;
+  }
+  return first.length - second.length;
+}
+var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
+function filtersInForce(filters) {
+  const inForce = {};
+  for (const [column, selection] of Object.entries(filters || {})) {
+    if (selection === null || selection === void 0 || selection === "") continue;
+    const values = Array.isArray(selection) ? selection : [selection];
+    if (values.length) inForce[column] = sorted(values);
+  }
+  return inForce;
+}
+function filtersSaid(filters) {
+  if (!filters || !filters.length) return null;
+  return `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`;
+}
+var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
+  (entry) => typeof entry === "string" && entry.trim() !== ""
+);
+var remarksOf = (value) => [
+  ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
+  ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
+];
+function failureOf(result) {
+  if (result && result.status === "unavailable") {
+    return {
+      state: "unavailable",
+      text: result.reason === "not-precomputed" ? NOT_STORED : result.message
+    };
+  }
+  const message = result && typeof result.message === "string" ? result.message : "no message";
+  return { state: "error", text: `R reported an error: ${message}` };
+}
+function createDesk({
+  connection,
+  note = null,
+  describe: describe2,
+  waiting = (said) => sentence("waiting", said)
+}) {
+  let current = 0;
+  let answered = false;
+  const withNote = (said) => note && !answered ? `${said} ${note}` : said;
   return {
-    id_col: settings.id_col,
-    measure_col: settings.measure_col,
-    value_col: settings.value_col,
-    visit_col: settings.visit_col,
-    visit_order_col: settings.visit_order_col,
-    participant_id_col: settings.participant_id_col,
-    baseline_visits: settings.baseline_visits,
-    baseline_stat: settings.baseline_stat
+    idle: withNote,
+    begin() {
+      current += 1;
+      const round = current;
+      let noted = false;
+      return {
+        ask({ name, data, args, dataId }, show, context) {
+          show(waiting(noted ? WAITING : withNote(WAITING)));
+          noted = true;
+          return connection.run(name, { data, args, dataId }).then((result) => {
+            if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
+            if (round !== current) return false;
+            show(describe2(result, context), result);
+            return true;
+          });
+        }
+      };
+    }
   };
 }
 
 // src/group-comparison/statistic.js
-var WAITING = "Statistics: waiting for R\u2026";
 var NO_TEST_CHOSEN = "Statistics: no test chosen.";
-var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
 var TEST_LABELS = Object.freeze({
   t: "Welch t-test",
   wilcoxon: "Wilcoxon rank-sum test",
@@ -1135,26 +1527,7 @@ function fitTest(test, groups) {
   if (!offered.length) return null;
   return offered.includes(test) ? test : COUNTERPART[test];
 }
-function byCodePoint(a, b) {
-  const [first, second] = [[...a], [...b]];
-  const shared = Math.min(first.length, second.length);
-  for (let index = 0; index < shared; index += 1) {
-    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
-    if (difference !== 0) return difference;
-  }
-  return first.length - second.length;
-}
-var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
 var groupsOf = (records) => sorted(records.map((record) => record.x));
-function filtersInForce(filters) {
-  const inForce = {};
-  for (const [column, selection] of Object.entries(filters || {})) {
-    if (selection === null || selection === void 0 || selection === "") continue;
-    const values = Array.isArray(selection) ? selection : [selection];
-    if (values.length) inForce[column] = sorted(values);
-  }
-  return inForce;
-}
 function statisticRequest({ name, test, pairwise, settings, state, panel }) {
   const groups = groupsOf(panel.records);
   const filters = filtersInForce(state.filters);
@@ -1186,9 +1559,6 @@ function statisticRequest({ name, test, pairwise, settings, state, panel }) {
     rows: panel.records.length
   };
 }
-var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
-  (entry) => typeof entry === "string" && entry.trim() !== ""
-);
 var present = (value) => value !== void 0 && value !== null;
 function pairsOf(value) {
   const rows = Array.isArray(value.rows) ? value.rows.filter((row) => "group_1" in row) : [];
@@ -1216,14 +1586,7 @@ function pairsOf(value) {
     }))
   };
 }
-var plain = (state, said) => ({
-  state,
-  text: said,
-  estimates: [],
-  pairs: null,
-  remarks: [],
-  scope: null
-});
+var plain = (state, said) => ({ ...sentence(state, said), pairs: null });
 function describeAnswer(result, context = {}) {
   if (result && result.status === "ok") {
     const value = result.value && typeof result.value === "object" ? result.value : {};
@@ -1233,18 +1596,12 @@ function describeAnswer(result, context = {}) {
       described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present(row.lower) && present(row.upper)).map((row) => formatEstimate(row).text);
       described.pairs = pairsOf(value);
     }
-    described.remarks = [
-      ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
-      ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
-    ];
+    described.remarks = remarksOf(value);
     described.scope = context.scope || null;
     return described;
   }
-  if (result && result.status === "unavailable") {
-    return plain("unavailable", result.reason === "not-precomputed" ? NOT_STORED : result.message);
-  }
-  const message = result && typeof result.message === "string" ? result.message : "no message";
-  return plain("error", `R reported an error: ${message}`);
+  const failure = failureOf(result);
+  return plain(failure.state, failure.text);
 }
 function noTestText(groups, several) {
   const lead = `Statistics: no test${several ? " in this panel" : ""}. A test compares two or more groups, and `;
@@ -1262,109 +1619,23 @@ function scopeText({ group, n, panel, color, filters = [] }) {
   if (color) {
     said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
   }
-  if (filters.length) {
-    said.push(
-      `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`
-    );
-  }
+  if (filters.length) said.push(filtersSaid(filters));
   return said.join(" ");
 }
 function createStatisticDesk({ connection, note = null }) {
-  let current = 0;
-  let answered = false;
-  const withNote = (said) => note && !answered ? `${said} ${note}` : said;
-  return {
-    idle: withNote,
-    begin() {
-      current += 1;
-      const round = current;
-      let noted = false;
-      return {
-        ask({ name, data, args, dataId }, show, context) {
-          show(plain("waiting", noted ? WAITING : withNote(WAITING)));
-          noted = true;
-          return connection.run(name, { data, args, dataId }).then((result) => {
-            if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
-            if (round !== current) return false;
-            show(describeAnswer(result, context), result);
-            return true;
-          });
-        }
-      };
-    }
-  };
+  return createDesk({
+    connection,
+    note,
+    describe: describeAnswer,
+    waiting: (said) => plain("waiting", said)
+  });
 }
 
-// src/group-comparison/structureData.js
+// src/shared/tables.js
 var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
 var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
 function levelsOf(values) {
   return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
-}
-function quantile(sorted2, p) {
-  if (!sorted2.length) return NaN;
-  const position = (sorted2.length - 1) * p;
-  const below = Math.floor(position);
-  const above = Math.ceil(position);
-  if (below === above) return sorted2[below];
-  return sorted2[below] + (sorted2[above] - sorted2[below]) * (position - below);
-}
-var sum = (values) => values.reduce((total, value) => total + value, 0);
-function summarize(values) {
-  const sorted2 = [...values].sort((a, b) => a - b);
-  return {
-    n: sorted2.length,
-    min: sorted2.length ? sorted2[0] : NaN,
-    q5: quantile(sorted2, 0.05),
-    q25: quantile(sorted2, 0.25),
-    median: quantile(sorted2, 0.5),
-    q75: quantile(sorted2, 0.75),
-    q95: quantile(sorted2, 0.95),
-    max: sorted2.length ? sorted2[sorted2.length - 1] : NaN,
-    mean: sorted2.length ? sum(sorted2) / sorted2.length : NaN
-  };
-}
-function bandwidth(values) {
-  const n = values.length;
-  if (n < 2) return NaN;
-  const sorted2 = [...values].sort((a, b) => a - b);
-  const mean = sum(sorted2) / n;
-  const deviation = Math.sqrt(sum(sorted2.map((value) => (value - mean) ** 2)) / (n - 1));
-  const spread = (quantile(sorted2, 0.75) - quantile(sorted2, 0.25)) / 1.34;
-  let lesser = Math.min(deviation, spread);
-  if (lesser === 0) lesser = deviation || Math.abs(sorted2[0]) || 1;
-  return 0.9 * lesser * n ** -0.2;
-}
-function density(values, points = 64) {
-  const width = bandwidth(values);
-  const least = Math.min(...values);
-  const greatest = Math.max(...values);
-  if (!Number.isFinite(width) || !(greatest > least)) return null;
-  const at = Array.from(
-    { length: points },
-    (_, index) => least + (greatest - least) * index / (points - 1)
-  );
-  const scale = 1 / (values.length * width * Math.sqrt(2 * Math.PI));
-  return {
-    bandwidth: width,
-    at,
-    density: at.map(
-      (height) => scale * sum(values.map((value) => Math.exp(-0.5 * ((height - value) / width) ** 2)))
-    )
-  };
-}
-function jitter(id) {
-  let hash = 2166136261;
-  for (const character of String(id)) {
-    hash ^= character.codePointAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  hash ^= hash >>> 16;
-  hash = Math.imul(hash, 2246822507);
-  hash ^= hash >>> 13;
-  hash = Math.imul(hash, 3266489909);
-  hash ^= hash >>> 16;
-  return (hash >>> 0) / 4294967295 * 2 - 1;
 }
 function listMeasures(results, settings) {
   const present2 = levelsOf(results.map((row) => row[settings.measure_col]));
@@ -1443,6 +1714,98 @@ function filterColumns({ participants }, settings, categories) {
   }
   return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
 }
+function listVisits(results, settings) {
+  const config = coreSettings(settings);
+  const all = visits(results, config);
+  const asked = (settings.visits || []).filter((visit) => all.includes(visit));
+  return { all, start: asked.length ? asked : all };
+}
+function columnLevels({ results, participants }, column) {
+  const rows = participants && participants.some((row) => column in row) ? participants : results;
+  return levelsOf(rows.map((row) => row[column]));
+}
+var matches = (value, selection) => selection === null || selection === void 0 || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value));
+function keepFiltered({ results, participants }, settings, filters, filterMatches) {
+  const test = filterMatches || matches;
+  if (!participants) return { results, participants: null };
+  const idCol = settings.id_col;
+  const participantIdCol = settings.participant_id_col || idCol;
+  const kept = participants.filter(
+    (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
+  );
+  const ids = new Set(kept.map((row) => String(row[participantIdCol])));
+  return {
+    participants: kept,
+    results: results.filter((row) => ids.has(String(row[idCol])))
+  };
+}
+
+// src/group-comparison/structureData.js
+function quantile(sorted2, p) {
+  if (!sorted2.length) return NaN;
+  const position = (sorted2.length - 1) * p;
+  const below = Math.floor(position);
+  const above = Math.ceil(position);
+  if (below === above) return sorted2[below];
+  return sorted2[below] + (sorted2[above] - sorted2[below]) * (position - below);
+}
+var sum = (values) => values.reduce((total, value) => total + value, 0);
+function summarize(values) {
+  const sorted2 = [...values].sort((a, b) => a - b);
+  return {
+    n: sorted2.length,
+    min: sorted2.length ? sorted2[0] : NaN,
+    q5: quantile(sorted2, 0.05),
+    q25: quantile(sorted2, 0.25),
+    median: quantile(sorted2, 0.5),
+    q75: quantile(sorted2, 0.75),
+    q95: quantile(sorted2, 0.95),
+    max: sorted2.length ? sorted2[sorted2.length - 1] : NaN,
+    mean: sorted2.length ? sum(sorted2) / sorted2.length : NaN
+  };
+}
+function bandwidth(values) {
+  const n = values.length;
+  if (n < 2) return NaN;
+  const sorted2 = [...values].sort((a, b) => a - b);
+  const mean = sum(sorted2) / n;
+  const deviation = Math.sqrt(sum(sorted2.map((value) => (value - mean) ** 2)) / (n - 1));
+  const spread = (quantile(sorted2, 0.75) - quantile(sorted2, 0.25)) / 1.34;
+  let lesser = Math.min(deviation, spread);
+  if (lesser === 0) lesser = deviation || Math.abs(sorted2[0]) || 1;
+  return 0.9 * lesser * n ** -0.2;
+}
+function density(values, points = 64) {
+  const width = bandwidth(values);
+  const least = Math.min(...values);
+  const greatest = Math.max(...values);
+  if (!Number.isFinite(width) || !(greatest > least)) return null;
+  const at = Array.from(
+    { length: points },
+    (_, index) => least + (greatest - least) * index / (points - 1)
+  );
+  const scale = 1 / (values.length * width * Math.sqrt(2 * Math.PI));
+  return {
+    bandwidth: width,
+    at,
+    density: at.map(
+      (height) => scale * sum(values.map((value) => Math.exp(-0.5 * ((height - value) / width) ** 2)))
+    )
+  };
+}
+function jitter(id) {
+  let hash = 2166136261;
+  for (const character of String(id)) {
+    hash ^= character.codePointAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 2246822507);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 3266489909);
+  hash ^= hash >>> 16;
+  return (hash >>> 0) / 4294967295 * 2 - 1;
+}
 var RELATIVE = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
 function visitsDrawn(visits2, valueType, baselineVisits) {
   if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits2;
@@ -1464,21 +1827,13 @@ function tickLabel(level, cells) {
   return lines;
 }
 function buildPanels({ results, participants }, settings, state, options = {}) {
-  const filterMatches = options.filterMatches || ((value, selection) => selection === null || selection === void 0 || (Array.isArray(selection) ? selection.map(String).includes(String(value)) : String(selection) === String(value)));
   const config = coreSettings(settings);
-  const idCol = settings.id_col;
-  let kept = participants || null;
-  let rows = results;
-  if (kept) {
-    const participantIdCol = settings.participant_id_col || idCol;
-    kept = kept.filter(
-      (row) => Object.entries(state.filters || {}).every(
-        ([column, selection]) => filterMatches(row[column], selection)
-      )
-    );
-    const ids = new Set(kept.map((row) => String(row[participantIdCol])));
-    rows = results.filter((row) => ids.has(String(row[idCol])));
-  }
+  const { participants: kept, results: rows } = keepFiltered(
+    { results, participants },
+    settings,
+    state.filters,
+    options.filterMatches
+  );
   const needsVisit = state.valueType !== "baseline";
   const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
   const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
@@ -1596,12 +1951,6 @@ function yTitle(results, settings, state) {
   const unit = unitOf(results, settings, measure);
   return unit ? `${words} (${unit})` : words;
 }
-function listVisits(results, settings) {
-  const config = coreSettings(settings);
-  const all = visits(results, config);
-  const asked = (settings.visits || []).filter((visit) => all.includes(visit));
-  return { all, start: asked.length ? asked : all };
-}
 function overviewPage(measures, limit, page = 0) {
   const total = measures.length;
   const pages = Math.max(1, Math.ceil(total / limit));
@@ -1639,10 +1988,6 @@ function buildOverview(tables, settings, state, measures, options = {}) {
     };
   });
 }
-function columnLevels({ results, participants }, column) {
-  const rows = participants && participants.some((row) => column in row) ? participants : results;
-  return levelsOf(rows.map((row) => row[column]));
-}
 
 // src/group-comparison.js
 var NONE = "";
@@ -1656,38 +2001,9 @@ var VALUE_LABELS = {
 };
 var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
 var SCALE_LABELS = { linear: "Linear", log: "Logarithmic" };
-var PALETTE = [
-  "#2563eb",
-  "#059669",
-  "#d97706",
-  "#9333ea",
-  "#dc2626",
-  "#0891b2",
-  "#65a30d",
-  "#db2777",
-  "#4b5563",
-  "#ca8a04"
-];
 var STYLE_ID = "bio-viz-group-comparison-styles";
-var STYLES = `
-.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
-.bv-group-comparison .bv-statistic:empty{display:none}
-.bv-group-comparison .bv-statistic p{margin:0 0 .3rem}
-.bv-group-comparison .bv-statistic[data-state=waiting],.bv-group-comparison .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
-.bv-group-comparison .bv-stat-remark,.bv-group-comparison .bv-stat-scope{font-size:.8rem;color:#52616f}
-.bv-group-comparison .bv-stat-remark[data-kind=warning]{color:#8a4b00}
-.bv-group-comparison .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
-.bv-group-comparison .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
-.bv-group-comparison .bv-stat-pairs th,.bv-group-comparison .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
-.bv-group-comparison .bv-stat-pairs thead th{font-weight:600;border-top:0}
-.bv-group-comparison .bv-stat-pairs td:nth-child(2){white-space:nowrap}
-.bv-group-comparison .bv-stat-method{display:block;color:#52616f}
-.bv-group-comparison .bv-panel-canvas{height:300px;position:relative}
-.bv-group-comparison .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
+var STYLES = `${lineStyles(".bv-group-comparison")}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
-.bv-group-comparison .sv-listing table{table-layout:fixed}
-.bv-group-comparison .sv-listing th,.bv-group-comparison .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-.bv-group-comparison .sv-rail{max-width:100%;overflow-x:auto}
 .bv-group-comparison .sv-multiples.bv-overview{display:block}
 .bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
 .bv-group-comparison .bv-overview-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--bv-panel-min,150px),1fr));gap:.4rem .6rem}
@@ -1707,33 +2023,10 @@ var STYLES = `
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
-function applyStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = STYLES;
-  document.head.append(style);
-}
-function findKit() {
-  const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
-  if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
-    throw new Error(
-      "bio.viz: the group comparison chart is built from safety.viz's kit, and `SafetyViz.kit` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart."
-    );
-  }
-  return kit;
-}
 var NOTHING_AFTER_BASELINE = "The only visit chosen is the baseline visit, where this value is the same for everyone. Choose a later visit to draw.";
-var hexToRgba = (hex, alpha) => {
-  const value = hex.replace("#", "");
-  const part = (at) => parseInt(value.slice(at, at + 2), 16);
-  return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
-};
-var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
-var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
 var GroupComparison = class {
   constructor(element, settings) {
-    this.kit = findKit();
+    this.kit = findKit("the group comparison chart");
     this.element = typeof element === "string" ? document.querySelector(element) : element;
     if (!this.element) throw new Error(`bio.viz: group comparison target not found: ${element}`);
     this.settings = syncSettings(settings);
@@ -1760,50 +2053,12 @@ var GroupComparison = class {
     });
   }
   renderShell() {
-    const { kit } = this;
-    Object.assign(
-      this,
-      kit.renderShell(this.element, {
-        moduleClass: "bv-group-comparison",
-        onToggle: () => this.resize()
-      })
-    );
-    applyStyles();
-    this.statLine = kit.createElement("div", "bv-statistic");
-    this.statLine.setAttribute("role", "status");
-    this.footnote.after(this.statLine);
-    this.host = {
-      settings: {
-        profile: this.settings.profile,
-        id_col: this.settings.id_col,
-        page_size: this.settings.page_size,
-        details: []
-      },
-      root: this.root,
-      railWrap: this.railWrap,
-      listingWrap: this.listingWrap,
-      currentTableData: [],
-      listingSearch: "",
-      listingSort: null,
-      listingSelectedId: null,
-      page: 1,
-      profileRows: [],
-      onListingRowClick: (row) => this.select(row[this.settings.id_col])
-    };
-    this.listingWrap.addEventListener(
-      "click",
-      (event) => {
-        const button = event.target.closest && event.target.closest("button");
-        if (!button || button.textContent !== "Export: CSV") return;
-        event.stopPropagation();
-        event.preventDefault();
-        this.downloadListing();
-      },
-      true
-    );
-    if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
-      this.sidebarToggle.click();
-    }
+    mountShell(this, {
+      moduleClass: "bv-group-comparison",
+      styleId: STYLE_ID,
+      styles: STYLES,
+      listingFile: "bio.viz-group-comparison-listing.csv"
+    });
   }
   /**
    * Load the tables and draw: the same as `setData`.
@@ -1822,34 +2077,7 @@ var GroupComparison = class {
    * @returns {GroupComparison} The chart, for chaining.
    */
   setData(data) {
-    const tables = Array.isArray(data) ? { results: data } : data || {};
-    try {
-      if (!isRecordTable(tables.results)) {
-        throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
-      }
-      if (tables.participants != null && !isRecordTable(tables.participants)) {
-        throw new TypeError(
-          "bio.viz: `participants` must be an array of records, one object per row."
-        );
-      }
-      for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-        const column = this.settings[key];
-        if (tables.results.length && !tables.results.some((row) => column in row)) {
-          throw new TypeError(
-            `bio.viz: the results table has no column \`${column}\` (\`${key}\`).`
-          );
-        }
-      }
-    } catch (error) {
-      this.destroyCharts();
-      this.element.innerHTML = "";
-      this.element.append(this.kit.createElement("div", "sv-warning", error.message));
-      throw error;
-    }
-    this.tables = {
-      results: tables.results,
-      participants: tables.participants && tables.participants.length ? tables.participants : null
-    };
+    this.tables = readGiven(this, data);
     this.readTables();
     this.state = this.seedState();
     this.buildProfileFeed();
@@ -1869,9 +2097,7 @@ var GroupComparison = class {
   setSettings(settings) {
     const given2 = settings || {};
     this.settings = syncSettings({ ...this.settings, ...given2 });
-    this.host.settings.profile = this.settings.profile;
-    this.host.settings.id_col = this.settings.id_col;
-    this.host.settings.page_size = this.settings.page_size;
+    syncHost(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -2129,29 +2355,7 @@ var GroupComparison = class {
       };
       this.pairwiseControl = addControl("Pairwise comparisons", pairwise, statistics);
     }
-    if (this.filterSpecs.length) {
-      const filters = addSection("Filters");
-      const idCol = this.settings.participant_id_col || this.settings.id_col;
-      this.filterSpecs.forEach((spec) => {
-        const values = [
-          ...new Set(
-            this.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
-          )
-        ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
-        if (spec.value_col === idCol) return;
-        const control = kit.renderFilterControl({
-          spec,
-          values,
-          selected: state.filters[spec.value_col],
-          onChange: (next) => {
-            state.filters[spec.value_col] = next;
-            redraw(false);
-          }
-        });
-        control.dataset.filter = spec.value_col;
-        addControl(spec.label, control, filters);
-      });
-    }
+    addFilterControls(this, { addSection, addControl }, () => redraw(false));
     addReset(() => {
       this.state = this.seedState();
       this.buildControls();
@@ -2656,16 +2860,12 @@ var GroupComparison = class {
   // What one panel's test covers, said under its result.
   scope(panel, model) {
     const { state } = this;
-    const filters = this.filterSpecs.map((spec) => ({ label: spec.label, selection: state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
-      label: label2,
-      values: (Array.isArray(selection) ? selection : [selection]).map(String)
-    })).filter(({ values }) => values.length);
     return scopeText({
       group: this.labelOf(state.groupBy),
       n: panel.records.length,
       panel: model.panels.length > 1 ? panel.title : null,
       color: state.colorBy ? this.labelOf(state.colorBy) : null,
-      filters
+      filters: filtersForScope(this)
     });
   }
   // Asks R for one panel's test and prints the answer under the panel. Each
@@ -2713,45 +2913,22 @@ var GroupComparison = class {
   // interval for, the pairwise comparisons, what R said about its answer, and
   // what the test covers.
   showStatistic(line, description) {
-    const { kit } = this;
-    line.dataset.state = description.state;
-    line.innerHTML = "";
-    line.append(kit.createElement("p", "bv-stat-result", description.text));
-    description.estimates.forEach(
-      (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
-    );
-    if (description.pairs) line.append(this.pairsTable(description.pairs));
-    description.remarks.forEach(({ kind, text: text2 }) => {
-      const remark = kit.createElement("p", "bv-stat-remark", text2);
-      remark.dataset.kind = kind;
-      line.append(remark);
+    const { pairs } = description;
+    writeStatistic(this.kit, line, {
+      ...description,
+      // The pairwise comparisons, as the table every chart's line can carry:
+      // each pair, with its method beneath where the pairs' methods differ.
+      table: pairs && {
+        caption: pairs.caption,
+        head: pairs.head,
+        rows: pairs.rows.map((row) => ({
+          status: row.status,
+          head: row.pair,
+          sub: row.method,
+          cells: [row.n, row.p]
+        }))
+      }
     });
-    if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
-  }
-  pairsTable({ caption, head, rows }) {
-    const { kit } = this;
-    const table = kit.createElement("table", "bv-stat-pairs");
-    table.append(kit.createElement("caption", null, caption));
-    const header = document.createElement("tr");
-    head.forEach((title) => {
-      const cell = kit.createElement("th", null, title);
-      cell.scope = "col";
-      header.append(cell);
-    });
-    const thead = document.createElement("thead");
-    thead.append(header);
-    const tbody = document.createElement("tbody");
-    rows.forEach((row) => {
-      const line = document.createElement("tr");
-      line.dataset.status = row.status;
-      const pair = kit.createElement("th", null, row.pair);
-      pair.scope = "row";
-      if (row.method) pair.append(kit.createElement("span", "bv-stat-method", row.method));
-      line.append(pair, kit.createElement("td", null, row.n), kit.createElement("td", null, row.p));
-      tbody.append(line);
-    });
-    table.append(thead, tbody);
-    return table;
   }
   /**
    * What the chart has asked R for the panels now drawn, and what R answered:
@@ -2803,130 +2980,34 @@ var GroupComparison = class {
     return columns;
   }
   showListing(panel, cell, records) {
-    const { host, settings } = this;
     this.clearSelection();
-    const participantIdCol = settings.participant_id_col || settings.id_col;
-    const byId = new Map(
-      (this.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-    );
-    host.settings.details = this.listingColumns();
-    host.currentTableData = records.map((record) => ({
-      ...byId.get(String(record[settings.id_col])) || {},
-      ...record,
-      y: shown(record.y)
-    }));
-    host.listingSearch = "";
-    host.listingSort = null;
-    host.page = 1;
+    showListing(this, {
+      columns: this.listingColumns(),
+      rows: records.map((record) => ({ ...record, y: shown(record.y) }))
+    });
     this.listed = { panel, cell };
     const name = cell.color === null ? cell.level : `${cell.level}, ${cell.color}`;
     const where = panel.title ? ` (${panel.title})` : "";
     this.footnote.textContent = `${name}${where}: ${records.length} participant${records.length === 1 ? "" : "s"} listed. Click a row to open the participant's profile.`;
-    this.kit.renderListing(host);
   }
   // Select one participant, or none: mark the listing's row and raise
   // safety.viz's selection event, which the participant rail opens on and any
   // other chart on the page can listen for.
   select(id) {
-    const { host } = this;
-    host.listingSelectedId = id == null ? null : String(id);
-    if (host.currentTableData.length) this.kit.renderListing(host);
-    this.root.dispatchEvent(
-      new CustomEvent("participantsSelected", {
-        detail: { data: id == null ? [] : [String(id)] },
-        bubbles: true
-      })
-    );
+    selectParticipant(this, id);
   }
   // Empties the listing and the rail without raising an event: the chart is
   // about to show other rows.
   clearSelection() {
-    const { host } = this;
-    host.currentTableData = [];
-    host.listingSelectedId = null;
     this.listed = null;
-    this.listingWrap.innerHTML = "";
-    this.kit.resetProfileRail(host);
+    clearListing(this);
   }
-  downloadListing() {
-    const { host, kit } = this;
-    let rows = kit.searchRows(
-      [...host.currentTableData],
-      host.settings.details,
-      host.listingSearch
-    );
-    if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
-    const blob = new Blob([kit.buildCsv(rows, host.settings.details)], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "bio.viz-group-comparison-listing.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-  // The rows safety.viz's participant rail reads: every result, with the
-  // participant's own columns beside it for the rail's header.
-  //
-  // The rail was made for laboratory results that carry a reference range, and
-  // keeps only rows with an upper limit of normal above zero. Biomarker results
-  // often have none. When no `normal_col_high` is mapped the rows are given a
-  // stand-in so the rail keeps them, and the rail is told (railSettings) to
-  // show each result as a multiple of the participant's first result and to
-  // draw no reference range: nothing on screen claims one.
+  // The rows safety.viz's participant rail reads, and the rail, mounted.
   buildProfileFeed() {
-    const { settings, host, kit } = this;
-    host.profileRows = [];
-    if (!settings.profile) return;
-    const participantIdCol = settings.participant_id_col || settings.id_col;
-    const byId = new Map(
-      (this.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-    );
-    const ranged = Boolean(settings.normal_col_high);
-    const feed = this.tables.results.map((row) => ({
-      ...byId.get(String(row[settings.id_col])) || {},
-      ...row,
-      ...ranged ? {} : { __bv_no_reference_range: 1 }
-    }));
-    host.profileRows = kit.buildProfileRows(feed, {
-      ...this.railColumns(),
-      normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
-    });
-    kit.mountProfileRail(host, () => this.railSettings());
-  }
-  railColumns() {
-    const { settings } = this;
-    return {
-      id_col: settings.id_col,
-      measure_col: settings.measure_col,
-      value_col: settings.value_col,
-      unit_col: settings.unit_col,
-      visit_col: settings.visit_col,
-      visitn_col: settings.visit_order_col,
-      studyday_col: settings.studyday_col,
-      normal_col_high: settings.normal_col_high,
-      normal_col_low: settings.normal_col_low
-    };
+    buildProfileFeed(this, () => this.railSettings());
   }
   railSettings() {
-    const { settings } = this;
-    const details = settings.profile_details || this.categories.filter((entry) => entry.table !== "results" || !this.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
-    const rail = {
-      ...this.railColumns(),
-      details,
-      // Every biomarker is a measure the rail shows, not only the four liver
-      // tests it was made for.
-      measure_values: Object.fromEntries(this.measures.map((measure) => [measure, measure])),
-      axis_type: this.state.yScale === "log" ? "log" : "linear",
-      on_clear: () => this.select(null)
-    };
-    if (settings.normal_col_high) return rail;
-    const none = { relative_uln: null, relative_baseline: null };
-    return {
-      ...rail,
-      display: "relative_baseline",
-      display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
-      cuts: { defaults: none, TB: none, ALP: none }
-    };
+    return railSettings(this, this.state.yScale);
   }
   // ---- Lifecycle --------------------------------------------------------------
   /**
