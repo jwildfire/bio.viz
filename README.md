@@ -3,6 +3,7 @@
 Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz).
 
 - Site: <https://jwildfire.github.io/bio.viz/> (released) and <https://jwildfire.github.io/bio.viz/dev/> (the `dev` branch)
+- R check: <https://jwildfire.github.io/bio.viz/dev/r-check/> — two real tests run through R in the browser beside desktop R's answers, with what it costs in megabytes and seconds
 - Design: <https://jwildfire.github.io/obot.roadmap/requirements/design/353_design.html>
 - Release notes: [NEWS.md](NEWS.md)
 
