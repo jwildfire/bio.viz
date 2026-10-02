@@ -9,7 +9,18 @@ export default defineConfig({
   testDir: './tests/e2e',
   globalSetup: './tests/e2e/global-setup.js',
   timeout: 30_000,
-  expect: { timeout: 5_000 },
+  expect: {
+    timeout: 5_000,
+    // Evidence screenshots (tests/e2e/evidence.js): the threshold absorbs
+    // antialiasing noise between two runs on the same system.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' }
+  },
+  // A captured screenshot is baseline, evidence and site image at once, so it
+  // lives with its module's evidence set: captureEvidence passes
+  // ['<module>', '<name>.png'] and {arg} resolves to
+  // docs/evidence/<module>/<name>.png. No platform suffix: the baselines are
+  // the Linux continuous-integration runner's, and only it compares against them.
+  snapshotPathTemplate: 'docs/evidence/{arg}{ext}',
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: `http://127.0.0.1:${port}`,
