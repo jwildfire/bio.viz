@@ -2345,11 +2345,35 @@ test.describe('association scatter: the demo, with R in the browser, live', () =
       `${scale} The line is fitted to the values as plotted, so it is straight on these axes, ` +
         'and its slope and intercept are of the logarithms.'
     );
-    // The line drawn is R's points, each put back on its axis's own scale.
-    const [drawnLine] = await page.evaluate(() => window.BioVizDemo.chart.charts[0].$fit);
-    expect(drawnLine.curve).toEqual(
-      lineOfLogs.actual.rows.map((row) => ({ x: 10 ** row.x, y: 10 ** row.fit }))
-    );
+    // The line drawn is R's points, each put back on its axis's own scale. The
+    // two are compared in the page: a power of ten, like a logarithm, is not
+    // the same to the last binary place in every engine.
+    const placed = await page.evaluate(() => {
+      const { chart } = window.BioVizDemo;
+      const [line] = chart.charts[0].$fit;
+      const { rows } = chart.statistics().find((entry) => entry.kind === 'fit').answer.value;
+      const same = (points, member) =>
+        points.every(
+          (point, index) => point.x === 10 ** rows[index].x && point.y === 10 ** rows[index][member]
+        );
+      return {
+        lines: chart.charts[0].$fit.length,
+        points: line.curve.length,
+        rows: rows.length,
+        curve: same(line.curve, 'fit'),
+        lower: same(line.lower, 'lower'),
+        upper: same(line.upper, 'upper')
+      };
+    });
+    expect(placed).toEqual({
+      lines: 1,
+      points: 50,
+      rows: 50,
+      curve: true,
+      lower: true,
+      upper: true
+    });
+    expect(lineOfLogs.actual.rows).toHaveLength(50);
     expect((await drawn(page, 'demo'))[0].x.type).toBe('logarithmic');
     // The same pair on linear axes is another question, with another answer.
     await setView({ x_scale: 'linear', y_scale: 'linear' });
