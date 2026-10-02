@@ -10,7 +10,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 | [r-connection.md](r-connection.md)               | r-connection        |   75 |
 | [group-comparison.md](group-comparison.md)       | group-comparison    |  120 |
 | [association-scatter.md](association-scatter.md) | association-scatter |   78 |
-| [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   63 |
+| [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   64 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
 

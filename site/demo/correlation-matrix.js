@@ -32,7 +32,7 @@
         studyday_col: 'DAY'
       },
       // What the first grid costs on this page, said while R starts. The
-      // megabytes are the ones the browser tests measure (CM-LIVE-006).
+      // megabytes are the ones the browser tests measure (CM-LIVE-007).
       waiting_note:
         'The first grid starts R in this browser: about 13 MB to download, once, and a few seconds.'
     },
