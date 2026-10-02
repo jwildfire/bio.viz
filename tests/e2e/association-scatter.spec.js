@@ -320,6 +320,11 @@ test.describe('association scatter: what is drawn', () => {
       return { x: box.left + item.left + 8, y: box.top + item.top + item.height / 2 };
     });
     await page.mouse.click(key.x, key.y);
+    // Chart.js answers a click on its next frame: wait for two, so that a key
+    // that did switch a level off would have by now.
+    await page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+    );
     const visible = await page.evaluate(() => {
       const chart = window.__as.chart.charts[0];
       return chart.data.datasets.map((_, index) => chart.isDatasetVisible(index));
@@ -819,6 +824,7 @@ test.describe('association scatter: the statistics line', () => {
     for (let index = 1; index < count - 1; index += 1) await answer(page, index, 'pearson');
     await page.waitForTimeout(100);
     await expect(line(page)).toHaveText(WAITING);
+    await expect(line(page)).toHaveAttribute('data-state', 'waiting');
     // The last is: it is the answer to the question about the rows on screen.
     // (The stand-in answers with a result of another size, so the two can be told apart.)
     await answer(page, count - 1, 'pearson-women');
