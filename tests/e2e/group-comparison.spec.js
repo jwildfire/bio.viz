@@ -1052,7 +1052,7 @@ test.describe('group comparison: the test R is asked for', () => {
 test.describe('group comparison: R’s answers, stored with the page', () => {
   // The chart on the demo's tables, with what the demo opens on stated, and a
   // connection that holds desktop R's answers and has no R to ask.
-  async function openStored(page, cases, settings = {}) {
+  async function openStored(page, cases, settings = {}, { rows = true } = {}) {
     await open(page, {
       data: 'arm-sex',
       settings: {
@@ -1070,7 +1070,7 @@ test.describe('group comparison: R’s answers, stored with the page', () => {
           connection: window.BioViz.r.createConnection({ results })
         });
       },
-      stored(...cases)
+      stored(...cases).map((entry) => (rows ? entry : { ...entry, rows: undefined }))
     );
   }
   const NOT_STORED =
@@ -1081,7 +1081,9 @@ test.describe('group comparison: R’s answers, stored with the page', () => {
   }) => {
     const requests = [];
     page.on('request', (request) => requests.push(request.url()));
-    await openStored(page, ['welch', 'welch-week-12']);
+    // Stored without the number of rows each was computed on, so that it is the
+    // stated identity alone that tells one view from another here.
+    await openStored(page, ['welch', 'welch-week-12'], {}, { rows: false });
     const line = page.locator('.sv-main > .bv-statistic');
     await expect(line.locator('.bv-stat-result')).toHaveText(
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
@@ -1793,12 +1795,23 @@ test.describe('group comparison: the demo, with R in the browser, live', () => {
 
     // What the line read, in order: waiting, with the page's note on the cost
     // of the first start, and then R's answer. Nothing else, and no number
-    // before R's.
+    // before R's. (Where the page was slow to finish loading, R answered the
+    // view it opened on before this group stated the same view again: then the
+    // line waited and printed twice, and the same holds of both.)
     const log = await lineLog();
-    expect(log.map(([state]) => state)).toEqual(['waiting', 'shown']);
-    expect(log[0][1]).toBe(
+    expect(log[0]).toEqual([
+      'waiting',
       'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
-    );
+    ]);
+    const states = log.map(([state]) => state);
+    expect([
+      ['waiting', 'shown'],
+      ['waiting', 'shown', 'waiting', 'shown']
+    ]).toContainEqual(states);
+    for (const [state, text] of log) {
+      if (state === 'waiting') expect(text).not.toMatch(/p [=<>]/);
+      else expect(text).toContain('p < 0.001 (Placebo n = 95, Treatment n = 91)');
+    }
     await expect(line().locator('p')).toHaveText([
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
       'Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.',
@@ -1821,7 +1834,7 @@ test.describe('group comparison: the demo, with R in the browser, live', () => {
 
     // The cost of that first start, kept for GC-STAT-041.
     const times = await page.evaluate(() =>
-      window.__line.filter((entry) => entry.state !== 'empty').map((entry) => entry.at)
+      ['waiting', 'shown'].map((state) => window.__line.find((entry) => entry.state === state).at)
     );
     const files = finished.filter((request) => isRFile(request.url));
     measured.cold = {
