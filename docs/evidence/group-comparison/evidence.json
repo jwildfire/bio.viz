@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T16:32:14.310Z",
+  "generatedAt": "2026-10-02T16:34:10.083Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37034737892",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37034737892"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -143,7 +146,7 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-001"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-DRAW-001-boxes-by-arm.png"]
     },
     {
       "test": "GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)",
@@ -151,7 +154,7 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-002"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-DRAW-002-violins-by-arm.png"]
     },
     {
       "test": "GC-DRAW-003: points, one per participant, each in its group’s place (#9)",
@@ -159,7 +162,7 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-003"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-DRAW-003-points-by-arm.png"]
     },
     {
       "test": "GC-DRAW-004: a second grouping by colour draws the colours side by side, with a legend and the count in each (#9)",
@@ -167,7 +170,7 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-004"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-DRAW-004-colour-by-sex.png"]
     },
     {
       "test": "GC-DRAW-005: panels by one further variable, and by visit, each a chart of its own on one value axis (#9)",
@@ -175,7 +178,7 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-005"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-DRAW-005-panels-by-visit-and-sex.png"]
     },
     {
       "test": "GC-DRAW-006: a logarithmic scale, with values of zero or less left out and counted (#9)",
@@ -255,7 +258,7 @@
       "status": "pass",
       "requirementIds": ["GC-LIST-001"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-LIST-001-participants-of-a-box.png"]
     },
     {
       "test": "GC-LIST-002: a control or a filter change empties the listing, so it never lists a box that is no longer drawn (#9)",
@@ -287,7 +290,7 @@
       "status": "pass",
       "requirementIds": ["GC-MOBILE-001"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-MOBILE-001-panels-on-a-phone.png"]
     },
     {
       "test": "GC-MOBILE-002: at 390px a box can be tapped, its listing read and a profile opened, and the page still does not scroll sideways (#9)",
@@ -327,7 +330,7 @@
       "status": "pass",
       "requirementIds": ["GC-SITE-003"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-SITE-003-demo-on-a-phone.png"]
     },
     {
       "test": "GC-STAT-006: with no R attached the statistics line reads that statistics are unavailable (#9)",
@@ -343,7 +346,7 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-007"],
       "issueRefs": [9],
-      "screenshots": []
+      "screenshots": ["GC-STAT-007-statistics-line.png"]
     },
     {
       "test": "GC-STAT-008: a filter change clears the line before asking again, and an answer for the rows before the change is never shown (#9)",
