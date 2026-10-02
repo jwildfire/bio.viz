@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="{{root}}site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="{{root}}index.html">
+        bio.viz
+        <span class="site-version">v{{version}}</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main">{{content}}</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v{{version}} — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R.{{build}}
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>

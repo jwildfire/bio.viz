@@ -1,0 +1,35 @@
+{
+  "name": "bio.viz",
+  "version": "0.1.0",
+  "description": "Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R.",
+  "private": true,
+  "type": "module",
+  "module": "src/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:check-dist": "node scripts/check-dist-drift.mjs",
+    "site": "node scripts/site.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "evidence": "node scripts/evidence.mjs",
+    "evidence:check": "node scripts/evidence.mjs --check",
+    "requirements": "node scripts/requirements.mjs",
+    "requirements:check": "node scripts/requirements.mjs --check"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "esbuild": "^0.28.1",
+    "prettier": "^3.9.4",
+    "vitest": "^4.1.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwildfire/bio.viz.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jwildfire/bio.viz/issues"
+  },
+  "homepage": "https://github.com/jwildfire/bio.viz#readme"
+}

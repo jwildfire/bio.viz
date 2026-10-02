@@ -1,0 +1,12 @@
+{
+  "module": "core",
+  "matrix": "core.md",
+  "requirements": {
+    "CORE-BUILD-001": "The build writes a script-tag bundle to `dist/bio.viz-{version}/bio.viz.js` that defines the global `BioViz`.",
+    "CORE-BUILD-002": "The build writes an ES module bundle to `dist/bio.viz-{version}/bio.viz.esm.js` with the same exports as the script-tag bundle.",
+    "CORE-API-001": "`version` equals the `version` field of package.json: in the source, in both committed bundles, and as `BioViz.version` on a page that loads the script-tag bundle.",
+    "CORE-DEP-001": "package.json declares no runtime dependencies: safety.viz and webR are loaded beside the bundle on a page and are never bundled into it.",
+    "CORE-SITE-001": "The site's home page names the library and its version, and shows the version reported by the bundle that page loaded.",
+    "CORE-SITE-002": "The site's home page holds at a 390-pixel-wide viewport with no horizontal scroll."
+  }
+}
