@@ -59,9 +59,18 @@ jobs:
       - name: Vendored safety.viz bundle equals safety.viz at the recorded commit
         run: npm run kit:check-source
 
+      # And for gsm.bio's statistics file, the one file R in the browser is
+      # given and the file the expected results below are made with: fetched
+      # from gsm.bio at the recorded commit and compared.
+      - name: Vendored statistics file equals gsm.bio at the recorded commit
+        run: npm run statistics:check-source
+
       # Desktop R, at the version that made site/r-check/expected.json, so the
-      # step after it re-derives the R check page's expected results instead of
-      # trusting the committed file. The survival package comes with R.
+      # step after it re-derives the committed expected results instead of
+      # trusting them: the R check page's, the numbers the group comparison
+      # chart's boxes and violins are held to, and what gsm.bio's vendored
+      # statistics file answers for the rows that chart hands R. The survival
+      # package comes with R.
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
@@ -82,9 +91,12 @@ jobs:
       # made its baseline.
       #
       # Includes the RCON-LIVE tests, which load webR and the survival package
-      # from their public hosts and run real R. They fail if those hosts cannot
-      # be reached; nothing skips or retries. The megabytes and seconds they
-      # measure are printed in this step's log and uploaded with test-results/.
+      # from their public hosts and run real R, and the GC-STAT-034 to
+      # GC-STAT-042 tests, which run the gallery's group comparison demo against
+      # real R in the browser and hold its answers to desktop R's. They fail if
+      # those hosts cannot be reached; nothing skips or retries. The megabytes
+      # and seconds they measure, and both versions' answers, are printed in this
+      # step's log and uploaded with test-results/.
       - name: Run browser tests
         run: npm run test:e2e -- --project=chromium
 

@@ -513,7 +513,7 @@ ${renderStudy(study)}
 // demo script. safety.viz's bundle is loaded first, as its own script tag, and
 // bio.viz's after it: the chart is built from safety.viz's kit and bundles none
 // of it.
-export function renderDemoPage({ entry, version, study, kit }) {
+export function renderDemoPage({ entry, version, study, kit, statistics }) {
   const bundle = `../dist/bio.viz-${version}/bio.viz.js`;
   const source = study
     ? ` The data is the <a href="../gallery/index.html#demo-data">synthetic study</a>: ` +
@@ -528,6 +528,17 @@ export function renderDemoPage({ entry, version, study, kit }) {
         ? ` That copy is from a branch of safety.viz that is not merged yet.`
         : '') +
       `</p>`
+    : '';
+  // Which R functions answer, and from where: gsm.bio's statistics file, as
+  // vendored, with the commit it was copied from.
+  const computed = statistics
+    ? `<p class="sub" id="demo-statistics">The tests are gsm.bio's, version ` +
+      `${escapeHtml(statistics.version || '')}: R in this browser is given ` +
+      `<a href="../vendor/gsm.bio/statistics.R">one file of R</a>, copied from gsm.bio at commit ` +
+      `<code>${escapeHtml(statistics.commit.slice(0, 7))}</code> with ` +
+      `<a href="../vendor/gsm.bio/SOURCE.json">a record of where it came from</a>. The same ` +
+      `file, run in desktop R on the rows this chart hands over, wrote the answers the ` +
+      `browser tests hold this page to.</p>`
     : '';
   return `
 <section class="hero">
@@ -545,9 +556,12 @@ export function renderDemoPage({ entry, version, study, kit }) {
   <ul class="notes">
     <li>Choose the biomarker, the value, the visits, the groups and how they are drawn in the controls. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
     <li>Click a box, a violin or a point to list its participants. Click a row of the list to open that participant's profile.</li>
-    <li>The line under the chart is where a test of the groups is printed. Every test is computed by R, and no R is attached to this page, so the line says that statistics are unavailable. The chart computes none itself.</li>
+    <li>The line under the chart is a test of the groups, computed by R. The chart draws first. R is then started in this browser, the first time a panel that prints a test is drawn: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.</li>
+    <li>Choose the test under Statistics in the controls: a Welch t-test or a Wilcoxon rank-sum test between two groups, a one-way ANOVA or a Kruskal-Wallis test across more, or none. Group by Arm and sex for four groups, and switch on Pairwise comparisons to compare every pair, with the p-values adjusted across the pairs.</li>
+    <li>Every result is exploratory. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn.</li>
   </ul>
   ${built}
+  ${computed}
 </section>
 
 <script src="../vendor/safety.viz/safety.viz.js"></script>
