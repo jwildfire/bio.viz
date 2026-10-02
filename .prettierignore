@@ -14,6 +14,7 @@ requirements/*.md
 # results (tools/r-fixtures.R), the recorded measurement (the browser test), and
 # the R check page's tables with their source note (tools/cut-r-check-fixture.mjs).
 site/r-check/expected.json
+tests/fixtures/group-comparison-r.json
 site/r-check/measured.json
 site/r-check/data/
 
