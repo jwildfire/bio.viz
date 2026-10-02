@@ -18,8 +18,10 @@
       bundle and then bio.viz's committed bundle, as two script tags, and draws the chart on the
       vendored synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the
       results and the participant table, the default), <code>results</code> (the results table as
-      vendored, alone) or <code>results-with-arm</code> (the derived fixture: results with ARM
-      carried on the rows, and no participant table). The tests reach the chart as
+      vendored, alone), <code>results-with-arm</code> (the derived fixture: results with ARM carried
+      on the rows, and no participant table) or <code>arm-sex</code> (both tables, with the demo's
+      four-level column ARM_SEX added to the participants). The biomarker and the visit the chart
+      opens on are stated here, not left to the chart's defaults. The tests reach the chart as
       <code>window.__gc.chart</code>.
     </p>
     <div id="chart"></div>
@@ -37,9 +39,16 @@
             (results) => ({ results })
           );
         }
-        return BioVizDemo.loadStudy(study).then((loaded) =>
-          which === 'results' ? { results: loaded.results } : loaded
-        );
+        return BioVizDemo.loadStudy(study).then((loaded) => {
+          if (which === 'results') return { results: loaded.results };
+          if (which === 'arm-sex') {
+            return {
+              results: loaded.results,
+              participants: BioVizDemo.withArmSex(loaded.participants)
+            };
+          }
+          return loaded;
+        });
       }
 
       // A test may set these before the chart is made.
