@@ -19,12 +19,14 @@
     "evidence:update": "node scripts/evidence.mjs --update",
     "requirements": "node scripts/requirements.mjs",
     "requirements:check": "node scripts/requirements.mjs --check",
-    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R",
+    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R",
     "fixtures:check": "node scripts/check-r-fixtures.mjs",
     "data:check": "node tools/vendor-synthetic-study.mjs --check",
     "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source",
     "kit:check": "node tools/vendor-safety-viz.mjs --check",
-    "kit:check-source": "node tools/vendor-safety-viz.mjs --check-source"
+    "kit:check-source": "node tools/vendor-safety-viz.mjs --check-source",
+    "statistics:check": "node tools/vendor-statistics.mjs --check",
+    "statistics:check-source": "node tools/vendor-statistics.mjs --check-source"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

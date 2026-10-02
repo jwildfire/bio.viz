@@ -1,0 +1,14 @@
+case,file,statistic,test,pairwise,measure,value_type,visit,baseline_visits,baseline_stat,group_by,color_by,panel_by,panel,filters,y_scale
+welch,welch.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,,,,,linear
+wilcoxon,wilcoxon.csv,Analyze_GroupDifference,wilcoxon,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,,,,,linear
+anova,anova.csv,Analyze_GroupDifference,anova,FALSE,IL-6,change,Week 4,Baseline,mean,ARM_SEX,,,,,linear
+kruskal,kruskal.csv,Analyze_GroupDifference,kruskal,FALSE,IL-6,change,Week 4,Baseline,mean,ARM_SEX,,,,,linear
+anova-pairwise,anova-pairwise.csv,Analyze_GroupDifference,anova,TRUE,IL-6,change,Week 4,Baseline,mean,ARM_SEX,,,,,linear
+kruskal-pairwise,kruskal-pairwise.csv,Analyze_GroupDifference,kruskal,TRUE,IL-6,change,Week 4,Baseline,mean,ARM_SEX,,,,,linear
+welch-women,welch-women.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,,,,SEX=F,linear
+welch-age-57,welch-age-57.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,,,,AGE=57,linear
+welch-week-12,welch-week-12.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 12,Baseline,mean,ARM,,,,,linear
+welch-colour,welch-colour.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,SEX,,,,linear
+wilcoxon-log,wilcoxon-log.csv,Analyze_GroupDifference,wilcoxon,FALSE,IL-6,raw,Week 4,Baseline,mean,ARM,,,,,log
+anova-baseline,anova-baseline.csv,Analyze_GroupDifference,anova,FALSE,IL-6,baseline,,Baseline,mean,ARM_SEX,,,,,linear
+welch-panel-women,welch-panel-women.csv,Analyze_GroupDifference,t,FALSE,IL-6,change,Week 4,Baseline,mean,ARM,,SEX,F,,linear

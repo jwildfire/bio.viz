@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_SETTINGS,
   MARKS,
+  TESTS,
   Y_SCALES,
   coreSettings,
   syncSettings
@@ -9,7 +10,7 @@ import {
 import { DEFAULT_SETTINGS as CORE_DEFAULTS } from '../../../src/core/index.js';
 import { createConnection } from '../../../src/r/index.js';
 
-// The chart's settings (#9).
+// The chart's settings (#9), and the ones that choose what R is asked (#16).
 
 const refused = (overrides) => {
   try {
@@ -97,10 +98,32 @@ describe('group comparison: settings', () => {
     );
   });
 
-  it('GC-CFG-004: the chart has no setting that chooses a test, an adjustment or a cut (#9)', () => {
+  it('GC-CFG-004: the chart has no setting that chooses an adjustment, a confidence level, a minimum group size or a cut (#16)', () => {
     const names = Object.keys(DEFAULT_SETTINGS).join(' ');
-    expect(names).not.toMatch(/test|pairwise|adjust|method|cut|alpha|signif/i);
-    expect(refused({ test: 'wilcoxon' })).toMatch(/`test` is not a setting/);
-    expect(refused({ pairwise: true })).toMatch(/`pairwise` is not a setting/);
+    expect(names).not.toMatch(/adjust|method|cut|alpha|signif|conf|min_group/i);
+    expect(refused({ adjust: 'BH' })).toMatch(/`adjust` is not a setting/);
+    expect(refused({ conf_level: 0.9 })).toMatch(/`conf_level` is not a setting/);
+    expect(refused({ min_group: 2 })).toMatch(/`min_group` is not a setting/);
+  });
+
+  it('GC-CFG-005: the test and the pairwise comparisons each have a setting, with a stated default, and a value neither can take is refused (#16)', () => {
+    expect(TESTS).toEqual(['t', 'wilcoxon', 'anova', 'kruskal', 'none']);
+    expect(Object.isFrozen(TESTS)).toBe(true);
+    expect(DEFAULT_SETTINGS.test).toBe('t');
+    expect(DEFAULT_SETTINGS.pairwise).toBe(false);
+    expect(DEFAULT_SETTINGS.waiting_note).toBe(null);
+    for (const test of TESTS) expect(syncSettings({ test }).test).toBe(test);
+    expect(syncSettings({ pairwise: true }).pairwise).toBe(true);
+    expect(refused({ test: 'welch' })).toBe(
+      'bio.viz: `test` must be one of t, wilcoxon, anova, kruskal, none.'
+    );
+    expect(refused({ test: null })).toMatch(/`test` must be one of/);
+    expect(refused({ pairwise: 'holm' })).toBe('bio.viz: `pairwise` must be true or false.');
+    expect(refused({ waiting_note: 26 })).toBe(
+      'bio.viz: `waiting_note` must be a sentence, or null for none.'
+    );
+    expect(syncSettings({ waiting_note: 'About 13 MB the first time.' }).waiting_note).toBe(
+      'About 13 MB the first time.'
+    );
   });
 });

@@ -13,15 +13,25 @@
 // neither, and finds the kit on the page when a chart is made.
 //
 // The rows of every cell come from the core's frame. The chart computes no
-// test: its statistics line asks R, through the connection, and prints what
-// comes back through the shared formatter.
+// test: it chooses which test to ask R for, its statistics line asks R through
+// the connection, and it prints what comes back through the shared formatters.
 
 import { createConnection } from './r/connection.js';
-import { formatStatistic } from './r/formatStatistic.js';
 import { UNUSED } from './core/reasons.js';
 import { VALUE_TYPES } from './core/variable.js';
 import { MARKS, Y_SCALES, syncSettings } from './group-comparison/configure.js';
-import { createStatisticDesk } from './group-comparison/statistic.js';
+import {
+  NO_TEST_CHOSEN,
+  TEST_LABELS,
+  createStatisticDesk,
+  fitTest,
+  groupsOf,
+  noTestText,
+  plain,
+  scopeText,
+  statisticRequest,
+  testsFor
+} from './group-comparison/statistic.js';
 import {
   buildPanels,
   categoryColumns,
@@ -61,9 +71,18 @@ const PALETTE = [
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 const STYLES = `
-.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
 .bv-group-comparison .bv-statistic:empty{display:none}
-.bv-group-comparison .bv-statistic[data-state=waiting]{color:#52616f;font-style:italic}
+.bv-group-comparison .bv-statistic p{margin:0 0 .3rem}
+.bv-group-comparison .bv-statistic[data-state=waiting],.bv-group-comparison .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
+.bv-group-comparison .bv-stat-remark,.bv-group-comparison .bv-stat-scope{font-size:.8rem;color:#52616f}
+.bv-group-comparison .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+.bv-group-comparison .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
+.bv-group-comparison .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
+.bv-group-comparison .bv-stat-pairs th,.bv-group-comparison .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
+.bv-group-comparison .bv-stat-pairs thead th{font-weight:600;border-top:0}
+.bv-group-comparison .bv-stat-pairs td:nth-child(2){white-space:nowrap}
+.bv-group-comparison .bv-stat-method{display:block;color:#52616f}
 .bv-group-comparison .bv-panel-canvas{height:300px;position:relative}
 .bv-group-comparison .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
@@ -127,6 +146,7 @@ class GroupComparison {
     this.categories = [];
     this.filterSpecs = [];
     this.state = {};
+    this.asked = [];
     this.connect();
     this.renderShell();
   }
@@ -135,7 +155,10 @@ class GroupComparison {
   // with no R attached, which answers that statistics are unavailable.
   connect() {
     this.connection = this.settings.connection || createConnection();
-    this.desk = createStatisticDesk({ connection: this.connection, formatStatistic });
+    this.desk = createStatisticDesk({
+      connection: this.connection,
+      note: this.settings.waiting_note
+    });
   }
 
   renderShell() {
@@ -250,7 +273,8 @@ class GroupComparison {
   /**
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`) moves its control.
+   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `test`, `pairwise`)
+   * moves its control.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -260,7 +284,7 @@ class GroupComparison {
     this.host.settings.profile = this.settings.profile;
     this.host.settings.id_col = this.settings.id_col;
     this.host.settings.page_size = this.settings.page_size;
-    if ('connection' in given) this.connect();
+    if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
     const opening = this.seedState();
     const moved = {
@@ -273,6 +297,8 @@ class GroupComparison {
       panel_by: 'panelBy',
       mark: 'mark',
       y_scale: 'yScale',
+      test: 'test',
+      pairwise: 'pairwise',
       filters: 'filters'
     };
     for (const [setting, key] of Object.entries(moved)) {
@@ -315,6 +341,8 @@ class GroupComparison {
       panelBy: has(settings.panel_by) ? settings.panel_by : NONE,
       mark: settings.mark,
       yScale: settings.y_scale,
+      test: settings.test,
+      pairwise: settings.pairwise,
       filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
@@ -476,6 +504,31 @@ class GroupComparison {
       display
     );
 
+    // What R is asked: the test, and whether every pair of groups is compared
+    // as well. The tests offered are the ones that fit the number of groups
+    // drawn, so they are filled in when the chart is drawn (syncTestControls).
+    this.testControl = null;
+    this.pairwiseControl = null;
+    if (this.settings.statistic) {
+      const statistics = addSection('Statistics');
+      const test = document.createElement('select');
+      test.dataset.control = 'test';
+      test.onchange = () => {
+        state.test = test.value;
+        redraw(false);
+      };
+      this.testControl = addControl('Test', test, statistics);
+      const pairwise = document.createElement('input');
+      pairwise.type = 'checkbox';
+      pairwise.dataset.control = 'pairwise';
+      pairwise.setAttribute('aria-label', 'Pairwise comparisons');
+      pairwise.onchange = () => {
+        state.pairwise = pairwise.checked;
+        redraw(false);
+      };
+      this.pairwiseControl = addControl('Pairwise comparisons', pairwise, statistics);
+    }
+
     // Filters choose participants, so there are filters only with a participant table.
     if (this.filterSpecs.length) {
       const filters = addSection('Filters');
@@ -523,6 +576,27 @@ class GroupComparison {
     return model.levels;
   }
 
+  // The Test control offers the tests that fit the number of groups drawn, and
+  // nothing else: a test that does not fit is never asked of R. The pairwise
+  // switch is there only when there are pairs to compare.
+  syncTestControls(groups) {
+    const { testControl: select, pairwiseControl: pairwise, kit, state } = this;
+    if (!select) return;
+    const offered = testsFor(groups);
+    const fitted = fitTest(state.test, groups);
+    select.innerHTML = '';
+    select.disabled = !offered.length;
+    if (offered.length) {
+      [...offered, 'none'].forEach((test) =>
+        kit.option(select, test, TEST_LABELS[test], test === fitted)
+      );
+    } else {
+      kit.option(select, 'none', 'None: a test needs two or more groups', true);
+    }
+    pairwise.checked = state.pairwise;
+    pairwise.parentElement.style.display = groups > 2 && fitted !== 'none' ? '' : 'none';
+  }
+
   // ---- Drawing ----------------------------------------------------------------
 
   /**
@@ -534,6 +608,7 @@ class GroupComparison {
    */
   render() {
     const round = this.desk.begin();
+    this.asked = [];
     this.destroyCharts();
     this.clearSelection();
     this.notes.innerHTML = '';
@@ -542,6 +617,7 @@ class GroupComparison {
     this.statLine.dataset.state = 'empty';
     this.chartWrap.classList.remove('sv-hidden');
     this.model = null;
+    this.syncTestControls(0);
 
     const { results } = this.tables;
     const needsVisit = this.state.valueType !== 'baseline';
@@ -558,6 +634,7 @@ class GroupComparison {
       filterMatches: this.kit.filterMatches
     });
     this.model = model;
+    this.syncTestControls(this.groupsDrawn(model));
     this.updateNotes(model);
     const drawn = model.panels.filter((panel) => panel.records.length);
     if (!drawn.length) {
@@ -833,38 +910,133 @@ class GroupComparison {
 
   // ---- The statistics line ----------------------------------------------------
 
-  // What the rows are, for a connection that answers from stored results.
-  dataId(panel, model) {
-    const filters = Object.fromEntries(
-      Object.entries(this.state.filters).filter(([, selection]) => selection !== null)
-    );
-    return {
-      chart: 'group-comparison',
-      variable: panel.variable,
-      group_by: this.state.groupBy || null,
-      levels: model.shownLevels,
-      panel_by: this.state.panelBy || null,
-      panel: panel.panelLevel,
-      filters,
-      positive_only: this.state.yScale === 'log'
-    };
+  // How many groups the chart draws: the levels on the axis. With no column to
+  // group by everyone is one group, and there is nothing to compare.
+  groupsDrawn(model) {
+    return this.state.groupBy ? model.shownLevels.length : 0;
   }
 
+  // What one panel's test covers, said under its result.
+  scope(panel, model) {
+    const { state } = this;
+    const filters = this.filterSpecs
+      .map((spec) => ({ label: spec.label, selection: state.filters[spec.value_col] }))
+      .filter(({ selection }) => selection !== null && selection !== undefined && selection !== '')
+      .map(({ label, selection }) => ({
+        label,
+        values: (Array.isArray(selection) ? selection : [selection]).map(String)
+      }))
+      .filter(({ values }) => values.length);
+    return scopeText({
+      group: this.labelOf(state.groupBy),
+      n: panel.records.length,
+      panel: model.panels.length > 1 ? panel.title : null,
+      color: state.colorBy ? this.labelOf(state.colorBy) : null,
+      filters
+    });
+  }
+
+  // Asks R for one panel's test and prints the answer under the panel. Each
+  // panel asks for itself, on its own rows, and is answered for itself.
   askStatistic(round, panel, model, line) {
     if (!this.settings.statistic) return;
-    const show = ({ state, text }) => {
-      line.dataset.state = state;
-      line.textContent = text;
+    const show = (description) => this.showStatistic(line, description);
+    const test = fitTest(this.state.test, this.groupsDrawn(model));
+    if (test === 'none') {
+      show(plain('none', this.desk.idle(NO_TEST_CHOSEN)));
+      return;
+    }
+    // A test compares two or more groups. A panel with fewer is told so here:
+    // R is not asked a question it could only refuse.
+    const inPanel = groupsOf(panel.records);
+    if (test === null || inPanel.length < 2) {
+      show(plain('none', noTestText(this.state.groupBy ? inPanel : null, model.panels.length > 1)));
+      return;
+    }
+    const request = statisticRequest({
+      name: this.settings.statistic,
+      test,
+      pairwise: this.state.pairwise,
+      settings: this.settings,
+      state: this.state,
+      panel
+    });
+    const asked = {
+      panel: panel.title,
+      name: request.name,
+      args: request.args,
+      dataId: request.dataId,
+      rows: request.rows,
+      answer: null
     };
+    this.asked.push(asked);
     round.ask(
-      {
-        name: this.settings.statistic,
-        data: panel.records,
-        args: { strValueCol: 'y', strGroupCol: 'x' },
-        dataId: this.dataId(panel, model)
+      request,
+      (description, answer) => {
+        if (answer) asked.answer = answer;
+        show(description);
       },
-      show
+      { scope: this.scope(panel, model) }
     );
+  }
+
+  // Writes one description on a line: the result, the estimates R gave an
+  // interval for, the pairwise comparisons, what R said about its answer, and
+  // what the test covers.
+  showStatistic(line, description) {
+    const { kit } = this;
+    line.dataset.state = description.state;
+    line.innerHTML = '';
+    line.append(kit.createElement('p', 'bv-stat-result', description.text));
+    description.estimates.forEach((said) =>
+      line.append(kit.createElement('p', 'bv-stat-estimate', said))
+    );
+    if (description.pairs) line.append(this.pairsTable(description.pairs));
+    description.remarks.forEach(({ kind, text }) => {
+      const remark = kit.createElement('p', 'bv-stat-remark', text);
+      remark.dataset.kind = kind;
+      line.append(remark);
+    });
+    if (description.scope) line.append(kit.createElement('p', 'bv-stat-scope', description.scope));
+  }
+
+  pairsTable({ caption, head, rows }) {
+    const { kit } = this;
+    const table = kit.createElement('table', 'bv-stat-pairs');
+    table.append(kit.createElement('caption', null, caption));
+    const header = document.createElement('tr');
+    head.forEach((title) => {
+      const cell = kit.createElement('th', null, title);
+      cell.scope = 'col';
+      header.append(cell);
+    });
+    const thead = document.createElement('thead');
+    thead.append(header);
+    const tbody = document.createElement('tbody');
+    rows.forEach((row) => {
+      const line = document.createElement('tr');
+      line.dataset.status = row.status;
+      const pair = kit.createElement('th', null, row.pair);
+      pair.scope = 'row';
+      if (row.method) pair.append(kit.createElement('span', 'bv-stat-method', row.method));
+      line.append(pair, kit.createElement('td', null, row.n), kit.createElement('td', null, row.p));
+      tbody.append(line);
+    });
+    table.append(thead, tbody);
+    return table;
+  }
+
+  /**
+   * What the chart has asked R for the panels now drawn, and what R answered:
+   * one entry per panel that asked, in the order the panels are drawn. A
+   * request is exactly what the connection was given, so it is the key a
+   * stored result must carry to be found.
+   * @returns {Array<{panel: string, name: string, args: object, dataId: object,
+   *   rows: number, answer: ?object}>} `answer` is what the connection resolved
+   *   to, or null while R has not answered.
+   */
+  statistics() {
+    return structuredClone(this.asked);
   }
 
   // ---- Listing and participant profile ---------------------------------------

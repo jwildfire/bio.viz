@@ -1,0 +1,135 @@
+{
+  "fixture": "tests/fixtures/group-statistics",
+  "derived_by": "tools/derive-group-statistics.mjs",
+  "rule": "Each case is one panel of the gallery's group comparison demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings.",
+  "derived_from": [
+    {
+      "file": "site/data/synthetic-study/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5"
+    },
+    {
+      "file": "site/data/synthetic-study/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
+    },
+    {
+      "file": "site/demo/synthetic-study.js",
+      "sha256": "fca703f516a464cdc2a3b70cc96c76d3f5e62e5f26af27f08286c49e9d095839"
+    },
+    {
+      "file": "site/demo/group-comparison.js",
+      "sha256": "07c4851c5685590f1beb9d2f634eae5c0e03d21c11ae68f92841fe9fd8487ca5"
+    }
+  ],
+  "cases": [
+    {
+      "case": "welch",
+      "says": "Welch t-test between the two arms"
+    },
+    {
+      "case": "wilcoxon",
+      "says": "Wilcoxon rank-sum test between the two arms"
+    },
+    {
+      "case": "anova",
+      "says": "One-way ANOVA across arm and sex, four groups"
+    },
+    {
+      "case": "kruskal",
+      "says": "Kruskal-Wallis test across arm and sex, four groups"
+    },
+    {
+      "case": "anova-pairwise",
+      "says": "One-way ANOVA with every pair compared by Welch t-test"
+    },
+    {
+      "case": "kruskal-pairwise",
+      "says": "Kruskal-Wallis test with every pair compared by Wilcoxon rank-sum test"
+    },
+    {
+      "case": "welch-women",
+      "says": "Welch t-test between the arms, with the filter Sex set to F"
+    },
+    {
+      "case": "welch-age-57",
+      "says": "Welch t-test between the arms among participants aged 57: one arm is below the minimum group size"
+    },
+    {
+      "case": "welch-week-12",
+      "says": "Welch t-test between the arms at Week 12, one of two visit panels"
+    },
+    {
+      "case": "welch-colour",
+      "says": "Welch t-test between the arms with a second grouping by sex in colour, which is not part of the test"
+    },
+    {
+      "case": "wilcoxon-log",
+      "says": "Wilcoxon rank-sum test between the arms on the result itself, on a logarithmic axis"
+    },
+    {
+      "case": "anova-baseline",
+      "says": "One-way ANOVA across arm and sex on the baseline value, which has no visit"
+    },
+    {
+      "case": "welch-panel-women",
+      "says": "Welch t-test between the arms in the panel for F, with panels by sex"
+    }
+  ],
+  "files": [
+    {
+      "file": "welch.csv",
+      "sha256": "d3b2afb856f7bbd0758bb2eddaf16fa010ac1bc65b3906ee41abb4988b77e750"
+    },
+    {
+      "file": "wilcoxon.csv",
+      "sha256": "d3b2afb856f7bbd0758bb2eddaf16fa010ac1bc65b3906ee41abb4988b77e750"
+    },
+    {
+      "file": "anova.csv",
+      "sha256": "78f3575630c6a91f1f134662277d11f68e520aaf767c3924c0ef25a69d24e444"
+    },
+    {
+      "file": "kruskal.csv",
+      "sha256": "78f3575630c6a91f1f134662277d11f68e520aaf767c3924c0ef25a69d24e444"
+    },
+    {
+      "file": "anova-pairwise.csv",
+      "sha256": "78f3575630c6a91f1f134662277d11f68e520aaf767c3924c0ef25a69d24e444"
+    },
+    {
+      "file": "kruskal-pairwise.csv",
+      "sha256": "78f3575630c6a91f1f134662277d11f68e520aaf767c3924c0ef25a69d24e444"
+    },
+    {
+      "file": "welch-women.csv",
+      "sha256": "0def56f0363f541bc310dc416c989f785f6d416d342fb9a4c9637f6d198dddc8"
+    },
+    {
+      "file": "welch-age-57.csv",
+      "sha256": "ea6b52adb3d5cc7f2d69813a7322d7df17e015c3d0bf859540bbe6144c8cc804"
+    },
+    {
+      "file": "welch-week-12.csv",
+      "sha256": "d9df7e74c4b5bb4579d2294c46d09d4a52b5394acc151e9610b05eb5aa23e06f"
+    },
+    {
+      "file": "welch-colour.csv",
+      "sha256": "055dd638331215eb4251ebc04605a94f8396d7d37332b92dcc348524ba775e40"
+    },
+    {
+      "file": "wilcoxon-log.csv",
+      "sha256": "00a157d9cad5f7c3efe1236f6a10c39eea519521a98f94f594d920c251b8aed0"
+    },
+    {
+      "file": "anova-baseline.csv",
+      "sha256": "607c4a90ef26404e5089f282589c3bf48a36db73b5e5f52d1cf9f178950627f8"
+    },
+    {
+      "file": "welch-panel-women.csv",
+      "sha256": "bab591eaccc58f61e3d5695e551c23f6ad330b31d647386f556ba2196a82068c"
+    },
+    {
+      "file": "cases.csv",
+      "sha256": "d67735ca5b5c9497363cac8d8abeb2ae21448edfc71d7b8b047c29bd37dc55a9"
+    }
+  ]
+}

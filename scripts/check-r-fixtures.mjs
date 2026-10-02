@@ -1,12 +1,15 @@
 // `npm run fixtures:check`: reruns each R script that writes a committed
 // fixture, in desktop R, and compares what it writes with the committed file, so
-// a fixture can only be what its script produces. Two fixtures:
+// a fixture can only be what its script produces. Three fixtures:
 //
 //   tools/r-fixtures.R           site/r-check/expected.json, the expected
 //                                results on the R check page
 //   tools/r-group-comparison.R   tests/fixtures/group-comparison-r.json, the
 //                                quantiles and violin outlines the group
 //                                comparison chart's arithmetic is held to
+//   tools/r-group-statistics.R   tests/fixtures/group-statistics-r.json, what
+//                                gsm.bio's vendored statistics file answers for
+//                                the rows the group comparison chart hands R
 //
 //   node scripts/check-r-fixtures.mjs               compare when R is installed;
 //                                                   say so loudly and exit 0
@@ -41,6 +44,11 @@ const FIXTURES = [
     script: 'tools/r-group-comparison.R',
     committed: 'tests/fixtures/group-comparison-r.json',
     body: 'comparisons'
+  },
+  {
+    script: 'tools/r-group-statistics.R',
+    committed: 'tests/fixtures/group-statistics-r.json',
+    body: 'results'
   }
 ];
 const requireR = process.argv.includes('--require-r');
@@ -138,6 +146,16 @@ for (const fixture of FIXTURES) {
   compare(committed[fixture.body], fresh[fixture.body], fixture.body);
   if (committed.made_by.script !== fresh.made_by.script) {
     differences.push('made_by.script differs');
+  }
+  // A fixture made from a vendored file names the copy it was made from: one
+  // made from another copy is stale, whatever its numbers.
+  for (const member of ['statistics_commit', 'statistics_sha256']) {
+    if (committed.made_by[member] !== fresh.made_by[member]) {
+      differences.push(
+        `made_by.${member}: committed ${committed.made_by[member]}, the vendored file is ` +
+          `${fresh.made_by[member]}`
+      );
+    }
   }
 
   console.log(`${fixture.committed} was made by ${describe(committed.made_by)}.`);
