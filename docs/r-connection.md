@@ -255,6 +255,25 @@ It returns the sentence, and its parts for a chart that prints the groups as a t
 
 No interval is made up: where R returned none, none is printed. A group R could not compute for, one with too few pairs, gives R's reason and its count and no number: `Treatment: Not computed: 2 complete pairs. The minimum is 5. Counts: n = 2.`
 
+## `formatPair(row)`
+
+Formats one pair's result from a correlation matrix's `rows`: the coefficient R computed for two of a grid's variables, with its interval and the number of complete pairs it used. It prints no p-value, by design: a grid of coefficients is not a grid of tests, and gsm.bio's `Analyze_CorrelationMatrix` returns none. It reads `x`, `y`, `counts`, `estimate`, `lower`, `upper`, `level`, `status` and `reason`, and nothing else: a p-value on a row is neither read nor printed.
+
+It returns the sentence, and its parts for a cell and for a table:
+
+| Member     | Meaning                                                                                                                                                                                 |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`   | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row that does not name its two variables, or has no count, no estimate or half an interval, is `refused`. |
+| `text`     | The whole sentence: `0.6384, 95% confidence interval 0.5482 to 0.7139 (n = 200).`                                                                                                       |
+| `pair`     | The two variables' names as R gave them, `['v9', 'v11']`, or null.                                                                                                                      |
+| `n`        | The number of complete pairs, or null when it is not a whole number.                                                                                                                    |
+| `estimate` | The estimate as printed, to four significant figures. Null unless `status` is `shown`.                                                                                                  |
+| `interval` | Its interval in words, `95% confidence interval 0.5482 to 0.7139`. Null where R gave none, as for Spearman's rho, and unless `status` is `shown`.                                       |
+| `bounds`   | The two ends alone, `0.5482 to 0.7139`, for a table whose header carries the level. Null where `interval` is.                                                                           |
+| `level`    | The level alone, `95%`. Null where `interval` is.                                                                                                                                       |
+
+No interval is made up: where R returned none, none is printed. A pair R could not compute for, one with too few complete pairs, gives R's reason and its count and no number: `Not computed: 178 complete pairs. The minimum is 183. Counts: n = 178.`
+
 ## Checked against real R
 
 The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.

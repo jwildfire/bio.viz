@@ -22,8 +22,9 @@
 //   reason      why no number was computed, if none was
 //
 // `formatEstimate` formats one row of a result's `estimates`,
-// `formatComparison` one row of its `rows` that compares two groups, and
-// `formatGroup` one row of its `rows` that is one group's own result.
+// `formatComparison` one row of its `rows` that compares two groups,
+// `formatGroup` one row of its `rows` that is one group's own result, and
+// `formatPair` one row that is one pair of variables in a correlation matrix.
 
 const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
 const isCount = (value) => Number.isInteger(value) && value >= 0;
@@ -314,5 +315,80 @@ export function formatGroup(row) {
     p: parts.p,
     adjustment: parts.adjustment,
     label: parts.label
+  };
+}
+
+/**
+ * Formats one pair's result from a result's `rows`: a coefficient R computed
+ * on the complete pairs of two variables, as one cell of a correlation matrix
+ * holds it, with its interval and its pair count. A matrix reports no p-value,
+ * and none is read or printed here.
+ *
+ * @param {{x?: string, y?: string, counts?: number, estimate?: number,
+ *   lower?: number, upper?: number, level?: number, status?: string,
+ *   reason?: string}} row One row of `rows`: one pair of variables.
+ * @returns {{status: 'shown'|'withheld'|'error'|'refused', text: string,
+ *   pair: ?string[], n: ?number, estimate: ?string, interval: ?string,
+ *   bounds: ?string, level: ?string}} `text` is the sentence, without the
+ *   pair's names. The parts are for a table or a cell: `pair` is the two
+ *   variables as R named them, and `n` the number of complete pairs;
+ *   `estimate` is the coefficient as printed; `interval` is its interval in
+ *   words with the level R computed it at, `bounds` the two ends alone and
+ *   `level` the level alone, all three null where R gave no interval. The
+ *   estimate and its interval are given only when `status` is `shown`.
+ */
+export function formatPair(row) {
+  const given = row && typeof row === 'object' ? row : {};
+  const names = [text(given.x), text(given.y)];
+  const pair = names.every(Boolean) ? names : null;
+  const counted = isCount(given.counts);
+  const whole = (status, said) => ({
+    status,
+    text: said,
+    pair,
+    n: counted ? given.counts : null,
+    estimate: null,
+    interval: null,
+    bounds: null,
+    level: null
+  });
+  const refuse = (what) => whole('refused', `Estimate not shown: ${what}.`);
+  if (!pair) return refuse('the row does not name its two variables');
+  const counts = counted ? `n = ${given.counts}` : null;
+  const reason = text(given.reason);
+  if (given.status === 'error') {
+    return whole('error', withCounts(`R reported an error: ${reason || 'no message'}`, counts));
+  }
+  // Too few complete pairs, or anything else R gave a reason for: R's words.
+  if (reason) {
+    return whole(
+      'withheld',
+      withCounts(SAYS_NOT_COMPUTED.test(reason) ? reason : `Not computed, ${reason}`, counts)
+    );
+  }
+  if (!counted) return refuse('the pair does not give the number of complete pairs it used');
+  if (!isNumber(given.estimate)) return refuse('the pair’s estimate is not a number');
+  const bounds = [given.lower, given.upper, given.level];
+  const absent = (value) => value === undefined || value === null;
+  let ends = null;
+  let level = null;
+  if (!bounds.every(absent)) {
+    if (!bounds.every(isNumber) || !(given.level > 0 && given.level < 1)) {
+      return refuse('the interval of the pair’s estimate is incomplete');
+    }
+    level = `${Number((given.level * 100).toPrecision(12))}%`;
+    ends = `${figure(given.lower)} to ${figure(given.upper)}`;
+  }
+  const interval = ends ? `${level} confidence interval ${ends}` : null;
+  const estimate = figure(given.estimate);
+  return {
+    status: 'shown',
+    text: `${estimate}${interval ? `, ${interval}` : ''} (${counts}).`,
+    pair,
+    n: given.counts,
+    estimate,
+    interval,
+    bounds: ends,
+    level
   };
 }
