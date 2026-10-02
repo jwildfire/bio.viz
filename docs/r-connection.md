@@ -231,6 +231,30 @@ It returns the sentence, and its parts for a chart that prints the comparisons a
 
 A table built from the parts prints `p` only beside the pair's counts and under a caption that carries `method` and `label`.
 
+## `formatGroup(row)`
+
+Formats one group's result from a result's `rows`: an estimate R computed within one group, such as a correlation coefficient in one arm, with its interval, the group's count and its p-value. The p-value is held to the rules a whole result is held to. It reads `group`, `counts`, `estimate`, `lower`, `upper`, `level`, `method`, `p_value`, `adjustment`, `status` and `reason`.
+
+It returns the sentence, and its parts for a chart that prints the groups as a table:
+
+| Member       | Meaning                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`     | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row that names no group, or has no estimate or half an interval, is `refused`.         |
+| `text`       | The whole sentence: `Placebo: 0.5918, 95% confidence interval 0.4474 to 0.7061. Pearson's product-moment correlation: p < 0.001 (n = 100). Exploratory, unadjusted.` |
+| `result`     | The same without the group's name.                                                                                                                                   |
+| `group`      | The group's name, or null.                                                                                                                                           |
+| `n`          | Its count, or null when it is not a whole number.                                                                                                                    |
+| `estimate`   | The estimate as printed, to four significant figures. Null unless `status` is `shown`.                                                                               |
+| `interval`   | Its interval in words, `95% confidence interval 0.4474 to 0.7061`. Null where R gave none, as for Spearman's rho, and unless `status` is `shown`.                    |
+| `bounds`     | The two ends alone, `0.4474 to 0.7061`, for a table whose header carries the level. Null where `interval` is.                                                        |
+| `level`      | The level alone, `95%`. Null where `interval` is.                                                                                                                    |
+| `method`     | The method's name. Null unless `status` is `shown`.                                                                                                                  |
+| `p`          | The p-value as printed, `p = 0.031`. Null unless `status` is `shown`.                                                                                                |
+| `adjustment` | The adjustment by its usual name, or null when the p-value is unadjusted or not shown.                                                                               |
+| `label`      | `Exploratory, adjusted (Holm).` or `Exploratory, unadjusted.` Null unless `status` is `shown`.                                                                       |
+
+No interval is made up: where R returned none, none is printed. A group R could not compute for, one with too few pairs, gives R's reason and its count and no number: `Treatment: Not computed: 2 complete pairs. The minimum is 5. Counts: n = 2.`
+
 ## Checked against real R
 
 The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.

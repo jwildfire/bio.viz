@@ -3,5 +3,10 @@
 // so the connection can be handed to a chart in another library.
 
 export { createConnection } from './connection.js';
-export { formatStatistic, formatEstimate, formatComparison } from './formatStatistic.js';
+export {
+  formatStatistic,
+  formatEstimate,
+  formatComparison,
+  formatGroup
+} from './formatStatistic.js';
 export { WEBR_VERSION, WEBR_BASE_URL } from './webREngine.js';
