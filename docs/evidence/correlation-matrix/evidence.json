@@ -1,13 +1,16 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-02T22:49:01.624Z",
+  "generatedAt": "2026-10-02T22:58:28.641Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37075237060",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37075237060"
+  },
   "records": [
     {
       "test": "CM-CTRL-001: the sidebar offers the mode, the value, the visit and the biomarkers or the biomarker and the visits, how the pairs are drawn, the method, the minimum pairs, a filter per category column, and Reset chart (#27)",
@@ -39,7 +42,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-001"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRAW-001-biomarkers-at-baseline.png"]
     },
     {
       "test": "CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)",
@@ -55,7 +58,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-003"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRAW-003-the-key.png"]
     },
     {
       "test": "CM-DRAW-004: no p-value is printed anywhere in the chart, for either method: not in a cell, its name, the line, the list or the download (#27)",
@@ -71,7 +74,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-005"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRAW-005-cells-under-the-minimum.png"]
     },
     {
       "test": "CM-DRAW-006: across visits the grid is one biomarker’s visits in visit order; for a change from baseline the baseline visit is not a variable, and the note says so (#27)",
@@ -79,7 +82,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-006"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRAW-006-visits-of-il-6.png"]
     },
     {
       "test": "CM-DRAW-007: for six variables or fewer the pairs can be drawn as small scatters, one point per participant with both values, with R’s coefficient above the diagonal; the view asks R nothing more, and is not offered for more than six (#27)",
@@ -87,7 +90,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-007"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRAW-007-small-scatters.png"]
     },
     {
       "test": "CM-DRAW-008: the chart says how many participants are in the frame and how many were left out, and that each cell has its own count; where participants have gaps the cells’ counts differ, and each is R’s (#27)",
@@ -103,7 +106,7 @@
       "status": "pass",
       "requirementIds": ["CM-DRILL-001"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-DRILL-001-a-cell-opened.png"]
     },
     {
       "test": "CM-DRILL-002: from the keyboard the arrow keys move among the cells, stepping over the diagonal, Enter or Space on a cell opens its pair, and Enter or Space on the button back returns (#27)",
@@ -167,7 +170,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIMIT-002"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIMIT-002-thirty-six-biomarkers.png"]
     },
     {
       "test": "CM-LIST-001: under the grid is every pair R returned, in R’s order, with its count and its coefficient with R’s interval; a pair’s name opens the pair (#27)",
@@ -175,7 +178,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIST-001"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIST-001-every-pair-with-its-count.png"]
     },
     {
       "test": "CM-LIST-002: the list downloads as a CSV file under this chart’s name, with the same columns (#27)",
@@ -191,7 +194,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIVE-001"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIVE-001-r-in-the-browser.png"]
     },
     {
       "test": "CM-LIVE-002: Spearman’s rho in every cell is the one desktop R gives, with no interval; where R’s own wording differs between the two versions both are recorded and nothing else differs (#27)",
@@ -223,7 +226,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIVE-005"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIVE-005-a-cell-opened-with-r.png"]
     },
     {
       "test": "CM-LIVE-006: on the fixture of thirty-six biomarkers, with real R, grids of twelve, twenty-four and thirty-six variables are each filled from one answer of R’s: 66, 276 and 630 pairs, with marks on both sides where cells are too narrow for numbers and every pair listed with its count (#27)",
@@ -231,7 +234,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIVE-006"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIVE-006-thirty-six-biomarkers-with-r.png"]
     },
     {
       "test": "CM-LIVE-007: the megabytes and seconds of the first grid, and the seconds R takes for a grid of each size once started, are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#27)",
@@ -247,7 +250,7 @@
       "status": "pass",
       "requirementIds": ["CM-LIVE-008"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-LIVE-008-r-in-the-browser-on-a-phone.png"]
     },
     {
       "test": "CM-MOBILE-001: at 390px the chart fills the width with its controls folded away; twelve variables fit with marks on both sides of the diagonal and the numbers in the list beneath, and six keep their numbers (#27)",
@@ -255,7 +258,7 @@
       "status": "pass",
       "requirementIds": ["CM-MOBILE-001"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-MOBILE-001-twelve-variables-on-a-phone.png"]
     },
     {
       "test": "CM-MOBILE-002: at 390px a tap on a cell, or on a pair in the list, opens the scatter and its button returns; a grid of more variables than fit scrolls inside its own box; the page never scrolls sideways (#27)",
@@ -263,7 +266,7 @@
       "status": "pass",
       "requirementIds": ["CM-MOBILE-002"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-MOBILE-002-a-pair-opened-on-a-phone.png"]
     },
     {
       "test": "CM-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#27)",
@@ -287,7 +290,7 @@
       "status": "pass",
       "requirementIds": ["CM-SITE-003"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-SITE-003-demo-on-a-phone.png"]
     },
     {
       "test": "CM-SITE-005: the two demos point at each other: the matrix’s page says a cell opens the association scatter, and the scatter’s page points to the matrix as the overview (#27)",
@@ -303,7 +306,7 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-004"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-STAT-004-waiting-for-r.png"]
     },
     {
       "test": "CM-STAT-005: a change to the mode, the value, the visit, the variables, the method, the minimum or a filter clears the cells, the list and the line and asks R again, and the answer to the question before is never shown (#27)",
@@ -319,7 +322,7 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-006"],
       "issueRefs": [27],
-      "screenshots": []
+      "screenshots": ["CM-STAT-006-with-no-r.png"]
     },
     {
       "test": "CM-STAT-007: with R’s answers stored in the page the grid is filled from them with no R and no request; a view not stored says so and its cells stay empty, never another view’s numbers (#27)",
