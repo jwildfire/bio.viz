@@ -4414,9 +4414,11 @@ var AssociationScatter = class {
   ask(round, chart, panel, model, line) {
     const { settings, state, kit } = this;
     const several = model.panels.length > 1;
+    const lineFromR = FITS_FROM_R.includes(state.fit) && Boolean(settings.fit_statistic);
     const coefficient2 = kit.createElement("div", "bv-coefficient");
     const fit = kit.createElement("div", "bv-fit");
-    line.append(coefficient2, fit);
+    if (settings.statistic) line.append(coefficient2);
+    if (lineFromR) line.append(fit);
     const show = (target, description) => {
       writeStatistic(kit, target, description);
       line.dataset.state = (settings.statistic ? coefficient2 : fit).dataset.state || "empty";
@@ -4469,7 +4471,7 @@ var AssociationScatter = class {
         }
       );
     }
-    if (!FITS_FROM_R.includes(state.fit) || !settings.fit_statistic) return;
+    if (!lineFromR) return;
     const request = fitRequest({
       name: settings.fit_statistic,
       fit: state.fit,

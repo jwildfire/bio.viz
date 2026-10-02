@@ -450,7 +450,7 @@ test.describe('association scatter: what is drawn', () => {
     // Only the coefficient was asked for, and of a connection with no R.
     const asked = await page.evaluate(() => window.__as.chart.statistics());
     expect(asked.map((entry) => entry.kind)).toEqual(['coefficient']);
-    await expect(fitted(page)).toBeEmpty();
+    await expect(fitted(page)).toHaveCount(0);
     expect(requests.filter((url) => /webr|r-wasm/.test(url))).toEqual([]);
     await captureEvidence(page.locator('.sv-chart-wrap'), 'AS-DRAW-005', 'identity-line');
 
@@ -592,7 +592,8 @@ test.describe('association scatter: controls', () => {
       'None',
       'Identity (y = x)'
     ]);
-    await expect(line(page)).toHaveText('');
+    await expect(line(page)).toBeEmpty();
+    await expect(line(page)).toBeHidden();
     expect(await page.evaluate(() => window.__as.chart.statistics())).toEqual([]);
   });
 });
@@ -1072,7 +1073,7 @@ test.describe('association scatter: R’s answers, stored with the page', () => 
       ]);
     }
     await choose(page, 'fit', 'identity');
-    await expect(fitted(page)).toBeEmpty();
+    await expect(fitted(page)).toHaveCount(0);
     expect((await drawn(page))[0].points).toBe(200);
     expect(requests.filter((url) => /webr|r-wasm/.test(url))).toEqual([]);
   });

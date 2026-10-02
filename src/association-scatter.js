@@ -811,9 +811,14 @@ class AssociationScatter {
   ask(round, chart, panel, model, line) {
     const { settings, state, kit } = this;
     const several = model.panels.length > 1;
+    // Under the panel: the coefficient, and beneath it what R says of a fitted
+    // line. Each is there only when it is asked for, so a line with nothing to
+    // say takes no room.
+    const lineFromR = FITS_FROM_R.includes(state.fit) && Boolean(settings.fit_statistic);
     const coefficient = kit.createElement('div', 'bv-coefficient');
     const fit = kit.createElement('div', 'bv-fit');
-    line.append(coefficient, fit);
+    if (settings.statistic) line.append(coefficient);
+    if (lineFromR) line.append(fit);
     // The line's state is its coefficient's, or its fit's while there is no coefficient.
     const show = (target, description) => {
       writeStatistic(kit, target, description);
@@ -871,7 +876,7 @@ class AssociationScatter {
       );
     }
 
-    if (!FITS_FROM_R.includes(state.fit) || !settings.fit_statistic) return;
+    if (!lineFromR) return;
     const request = fitRequest({
       name: settings.fit_statistic,
       fit: state.fit,
