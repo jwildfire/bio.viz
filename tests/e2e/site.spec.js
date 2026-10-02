@@ -1,19 +1,14 @@
-import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 // Site smoke (#1): the built home page, served straight out of _site/ — which
 // proves the emitted relative URLs work at any mount path (site root, /dev/,
-// /pr/N/). The build runs here so every context that runs the browser suite
-// exercises the current tree.
+// /pr/N/). tests/e2e/global-setup.js builds the site before the suite, so every
+// context that runs the browser tests exercises the current tree.
 
 const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 test.describe('site', () => {
-  test.beforeAll(() => {
-    execSync('npm run site', { stdio: 'inherit', cwd: new URL('../..', import.meta.url) });
-  });
-
   test('CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)', async ({
     page
   }) => {

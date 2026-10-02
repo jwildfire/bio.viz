@@ -48,12 +48,27 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      # Desktop R, at the version that made site/r-check/expected.json, so the
+      # step after it re-derives the R check page's expected results instead of
+      # trusting the committed file. The survival package comes with R.
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+
+      - name: Expected results are what desktop R produces
+        run: npm run fixtures:check -- --require-r
+
       - name: Build site (link validation)
         run: npm run site
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # Includes the RCON-LIVE tests, which load webR and the survival package
+      # from their public hosts and run real R. They fail if those hosts cannot
+      # be reached; nothing skips or retries. The megabytes and seconds they
+      # measure are printed in this step's log and uploaded with test-results/.
       - name: Run browser tests
         run: npm run test:e2e -- --project=chromium
 

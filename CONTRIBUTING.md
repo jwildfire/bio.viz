@@ -11,16 +11,18 @@ npx playwright install chromium
 
 ## Commands
 
-| Command                                   | Purpose                                                                                    |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `npm run build`                           | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`    |
-| `npm run build:check-dist`                | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`       |
-| `npm test`                                | Vitest unit tests (`tests/unit/`)                                                          |
-| `npm run test:e2e`                        | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site    |
-| `npm run format` / `npm run format:check` | Prettier write / check                                                                     |
-| `npm run evidence` / `evidence:check`     | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard     |
-| `npm run requirements` / `:check`         | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard |
-| `npm run site`                            | Build the site into `_site/` (gitignored); fails on a broken internal link                 |
+| Command                                   | Purpose                                                                                     |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `npm run build`                           | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`     |
+| `npm run build:check-dist`                | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`        |
+| `npm test`                                | Vitest unit tests (`tests/unit/`)                                                           |
+| `npm run test:e2e`                        | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site     |
+| `npm run format` / `npm run format:check` | Prettier write / check                                                                      |
+| `npm run evidence` / `evidence:check`     | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard      |
+| `npm run requirements` / `:check`         | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard  |
+| `npm run fixtures` / `fixtures:check`     | Write the R check page's expected results in desktop R / check the committed ones against R |
+| `npm run r-check:measure`                 | Run the live browser tests and record their megabytes and seconds for the R check page      |
+| `npm run site`                            | Build the site into `_site/` (gitignored); fails on a broken internal link                  |
 
 `dist/` is committed — after any change under `src/`, run `npm run build` and commit the regenerated bundle alongside it. CI's drift check fails the build otherwise. The browser fixtures load the bundle by its versioned path, and the same check fails if a fixture names a version other than the one in `package.json`.
 
@@ -64,6 +66,15 @@ Each module owns one evidence set: `docs/evidence/<module>/evidence.json`. `npm 
 Besides `module` and `records`, each `evidence.json` carries provenance in three top-level keys — `generatedAt`, `environment` (`{ os, node, playwright, chromium }` versions), and `run` (`{ id, url }` of the GitHub Actions run, `null` for local runs). The freshness guard (`npm run evidence:check`, run by CI) ignores provenance and compares only the record set and pass/fail statuses, keyed by test title — so do not rename a test without regenerating evidence.
 
 Not carried over from safety.viz yet: evidence screenshots, their Linux-canonical baselines and the workflow that refreshes them. No test here captures a screenshot; they arrive with the first chart, along with the gallery, the per-module evidence page and the API reference.
+
+## The R check page
+
+`site/r-check/` is a page that runs the connection against real R: two tests, each shown beside the answer desktop R gives, and the megabytes and seconds that starting R in a browser costs.
+
+- The R both sides run is `site/r-check/statistics.R`. The tables are in `site/r-check/data/`, cut from public data by `tools/cut-r-check-fixture.mjs`; `data/SOURCE.md` says from where and under what licence.
+- The expected results, `site/r-check/expected.json`, are written by `tools/r-fixtures.R` in desktop R and record the R and survival versions that made them. Never edit a number in that file: run `npm run fixtures`. `npm run fixtures:check` reruns the script and compares; with no R installed it says in capitals that nothing was checked and exits 0, and with `--require-r`, which is what CI runs after installing R, it fails instead.
+- The browser tests named `RCON-LIVE-*` run the page for real. They need the network, because they load webR and the survival package from their public hosts. They fail when those cannot be reached; they do not skip and are not retried. `npm run test:e2e -- r-connection` runs them.
+- The megabytes a page load costs cannot be seen from inside the page, because R's files are fetched by a worker. The live tests count them from outside, through the browser, print them, and write `test-results/r-check-measurements.json`. `R_CHECK_MACHINE="…" R_CHECK_NETWORK="…" npm run r-check:measure` also writes `site/r-check/measured.json`, the figures the page shows; commit it when the page's cost changes.
 
 ## The site
 

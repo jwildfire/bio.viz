@@ -134,6 +134,8 @@ A call is answered by a stored result only when all of these hold:
 
 Anything else is a miss, answered `unavailable` with reason `not-precomputed`, or passed to R in the browser when that form is configured. A stored result is never returned for a call it was not computed for.
 
+Written from R, the value must be in the shape the browser form would give it. With jsonlite that means `auto_unbox = TRUE` and data frames written by row, and it means counts by group are written as a named list: jsonlite drops the names of a named vector. `tools/r-fixtures.R` writes the R check page's stored results with a few lines of base R that follow the table above exactly.
+
 The data identity is stated, not derived. It is whatever the producer and the chart agree to call a selection of the study: a label such as `"opening view"`, or an object describing the filters in force. A fingerprint of the rows was considered and rejected: it would have to be computed identically in R and in JavaScript, and the two do not always read the same decimal text to the same number, so it would miss when it should match. The price of a stated identity is that the chart must state it truthfully: it must change `dataId` whenever a filter changes the rows. `rows` is the cheap cross-check on that.
 
 Two entries with the same name, arguments and data identity are refused when the connection is created, as is any entry missing a required member.
@@ -182,3 +184,7 @@ The rules, from the design:
 - A reason in place of a number when R declined to compute one.
 
 Stating the filter a result was computed under is the chart's footnote, not this function's.
+
+## Checked against real R
+
+The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.
