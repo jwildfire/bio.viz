@@ -4,10 +4,11 @@ One Markdown matrix per module — the source of record for what that module mus
 
 Tests are named by the requirement IDs in these matrices, so a test result can be read against the requirement it evidences: `npm run requirements` extracts each row's text into `docs/requirements/<module>.json`, and `npm run evidence` records which tests carry which IDs in `docs/evidence/<module>/evidence.json`.
 
-| Matrix                             | Module       | Rows |
-| ---------------------------------- | ------------ | ---: |
-| [core.md](core.md)                 | core         |   52 |
-| [r-connection.md](r-connection.md) | r-connection |   64 |
+| Matrix                                     | Module           | Rows |
+| ------------------------------------------ | ---------------- | ---: |
+| [core.md](core.md)                         | core             |   52 |
+| [r-connection.md](r-connection.md)         | r-connection     |   64 |
+| [group-comparison.md](group-comparison.md) | group-comparison |   66 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
 
