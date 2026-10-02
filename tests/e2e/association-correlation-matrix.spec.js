@@ -1129,6 +1129,25 @@ test.describe('correlation matrix: controls', () => {
     await choose(page, 'visit', 'Week 4');
     expect(await called(page)).toBe(0);
     expect(await page.evaluate(() => window.__cm.chart.statistics())).toEqual([]);
+
+    // Switched off on a chart that had R's answer on screen, nothing of that
+    // answer is left: the cells are empty again.
+    await page.locator('#chart .sv-reset').click();
+    await withStored(page, stored('biomarkers-baseline'), {
+      statistic: 'Analyze_CorrelationMatrix'
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expect((await grid(page)).cells.every((cell) => cell.status === 'shown')).toBe(true);
+    await page.evaluate(() => {
+      window.__cm.chart.setSettings({ statistic: null });
+    });
+    const after = await grid(page);
+    expect(after.cells.every((cell) => cell.status === 'empty' && !cell.number && !cell.mark)).toBe(
+      true
+    );
+    await expect(line(page)).toHaveText('');
+    await expect(pairs(page)).toHaveCount(0);
+    expect(await said(page)).not.toMatch(/\d\.\d/);
   });
 });
 
@@ -2280,6 +2299,24 @@ test.describe('correlation matrix: on a phone', () => {
     ).toBe(false);
     await expect(notes(page).first()).toHaveText(/^12 of 36 biomarkers shown: /);
     expect(await layout(page)).toEqual(HOLDS);
+    // A name too long for its column is cut short inside the grid, never
+    // pushed out of it, and is whole in its title.
+    const heads = await root(page)
+      .locator('.bv-matrix-grid')
+      .evaluate((found) => {
+        const box = found.getBoundingClientRect();
+        return [...found.querySelectorAll('.bv-row-head')].map((head) => ({
+          label: head.textContent,
+          title: head.title,
+          inside: head.getBoundingClientRect().left >= box.left - 0.5,
+          cut: head.scrollWidth > head.clientWidth
+        }));
+      });
+    expect(heads.every((head) => head.inside && head.title === head.label)).toBe(true);
+    expect(heads.filter((head) => head.cut).map((head) => head.label)).toEqual([
+      'IFN-gamma B',
+      'IFN-gamma C'
+    ]);
   });
 });
 
