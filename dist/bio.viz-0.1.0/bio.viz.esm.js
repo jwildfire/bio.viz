@@ -10,6 +10,8 @@ __export(r_exports, {
   WEBR_BASE_URL: () => WEBR_BASE_URL,
   WEBR_VERSION: () => WEBR_VERSION,
   createConnection: () => createConnection,
+  formatComparison: () => formatComparison,
+  formatEstimate: () => formatEstimate,
   formatStatistic: () => formatStatistic
 });
 
@@ -17,11 +19,11 @@ __export(r_exports, {
 function order(value) {
   if (Array.isArray(value)) return value.map((item) => item === void 0 ? null : order(item));
   if (value && typeof value === "object") {
-    const sorted = {};
+    const sorted2 = {};
     for (const key of Object.keys(value).sort()) {
-      if (value[key] !== void 0) sorted[key] = order(value[key]);
+      if (value[key] !== void 0) sorted2[key] = order(value[key]);
     }
-    return sorted;
+    return sorted2;
   }
   return value;
 }
@@ -370,15 +372,42 @@ function formatP(p) {
   if (rounded === "1.000") return "p > 0.999";
   return `p = ${rounded}`;
 }
+var ADJUSTMENTS = {
+  holm: "Holm",
+  hochberg: "Hochberg",
+  hommel: "Hommel",
+  bonferroni: "Bonferroni",
+  BH: "Benjamini-Hochberg",
+  fdr: "Benjamini-Hochberg",
+  BY: "Benjamini-Yekutieli"
+};
+function adjustmentName(adjustment) {
+  const named = text(adjustment);
+  if (!named || named.toLowerCase() === "none") return null;
+  return Object.hasOwn(ADJUSTMENTS, named) ? ADJUSTMENTS[named] : named;
+}
+var formatLabel = (adjustment) => adjustment ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
+var ENDS_A_SENTENCE = /[.!?]$/;
+var SAYS_NOT_COMPUTED = /^not computed\b/i;
+var withCounts = (lead, counts) => {
+  if (ENDS_A_SENTENCE.test(lead)) return counts ? `${lead} Counts: ${counts}.` : lead;
+  return counts ? `${lead} (${counts}).` : `${lead}.`;
+};
 var refused = (what) => ({ status: "refused", text: `p-value not shown: ${what}.` });
-function formatStatistic(statistic) {
+function read(statistic) {
   const result = statistic && typeof statistic === "object" ? statistic : {};
   const method = text(result.method);
   const counts = formatCounts(result.counts);
   const reason = text(result.reason);
+  if (result.status === "error") {
+    return {
+      status: "error",
+      text: withCounts(`R reported an error: ${reason || "no message"}`, counts)
+    };
+  }
   if (reason) {
-    const lead = method ? `${method}: not computed, ${reason}` : `Not computed, ${reason}`;
-    return { status: "withheld", text: counts ? `${lead} (${counts}).` : `${lead}.` };
+    const lead = SAYS_NOT_COMPUTED.test(reason) ? reason : method ? `${method}: not computed, ${reason}` : `Not computed, ${reason}`;
+    return { status: "withheld", text: withCounts(lead, counts) };
   }
   const p = result.p_value;
   if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
@@ -386,9 +415,71 @@ function formatStatistic(statistic) {
   }
   if (!method) return refused("the result does not name its method");
   if (!counts) return refused("the result does not give the counts it used");
-  const adjustment = text(result.adjustment);
-  const label2 = adjustment && adjustment.toLowerCase() !== "none" ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
-  return { status: "shown", text: `${method}: ${formatP(p)} (${counts}). ${label2}` };
+  const adjustment = adjustmentName(result.adjustment);
+  const label2 = formatLabel(adjustment);
+  const shown2 = formatP(p);
+  return {
+    status: "shown",
+    text: `${method}: ${shown2} (${counts}). ${label2}`,
+    method,
+    p: shown2,
+    adjustment,
+    label: label2
+  };
+}
+function formatStatistic(statistic) {
+  const { status, text: sentence } = read(statistic);
+  return { status, text: sentence };
+}
+var figure = (value) => String(Number(value.toPrecision(4)));
+var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+function formatEstimate(estimate) {
+  const row = estimate && typeof estimate === "object" ? estimate : {};
+  const refuse5 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+  const name = text(row.name);
+  if (!name) return refuse5("it has no name");
+  if (!isNumber(row.estimate)) return refuse5(`${name} is not a number`);
+  const group = text(row.group);
+  const lead = `${name}${group ? ` (${group})` : ""}: ${figure(row.estimate)}`;
+  const bounds = [row.lower, row.upper, row.level];
+  const absent = (value) => value === void 0 || value === null;
+  if (bounds.every(absent)) return { status: "shown", text: `${lead}.` };
+  if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
+    return refuse5(`the interval of ${name} is incomplete`);
+  }
+  const percent = Number((row.level * 100).toPrecision(12));
+  return {
+    status: "shown",
+    text: `${lead}, ${percent}% confidence interval ${figure(row.lower)} to ${figure(row.upper)}.`
+  };
+}
+function formatComparison(comparison) {
+  const row = comparison && typeof comparison === "object" ? comparison : {};
+  const groups = [text(row.group_1), text(row.group_2)];
+  const n = [row.n_1, row.n_2];
+  const named = groups.every(Boolean);
+  const counted = named && n.every(isCount);
+  const parts = read({
+    status: row.status,
+    method: row.method,
+    p_value: row.p_value,
+    adjustment: row.adjustment,
+    reason: row.reason,
+    counts: counted ? { [groups[0]]: n[0], [groups[1]]: n[1] } : void 0
+  });
+  const pair = { groups: named ? groups : null, n: counted ? n : null };
+  const shown2 = named && parts.status === "shown";
+  const result = named ? parts.text : refused("the comparison does not name its two groups").text;
+  return {
+    status: named ? parts.status : "refused",
+    text: named ? `${groups[0]} and ${groups[1]}: ${result}` : result,
+    result,
+    ...pair,
+    method: shown2 ? parts.method : null,
+    p: shown2 ? parts.p : null,
+    adjustment: shown2 ? parts.adjustment : null,
+    label: shown2 ? parts.label : null
+  };
 }
 
 // src/core/index.js
@@ -491,11 +582,11 @@ var WORDS = {
   percent_change: "percent change from baseline"
 };
 function label(spec) {
-  const read = variable(spec);
-  if (read.kind === "column") return read.col;
-  if (read.value === "baseline") return `${read.measure} at baseline`;
-  const at = `${read.measure} at ${read.visit}`;
-  return read.value === "raw" ? at : `${at}, ${WORDS[read.value]}`;
+  const read2 = variable(spec);
+  if (read2.kind === "column") return read2.col;
+  if (read2.value === "baseline") return `${read2.measure} at baseline`;
+  const at = `${read2.measure} at ${read2.visit}`;
+  return read2.value === "raw" ? at : `${at}, ${WORDS[read2.value]}`;
 }
 
 // src/core/reasons.js
@@ -856,6 +947,7 @@ function frame(tables, variables, settings) {
 // src/group-comparison/configure.js
 var MARKS = Object.freeze(["box", "violin", "points"]);
 var Y_SCALES = Object.freeze(["linear", "log"]);
+var TESTS = Object.freeze(["t", "wilcoxon", "anova", "kruskal", "none"]);
 var DEFAULT_SETTINGS2 = Object.freeze({
   // Columns of the results table, and of the participant table.
   id_col: "USUBJID",
@@ -889,6 +981,9 @@ var DEFAULT_SETTINGS2 = Object.freeze({
   // The statistics line.
   connection: null,
   statistic: "Analyze_GroupDifference",
+  test: "t",
+  pairwise: false,
+  waiting_note: null,
   // safety.viz's participant profile.
   profile: true,
   profile_details: null,
@@ -981,6 +1076,11 @@ function syncSettings(overrides) {
     }
   }
   if (typeof settings.profile !== "boolean") refuse4("`profile` must be true or false.");
+  if (!TESTS.includes(settings.test)) refuse4(`\`test\` must be one of ${TESTS.join(", ")}.`);
+  if (typeof settings.pairwise !== "boolean") refuse4("`pairwise` must be true or false.");
+  if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
+    refuse4("`waiting_note` must be a sentence, or null for none.");
+  }
   if (settings.statistic !== null && !isText3(settings.statistic)) {
     refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
   }
@@ -1012,29 +1112,177 @@ function coreSettings(settings) {
 
 // src/group-comparison/statistic.js
 var WAITING = "Statistics: waiting for R\u2026";
-function describeAnswer(result, formatStatistic2) {
+var NO_TEST_CHOSEN = "Statistics: no test chosen.";
+var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
+var TEST_LABELS = Object.freeze({
+  t: "Welch t-test",
+  wilcoxon: "Wilcoxon rank-sum test",
+  anova: "One-way ANOVA",
+  kruskal: "Kruskal-Wallis test",
+  none: "None"
+});
+function testsFor(groups) {
+  if (groups === 2) return ["t", "wilcoxon"];
+  if (groups > 2) return ["anova", "kruskal"];
+  return [];
+}
+var COUNTERPART = { t: "anova", anova: "t", wilcoxon: "kruskal", kruskal: "wilcoxon" };
+function fitTest(test, groups) {
+  if (test === "none") return "none";
+  const offered = testsFor(groups);
+  if (!offered.length) return null;
+  return offered.includes(test) ? test : COUNTERPART[test];
+}
+function byCodePoint(a, b) {
+  const [first, second] = [[...a], [...b]];
+  const shared = Math.min(first.length, second.length);
+  for (let index = 0; index < shared; index += 1) {
+    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
+    if (difference !== 0) return difference;
+  }
+  return first.length - second.length;
+}
+var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
+var groupsOf = (records) => sorted(records.map((record) => record.x));
+function filtersInForce(filters) {
+  const inForce = {};
+  for (const [column, selection] of Object.entries(filters || {})) {
+    if (selection === null || selection === void 0 || selection === "") continue;
+    const values = Array.isArray(selection) ? selection : [selection];
+    if (values.length) inForce[column] = sorted(values);
+  }
+  return inForce;
+}
+function statisticRequest({ name, test, pairwise, settings, state, panel }) {
+  const groups = groupsOf(panel.records);
+  const filters = filtersInForce(state.filters);
+  const dataId = {
+    chart: "group-comparison",
+    measure: state.measure,
+    value_type: state.valueType,
+    ...panel.visit === null || panel.visit === void 0 ? {} : { visit: panel.visit },
+    ...settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
+    baseline_stat: settings.baseline_stat,
+    ...state.groupBy ? { group_by: state.groupBy } : {},
+    groups,
+    ...state.colorBy ? { color_by: state.colorBy } : {},
+    ...state.panelBy ? { panel_by: state.panelBy, panel: panel.panelLevel } : {},
+    ...Object.keys(filters).length ? { filters } : {},
+    ...state.yScale === "log" ? { positive_only: true } : {}
+  };
+  return {
+    name,
+    data: panel.records,
+    args: {
+      strValueCol: "y",
+      strGroupCol: "x",
+      strMethod: test,
+      // Pairs exist only among more than two groups.
+      bPairwise: Boolean(pairwise) && groups.length > 2
+    },
+    dataId,
+    rows: panel.records.length
+  };
+}
+var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
+  (entry) => typeof entry === "string" && entry.trim() !== ""
+);
+var present = (value) => value !== void 0 && value !== null;
+function pairsOf(value) {
+  const rows = Array.isArray(value.rows) ? value.rows.filter((row) => "group_1" in row) : [];
+  if (!rows.length) return null;
+  const formatted = rows.map(formatComparison);
+  const shown2 = formatted.filter((row) => row.status === "shown");
+  const methods = [...new Set(shown2.map((row) => row.method))];
+  const labels = [...new Set(shown2.map((row) => row.label))];
+  const adjustments = [...new Set(shown2.map((row) => row.adjustment))];
+  const by = methods.length === 1 ? `, each by ${methods[0]}` : methods.length > 1 ? ", each by the test named with it" : "";
+  return {
+    caption: `Pairwise comparisons${by}.${labels.length ? ` ${labels.join(" ")}` : ""}`,
+    head: [
+      "Pair",
+      "n",
+      adjustments.length === 1 && adjustments[0] ? `p, adjusted (${adjustments[0]})` : "p"
+    ],
+    rows: formatted.map((row) => ({
+      status: row.status,
+      pair: row.groups ? `${row.groups[0]} and ${row.groups[1]}` : "",
+      n: row.n ? `${row.n[0]}, ${row.n[1]}` : "",
+      // A pair with no p-value says why in its place.
+      p: row.status === "shown" ? row.p : row.result,
+      method: methods.length > 1 && row.status === "shown" ? row.method : null
+    }))
+  };
+}
+var plain = (state, said) => ({
+  state,
+  text: said,
+  estimates: [],
+  pairs: null,
+  remarks: [],
+  scope: null
+});
+function describeAnswer(result, context = {}) {
   if (result && result.status === "ok") {
-    const formatted = formatStatistic2(result.value);
-    return { state: formatted.status, text: formatted.text };
+    const value = result.value && typeof result.value === "object" ? result.value : {};
+    const formatted = formatStatistic(value);
+    const described = plain(formatted.status, formatted.text);
+    if (formatted.status === "shown") {
+      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present(row.lower) && present(row.upper)).map((row) => formatEstimate(row).text);
+      described.pairs = pairsOf(value);
+    }
+    described.remarks = [
+      ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
+      ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
+    ];
+    described.scope = context.scope || null;
+    return described;
   }
   if (result && result.status === "unavailable") {
-    return { state: "unavailable", text: result.message };
+    return plain("unavailable", result.reason === "not-precomputed" ? NOT_STORED : result.message);
   }
   const message = result && typeof result.message === "string" ? result.message : "no message";
-  return { state: "error", text: `R reported an error: ${message}` };
+  return plain("error", `R reported an error: ${message}`);
 }
-function createStatisticDesk({ connection, formatStatistic: formatStatistic2 }) {
+function noTestText(groups, several) {
+  const lead = `Statistics: no test${several ? " in this panel" : ""}. A test compares two or more groups, and `;
+  if (!groups) return `${lead}no column makes a group.`;
+  if (groups.length === 1) return `${lead}only ${groups[0]} has values${several ? " here" : ""}.`;
+  return `${lead}none is drawn.`;
+}
+function scopeText({ group, n, panel, color, filters = [] }) {
+  const said = [
+    `This test compares the levels of ${group} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+  ];
+  if (panel) {
+    said.push("Each panel has a test of its own, and they are not adjusted for one another.");
+  }
+  if (color) {
+    said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
+  }
+  if (filters.length) {
+    said.push(
+      `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`
+    );
+  }
+  return said.join(" ");
+}
+function createStatisticDesk({ connection, note = null }) {
   let current = 0;
+  let answered = false;
+  const withNote = (said) => note && !answered ? `${said} ${note}` : said;
   return {
+    idle: withNote,
     begin() {
       current += 1;
       const round = current;
       return {
-        ask({ name, data, args, dataId }, show) {
-          show({ state: "waiting", text: WAITING });
+        ask({ name, data, args, dataId }, show, context) {
+          show(plain("waiting", withNote(WAITING)));
           return connection.run(name, { data, args, dataId }).then((result) => {
+            if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
             if (round !== current) return false;
-            show(describeAnswer(result, formatStatistic2));
+            show(describeAnswer(result, context), result);
             return true;
           });
         }
@@ -1049,38 +1297,38 @@ var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: 
 function levelsOf(values) {
   return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
 }
-function quantile(sorted, p) {
-  if (!sorted.length) return NaN;
-  const position = (sorted.length - 1) * p;
+function quantile(sorted2, p) {
+  if (!sorted2.length) return NaN;
+  const position = (sorted2.length - 1) * p;
   const below = Math.floor(position);
   const above = Math.ceil(position);
-  if (below === above) return sorted[below];
-  return sorted[below] + (sorted[above] - sorted[below]) * (position - below);
+  if (below === above) return sorted2[below];
+  return sorted2[below] + (sorted2[above] - sorted2[below]) * (position - below);
 }
 var sum = (values) => values.reduce((total, value) => total + value, 0);
 function summarize(values) {
-  const sorted = [...values].sort((a, b) => a - b);
+  const sorted2 = [...values].sort((a, b) => a - b);
   return {
-    n: sorted.length,
-    min: sorted.length ? sorted[0] : NaN,
-    q5: quantile(sorted, 0.05),
-    q25: quantile(sorted, 0.25),
-    median: quantile(sorted, 0.5),
-    q75: quantile(sorted, 0.75),
-    q95: quantile(sorted, 0.95),
-    max: sorted.length ? sorted[sorted.length - 1] : NaN,
-    mean: sorted.length ? sum(sorted) / sorted.length : NaN
+    n: sorted2.length,
+    min: sorted2.length ? sorted2[0] : NaN,
+    q5: quantile(sorted2, 0.05),
+    q25: quantile(sorted2, 0.25),
+    median: quantile(sorted2, 0.5),
+    q75: quantile(sorted2, 0.75),
+    q95: quantile(sorted2, 0.95),
+    max: sorted2.length ? sorted2[sorted2.length - 1] : NaN,
+    mean: sorted2.length ? sum(sorted2) / sorted2.length : NaN
   };
 }
 function bandwidth(values) {
   const n = values.length;
   if (n < 2) return NaN;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mean = sum(sorted) / n;
-  const deviation = Math.sqrt(sum(sorted.map((value) => (value - mean) ** 2)) / (n - 1));
-  const spread = (quantile(sorted, 0.75) - quantile(sorted, 0.25)) / 1.34;
+  const sorted2 = [...values].sort((a, b) => a - b);
+  const mean = sum(sorted2) / n;
+  const deviation = Math.sqrt(sum(sorted2.map((value) => (value - mean) ** 2)) / (n - 1));
+  const spread = (quantile(sorted2, 0.75) - quantile(sorted2, 0.25)) / 1.34;
   let lesser = Math.min(deviation, spread);
-  if (lesser === 0) lesser = deviation || Math.abs(sorted[0]) || 1;
+  if (lesser === 0) lesser = deviation || Math.abs(sorted2[0]) || 1;
   return 0.9 * lesser * n ** -0.2;
 }
 function density(values, points = 64) {
@@ -1115,10 +1363,10 @@ function jitter(id) {
   return (hash >>> 0) / 4294967295 * 2 - 1;
 }
 function listMeasures(results, settings) {
-  const present = levelsOf(results.map((row) => row[settings.measure_col]));
-  if (!settings.measures) return present;
-  const listed = settings.measures.filter((measure) => present.includes(measure));
-  return listed.length ? listed : present;
+  const present2 = levelsOf(results.map((row) => row[settings.measure_col]));
+  if (!settings.measures) return present2;
+  const listed = settings.measures.filter((measure) => present2.includes(measure));
+  return listed.length ? listed : present2;
 }
 function unitOf(results, settings, measure) {
   if (!settings.unit_col) return null;
@@ -1370,9 +1618,18 @@ var PALETTE = [
 ];
 var STYLE_ID = "bio-viz-group-comparison-styles";
 var STYLES = `
-.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
 .bv-group-comparison .bv-statistic:empty{display:none}
-.bv-group-comparison .bv-statistic[data-state=waiting]{color:#52616f;font-style:italic}
+.bv-group-comparison .bv-statistic p{margin:0 0 .3rem}
+.bv-group-comparison .bv-statistic[data-state=waiting],.bv-group-comparison .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
+.bv-group-comparison .bv-stat-remark,.bv-group-comparison .bv-stat-scope{font-size:.8rem;color:#52616f}
+.bv-group-comparison .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+.bv-group-comparison .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
+.bv-group-comparison .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
+.bv-group-comparison .bv-stat-pairs th,.bv-group-comparison .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
+.bv-group-comparison .bv-stat-pairs thead th{font-weight:600;border-top:0}
+.bv-group-comparison .bv-stat-pairs td:nth-child(2){white-space:nowrap}
+.bv-group-comparison .bv-stat-method{display:block;color:#52616f}
 .bv-group-comparison .bv-panel-canvas{height:300px;position:relative}
 .bv-group-comparison .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
@@ -1421,6 +1678,7 @@ var GroupComparison = class {
     this.categories = [];
     this.filterSpecs = [];
     this.state = {};
+    this.asked = [];
     this.connect();
     this.renderShell();
   }
@@ -1428,7 +1686,10 @@ var GroupComparison = class {
   // with no R attached, which answers that statistics are unavailable.
   connect() {
     this.connection = this.settings.connection || createConnection();
-    this.desk = createStatisticDesk({ connection: this.connection, formatStatistic });
+    this.desk = createStatisticDesk({
+      connection: this.connection,
+      note: this.settings.waiting_note
+    });
   }
   renderShell() {
     const { kit } = this;
@@ -1531,7 +1792,8 @@ var GroupComparison = class {
   /**
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`) moves its control.
+   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `test`, `pairwise`)
+   * moves its control.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -1541,7 +1803,7 @@ var GroupComparison = class {
     this.host.settings.profile = this.settings.profile;
     this.host.settings.id_col = this.settings.id_col;
     this.host.settings.page_size = this.settings.page_size;
-    if ("connection" in given2) this.connect();
+    if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
     const moved = {
@@ -1554,6 +1816,8 @@ var GroupComparison = class {
       panel_by: "panelBy",
       mark: "mark",
       y_scale: "yScale",
+      test: "test",
+      pairwise: "pairwise",
       filters: "filters"
     };
     for (const [setting, key] of Object.entries(moved)) {
@@ -1590,6 +1854,8 @@ var GroupComparison = class {
       panelBy: has(settings.panel_by) ? settings.panel_by : NONE,
       mark: settings.mark,
       yScale: settings.y_scale,
+      test: settings.test,
+      pairwise: settings.pairwise,
       filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
@@ -1741,6 +2007,27 @@ var GroupComparison = class {
       },
       display
     );
+    this.testControl = null;
+    this.pairwiseControl = null;
+    if (this.settings.statistic) {
+      const statistics = addSection("Statistics");
+      const test = document.createElement("select");
+      test.dataset.control = "test";
+      test.onchange = () => {
+        state.test = test.value;
+        redraw(false);
+      };
+      this.testControl = addControl("Test", test, statistics);
+      const pairwise = document.createElement("input");
+      pairwise.type = "checkbox";
+      pairwise.dataset.control = "pairwise";
+      pairwise.setAttribute("aria-label", "Pairwise comparisons");
+      pairwise.onchange = () => {
+        state.pairwise = pairwise.checked;
+        redraw(false);
+      };
+      this.pairwiseControl = addControl("Pairwise comparisons", pairwise, statistics);
+    }
     if (this.filterSpecs.length) {
       const filters = addSection("Filters");
       const idCol = this.settings.participant_id_col || this.settings.id_col;
@@ -1781,6 +2068,26 @@ var GroupComparison = class {
     );
     return model.levels;
   }
+  // The Test control offers the tests that fit the number of groups drawn, and
+  // nothing else: a test that does not fit is never asked of R. The pairwise
+  // switch is there only when there are pairs to compare.
+  syncTestControls(groups) {
+    const { testControl: select, pairwiseControl: pairwise, kit, state } = this;
+    if (!select) return;
+    const offered = testsFor(groups);
+    const fitted = fitTest(state.test, groups);
+    select.innerHTML = "";
+    select.disabled = !offered.length;
+    if (offered.length) {
+      [...offered, "none"].forEach(
+        (test) => kit.option(select, test, TEST_LABELS[test], test === fitted)
+      );
+    } else {
+      kit.option(select, "none", "None: a test needs two or more groups", true);
+    }
+    pairwise.checked = state.pairwise;
+    pairwise.parentElement.style.display = groups > 2 && fitted !== "none" ? "" : "none";
+  }
   // ---- Drawing ----------------------------------------------------------------
   /**
    * Draw everything again from the tables, the settings and the controls. The
@@ -1791,6 +2098,7 @@ var GroupComparison = class {
    */
   render() {
     const round = this.desk.begin();
+    this.asked = [];
     this.destroyCharts();
     this.clearSelection();
     this.notes.innerHTML = "";
@@ -1799,6 +2107,7 @@ var GroupComparison = class {
     this.statLine.dataset.state = "empty";
     this.chartWrap.classList.remove("sv-hidden");
     this.model = null;
+    this.syncTestControls(0);
     const { results } = this.tables;
     const needsVisit = this.state.valueType !== "baseline";
     if (!results.length || !this.state.measure) {
@@ -1813,6 +2122,7 @@ var GroupComparison = class {
       filterMatches: this.kit.filterMatches
     });
     this.model = model;
+    this.syncTestControls(this.groupsDrawn(model));
     this.updateNotes(model);
     const drawn = model.panels.filter((panel) => panel.records.length);
     if (!drawn.length) {
@@ -2061,37 +2371,122 @@ var GroupComparison = class {
     }
   }
   // ---- The statistics line ----------------------------------------------------
-  // What the rows are, for a connection that answers from stored results.
-  dataId(panel, model) {
-    const filters = Object.fromEntries(
-      Object.entries(this.state.filters).filter(([, selection]) => selection !== null)
-    );
-    return {
-      chart: "group-comparison",
-      variable: panel.variable,
-      group_by: this.state.groupBy || null,
-      levels: model.shownLevels,
-      panel_by: this.state.panelBy || null,
-      panel: panel.panelLevel,
-      filters,
-      positive_only: this.state.yScale === "log"
-    };
+  // How many groups the chart draws: the levels on the axis. With no column to
+  // group by everyone is one group, and there is nothing to compare.
+  groupsDrawn(model) {
+    return this.state.groupBy ? model.shownLevels.length : 0;
   }
+  // What one panel's test covers, said under its result.
+  scope(panel, model) {
+    const { state } = this;
+    const filters = this.filterSpecs.map((spec) => ({ label: spec.label, selection: state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
+      label: label2,
+      values: (Array.isArray(selection) ? selection : [selection]).map(String)
+    })).filter(({ values }) => values.length);
+    return scopeText({
+      group: this.labelOf(state.groupBy),
+      n: panel.records.length,
+      panel: model.panels.length > 1 ? panel.title : null,
+      color: state.colorBy ? this.labelOf(state.colorBy) : null,
+      filters
+    });
+  }
+  // Asks R for one panel's test and prints the answer under the panel. Each
+  // panel asks for itself, on its own rows, and is answered for itself.
   askStatistic(round, panel, model, line) {
     if (!this.settings.statistic) return;
-    const show = ({ state, text: text2 }) => {
-      line.dataset.state = state;
-      line.textContent = text2;
+    const show = (description) => this.showStatistic(line, description);
+    const test = fitTest(this.state.test, this.groupsDrawn(model));
+    if (test === "none") {
+      show(plain("none", this.desk.idle(NO_TEST_CHOSEN)));
+      return;
+    }
+    const inPanel = groupsOf(panel.records);
+    if (test === null || inPanel.length < 2) {
+      show(plain("none", noTestText(this.state.groupBy ? inPanel : null, model.panels.length > 1)));
+      return;
+    }
+    const request = statisticRequest({
+      name: this.settings.statistic,
+      test,
+      pairwise: this.state.pairwise,
+      settings: this.settings,
+      state: this.state,
+      panel
+    });
+    const asked = {
+      panel: panel.title,
+      name: request.name,
+      args: request.args,
+      dataId: request.dataId,
+      rows: request.rows,
+      answer: null
     };
+    this.asked.push(asked);
     round.ask(
-      {
-        name: this.settings.statistic,
-        data: panel.records,
-        args: { strValueCol: "y", strGroupCol: "x" },
-        dataId: this.dataId(panel, model)
+      request,
+      (description, answer) => {
+        if (answer) asked.answer = answer;
+        show(description);
       },
-      show
+      { scope: this.scope(panel, model) }
     );
+  }
+  // Writes one description on a line: the result, the estimates R gave an
+  // interval for, the pairwise comparisons, what R said about its answer, and
+  // what the test covers.
+  showStatistic(line, description) {
+    const { kit } = this;
+    line.dataset.state = description.state;
+    line.innerHTML = "";
+    line.append(kit.createElement("p", "bv-stat-result", description.text));
+    description.estimates.forEach(
+      (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
+    );
+    if (description.pairs) line.append(this.pairsTable(description.pairs));
+    description.remarks.forEach(({ kind, text: text2 }) => {
+      const remark = kit.createElement("p", "bv-stat-remark", text2);
+      remark.dataset.kind = kind;
+      line.append(remark);
+    });
+    if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
+  }
+  pairsTable({ caption, head, rows }) {
+    const { kit } = this;
+    const table = kit.createElement("table", "bv-stat-pairs");
+    table.append(kit.createElement("caption", null, caption));
+    const header = document.createElement("tr");
+    head.forEach((title) => {
+      const cell = kit.createElement("th", null, title);
+      cell.scope = "col";
+      header.append(cell);
+    });
+    const thead = document.createElement("thead");
+    thead.append(header);
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+      const line = document.createElement("tr");
+      line.dataset.status = row.status;
+      const pair = kit.createElement("th", null, row.pair);
+      pair.scope = "row";
+      if (row.method) pair.append(kit.createElement("span", "bv-stat-method", row.method));
+      line.append(pair, kit.createElement("td", null, row.n), kit.createElement("td", null, row.p));
+      tbody.append(line);
+    });
+    table.append(thead, tbody);
+    return table;
+  }
+  /**
+   * What the chart has asked R for the panels now drawn, and what R answered:
+   * one entry per panel that asked, in the order the panels are drawn. A
+   * request is exactly what the connection was given, so it is the key a
+   * stored result must carry to be found.
+   * @returns {Array<{panel: string, name: string, args: object, dataId: object,
+   *   rows: number, answer: ?object}>} `answer` is what the connection resolved
+   *   to, or null while R has not answered.
+   */
+  statistics() {
+    return structuredClone(this.asked);
   }
   // ---- Listing and participant profile ---------------------------------------
   onChartClick(chart, panel, event) {
