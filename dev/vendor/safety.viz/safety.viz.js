@@ -28,7 +28,6 @@ var SafetyViz = (() => {
     hepWaterfall: () => hepWaterfall,
     histogram: () => histogram,
     kit: () => kit,
-    narratives: () => patientJourneyNarratives_exports,
     nepExplorer: () => nepExplorer,
     outlierExplorer: () => outlierExplorer,
     participantProfile: () => participantProfile,
@@ -1053,8 +1052,8 @@ var SafetyViz = (() => {
   var _toLeftRightCenter = (align) => align === "start" ? "left" : align === "end" ? "right" : "center";
   var _alignStartEnd = (align, start, end) => align === "start" ? start : align === "end" ? end : (start + end) / 2;
   var _textX = (align, left, right, rtl) => {
-    const check2 = rtl ? "left" : "right";
-    return align === check2 ? right : align === "center" ? (left + right) / 2 : left;
+    const check = rtl ? "left" : "right";
+    return align === check ? right : align === "center" ? (left + right) / 2 : left;
   };
   function _getStartAndCountOfVisiblePoints(meta, points, animationsDisabled) {
     const pointCount = points.length;
@@ -3953,9 +3952,9 @@ var SafetyViz = (() => {
         ""
       ];
       const scopes = config.getOptionScopes(this.getDataset(), scopeKeys);
-      const names3 = Object.keys(defaults.elements[elementType]);
+      const names2 = Object.keys(defaults.elements[elementType]);
       const context = () => this.getContext(index, active, mode);
-      const values = config.resolveNamedOptions(scopes, names3, context, prefixes);
+      const values = config.resolveNamedOptions(scopes, names2, context, prefixes);
       if (values.$shared) {
         values.$shared = sharing;
         cache[cacheKey] = Object.freeze(cloneIfNotShared(values, sharing));
@@ -7771,7 +7770,7 @@ var SafetyViz = (() => {
         descriptors
       ];
     }
-    resolveNamedOptions(scopes, names3, context, prefixes = [
+    resolveNamedOptions(scopes, names2, context, prefixes = [
       ""
     ]) {
       const result = {
@@ -7779,13 +7778,13 @@ var SafetyViz = (() => {
       };
       const { resolver, subPrefixes } = getResolver(this._resolverCache, scopes, prefixes);
       let options = resolver;
-      if (needContext(resolver, names3)) {
+      if (needContext(resolver, names2)) {
         result.$shared = false;
         context = isFunction(context) ? context() : context;
         const subResolver = this.createResolver(scopes, context, subPrefixes);
         options = _attachContext(resolver, context, subResolver);
       }
-      for (const prop of names3) {
+      for (const prop of names2) {
         result[prop] = options[prop];
       }
       return result;
@@ -7816,9 +7815,9 @@ var SafetyViz = (() => {
     return cached;
   }
   var hasFunction = (value) => isObject(value) && Object.getOwnPropertyNames(value).some((key) => isFunction(value[key]));
-  function needContext(proxy, names3) {
+  function needContext(proxy, names2) {
     const { isScriptable, isIndexable } = _descriptors(proxy);
-    for (const prop of names3) {
+    for (const prop of names2) {
       const scriptable = isScriptable(prop);
       const indexable = isIndexable(prop);
       const value = (indexable || scriptable) && proxy[prop];
@@ -12028,7 +12027,7 @@ var SafetyViz = (() => {
       return null;
     }
     const adapter = scale._adapter;
-    const { parser, round: round3, isoWeekday } = scale._parseOpts;
+    const { parser, round: round2, isoWeekday } = scale._parseOpts;
     let value = input;
     if (typeof parser === "function") {
       value = parser(value);
@@ -12039,8 +12038,8 @@ var SafetyViz = (() => {
     if (value === null) {
       return null;
     }
-    if (round3) {
-      value = round3 === "week" && (isNumber(isoWeekday) || isoWeekday === true) ? adapter.startOf(value, "isoWeek", isoWeekday) : adapter.startOf(value, round3);
+    if (round2) {
+      value = round2 === "week" && (isNumber(isoWeekday) || isoWeekday === true) ? adapter.startOf(value, "isoWeek", isoWeekday) : adapter.startOf(value, round2);
     }
     return +value;
   }
@@ -12511,14 +12510,21 @@ var SafetyViz = (() => {
     if (text3 !== void 0) element.textContent = text3;
     return element;
   }
-  function prototypeBanner(note) {
-    const banner = createElement("div", "sv-prototype");
+  function statusBanner(className, label, text3) {
+    const banner = createElement("div", className);
     banner.setAttribute("role", "note");
-    const tag = createElement("span", "sv-prototype-tag", "Prototype");
-    banner.append(tag);
-    const text3 = note || "This chart is a prototype under evaluation for the v1.5 release \u2014 its behaviour and settings may change before it is finalized.";
-    banner.append(createElement("span", "sv-prototype-text", text3));
+    banner.append(
+      createElement("span", "sv-prototype-tag", label),
+      createElement("span", "sv-prototype-text", text3)
+    );
     return banner;
+  }
+  function experimentalBanner(note) {
+    return statusBanner(
+      "sv-experimental",
+      "Experimental",
+      note || "This chart is experimental: it is tested and documented, but its behaviour and settings may change."
+    );
   }
   function option(select, value, label, selected) {
     const opt = document.createElement("option");
@@ -12655,7 +12661,7 @@ var SafetyViz = (() => {
 .sv-ms-option{display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:400;margin:.15rem 0;cursor:pointer}
 .sv-ms-option input[type=checkbox]{width:auto;margin:0;accent-color:#0b62a4;flex:0 0 auto}
 .sv-ms-option.sv-ms-all{font-weight:600;border-bottom:1px solid #e3e8ee;padding-bottom:.25rem;margin-bottom:.25rem}
-.sv-prototype{display:flex;align-items:baseline;gap:.5rem;margin:0 0 .6rem;padding:.4rem .6rem;border:1px solid #e6c98a;border-left:4px solid #d99a2b;border-radius:6px;background:#fdf6e6;color:#6b4e12;font-size:.8rem;line-height:1.35}
+.sv-prototype,.sv-experimental{display:flex;align-items:baseline;gap:.5rem;margin:0 0 .6rem;padding:.4rem .6rem;border:1px solid #e6c98a;border-left:4px solid #d99a2b;border-radius:6px;background:#fdf6e6;color:#6b4e12;font-size:.8rem;line-height:1.35}
 .sv-prototype-tag{flex:0 0 auto;text-transform:uppercase;letter-spacing:.05em;font-weight:700;font-size:.68rem;padding:.08rem .4rem;border-radius:999px;background:#d99a2b;color:#fff}
 .sv-prototype-text{flex:1 1 auto}
 @media (max-width:900px){
@@ -12801,9 +12807,9 @@ var SafetyViz = (() => {
       });
     });
     if (warn3 && missing.length) {
-      const plural4 = missing.length > 1;
+      const plural3 = missing.length > 1;
       console.warn(
-        `The configured measure${plural4 ? "s" : ""} [ ${missing.join(", ")} ] ${plural4 ? "do" : "does"} not exist in the data and ${plural4 ? "have" : "has"} been removed from the Measure control.`
+        `The configured measure${plural3 ? "s" : ""} [ ${missing.join(", ")} ] ${plural3 ? "do" : "does"} not exist in the data and ${plural3 ? "have" : "has"} been removed from the Measure control.`
       );
     }
     if (!chosen.length) {
@@ -12853,9 +12859,9 @@ var SafetyViz = (() => {
     state[key] = Number.isFinite(value) ? value : null;
     const domain = state.axisDomain || [];
     const lower = state.lower == null ? domain[0] : state.lower;
-    const upper8 = state.upper == null ? domain[1] : state.upper;
-    if (Number.isFinite(lower) && Number.isFinite(upper8) && lower >= upper8) {
-      state.lower = upper8;
+    const upper7 = state.upper == null ? domain[1] : state.upper;
+    if (Number.isFinite(lower) && Number.isFinite(upper7) && lower >= upper7) {
+      state.lower = upper7;
       state.upper = lower;
     }
     return state;
@@ -12891,7 +12897,7 @@ var SafetyViz = (() => {
       const raw = Array.isArray(spec.start) ? spec.start : [spec.start];
       start = multiple ? raw.map(String) : String(raw[0]);
     }
-    const all = spec.all === void 0 ? !started : spec.all !== false;
+    const all = spec.all !== false;
     return { ...spec, start, all, multiple };
   }
   function initFilterState(specs) {
@@ -12900,6 +12906,41 @@ var SafetyViz = (() => {
       state[spec.value_col] = spec.start === void 0 ? null : spec.start;
     });
     return state;
+  }
+  function reconcileFilters(state, specs, valuesOf) {
+    const drawn = new Set(specs.map((spec) => spec.value_col));
+    Object.keys(state).forEach((column) => {
+      if (!drawn.has(column)) delete state[column];
+    });
+    return specs.map((spec) => {
+      const values = valuesOf(spec);
+      const has = (value) => values.some((candidate) => String(candidate) === String(value));
+      const missing = (value, fallback) => console.warn(
+        `The [ ${spec.label} ] filter value [ ${value} ] does not exist in the data, so the filter ${fallback}.`
+      );
+      let selected = state[spec.value_col];
+      if (selected === void 0) selected = spec.start;
+      if (spec.multiple) {
+        if (selected === null || selected === void 0 || selected === "") selected = null;
+        else {
+          const list2 = (Array.isArray(selected) ? selected : [selected]).map(String);
+          const kept = list2.filter(has);
+          list2.filter((value) => !has(value)).forEach((value) => missing(value, "opens without it"));
+          selected = kept.length || !list2.length ? kept : null;
+        }
+      } else {
+        if (Array.isArray(selected)) selected = selected.length ? selected[0] : null;
+        if (selected === void 0 || selected === "") selected = null;
+        const first = spec.all || !values.length ? null : String(values[0]);
+        if (selected !== null && !has(selected)) {
+          missing(selected, first === null ? "opens on All" : `opens on [ ${first} ]`);
+          selected = null;
+        }
+        if (selected === null) selected = first;
+      }
+      state[spec.value_col] = selected;
+      return { spec, values, selected };
+    });
   }
   function filterMatches(rowValue, selection) {
     if (selection === null || selection === void 0 || selection === "") return true;
@@ -13057,9 +13098,15 @@ var SafetyViz = (() => {
             default: "STNRHI",
             description: "Optional upper limit of normal."
           },
+          measures: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Ordered whitelist of measures the Measure control offers: only these appear, and in this order. null or [] offers every measure in the data, alphabetically. Configured measures absent from the data are dropped with a console warning (SH-MEAS-001)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls. Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           groups: {
             $ref: "#/$defs/fieldList",
@@ -13084,6 +13131,37 @@ var SafetyViz = (() => {
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -13233,8 +13311,8 @@ var SafetyViz = (() => {
     width = range / quantity;
     const bins = Array.from({ length: quantity }, (_, index) => {
       const lower = min + index * width;
-      const upper8 = index === quantity - 1 ? max : min + (index + 1) * width;
-      return { index, lower, upper: upper8, records: [] };
+      const upper7 = index === quantity - 1 ? max : min + (index + 1) * width;
+      return { index, lower, upper: upper7, records: [] };
     });
     values.forEach((value, idx) => {
       bins[binIndex(value, min, width, bins.length)].records.push(idx);
@@ -13254,9 +13332,9 @@ var SafetyViz = (() => {
       state.upper = tmp;
     }
   }
-  function resolveDomain(values, lower, upper8) {
+  function resolveDomain(values, lower, upper7) {
     const defaultDomain = [Math.min(...values), Math.max(...values)];
-    return [lower == null ? defaultDomain[0] : lower, upper8 == null ? defaultDomain[1] : upper8];
+    return [lower == null ? defaultDomain[0] : lower, upper7 == null ? defaultDomain[1] : upper7];
   }
   function buildTickLabels(bins, digits, annotateBoundaries) {
     return bins.map(
@@ -14552,7 +14630,7 @@ var SafetyViz = (() => {
     return Number.isFinite(number) ? number : null;
   }
   function cleanAeRecords(rawData, settings) {
-    const events2 = [];
+    const events = [];
     let removed = 0;
     (Array.isArray(rawData) ? rawData : []).forEach((record, index) => {
       const id = record[settings.id_col];
@@ -14567,7 +14645,7 @@ var SafetyViz = (() => {
       const rawEnd = day(record[settings.endy_col]);
       const end = start !== null && rawEnd !== null && rawEnd >= start ? rawEnd : null;
       const serious = settings.highlight ? String(record[settings.highlight.value_col] ?? "").trim().toUpperCase() === String(settings.highlight.value).toUpperCase() : false;
-      events2.push({
+      events.push({
         ...record,
         __ae_id: String(id),
         __ae_index: index,
@@ -14582,11 +14660,11 @@ var SafetyViz = (() => {
         __ae_placeable: start !== null
       });
     });
-    return { events: events2, removed };
+    return { events, removed };
   }
-  function participantEvents(events2, id) {
+  function participantEvents(events, id) {
     const key = String(id);
-    return (Array.isArray(events2) ? events2 : []).filter((event) => event.__ae_id === key).sort((a, b) => {
+    return (Array.isArray(events) ? events : []).filter((event) => event.__ae_id === key).sort((a, b) => {
       if (a.__ae_placeable !== b.__ae_placeable) return a.__ae_placeable ? -1 : 1;
       if (b.__ae_severity.rank !== a.__ae_severity.rank)
         return b.__ae_severity.rank - a.__ae_severity.rank;
@@ -14595,8 +14673,8 @@ var SafetyViz = (() => {
       return sa - sb || a.__ae_index - b.__ae_index;
     });
   }
-  function summarizeAe(events2, settings) {
-    const list2 = Array.isArray(events2) ? events2 : [];
+  function summarizeAe(events, settings) {
+    const list2 = Array.isArray(events) ? events : [];
     const worst = list2.reduce(
       (acc, event) => event.__ae_severity.rank > acc.rank ? event.__ae_severity : acc,
       { ...NOT_RECORDED, color: NOT_RECORDED_COLOR }
@@ -14626,8 +14704,8 @@ var SafetyViz = (() => {
       bodySystems
     };
   }
-  function aeDomain(events2) {
-    const placeable = (Array.isArray(events2) ? events2 : []).filter((event) => event.__ae_placeable);
+  function aeDomain(events) {
+    const placeable = (Array.isArray(events) ? events : []).filter((event) => event.__ae_placeable);
     if (!placeable.length) return null;
     const days = [];
     placeable.forEach((event) => {
@@ -14645,12 +14723,12 @@ var SafetyViz = (() => {
     const max = Math.max(...parts.map((domain) => domain[1]));
     return min === max ? [min - 1, max + 1] : [min, max];
   }
-  function timelineGeometry(events2, domain) {
-    if (!Array.isArray(domain) || domain.length !== 2) return (events2 || []).map(() => null);
+  function timelineGeometry(events, domain) {
+    if (!Array.isArray(domain) || domain.length !== 2) return (events || []).map(() => null);
     const [min, max] = domain;
     const span = max - min || 1;
     const percent = (value) => (value - min) / span * 100;
-    return (Array.isArray(events2) ? events2 : []).map((event) => {
+    return (Array.isArray(events) ? events : []).map((event) => {
       if (!event || !event.__ae_placeable) return null;
       const end = event.__ae_end === null ? max : event.__ae_end;
       const rawLeft = percent(event.__ae_start);
@@ -14767,13 +14845,13 @@ var SafetyViz = (() => {
     parts.push(event.__ae_placeable ? `day ${event.__ae_start} to ${end}` : "no start day recorded");
     return parts.join(" \xB7 ");
   }
-  function renderTimeline(events2, domain, settings) {
+  function renderTimeline(events, domain, settings) {
     const wrap = createElement("div", "sv-profile-ae-timeline");
     const area = createElement("div", "sv-profile-ae-plotarea");
     area.style.paddingLeft = `${PLOT_GUTTER_LEFT}px`;
     area.style.paddingRight = `${PLOT_GUTTER_RIGHT}px`;
     wrap.append(area);
-    const placeable = events2.filter((event) => event.__ae_placeable);
+    const placeable = events.filter((event) => event.__ae_placeable);
     const shown = placeable.slice(0, settings.max_rows);
     const geometry = timelineGeometry(shown, domain);
     const plot = createElement("div", "sv-profile-ae-plot");
@@ -14824,7 +14902,7 @@ var SafetyViz = (() => {
         )
       );
     }
-    const unplaceable = events2.filter((event) => !event.__ae_placeable);
+    const unplaceable = events.filter((event) => !event.__ae_placeable);
     if (unplaceable.length) {
       const note = createElement(
         "p",
@@ -14835,11 +14913,11 @@ var SafetyViz = (() => {
     }
     return wrap;
   }
-  function renderAeTracks(events2, domain, settings) {
+  function renderAeTracks(events, domain, settings) {
     const section = createElement("section", "sv-profile-ae");
     section.setAttribute("aria-label", "Adverse events");
     section.append(createElement("h3", "sv-profile-ae-title", "Adverse events"));
-    const list2 = Array.isArray(events2) ? events2 : [];
+    const list2 = Array.isArray(events) ? events : [];
     if (!list2.length) {
       section.append(
         createElement("p", "sv-profile-ae-empty", "No adverse events recorded for this participant.")
@@ -15154,9 +15232,9 @@ var SafetyViz = (() => {
       [SPARK_OFFSET, SPARK_WIDTH - SPARK_OFFSET]
     );
     const y = linear(sparkDomain(measure), [SPARK_HEIGHT - SPARK_OFFSET, SPARK_OFFSET]);
-    const upper8 = spark.filter((point) => Number.isFinite(point.uln)).map((point) => [x(point.day), y(point.uln)]);
+    const upper7 = spark.filter((point) => Number.isFinite(point.uln)).map((point) => [x(point.day), y(point.uln)]);
     const lower = spark.filter((point) => Number.isFinite(point.lln)).map((point) => [x(point.day), y(point.lln)]).reverse();
-    const band = upper8.concat(lower);
+    const band = upper7.concat(lower);
     if (band.length) {
       svg.append(
         svgElement("polygon", {
@@ -15221,9 +15299,9 @@ var SafetyViz = (() => {
         const { x, y } = chart.scales;
         const { left, right } = chart.chartArea;
         const ctx = chart.ctx;
-        const upper8 = measure.spark.filter((point) => Number.isFinite(point.uln)).map((point) => [x.getPixelForValue(point.day), y.getPixelForValue(point.uln)]);
+        const upper7 = measure.spark.filter((point) => Number.isFinite(point.uln)).map((point) => [x.getPixelForValue(point.day), y.getPixelForValue(point.uln)]);
         const lower = measure.spark.filter((point) => Number.isFinite(point.lln)).map((point) => [x.getPixelForValue(point.day), y.getPixelForValue(point.lln)]).reverse();
-        const band = upper8.concat(lower);
+        const band = upper7.concat(lower);
         if (band.length) {
           ctx.save();
           ctx.fillStyle = "#eee";
@@ -15736,8 +15814,8 @@ var SafetyViz = (() => {
      */
     setAeData(records) {
       if (!this.aeSettings) return this;
-      const { events: events2, removed } = cleanAeRecords(records, this.aeSettings);
-      this.aeEvents = events2;
+      const { events, removed } = cleanAeRecords(records, this.aeSettings);
+      this.aeEvents = events;
       this.aeRemoved = removed;
       return this;
     }
@@ -15922,7 +16000,7 @@ var SafetyViz = (() => {
       try {
         checkInputs2(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData2(this.rawData, this.settings);
@@ -16519,7 +16597,7 @@ var SafetyViz = (() => {
       try {
         checkInputs(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData(this.rawData, this.settings);
@@ -16600,14 +16678,17 @@ var SafetyViz = (() => {
         return exists;
       });
       const filterParent = filterSpecs.length ? addSection("Filters") : this.controls;
-      filterSpecs.forEach((filter) => {
-        const values = unique(this.cleanData.map((row) => row[filter.value_col])).sort();
+      reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique(this.cleanData.map((row) => row[filter.value_col])).sort()
+      ).forEach(({ spec: filter, values, selected }) => {
         addControl(
           filter.label,
           renderFilterControl({
             spec: filter,
             values,
-            selected: this.state.filters[filter.value_col],
+            selected,
             onChange: (next) => {
               this.state.filters[filter.value_col] = next;
               this.render();
@@ -16629,16 +16710,16 @@ var SafetyViz = (() => {
         this.render();
       };
       this.lowerInput = lower;
-      const upper8 = addControl("Upper", document.createElement("input"), xAxisRow);
-      upper8.type = "number";
-      upper8.step = "any";
-      upper8.value = seedLimitInput(this.state, "upper");
-      upper8.onchange = () => {
-        applyLimitEdit(this.state, "upper", upper8.value);
+      const upper7 = addControl("Upper", document.createElement("input"), xAxisRow);
+      upper7.type = "number";
+      upper7.step = "any";
+      upper7.value = seedLimitInput(this.state, "upper");
+      upper7.onchange = () => {
+        applyLimitEdit(this.state, "upper", upper7.value);
         normalizeDomain(this.state);
         this.render();
       };
-      this.upperInput = upper8;
+      this.upperInput = upper7;
       const reset = createElement("button", "sv-reset-limits", "Reset Limits");
       reset.type = "button";
       reset.onclick = () => {
@@ -17238,7 +17319,7 @@ var SafetyViz = (() => {
   function syncSettings4(settings) {
     const synced = { ...DEFAULT_SETTINGS4, ...settings };
     synced.measures = arrayify4(synced.measures);
-    synced.filters = arrayify4(synced.filters).map((filter) => fieldSpec4(filter)).filter((filter) => filter.value_col);
+    synced.filters = arrayify4(synced.filters).map((filter) => normalizeFilterSpec(filter)).filter((filter) => filter.value_col);
     synced.baseline_visits = synced.baseline_visits == null ? null : arrayify4(synced.baseline_visits);
     synced.comparison_visits = synced.comparison_visits == null ? null : arrayify4(synced.comparison_visits);
     synced.baseline_stat = STATS.includes(synced.baseline_stat) ? synced.baseline_stat : "mean";
@@ -17329,9 +17410,21 @@ var SafetyViz = (() => {
             default: "mean",
             description: "Summary statistic applied when a participant has several results across the comparison visit(s)."
           },
+          measures: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Ordered whitelist of measures the Measure control offers: only these appear, and in this order. null or [] offers every measure in the data, alphabetically. Configured measures absent from the data are dropped with a console warning (SSP-MEAS-001)."
+          },
+          axis_type: {
+            type: "string",
+            enum: ["linear", "log"],
+            default: "linear",
+            description: "Initial scale for both axes; the Axis Type control switches them together because the two axes share one domain. On the log scale a participant pair with a zero or negative value is removed and counted in the note above the chart (SSP-SCALE-001, SSP-SCALE-003)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (SSP-CFG-006)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (SSP-CFG-006). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           details: {
             $ref: "#/$defs/fieldList",
@@ -17356,6 +17449,37 @@ var SafetyViz = (() => {
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -17779,7 +17903,7 @@ var SafetyViz = (() => {
       try {
         checkInputs3(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData3(this.rawData, this.settings);
@@ -17901,16 +18025,20 @@ var SafetyViz = (() => {
           );
         return exists;
       });
-      if (filterSpecs.length) {
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique2(this.cleanData.map((row) => row[filter.value_col])).sort()
+      );
+      if (filterControls.length) {
         const filterParent = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique2(this.cleanData.map((row) => row[filter.value_col])).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -18364,9 +18492,15 @@ var SafetyViz = (() => {
             default: true,
             description: "Draw a simple linear regression line with an equation and R\xB2 note (SDD-REG-026)."
           },
+          measures: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Ordered whitelist of measures the Measure control offers: only these appear, and in this order. null or [] offers every measure in the data, alphabetically. The first two listed are the comparison the chart opens on unless measure_x / measure_y say otherwise. Configured measures absent from the data are dropped with a console warning (SDD-MEAS-001)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (SDD-CFG-014)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (SDD-CFG-014). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           details: {
             $ref: "#/$defs/fieldList",
@@ -18387,6 +18521,37 @@ var SafetyViz = (() => {
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -18864,7 +19029,7 @@ var SafetyViz = (() => {
       try {
         checkInputs4(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       let removed = 0;
@@ -18961,16 +19126,20 @@ var SafetyViz = (() => {
           );
         return exists;
       });
-      if (filterSpecs.length) {
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique3(this.cleanRows.map((row) => row[filter.value_col])).sort()
+      );
+      if (filterControls.length) {
         const filterParent = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique3(this.cleanRows.map((row) => row[filter.value_col])).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -19294,9 +19463,31 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
             default: "STRESU",
             description: "Optional unit column, appended to measure labels and the y-axis title."
           },
+          measures: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Ordered whitelist of measures the Measure control offers: only these appear, and in this order. null or [] offers every measure in the data, alphabetically. Configured measures absent from the data are dropped with a console warning (SROT-MEAS-001)."
+          },
+          unscheduled_visits: {
+            type: "boolean",
+            default: false,
+            description: "Show unscheduled visits on the x-axis (matched by unscheduled_visit_values, else by unscheduled_visit_pattern). A display toggle: no statistic is re-derived."
+          },
+          unscheduled_visit_pattern: {
+            type: "string",
+            default: "/unscheduled|early termination/i",
+            description: "Regular expression, in /source/flags string form, identifying an unscheduled visit (SROT-CFG-017)."
+          },
+          unscheduled_visit_values: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Explicit list of unscheduled visit names; takes precedence over unscheduled_visit_pattern when set (SROT-CFG-019)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls. Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           groups: {
             $ref: "#/$defs/fieldList",
@@ -19317,6 +19508,37 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -19457,9 +19679,9 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
       state.upper = tmp;
     }
   }
-  function resolveYDomain(values, lower, upper8) {
+  function resolveYDomain(values, lower, upper7) {
     const extent = [Math.min(...values), Math.max(...values)];
-    return [lower == null ? extent[0] : lower, upper8 == null ? extent[1] : upper8];
+    return [lower == null ? extent[0] : lower, upper7 == null ? extent[1] : upper7];
   }
   function yPrecision(domain) {
     const range = domain[1] - domain[0];
@@ -19712,7 +19934,7 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
       try {
         checkInputs5(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData4(this.rawData, this.settings);
@@ -19797,14 +20019,17 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         return exists;
       });
       const filterParent = filterSpecs.length ? addSection("Filters") : this.controls;
-      filterSpecs.forEach((filter) => {
-        const values = unique4(this.cleanData.map((row) => row[filter.value_col])).sort();
+      reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique4(this.cleanData.map((row) => row[filter.value_col])).sort()
+      ).forEach(({ spec: filter, values, selected }) => {
         addControl(
           filter.label,
           renderFilterControl({
             spec: filter,
             values,
-            selected: this.state.filters[filter.value_col],
+            selected,
             onChange: (next) => {
               this.state.filters[filter.value_col] = next;
               this.render();
@@ -20279,9 +20504,15 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
             $ref: "#/$defs/fieldList",
             description: "Optional time-axis options ({ value_col, label, type, order_col }); when omitted a derived Measurement sequence is used (SOE-FUNC-004)."
           },
+          measures: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Ordered whitelist of measures the Measure control offers: only these appear, and in this order. null or [] offers every measure in the data, alphabetically. Configured measures absent from the data are dropped with a console warning (SOE-MEAS-001)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (SOE-CFG-004)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (SOE-CFG-004). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           groups: {
             $ref: "#/$defs/fieldList",
@@ -20310,6 +20541,37 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -20470,9 +20732,9 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
     const pad = (max - min || Math.abs(max) || 1) * 0.04;
     return [min - pad, max + pad];
   }
-  function resolveYDomain2(values, lower, upper8) {
+  function resolveYDomain2(values, lower, upper7) {
     const domain = defaultYDomain(values);
-    return [lower == null ? domain[0] : lower, upper8 == null ? domain[1] : upper8];
+    return [lower == null ? domain[0] : lower, upper7 == null ? domain[1] : upper7];
   }
   function normalizeYDomain(state) {
     if (Number.isFinite(state.lower) && Number.isFinite(state.upper) && state.lower >= state.upper) {
@@ -20784,7 +21046,7 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
       try {
         checkInputs6(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData5(this.rawData, this.settings);
@@ -20872,14 +21134,17 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         return exists;
       });
       const filterParent = filterSpecs.length ? addSection("Filters") : this.controls;
-      filterSpecs.forEach((filter) => {
-        const values = unique5(this.cleanData.map((row) => row[filter.value_col])).sort();
+      reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique5(this.cleanData.map((row) => row[filter.value_col])).sort()
+      ).forEach(({ spec: filter, values, selected }) => {
         addControl(
           filter.label,
           renderFilterControl({
             spec: filter,
             values,
-            selected: this.state.filters[filter.value_col],
+            selected,
             onChange: (next) => {
               this.state.filters[filter.value_col] = next;
               this.render();
@@ -20912,16 +21177,16 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         this.render();
       };
       this.lowerInput = lower;
-      const upper8 = addControl("Upper", document.createElement("input"), yRow);
-      upper8.type = "number";
-      upper8.step = String(step);
-      upper8.value = seedLimitInput(this.state, "upper");
-      upper8.onchange = () => {
-        applyLimitEdit(this.state, "upper", upper8.value);
+      const upper7 = addControl("Upper", document.createElement("input"), yRow);
+      upper7.type = "number";
+      upper7.step = String(step);
+      upper7.value = seedLimitInput(this.state, "upper");
+      upper7.onchange = () => {
+        applyLimitEdit(this.state, "upper", upper7.value);
         normalizeYDomain(this.state);
         this.render();
       };
-      this.upperInput = upper8;
+      this.upperInput = upper7;
       const reset = addControl("\xA0", document.createElement("button"), yParent);
       reset.type = "button";
       reset.textContent = "Reset Limits";
@@ -21501,8 +21766,8 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
             }
           },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Filter columns rendered as controls (AET-CFG-011); defaults to serious event, severity, and participant identifier."
+            $ref: "#/$defs/filterList",
+            description: 'Filter columns rendered as controls (AET-CFG-011); defaults to serious event, severity, and participant identifier. Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           details: {
             $ref: "#/$defs/fieldList",
@@ -21529,6 +21794,37 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: ["array", "null"],
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -21623,11 +21919,11 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
   }
 
   // src/ae-timelines/getScales.js
-  function dayDomain(events2) {
-    if (!events2.length) return [0, 1];
+  function dayDomain(events) {
+    if (!events.length) return [0, 1];
     let min = Infinity;
     let max = -Infinity;
-    events2.forEach((event) => {
+    events.forEach((event) => {
       if (event.start < min) min = event.start;
       if (event.start > max) max = event.start;
       if (event.end > max) max = event.end;
@@ -21668,12 +21964,12 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
     const b = value & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha2})`;
   }
-  function buildDatasets(events2, domain, settings) {
+  function buildDatasets(events, domain, settings) {
     const datasets = domain.map((level) => {
       const color2 = colorFor(level, domain, settings.color.colors);
       return {
         label: level,
-        data: events2.filter((event) => event.color === level).map((event) => ({ x: [event.start, event.end], y: event.subject, __aet: event })),
+        data: events.filter((event) => event.color === level).map((event) => ({ x: [event.start, event.end], y: event.subject, __aet: event })),
         backgroundColor: withAlpha(color2, 0.5),
         borderColor: color2,
         borderWidth: 1,
@@ -21917,7 +22213,7 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
       try {
         checkInputs7(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       this.population = populationCount(this.rawData, this.settings);
@@ -21955,15 +22251,16 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         return true;
       });
       const filterParent = filterSpecs.length ? addSection("Filters") : this.controls;
-      filterSpecs.forEach((filter) => {
+      reconcileFilters(this.state.filters, filterSpecs, (filter) => {
         const values = unique(this.cleanRows.map((row) => row[filter.value_col]));
-        const ordered = filter.value_col === this.settings.color.value_col ? domain.filter((value) => values.includes(value)) : values.sort();
+        return filter.value_col === this.settings.color.value_col ? domain.filter((value) => values.includes(value)) : values.sort();
+      }).forEach(({ spec: filter, values, selected }) => {
         addControl(
           filter.label,
           renderFilterControl({
             spec: filter,
-            values: ordered,
-            selected: this.state.filters[filter.value_col],
+            values,
+            selected,
             onChange: (next) => {
               this.state.filters[filter.value_col] = next;
               this.render();
@@ -22015,11 +22312,11 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         this.footnote.textContent = "No adverse events match the current filters.";
         return;
       }
-      const events2 = buildTimelineRows(this.filteredData, this.settings);
-      this.currentDomain = dayDomain(events2);
+      const events = buildTimelineRows(this.filteredData, this.settings);
+      this.currentDomain = dayDomain(events);
       const subjects = sortSubjects(this.filteredData, this.settings, this.state.sort);
       this.chartWrap.style.height = `${Math.max(240, subjects.length * this.settings.row_height + 120)}px`;
-      this.chart = this.drawTimeline(this.canvas, events2, this.currentDomain, subjects);
+      this.chart = this.drawTimeline(this.canvas, events, this.currentDomain, subjects);
     }
     /**
      * Refresh the italicized shown/total participant annotation
@@ -22033,15 +22330,18 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         this.removedTerm ? `${this.removedTerm} records without [ ${this.settings.term_col} ] removed.` : "",
         this.removedDay ? `${this.removedDay} records without [ ${this.settings.stdy_col} ] removed.` : ""
       ].filter(Boolean).join(" ");
-      this.notes.innerHTML = `<em>${shown} of ${this.population} participant ID(s) shown (${pct}%)</em>` + (warnings ? `<span class="sv-warning">${warnings}</span>` : "");
+      this.notes.replaceChildren(
+        createElement("em", null, `${shown} of ${this.population} participant ID(s) shown (${pct}%)`)
+      );
+      if (warnings) this.notes.append(createElement("span", "sv-warning", warnings));
     }
     /**
      * Draw one timeline chart — the main participant chart or the detail
      * per-event chart — with the shared datasets, scales, marks, and tooltips.
      * @private
      */
-    drawTimeline(canvas, events2, domain, labels) {
-      const datasets = buildDatasets(events2, colorDomain(this.cleanRows, this.settings.color), {
+    drawTimeline(canvas, events, domain, labels) {
+      const datasets = buildDatasets(events, colorDomain(this.cleanRows, this.settings.color), {
         ...this.settings
       });
       const chart = new Chart(canvas.getContext("2d"), {
@@ -22065,7 +22365,7 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         },
         plugins: [timelineMarksPlugin(this.settings)]
       });
-      chart.$aetEvents = events2;
+      chart.$aetEvents = events;
       this.charts.push(chart);
       return chart;
     }
@@ -22109,17 +22409,17 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
       this.detailWrap.classList.remove("sv-hidden");
       this.detailTitle.textContent = `Participant: ${participant}`;
       const rows = this.cleanRows.filter((row) => row[this.settings.id_col] === participant).sort((a, b) => Number(a[this.settings.seq_col]) - Number(b[this.settings.seq_col]));
-      const events2 = buildTimelineRows(rows, this.settings).map((event) => ({
+      const events = buildTimelineRows(rows, this.settings).map((event) => ({
         ...event,
         subject: String(event.seq)
       }));
-      const seqs = events2.map((event) => event.subject);
+      const seqs = events.map((event) => event.subject);
       this.detailChartWrap.style.height = `${Math.max(200, seqs.length * this.settings.row_height * 2 + 120)}px`;
       if (this.detailChart) {
         this.charts = this.charts.filter((chart) => chart !== this.detailChart);
         this.detailChart.destroy();
       }
-      this.detailChart = this.drawTimeline(this.detailCanvas, events2, this.currentDomain, seqs);
+      this.detailChart = this.drawTimeline(this.detailCanvas, events, this.currentDomain, seqs);
       this.currentTableData = rows;
       this.listingSearch = "";
       this.listingSort = null;
@@ -22376,9 +22676,25 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
             default: [0, null],
             description: "Initial R-Ratio [min, max]; a null max is resolved from the data on first render (HEP-CTRL-010)."
           },
+          unscheduled_visits: {
+            type: "boolean",
+            default: true,
+            description: "Include records taken at an unscheduled visit (matched by unscheduled_visit_values, else by unscheduled_visit_pattern, against visit_col) in the baseline and peak reduction. Included by default, unlike results-over-time: turning it off re-derives every baseline and peak from the scheduled records alone, and the note above the chart states how many records were excluded (HEP-CTRL-018)."
+          },
+          unscheduled_visit_pattern: {
+            type: "string",
+            default: "/unscheduled|early termination/i",
+            description: "Regular expression, in /source/flags string form, identifying an unscheduled visit (HEP-DATA-013)."
+          },
+          unscheduled_visit_values: {
+            type: ["array", "null"],
+            items: { type: "string" },
+            default: null,
+            description: "Explicit list of unscheduled visit names; takes precedence over unscheduled_visit_pattern when set (HEP-DATA-013)."
+          },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (HEP-CTRL-011)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (HEP-CTRL-011). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           groups: {
             $ref: "#/$defs/fieldList",
@@ -22403,6 +22719,37 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -22454,10 +22801,10 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
     const derived = edishDomain(values, cut, type);
     const override = (value, fallback) => Number.isFinite(value) ? value : fallback;
     let lower = override(limits && limits.lower, derived[0]);
-    const upper8 = override(limits && limits.upper, derived[1]);
+    const upper7 = override(limits && limits.upper, derived[1]);
     if (type === "log" && !(lower > 0)) lower = derived[0];
-    if (!(upper8 > lower)) return derived;
-    return [lower, upper8];
+    if (!(upper7 > lower)) return derived;
+    return [lower, upper7];
   }
   var LOG_EPSILON = 1e-9;
   function logTicks(domain, base = 10) {
@@ -23682,15 +24029,6 @@ Change in ${this.state.measureY}: ${formatDelta(point.delta_y)}`;
         );
       }
       host.notes.append(note);
-    }
-    if (host.unscheduledRecords) {
-      host.notes.append(
-        createElement(
-          "span",
-          null,
-          `${host.unscheduledRecords} records at unscheduled visits excluded.`
-        )
-      );
     }
     if (host.droppedParticipants) {
       const dropReason2 = host.state.display === "relative_baseline" ? `missing ${host.state.measureX}/${host.state.measureY} peak or baseline` : `missing ${host.state.measureX}/${host.state.measureY} peak`;
@@ -25141,36 +25479,39 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
   }
   function renderNotes(host, cohort, summary) {
     const total = unique6(host.cleanRows.map((row) => row[host.settings.id_col])).length;
-    const parts = [
-      `<span>${cohort.plotted.length} of ${total} participants shown in the migration plot.</span>`
-    ];
+    const notes = [];
+    const note = (text3, warning = false) => notes.push(createElement("span", warning ? "sv-warning" : null, text3));
+    note(`${cohort.plotted.length} of ${total} participants shown in the migration plot.`);
     if (cohort.excludedNoData)
-      parts.push(
-        `<span class="sv-warning">${cohort.excludedNoData} participant${cohort.excludedNoData > 1 ? "s" : ""} excluded (missing baseline or on-treatment ALT/total bilirubin).</span>`
+      note(
+        `${cohort.excludedNoData} participant${cohort.excludedNoData > 1 ? "s" : ""} excluded (missing baseline or on-treatment ALT/total bilirubin).`,
+        true
       );
     if (cohort.armExcluded)
-      parts.push(
-        `<span class="sv-warning">${cohort.armExcluded} participant${cohort.armExcluded > 1 ? "s" : ""} excluded: arm not designated placebo or active.</span>`
+      note(
+        `${cohort.armExcluded} participant${cohort.armExcluded > 1 ? "s" : ""} excluded: arm not designated placebo or active.`,
+        true
       );
     if (host.state.hideUnchanged) {
       const hidden = summary.placebo.diagonal + summary.active.diagonal;
-      parts.push(`<span>Hide unchanged is on: ${hidden} no-migration participants hidden.</span>`);
+      note(`Hide unchanged is on: ${hidden} no-migration participants hidden.`);
     }
-    if (cohort.designation.warning)
-      parts.push(`<span class="sv-warning">${cohort.designation.warning}</span>`);
+    if (cohort.designation.warning) note(cohort.designation.warning, true);
     if (cohort.designation.placeboArm && !host.state.activeArms) {
       const pooled = cohort.arms.filter((arm) => arm !== cohort.designation.placeboArm);
       if (pooled.length > 1)
-        parts.push(
-          `<span class="sv-warning">Active side pools ${pooled.join(", ")}; use the Active arm control to compare one at a time.</span>`
+        note(
+          `Active side pools ${pooled.join(", ")}; use the Active arm control to compare one at a time.`,
+          true
         );
     }
     const sidesPresent = SIDES3.filter((side) => summary[side].total > 0);
     if (sidesPresent.length < 2)
-      parts.push(
-        '<span class="sv-warning">Only one treatment side is designated, so the plot is one-directional. Map arm_col and set placebo_arm / active_arms to compare arms.</span>'
+      note(
+        "Only one treatment side is designated, so the plot is one-directional. Map arm_col and set placebo_arm / active_arms to compare arms.",
+        true
       );
-    host.notes.innerHTML = parts.join("");
+    host.notes.replaceChildren(...notes);
   }
   function contributeControls(host, { addControl, settingsParent }) {
     const hide = addControl("Hide unchanged", document.createElement("input"), settingsParent);
@@ -25234,8 +25575,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
      */
     render(host, { carriedIds = [] } = {}) {
       host.migrationWrap.append(
-        prototypeBanner(
-          "The Migration (Sankey) view is a prototype under evaluation for the v1.5 release \u2014 its behaviour and settings may change before it is finalized."
+        experimentalBanner(
+          "The Migration (Sankey) view is experimental: it is tested and documented, but its behaviour and settings may change."
         )
       );
       const cohort = buildCohort(host);
@@ -26089,7 +26430,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       if ("unscheduled_visits" in settings)
         this.state.unscheduledVisits = this.settings.unscheduled_visits;
       if ("details" in settings) this.profileDetails = this.settings.details;
-      this.state.filters = {};
+      this.state.filters = initFilterState(this.settings.filters);
       if (this.rawData.length) this.validateAndCleanData();
       this.syncProfileRail();
       this.buildControls();
@@ -26106,7 +26447,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       try {
         checkInputs8(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed, dropped } = cleanData2(this.rawData, this.settings);
@@ -26238,18 +26579,21 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           this.render();
         };
       }
-      const filterSpecs = this.activeFilterSpecs();
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        this.activeFilterSpecs(),
+        (filter) => unique6(this.cleanRows.map((row) => row[filter.value_col])).sort()
+      );
       const showRRatio = this.settings.r_ratio_filter && view.usesRRatioFilter;
-      if (filterSpecs.length || showRRatio) {
+      if (filterControls.length || showRRatio) {
         const filterParent = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique6(this.cleanRows.map((row) => row[filter.value_col])).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -26283,7 +26627,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       clearAxisLimits(this.state.axisY);
       this.state.pointSize = "Uniform";
       this.state.visitWindow = this.settings.visit_window;
-      this.state.filters = {};
+      this.state.filters = initFilterState(this.settings.filters);
       this.state.rRatio = [...this.settings.r_ratio];
       this.state.hideUnchanged = this.settings.hide_unchanged;
       this.state.activeArms = this.settings.active_arms;
@@ -26381,6 +26725,16 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       }
       view.teardown(this);
       view.render(this, { carriedIds });
+      if (this.unscheduledRecords) {
+        const count2 = this.unscheduledRecords;
+        this.notes.append(
+          createElement(
+            "span",
+            null,
+            `${count2} record${count2 === 1 ? "" : "s"} at unscheduled visits excluded.`
+          )
+        );
+      }
     }
     /**
      * The selected participant's cleaned lab records, augmented with the derived
@@ -26635,7 +26989,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           },
           filters: {
             $ref: "#/$defs/filterList",
-            description: "Filter controls (AE-USER-018): column names or { value_col, label, type, start } specs. Type 'event' narrows the events counted; type 'participant' narrows the analysis population and its denominators. Defaults to the four ADAE event filters \u2014 seriousness, severity, relationship, outcome; filters whose column is absent or single-valued are dropped with a console warning."
+            description: "Filter controls (AE-USER-018): column names or { value_col, label, type, start, all, multiple } specs: `start` is the value the filter opens on, `all` (default true) is whether an \"All\" option is offered, and `multiple` (default false) makes it a checkbox multiselect. Type 'event' narrows the events counted; type 'participant' narrows the analysis population and its denominators. Defaults to the four ADAE event filters \u2014 seriousness, severity, relationship, outcome; filters whose column is absent or single-valued are dropped with a console warning."
           },
           details: {
             $ref: "#/$defs/fieldList",
@@ -26753,7 +27107,21 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
                 value_col: { type: "string" },
                 label: { type: "string" },
                 type: { type: "string", enum: ["event", "participant"], default: "event" },
-                start: { type: ["array", "string", "null"], default: null }
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -26810,12 +27178,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     return groups;
   }
   function passesFilters(row, specs, state, kind) {
-    return specs.every((spec) => {
-      if (spec.type !== kind) return true;
-      const value = state[spec.value_col];
-      if (value == null) return true;
-      return String(row[spec.value_col] ?? "") === String(value);
-    });
+    return specs.every(
+      (spec) => spec.type !== kind || filterMatches(row[spec.value_col] ?? "", state[spec.value_col])
+    );
   }
   function populationData(rows, settings, groups, specs, state) {
     return rows.filter(
@@ -26911,12 +27276,12 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     const diff = p1 - p2;
     const se = Math.sqrt(p1 * (1 - p1) / (tot1 || 1) + p2 * (1 - p2) / (tot2 || 1));
     const lower = diff - 1.96 * se;
-    const upper8 = diff + 1.96 * se;
+    const upper7 = diff + 1.96 * se;
     return {
       diff: diff * 100,
       lower: lower * 100,
-      upper: upper8 * 100,
-      sig: lower > 0 || upper8 < 0 ? 1 : 0
+      upper: upper7 * 100,
+      sig: lower > 0 || upper7 < 0 ? 1 : 0
     };
   }
   function addDifferences(cells, groups) {
@@ -27258,7 +27623,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       try {
         checkInputs9(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       this.cleanRows = flagPlaceholders(this.rawData, this.settings);
@@ -27340,15 +27705,16 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         }
         return true;
       });
-      this.activeFilterSpecs.forEach((spec) => {
+      reconcileFilters(this.state.filters, this.activeFilterSpecs, (spec) => {
         const source = spec.type === "participant" ? this.cleanRows : eventRows;
-        const values = [
+        return [
           ...new Set(source.map((row) => String(row[spec.value_col] ?? "")).filter(Boolean))
         ].sort();
+      }).forEach(({ spec, values, selected }) => {
         const control = renderFilterControl({
           spec,
           values,
-          selected: this.state.filters[spec.value_col],
+          selected,
           onChange: (next) => {
             this.state.filters[spec.value_col] = next;
             this.render();
@@ -27416,9 +27782,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         specs,
         this.state.filters
       );
-      const events2 = eventData(population, specs, this.state.filters);
-      const counts = groupCounts(population, events2, this.settings, groups);
-      return { groups, population, events: events2, counts };
+      const events = eventData(population, specs, this.state.filters);
+      const counts = groupCounts(population, events, this.settings, groups);
+      return { groups, population, events, counts };
     }
     /**
      * Redraw the summary table from the current data, settings, and control
@@ -27432,15 +27798,15 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
      */
     render() {
       this.closeDetail();
-      const { groups, population, events: events2, counts } = this.computeData();
+      const { groups, population, events, counts } = this.computeData();
       this.groups = groups;
       this.counts = counts;
       this.plan = columnPlan(groups.length, this.settings);
-      this.table = crossTab(events2, this.settings, groups, counts, this.state.summarizeBy);
-      this.currentEvents = events2;
+      this.table = crossTab(events, this.settings, groups, counts, this.state.summarizeBy);
+      this.currentEvents = events;
       this.tableWrap.innerHTML = "";
       const empty = emptyState(
-        { populationRows: population, eventRows: events2, allRows: this.cleanRows },
+        { populationRows: population, eventRows: events, allRows: this.cleanRows },
         this.settings
       );
       if (empty) {
@@ -28019,8 +28385,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
             description: "Confidence level for the two-sided CI on the mean change and the mean difference; the ICH-E14 metric reads the upper bound of this interval (QT-CT-005)."
           },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (QT-CTRL-003)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (QT-CTRL-003). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           }
         }
       }
@@ -28037,6 +28403,37 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -28211,6 +28608,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         __qt_value: value,
         __qt_baseline: baseline,
         __qt_change: change,
+        __qt_id: row[settings.id_col],
         __qt_arm: row[settings.arm_col],
         __qt_visit: row[settings.visit_col],
         __qt_postBaseline: !isBaseline
@@ -28270,12 +28668,16 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       if (!cells.has(visit)) continue;
       const armMap = cells.get(visit);
       const arm = String(row.__qt_arm);
-      if (!armMap.has(arm)) armMap.set(arm, []);
-      armMap.get(arm).push(row.__qt_change);
+      if (!armMap.has(arm)) armMap.set(arm, /* @__PURE__ */ new Map());
+      const readings = armMap.get(arm);
+      const id = row.__qt_id === void 0 || row.__qt_id === null ? row : String(row.__qt_id);
+      if (!readings.has(id)) readings.set(id, []);
+      readings.get(id).push(row.__qt_change);
     }
     const stat = (visit, arm) => {
-      const values = (cells.get(visit) || /* @__PURE__ */ new Map()).get(arm) || [];
-      if (!values.length) return null;
+      const readings = (cells.get(visit) || /* @__PURE__ */ new Map()).get(arm);
+      if (!readings) return null;
+      const values = [...readings.values()].map(mean7);
       const n = values.length;
       const m = mean7(values);
       const s = sd4(values);
@@ -28773,8 +29175,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
      * Return the control state to its opening value: re-seed from the settings,
      * then re-run the available-measure pin so the Correction control lands
      * where it opened rather than on a correction the data lacks (QT-CTRL-004,
-     * #136). The stale-filter prune needs no re-run — the seed's filters come
-     * straight from the configured specs. Cheap enough for a control click:
+     * #136). A configured start value the data lacks is squared with the data
+     * by the same shared reconciliation that runs on load, when buildControls
+     * rebuilds the filters (#166). Cheap enough for a control click:
      * availableMeasures is already cached, and the data is not re-cleaned.
      * @private
      */
@@ -28928,13 +29331,13 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       this.render();
       return this;
     }
-    /** Validate + clean; resolve measures, arms, placebo, visits, and prune stale state. @private */
+    /** Validate + clean; resolve measures, arms, placebo and visits. @private */
     validateAndCleanData() {
       try {
         checkInputs10(this.rawData, this.settings);
       } catch (error) {
         this.destroyCharts();
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = cleanData7(this.rawData, this.settings);
@@ -28949,24 +29352,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       const available = this.settings.measures.filter((m) => measures.includes(m));
       this.availableMeasures = available.length ? available : measures;
       this.resolveMeasure();
-      const configured = new Set(this.settings.filters.map((f) => f.value_col));
-      for (const col of Object.keys(this.state.filters)) {
-        const selection = this.state.filters[col];
-        if (!configured.has(col)) {
-          delete this.state.filters[col];
-          continue;
-        }
-        if (Array.isArray(selection)) {
-          const kept = selection.filter(
-            (value) => rows.some((row) => String(row[col]) === String(value))
-          );
-          if (kept.length) this.state.filters[col] = kept;
-          else delete this.state.filters[col];
-          continue;
-        }
-        if (!rows.some((row) => String(row[col]) === String(selection)))
-          delete this.state.filters[col];
-      }
     }
     /**
      * Render the View selector into its own section as a visible list of options
@@ -29037,16 +29422,28 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           this.render();
         };
       }
-      if (this.settings.filters.length) {
+      const filterSpecs = this.settings.filters.filter((filter) => {
+        const exists = this.cleanRows.some((row) => row[filter.value_col] !== void 0);
+        if (!exists)
+          console.warn(
+            `The [ ${filter.label} ] filter has been removed because the variable does not exist.`
+          );
+        return exists;
+      });
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique8(this.cleanRows.map((row) => row[filter.value_col])).map(String).sort()
+      );
+      if (filterControls.length) {
         const filterSection = addSection("Filters");
-        this.settings.filters.forEach((filter) => {
-          const values = unique8(this.cleanRows.map((row) => row[filter.value_col])).map(String).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -29319,7 +29716,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
     /**
      * Print the plotted central-tendency values beneath the chart (QT-CT-008):
-     * one row per visit and arm carrying the sample size, the plotted statistic,
+     * one row per visit and arm carrying the number of participants (replicate
+     * readings count once per participant and visit, #166), the plotted statistic,
      * and the two-sided CI bounds the band draws. Built from the SAME
      * centralTendencySeries result the chart consumes, so the printed numbers can
      * never disagree with the graphic — and it therefore inherits the active
@@ -29785,8 +30183,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
             description: "What the flanking box-and-whisker panels show: 'baseline_peak' gives a baseline box and a maximum-on-treatment box per arm, so the panel summarizes the same shift the bars show per participant; 'peak' gives the single-box reading (HWF-BOX-003)."
           },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls; an active filter restricts the plotted cohort and the counts in the notes (HWF-CTRL-003)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls; an active filter restricts the plotted cohort and the counts in the notes (HWF-CTRL-003). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           details: {
             $ref: "#/$defs/fieldList",
@@ -29812,6 +30210,37 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -30121,10 +30550,10 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           ctx.stroke();
           ctx.setLineDash([]);
         } else {
-          const upper8 = clamp(yOf(range.max));
+          const upper7 = clamp(yOf(range.max));
           const lower = clamp(yOf(range.min));
           ctx.fillStyle = "rgba(148, 163, 184, 0.22)";
-          ctx.fillRect(left, upper8, right - left, lower - upper8);
+          ctx.fillRect(left, upper7, right - left, lower - upper7);
         }
         ctx.fillStyle = DIVIDER_COLOR;
         ctx.font = "11px system-ui, -apple-system, sans-serif";
@@ -30541,7 +30970,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         })
       );
       applyWaterfallStyles();
-      this.main.insertBefore(prototypeBanner(), this.main.firstChild);
+      this.main.insertBefore(experimentalBanner(), this.main.firstChild);
       this.legendEl = createElement("div", "hwf-legend");
       this.main.insertBefore(this.legendEl, this.chartWrap);
       const layout = createElement("div", "hwf-layout");
@@ -30722,7 +31151,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         checkInputs11(this.rawData, this.settings);
       } catch (error) {
         this.destroyCharts();
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       const { rows, removed } = prepareData(this.rawData, this.settings);
@@ -30842,16 +31271,20 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       const filterSpecs = this.settings.filters.filter(
         (filter) => this.cleanRows.some((row) => row[filter.value_col] !== void 0)
       );
-      if (filterSpecs.length) {
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique6(this.cleanRows.map((row) => row[filter.value_col])).map(String).sort()
+      );
+      if (filterControls.length) {
         const filterSection = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique6(this.cleanRows.map((row) => row[filter.value_col])).map(String).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -31407,8 +31840,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
             }
           },
           filters: {
-            $ref: "#/$defs/fieldList",
-            description: "Optional filter columns rendered as controls (NEP-CFG-006)."
+            $ref: "#/$defs/filterList",
+            description: 'Optional filter columns rendered as controls (NEP-CFG-006). Each entry is a column name or a { value_col, label, start, all, multiple } spec: `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect.'
           },
           details: {
             oneOf: [{ $ref: "#/$defs/fieldList" }, { type: "null" }],
@@ -31436,6 +31869,37 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
               properties: {
                 value_col: { type: "string" },
                 label: { type: "string" }
+              }
+            }
+          ]
+        }
+      },
+      filterList: {
+        type: "array",
+        items: {
+          anyOf: [
+            { type: "string" },
+            {
+              type: "object",
+              required: ["value_col"],
+              properties: {
+                value_col: { type: "string" },
+                label: { type: "string" },
+                start: {
+                  type: ["string", "number", "boolean", "array", "null"],
+                  default: null,
+                  description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                },
+                all: {
+                  type: "boolean",
+                  default: true,
+                  description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                },
+                multiple: {
+                  type: "boolean",
+                  default: false,
+                  description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                }
               }
             }
           ]
@@ -32011,7 +32475,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       try {
         checkInputs12(this.rawData, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       this.hasMeasure = hasCreatinine(this.rawData, this.settings);
@@ -32045,16 +32509,20 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           );
         return exists;
       });
-      if (filterSpecs.length) {
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique9(this.allPoints.map((point) => point.meta[filter.value_col])).sort()
+      );
+      if (filterControls.length) {
         const filterParent = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique9(this.allPoints.map((point) => point.meta[filter.value_col])).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -32270,8 +32738,23 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       const rows = summary.rows.map(
         (row) => `<tr><th scope="row">${stageLabel(row.stage)}</th>` + cell2(row.fold) + cell2(row.delta) + cell2(row.combined) + "</tr>"
       ).join("");
-      const suppressed = this.unitsResolved ? "" : `<p class="nep-summary-note sv-warning">Absolute-change staging is suppressed: the unit "${this.nativeUnit}" is not recognized.</p>`;
-      this.listingWrap.innerHTML = `<h3 class="nep-summary-title">KDIGO stage summary (n = ${summary.total})</h3><div class="nep-table-scroll"><table class="nep-summary"><thead><tr><th rowspan="2" scope="col">Stage</th><th colspan="2" scope="colgroup">Fold change</th><th colspan="2" scope="colgroup">Absolute change (${unit})</th><th colspan="2" scope="colgroup">KDIGO stage</th></tr><tr><th scope="col">N</th><th scope="col">%</th><th scope="col">N</th><th scope="col">%</th><th scope="col">N</th><th scope="col">%</th></tr></thead><tbody>${rows}</tbody></table></div><p class="nep-summary-note">The first two column pairs are separate marginal distributions, not a cross-tabulation; the third is the combined stage the zones show \u2014 the worse of the two axes, raised to Stage 3 for any participant whose maximum reached ${formatNumber7(this.settings.stages.absolute)} ${this.settings.units.target}. KDIGO defines no Stage 2 or Stage 3 on absolute change, so those cells are marked \u2014.</p>` + suppressed;
+      this.listingWrap.innerHTML = `<h3 class="nep-summary-title">KDIGO stage summary (n = ${summary.total})</h3><div class="nep-table-scroll"><table class="nep-summary"><thead><tr><th rowspan="2" scope="col">Stage</th><th colspan="2" scope="colgroup">Fold change</th><th colspan="2" scope="colgroup" class="nep-absolute-heading"></th><th colspan="2" scope="colgroup">KDIGO stage</th></tr><tr><th scope="col">N</th><th scope="col">%</th><th scope="col">N</th><th scope="col">%</th><th scope="col">N</th><th scope="col">%</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      this.listingWrap.querySelector(".nep-absolute-heading").textContent = `Absolute change (${unit})`;
+      this.listingWrap.append(
+        createElement(
+          "p",
+          "nep-summary-note",
+          `The first two column pairs are separate marginal distributions, not a cross-tabulation; the third is the combined stage the zones show \u2014 the worse of the two axes, raised to Stage 3 for any participant whose maximum reached ${formatNumber7(this.settings.stages.absolute)} ${this.settings.units.target}. KDIGO defines no Stage 2 or Stage 3 on absolute change, so those cells are marked \u2014.`
+        )
+      );
+      if (!this.unitsResolved)
+        this.listingWrap.append(
+          createElement(
+            "p",
+            "nep-summary-note sv-warning",
+            `Absolute-change staging is suppressed: the unit "${this.nativeUnit}" is not recognized.`
+          )
+        );
     }
     /**
      * Select a scatter point: highlight it, note the participant, and dispatch
@@ -32490,12 +32973,27 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
                   required: ["value_col"],
                   properties: {
                     value_col: { type: "string" },
-                    label: { type: "string" }
+                    label: { type: "string" },
+                    start: {
+                      type: ["string", "number", "boolean", "array", "null"],
+                      default: null,
+                      description: "The value the filter opens on; an array of values for a `multiple` filter. 0 and false are real values, not an absent start. A value the data lacks is dropped with a console warning."
+                    },
+                    all: {
+                      type: "boolean",
+                      default: true,
+                      description: 'Whether the filter offers an "All" option. false removes it, and the filter then always holds one value: the first, unless `start` names another.'
+                    },
+                    multiple: {
+                      type: "boolean",
+                      default: false,
+                      description: "Render a checkbox multiselect instead of a dropdown; the rows shown are those matching any selected value."
+                    }
                   }
                 }
               ]
             },
-            description: "Single-select filter controls over the population rows: column names or { value_col, label } specs. A filter whose column is absent from the population is dropped with a console warning."
+            description: 'Filter controls over the population rows: column names or { value_col, label, start, all, multiple } specs \u2014 `start` is the value the filter opens on, `all` (default true) is whether an "All" option is offered, and `multiple` (default false) makes it a checkbox multiselect. A filter whose column is absent from the population is dropped with a console warning.'
           },
           direction: {
             type: "string",
@@ -32635,18 +33133,18 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
   function unique10(values) {
     return [...new Set(values)];
   }
-  function applyEventFilters(events2, filters) {
+  function applyEventFilters(events, filters) {
     const active = Object.entries(filters || {}).filter(([, values]) => values != null);
-    if (!active.length) return events2;
+    if (!active.length) return events;
     const sets = active.map(([column, values]) => [column, new Set(values.map(String))]);
-    return events2.filter((row) => sets.every(([column, set2]) => set2.has(String(row[column]))));
+    return events.filter((row) => sets.every(([column, set2]) => set2.has(String(row[column]))));
   }
   function applyFilters10(rows, filters) {
     const active = Object.entries(filters || {}).filter(([, value]) => value != null);
     if (!active.length) return rows;
     return rows.filter((row) => active.every(([column, value]) => filterMatches(row[column], value)));
   }
-  function deriveObservations(events2, population, settings) {
+  function deriveObservations(events, population, settings) {
     const droppedEvents = [];
     const droppedPopulation = [];
     const dropEvent = (row, reason) => droppedEvents.push({ ...row, [DROP_REASON_COLUMN2]: reason });
@@ -32665,7 +33163,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       }
       participants.set(key, { row, first: null });
     }
-    for (const row of events2) {
+    for (const row of events) {
       const id = String(row[settings.id_col] ?? "");
       const entry = participants.get(id);
       if (!entry) {
@@ -32720,9 +33218,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
     return { observations, droppedEvents, droppedPopulation };
   }
-  function structureData2(events2, population, settings) {
+  function structureData2(events, population, settings) {
     const { observations, droppedEvents, droppedPopulation } = deriveObservations(
-      Array.isArray(events2) ? events2 : [],
+      Array.isArray(events) ? events : [],
       Array.isArray(population) ? population : [],
       settings
     );
@@ -33050,7 +33548,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       try {
         checkInputs13(data, this.settings);
       } catch (error) {
-        this.element.innerHTML = `<div class="sv-warning">${error.message}</div>`;
+        this.element.replaceChildren(createElement("div", "sv-warning", error.message));
         throw error;
       }
       this.rawEvents = data.events;
@@ -33124,18 +33622,20 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           );
         return exists;
       });
-      if (filterSpecs.length) {
+      const filterControls = reconcileFilters(
+        this.state.filters,
+        filterSpecs,
+        (filter) => unique10(this.rawPopulation.map((row) => row[filter.value_col]).filter((v) => v !== void 0)).map(String).sort()
+      );
+      if (filterControls.length) {
         const filterParent = addSection("Filters");
-        filterSpecs.forEach((filter) => {
-          const values = unique10(
-            this.rawPopulation.map((row) => row[filter.value_col]).filter((v) => v !== void 0)
-          ).map(String).sort();
+        filterControls.forEach(({ spec: filter, values, selected }) => {
           addControl(
             filter.label,
             renderFilterControl({
               spec: filter,
               values,
-              selected: this.state.filters[filter.value_col],
+              selected,
               onChange: (next) => {
                 this.state.filters[filter.value_col] = next;
                 this.render();
@@ -33225,7 +33725,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     updateNotes() {
       this.notes.innerHTML = "";
       const { groups, total, droppedEvents, droppedPopulation } = this.structured;
-      const events2 = groups.reduce(
+      const events = groups.reduce(
         (sum, group) => sum + group.estimate.points.reduce((s, p) => s + p.events, 0),
         0
       );
@@ -33233,7 +33733,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         createElement(
           "span",
           null,
-          `${this.settings.endpoint_label}: ${total} participant${total === 1 ? "" : "s"} in ${groups.length} group${groups.length === 1 ? "" : "s"}; ${events2} event${events2 === 1 ? "" : "s"}, ${total - events2} censored.`
+          `${this.settings.endpoint_label}: ${total} participant${total === 1 ? "" : "s"} in ${groups.length} group${groups.length === 1 ? "" : "s"}; ${events} event${events === 1 ? "" : "s"}, ${total - events} censored.`
         )
       );
       this.notes.append(createElement("span", null, this.filterSummary()));
@@ -33622,8 +34122,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     on_select_subject: null,
     on_anchor_event: null,
     on_context_change: null,
-    narratives: null,
-    on_narrative_action: null,
     // ---- layout ----
     row_height: 26,
     row_height_min: 18,
@@ -33642,7 +34140,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     onSelectSubject: "on_select_subject",
     onAnchorEvent: "on_anchor_event",
     onContextChange: "on_context_change",
-    onNarrativeAction: "on_narrative_action",
     labTests: "lb_tests",
     idCol: "id_col",
     domainCol: "domain_col",
@@ -33698,20 +34195,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     "max_rows_per_lane",
     "page_size"
   ];
-  var NARRATIVE_SLOT_NAMES = [
-    "subjectSummary",
-    "eventContext",
-    "labTrajectory",
-    "doseJourney",
-    "disposition"
-  ];
-  var CALLBACKS = [
-    "on_select_subject",
-    "on_anchor_event",
-    "on_context_change",
-    "on_narrative_action"
-  ];
-  var NARRATIVE_SLOTS = NARRATIVE_SLOT_NAMES;
+  var CALLBACKS = ["on_select_subject", "on_anchor_event", "on_context_change"];
   var warn = (message) => console.warn(`patient-journey-explorer: ${message}`);
   var isObject2 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
   var stringList = (value) => arrayify(value).map(String);
@@ -33856,14 +34340,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       return { ...normalizeFilterSpec(rest), domain };
     }).filter(Boolean);
   }
-  function syncNarratives(value) {
-    if (!isObject2(value)) return null;
-    const slots = {};
-    for (const name of NARRATIVE_SLOTS) {
-      if (typeof value[name] === "function") slots[name] = value[name];
-    }
-    return Object.keys(slots).length ? slots : null;
-  }
   function syncSettings14(settings) {
     const raw = isObject2(settings) ? settings : {};
     const aliased = applyTopLevelAliases(raw);
@@ -33885,7 +34361,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     const baselineDay = Number(synced.lb_baseline_day);
     synced.lb_baseline_day = Number.isFinite(baselineDay) ? Math.trunc(baselineDay) : DEFAULT_SETTINGS14.lb_baseline_day;
     for (const key of CALLBACKS) synced[key] = typeof synced[key] === "function" ? synced[key] : null;
-    synced.narratives = syncNarratives(synced.narratives);
     for (const key of POSITIVE_INTS) synced[key] = positiveInt(synced[key], DEFAULT_SETTINGS14[key]);
     synced.fit_to_height = Boolean(synced.fit_to_height);
     for (const key of UPPER_LISTS) {
@@ -34470,17 +34945,17 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     if (!ref || elapsed === null) return null;
     return addDays(ref, elapsed);
   }
-  function referenceDate(events2, settings) {
-    if (!Array.isArray(events2)) return null;
+  function referenceDate(events, settings) {
+    if (!Array.isArray(events)) return null;
     const refCol = settings?.time?.ref_date_col;
     if (refCol) {
-      for (const event of events2) {
+      for (const event of events) {
         const cell2 = event?.source?.[refCol];
         if (isFullDate(cell2)) return { date: datePart(cell2), rule: "ref_col" };
       }
     }
     let earliest = null;
-    for (const event of events2) {
+    for (const event of events) {
       if (!event || event.placeable === false || !Number.isFinite(event.day)) continue;
       if (!isFullDate(event.rawDate)) continue;
       if (!earliest || event.day < earliest.day) earliest = event;
@@ -34894,10 +35369,10 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
   }
   function normalizeDomain3(rows, domain, settings) {
-    const events2 = [];
+    const events = [];
     const dropped = [];
     const flagged = [];
-    if (!DOMAINS.includes(domain) || !Array.isArray(rows)) return { events: events2, dropped, flagged };
+    if (!DOMAINS.includes(domain) || !Array.isArray(rows)) return { events, dropped, flagged };
     const lane = LANE_BY_DOMAIN[domain];
     const refCol = settings?.time?.ref_date_col;
     rows.forEach((row, index) => {
@@ -34960,9 +35435,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         sourceAnchorId: `pje-src-${domain}-${index}`
       };
       if (flag) flagged.push(droppedCopy(row, flag, domain));
-      events2.push(resolveEventDate(record, record.refDate));
+      events.push(resolveEventDate(record, record.refDate));
     });
-    return { events: events2, dropped, flagged };
+    return { events, dropped, flagged };
   }
 
   // src/patient-journey-explorer/checkInputs.js
@@ -35083,10 +35558,10 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     return tests.includes(upper2(event.test)) || tests.includes(upper2(event.testCode));
   }
   function labTestOrder(labEvents, settings) {
-    const events2 = arrayify(labEvents).filter((event) => event && typeof event === "object");
+    const events = arrayify(labEvents).filter((event) => event && typeof event === "object");
     const configured = arrayify(settings?.lb_tests).map(String).filter(Boolean);
     const seen = [];
-    for (const event of events2) {
+    for (const event of events) {
       const test = event.test ?? "";
       if (test && !seen.includes(test)) seen.push(test);
     }
@@ -35095,13 +35570,13 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     const missing = [];
     for (const entry of configured) {
       const key = upper2(entry);
-      const match = events2.find(
+      const match = events.find(
         (event) => upper2(event.test) === key || upper2(event.testCode) === key
       );
       if (match && match.test && !tests.includes(match.test)) tests.push(match.test);
       else if (!match) missing.push(entry);
     }
-    if (!tests.length && events2.length) {
+    if (!tests.length && events.length) {
       console.warn(
         `patient-journey-explorer: lb_tests (${configured.join(", ")}) matched no lab test name or code; the labs lane is empty.`
       );
@@ -35117,13 +35592,13 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     return [lo - pad, hi + pad];
   }
   function buildLabSeries(labEvents, domain, settings, { baselineEvents } = {}) {
-    const events2 = arrayify(labEvents).filter((event) => event && typeof event === "object");
-    if (!events2.length) return [];
-    const baselinePool = Array.isArray(baselineEvents) ? baselineEvents : events2;
-    const { tests } = labTestOrder(events2, settings);
+    const events = arrayify(labEvents).filter((event) => event && typeof event === "object");
+    if (!events.length) return [];
+    const baselinePool = Array.isArray(baselineEvents) ? baselineEvents : events;
+    const { tests } = labTestOrder(events, settings);
     const shared = Array.isArray(domain) && domain.length === 2 && domain.every(finite) ? [...domain] : null;
     return tests.map((test) => {
-      const own = events2.filter((event) => event.test === test);
+      const own = events.filter((event) => event.test === test);
       const points = own.filter((event) => event.placeable !== false && finite(event.day) && finite(event.value)).map((event) => ({
         day: event.day,
         elapsed: toElapsed(event.day),
@@ -35273,18 +35748,18 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     if (event.domain === "CM") return true;
     return event.domain === "MH" && settings?.mh_day_source === "onset";
   }
-  function sharedDomain(events2, settings) {
-    const extent = elapsedExtent(events2, settings);
+  function sharedDomain(events, settings) {
+    const extent = elapsedExtent(events, settings);
     if (!extent) return null;
     const [min, max] = extent;
     return [min, max + 1];
   }
-  function recordExtent(events2, settings) {
-    const extent = elapsedExtent(events2, settings);
+  function recordExtent(events, settings) {
+    const extent = elapsedExtent(events, settings);
     return extent ? [toStudyDay(extent[0]), toStudyDay(extent[1])] : null;
   }
-  function elapsedExtent(events2, settings) {
-    const placeable = arrayify(events2).filter(
+  function elapsedExtent(events, settings) {
+    const placeable = arrayify(events).filter(
       (event) => event && typeof event === "object" && event.placeable !== false
     );
     const daysOf = (event) => {
@@ -35313,13 +35788,13 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
     return filterMatches(cell2, selection);
   }
-  function applyFilters11(events2, filterState, settings, specs) {
+  function applyFilters11(events, filterState, settings, specs) {
     const state = filterState && typeof filterState === "object" ? filterState : {};
     const active = arrayify(specs ?? settings?.filters).filter((spec) => {
       const selection = state[spec.value_col];
       return selection !== null && selection !== void 0 && selection !== "";
     });
-    const source = arrayify(events2);
+    const source = arrayify(events);
     if (!active.length) return [...source];
     return source.filter(
       (event) => active.every(
@@ -35341,7 +35816,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       return exists;
     });
   }
-  function laneSortKey(laneKey, settings, events2) {
+  function laneSortKey(laneKey, settings, events) {
     const byIndex = (a, b) => (a.sourceIndex ?? 0) - (b.sourceIndex ?? 0);
     switch (laneKey) {
       case "exposure":
@@ -35353,7 +35828,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           return rb - ra || nullsLast(dayOrNull(a), dayOrNull(b)) || byIndex(a, b);
         };
       case "labs": {
-        const order = labTestOrder(arrayify(events2), settings).tests;
+        const order = labTestOrder(arrayify(events), settings).tests;
         const configured = arrayify(settings?.lb_tests).map(upper3);
         const rank = (event) => {
           const named = order.indexOf(event.test);
@@ -35377,14 +35852,14 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
   }
   function normalizeAll(domains, settings) {
-    let events2 = [];
+    let events = [];
     const dropped = [];
     const flagged = [];
     const droppedCounts = { total: 0, byDomain: emptyByDomain(), byReason: {} };
     const flaggedCounts = { total: 0, endBeforeStart: 0, dateConflict: 0, byReason: {} };
     for (const domain of DOMAINS) {
       const result = normalizeDomain3(arrayify(domains?.[domain]), domain, settings);
-      events2 = events2.concat(result.events);
+      events = events.concat(result.events);
       for (const row of result.dropped) {
         dropped.push(row);
         droppedCounts.total += 1;
@@ -35398,7 +35873,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       }
     }
     const bySubject = /* @__PURE__ */ new Map();
-    for (const event of events2) {
+    for (const event of events) {
       if (!bySubject.has(event.subject)) bySubject.set(event.subject, []);
       bySubject.get(event.subject).push(event);
     }
@@ -35520,7 +35995,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       baselineEvents: configuredLabs
     });
     const labTestsMissing = allLabs.length ? labTestOrder(allLabs, settings).missing : [];
-    const events2 = filtered.filter((event) => enabled(event.lane)).sort(
+    const events = filtered.filter((event) => enabled(event.lane)).sort(
       (a, b) => LANE_KEYS.indexOf(a.lane) - LANE_KEYS.indexOf(b.lane) || nullsLast(dayOrNull(a), dayOrNull(b)) || (a.sourceIndex ?? 0) - (b.sourceIndex ?? 0)
     );
     const unplaceableCounts = { byDomain: emptyByDomain(), byLane: emptyByLane() };
@@ -35538,7 +36013,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       subject,
       mode: state?.mode === "date" ? "date" : "day",
       refDate,
-      events: events2,
+      events,
       allEvents,
       byLane,
       lanes,
@@ -35618,11 +36093,11 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
   }
   function conMedsActiveAt(cmEvents, day2, settings) {
     const dayE = toElapsed(day2);
-    const events2 = list(cmEvents);
+    const events = list(cmEvents);
     if (dayE === null) return { active: [], withoutStart: 0, endUnrecorded: 0 };
     let withoutStart = 0;
     const active = [];
-    for (const event of events2) {
+    for (const event of events) {
       const startE = event.placeable === false ? null : toElapsed(event.start);
       if (startE === null) {
         withoutStart += 1;
@@ -35643,9 +36118,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }).sort(byStartThenLabel);
   }
   function abnormalLabsInWindow(labEvents, bounds, settings, { baselineEvents } = {}) {
-    const events2 = list(labEvents);
-    if (!usableBounds(bounds) || !events2.length) return [];
-    const pool = Array.isArray(baselineEvents) ? list(baselineEvents) : events2;
+    const events = list(labEvents);
+    if (!usableBounds(bounds) || !events.length) return [];
+    const pool = Array.isArray(baselineEvents) ? list(baselineEvents) : events;
     const baselines = /* @__PURE__ */ new Map();
     const baselineFor = (test) => {
       if (!baselines.has(test)) {
@@ -35659,7 +36134,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       }
       return baselines.get(test);
     };
-    return events2.filter((event) => inWindow(event, bounds, settings)).map((event) => {
+    return events.filter((event) => inWindow(event, bounds, settings)).map((event) => {
       const flag = isAbnormalByFlag(event, settings);
       const change = isAbnormalByChange(event, baselineFor(event.test), settings);
       if (!flag && !change) return null;
@@ -36200,8 +36675,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     }
     return dataset;
   }
-  function buildLaneDatasets(lane, events2, { domain, settings, theme, bounds } = {}) {
-    const drawable = (Array.isArray(events2) ? events2 : []).filter(
+  function buildLaneDatasets(lane, events, { domain, settings, theme, bounds } = {}) {
+    const drawable = (Array.isArray(events) ? events : []).filter(
       (event) => isEvent(event) && event.placeable !== false
     );
     if (!drawable.length) return [];
@@ -36421,59 +36896,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     if (typeof document === "undefined" || document.getElementById(STYLE_ID5)) return;
     const style = document.createElement("style");
     style.id = STYLE_ID5;
-    style.textContent = moduleCss() + narrativeCss();
+    style.textContent = moduleCss();
     document.head.append(style);
-  }
-  function narrativeCss() {
-    return `
-/* --- the AI narrative cards (#146, PJE-NARR-009 \u2026 014) --------------------- */
-.sv-pje-root{--pje-ai-bg:#e8f3fc;--pje-ai-border:#9fc7ea;--pje-ai-ink:#0f3a5f;--pje-ai-chip:#d4e8f9;--pje-ai-chip-ink:#0f3a5f;--pje-ai-accepted:#d7f0dd;--pje-ai-accepted-ink:#1b5e33}
-:root[data-theme=dark] .sv-pje-root{--pje-ai-bg:#12283a;--pje-ai-border:#2f5d84;--pje-ai-ink:#d8ecff;--pje-ai-chip:#1d3d5a;--pje-ai-chip-ink:#d8ecff;--pje-ai-accepted:#1c3f2a;--pje-ai-accepted-ink:#bfe8cc}
-.sv-pje-ai{box-sizing:border-box;margin:0 0 .6rem;padding:.55rem .75rem .6rem;border:1px solid var(--pje-ai-border);border-left:5px solid var(--pje-ai-border);border-radius:8px;background:var(--pje-ai-bg);color:var(--pje-ai-ink);font-size:.82rem;line-height:1.45}
-.sv-pje-ai.is-stale .sv-pje-ai-summary,.sv-pje-ai.is-stale .sv-pje-ai-sentence{color:var(--pje-ink-secondary);opacity:.72}
-.sv-pje-ai.is-loading{opacity:.85}
-.sv-pje-ai-head{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .55rem;margin:0 0 .3rem}
-.sv-pje-ai-label{display:inline-block;padding:.1rem .45rem;border-radius:999px;background:var(--pje-ai-ink);color:var(--pje-ai-bg);font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-.sv-pje-ai-title{font-weight:700;font-size:.86rem}
-.sv-pje-ai-chip{display:inline-block;padding:.05rem .4rem;border-radius:999px;background:var(--pje-ai-chip);color:var(--pje-ai-chip-ink);border:1px solid var(--pje-ai-border);font-size:.66rem;font-weight:600;white-space:nowrap;vertical-align:middle}
-.sv-pje-ai-chip.is-accepted{background:var(--pje-ai-accepted);color:var(--pje-ai-accepted-ink);border-color:var(--pje-ai-accepted-ink)}
-.sv-pje-ai-toggle{margin-left:auto;border:1px solid var(--pje-ai-border);background:var(--pje-surface);color:var(--pje-ai-ink);border-radius:6px;font:inherit;font-size:.74rem;padding:.2rem .5rem;cursor:pointer}
-.sv-pje-ai-toggle:hover{border-color:var(--pje-ai-ink)}
-.sv-pje-ai-toggle:focus-visible,.sv-pje-ai-cite:focus-visible,.sv-pje-ai-action:focus-visible,.sv-pje-ai-request-btn:focus-visible{outline:2px solid var(--pje-focus-ring);outline-offset:1px}
-.sv-pje-ai-summary{margin:0;font-size:.84rem}
-.sv-pje-ai-summary.is-pending{font-style:italic;color:var(--pje-ink-secondary)}
-.sv-pje-ai-summary.is-refused{font-style:italic}
-.sv-pje-ai-body{margin:.45rem 0 0;padding-top:.45rem;border-top:1px dashed var(--pje-ai-border)}
-.sv-pje-ai-body[hidden]{display:none}
-.sv-pje-ai-sentence{margin:0 0 .4rem}
-.sv-pje-ai-sentence .sv-pje-ai-chip{margin-right:.15rem}
-.sv-pje-ai-cites{display:inline-flex;flex-wrap:wrap;gap:.2rem;vertical-align:middle}
-.sv-pje-ai-cite{border:1px solid var(--pje-ai-border);background:var(--pje-surface);color:var(--pje-ai-ink);border-radius:4px;font:inherit;font-size:.68rem;padding:.02rem .35rem;cursor:pointer;max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sv-pje-ai-cite:hover{border-color:var(--pje-ai-ink);background:var(--pje-ai-chip)}
-.sv-pje-ai-cite.is-off-timeline{border-style:dashed}
-.sv-pje-ai-conf{margin-left:.35rem;font-size:.66rem;color:var(--pje-ink-secondary)}
-.sv-pje-ai-stale{margin:0 0 .4rem;padding:.3rem .5rem;border-radius:6px;background:var(--pje-surface);border:1px solid var(--pje-warning);color:var(--pje-warning);font-size:.76rem;opacity:1}
-.sv-pje-ai-flags{margin:.2rem 0 .3rem;display:flex;flex-wrap:wrap;gap:.25rem}
-.sv-pje-ai-flag{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.66rem;padding:.02rem .35rem;border-radius:4px;background:var(--pje-surface);border:1px solid var(--pje-ai-border)}
-.sv-pje-ai-actions{display:flex;flex-wrap:wrap;gap:.3rem;margin:.35rem 0 .25rem}
-.sv-pje-ai-action.is-accept{border-color:var(--pje-ai-accepted-ink)}
-.sv-pje-ai-prov{margin:.2rem 0 0;font-size:.66rem;color:var(--pje-ink-secondary);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.sv-pje-ai-foot{margin:.25rem 0 0;font-size:.7rem;color:var(--pje-ink-secondary)}
-.sv-pje-ai-edit-row{display:block;margin:0 0 .4rem}
-.sv-pje-ai-textarea{display:block;width:100%;box-sizing:border-box;margin:.15rem 0 0;font:inherit;font-size:.8rem;padding:.3rem .4rem;border:1px solid var(--pje-ai-border);border-radius:6px;background:var(--pje-surface);color:var(--pje-ink-primary)}
-.sv-pje-ai-tray{margin:.55rem 0 0}
-.sv-pje-ai-tray:empty{display:none}
-.sv-pje-ai-tray-head{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .5rem;margin:0 0 .5rem;padding:.4rem .6rem;border:1px dashed var(--pje-ai-border);border-radius:8px;color:var(--pje-ai-ink);font-size:.78rem}
-.sv-pje-ai-tray-hint{color:var(--pje-ink-secondary)}
-.sv-pje-ai-request-btn{font-size:.74rem;padding:.15rem .5rem;border-color:var(--pje-ai-border);color:var(--pje-ai-ink)}
-.sv-pje-ai-request-btn:hover{border-color:var(--pje-ai-ink);background:var(--pje-ai-chip)}
-.sv-pje-narrative-banner:empty{display:none}
-.sv-pje-panel-body>.sv-pje-ai{margin-bottom:.8rem}
-/* a cited mark, lit from a citation chip (PJE-NARR-011) */
-.sv-pje-mark.is-cited{outline:3px solid var(--pje-ai-ink);outline-offset:2px;box-shadow:0 0 0 3px var(--pje-ai-bg),0 0 0 6px var(--pje-ai-border);z-index:3}
-@media (prefers-reduced-motion:no-preference){.sv-pje-mark.is-cited{animation:sv-pje-cite-pulse 1.2s ease-out 2}}
-@keyframes sv-pje-cite-pulse{0%{box-shadow:0 0 0 3px var(--pje-ai-bg),0 0 0 6px var(--pje-ai-border)}50%{box-shadow:0 0 0 5px var(--pje-ai-bg),0 0 0 10px var(--pje-ai-border)}100%{box-shadow:0 0 0 3px var(--pje-ai-bg),0 0 0 6px var(--pje-ai-border)}}
-`;
   }
 
   // src/patient-journey-explorer/draw.js
@@ -37378,8 +37802,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     wrap.append(input, document.createTextNode(label || spec.label));
     return wrap;
   }
-  function laneDatasets(laneKey, events2, context) {
-    const datasets = buildLaneDatasets(laneKey, events2, context);
+  function laneDatasets(laneKey, events, context) {
+    const datasets = buildLaneDatasets(laneKey, events, context);
     if (!BAR_LANES2.includes(laneKey)) return datasets;
     for (const dataset of datasets) {
       for (const point of dataset.data) {
@@ -38204,3674 +38628,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     };
   }
 
-  // src/patientJourneyNarratives/kinds.js
-  var NARRATIVE_KINDS = {
-    "subject-summary": "subjectSummary",
-    "event-context": "eventContext",
-    "lab-trajectory": "labTrajectory",
-    "dose-journey": "doseJourney",
-    disposition: "disposition"
-  };
-  var SLUG_BY_SLOT = Object.fromEntries(
-    Object.entries(NARRATIVE_KINDS).map(([slug, slot]) => [slot, slug])
-  );
-  var REFUSAL_TEXT = {
-    "insufficient-data": "Not enough recorded data to draft a narrative.",
-    "anchor-not-found": "The anchored event could not be found in the record.",
-    "ambiguous-scope": "The request matched more than one record; narrow it.",
-    "disallowed-claim": "A narrative here would need a claim this tool does not make.",
-    validation: "The draft did not pass validation and was withheld.",
-    "provider-error": "The narrative service did not answer.",
-    "provider-refusal": "The narrative service declined this request.",
-    reidentification: "This tool does not describe the person, only the record.",
-    cancelled: ""
-  };
-  function refusalReason(draft) {
-    const flag = (draft?.flags || []).find((entry) => String(entry).startsWith("refused:"));
-    return flag ? String(flag).slice("refused:".length) : null;
-  }
-
-  // src/patient-journey-explorer/narratives.js
-  var CARD_LABEL = "AI narrative";
-  var DRAFT_CHIP = "Draft \u2014 AI generated";
-  var ACCEPTED_CHIP = "Accepted";
-  var STALE_NOTICE = "The rows under this narrative changed since it was drafted; regenerate before relying on it.";
-  var CARD_CAUTION = "An AI draft from the recorded rows, not a clinical assessment. Co-occurrence is not causation.";
-  var TITLES = {
-    "subject-summary": "Participant summary",
-    "event-context": "Event context",
-    "lab-trajectory": "Lab trajectory",
-    "dose-journey": "Dose journey",
-    disposition: "Disposition"
-  };
-  function cardTitle(entry) {
-    const base = TITLES[entry.kind] || entry.kind;
-    if (entry.kind === "event-context" && entry.label) return `${base}: ${entry.label}`;
-    if (entry.kind === "lab-trajectory" && entry.label) return `${base}: ${entry.label}`;
-    return base;
-  }
-  function chipText(draft) {
-    if (draft.status === "accepted") return ACCEPTED_CHIP;
-    if (draft.status === "edited") return "Draft \u2014 edited";
-    if (draft.status === "rejected") return "Rejected";
-    return DRAFT_CHIP;
-  }
-  function citationChip(rowId, describe, onCite) {
-    const info = describe ? describe(rowId) : null;
-    const button = createElement("button", "sv-pje-ai-cite", info && info.label ? info.label : rowId);
-    button.type = "button";
-    button.dataset.rowId = rowId;
-    if (info && info.onTimeline === false) button.classList.add("is-off-timeline");
-    button.title = `${rowId}${info && info.label ? ` \u2014 ${info.label}` : ""}. ` + (info && info.onTimeline === false ? "Not on the timeline right now; click to open its source record." : "Click to light this mark on the timeline; Shift+click to open its source record.");
-    button.setAttribute(
-      "aria-label",
-      `Citation ${rowId}${info && info.label ? `, ${info.label}` : ""}`
-    );
-    button.onclick = (event) => onCite(rowId, { jump: Boolean(event.shiftKey) });
-    return button;
-  }
-  function sentenceBlock(sentence2, draft, index, { describe, onCite }) {
-    const p = createElement("p", "sv-pje-ai-sentence");
-    p.dataset.index = String(index);
-    p.dataset.confidence = sentence2.confidence || "";
-    const chip = createElement("span", "sv-pje-ai-chip", chipText(draft));
-    chip.classList.toggle("is-accepted", draft.status === "accepted");
-    p.append(chip, document.createTextNode(` ${sentence2.text} `));
-    const cites = createElement("span", "sv-pje-ai-cites");
-    cites.setAttribute("aria-label", "Citations");
-    for (const rowId of sentence2.citations || []) cites.append(citationChip(rowId, describe, onCite));
-    p.append(cites);
-    if (sentence2.confidence) {
-      const conf = createElement("span", "sv-pje-ai-conf", `confidence ${sentence2.confidence}`);
-      p.append(conf);
-    }
-    return p;
-  }
-  function provenanceLine(draft) {
-    const prov = draft.provenance || {};
-    const parts = [];
-    if (prov.model) parts.push(prov.model);
-    if (prov.skill) parts.push(prov.skill);
-    if (prov.generated_at) parts.push(prov.generated_at.replace("T", " ").replace(/\.\d+Z$/, "Z"));
-    if (Array.isArray(prov.tool_calls)) parts.push(`${prov.tool_calls.length} tool calls`);
-    if (prov.input_hash) parts.push(prov.input_hash.slice(0, 19));
-    const line = createElement("p", "sv-pje-ai-prov", parts.join(" \xB7 "));
-    if (prov.input_hash) line.title = prov.input_hash;
-    return line;
-  }
-  function renderNarrativeCard(entry, handlers) {
-    const { describe, onCite, onAction, onToggle } = handlers;
-    const card = createElement("section", "sv-pje-ai");
-    card.dataset.kind = entry.kind;
-    card.dataset.status = entry.status;
-    if (entry.key) card.dataset.key = entry.key;
-    card.setAttribute("role", "region");
-    card.setAttribute("aria-label", `${CARD_LABEL}: ${cardTitle(entry)}`);
-    card.classList.toggle("is-stale", Boolean(entry.stale));
-    card.classList.toggle("is-loading", entry.status === "loading");
-    card.classList.toggle("is-collapsed", Boolean(entry.collapsible && !entry.expanded));
-    const head = createElement("div", "sv-pje-ai-head");
-    head.append(
-      createElement("span", "sv-pje-ai-label", CARD_LABEL),
-      createElement("span", "sv-pje-ai-title", cardTitle(entry))
-    );
-    const draft = entry.draft;
-    if (draft && draft.status === "accepted") {
-      head.append(createElement("span", "sv-pje-ai-chip is-accepted", ACCEPTED_CHIP));
-    } else if (entry.status === "ready") {
-      head.append(createElement("span", "sv-pje-ai-chip", DRAFT_CHIP));
-    }
-    let toggle = null;
-    if (entry.collapsible && entry.status === "ready") {
-      toggle = createElement(
-        "button",
-        "sv-pje-ai-toggle",
-        entry.expanded ? "Hide full narrative" : "Show full narrative"
-      );
-      toggle.type = "button";
-      toggle.setAttribute("aria-expanded", String(Boolean(entry.expanded)));
-      toggle.setAttribute("data-sv-focus", `ai-toggle-${entry.slot}`);
-      toggle.onclick = () => onToggle(entry, !entry.expanded);
-      head.append(toggle);
-    }
-    card.append(head);
-    if (entry.status === "loading") {
-      card.setAttribute("aria-busy", "true");
-      card.append(
-        createElement("p", "sv-pje-ai-summary is-pending", "Drafting from the recorded rows\u2026")
-      );
-      return card;
-    }
-    if (entry.status === "error" || !draft) {
-      card.append(
-        createElement(
-          "p",
-          "sv-pje-ai-summary is-refused",
-          entry.error || "The narrative could not be drafted."
-        )
-      );
-      const actions = createElement("div", "sv-pje-ai-actions");
-      actions.append(actionButton("regenerate", "Regenerate", entry, onAction));
-      card.append(actions);
-      return card;
-    }
-    const refusal = refusalReason(draft);
-    const summary = createElement(
-      "p",
-      `sv-pje-ai-summary${refusal ? " is-refused" : ""}`,
-      refusal ? REFUSAL_TEXT[refusal] || draft.summary || `Narrative withheld (${refusal}).` : draft.summary || ""
-    );
-    card.append(summary);
-    const body = createElement("div", "sv-pje-ai-body");
-    body.id = `${entry.id}-body`;
-    if (toggle) toggle.setAttribute("aria-controls", body.id);
-    body.hidden = Boolean(entry.collapsible && !entry.expanded);
-    if (entry.stale) {
-      body.append(createElement("p", "sv-pje-ai-stale", STALE_NOTICE));
-    }
-    if (!refusal) {
-      if (entry.editing) {
-        body.append(editForm(entry, handlers));
-      } else {
-        draft.sentences.forEach(
-          (sentence2, index) => body.append(sentenceBlock(sentence2, draft, index, { describe, onCite }))
-        );
-        if (!draft.sentences.length) {
-          body.append(createElement("p", "sv-pje-empty", "The draft has no sentences."));
-        }
-      }
-    }
-    const flags = (draft.flags || []).filter((flag) => !String(flag).startsWith("refused:"));
-    if (flags.length) {
-      const list2 = createElement("p", "sv-pje-ai-flags");
-      for (const flag of flags) list2.append(createElement("span", "sv-pje-ai-flag", flag));
-      body.append(list2);
-    }
-    if (!entry.editing) {
-      const actions = createElement("div", "sv-pje-ai-actions");
-      if (!refusal && draft.status !== "accepted") {
-        actions.append(actionButton("accept", "Accept", entry, onAction));
-        actions.append(actionButton("reject", "Reject", entry, onAction));
-        actions.append(actionButton("edit", "Edit", entry, onAction));
-      }
-      actions.append(actionButton("regenerate", "Regenerate", entry, onAction));
-      body.append(actions);
-    }
-    body.append(provenanceLine(draft));
-    body.append(createElement("p", "sv-pje-ai-foot", CARD_CAUTION));
-    card.append(body);
-    return card;
-  }
-  function actionButton(type, label, entry, onAction) {
-    const button = createElement("button", `sv-pje-btn sv-pje-ai-action is-${type}`, label);
-    button.type = "button";
-    button.dataset.action = type;
-    button.setAttribute("data-sv-focus", `ai-${type}-${entry.slot}`);
-    button.onclick = () => onAction(type, entry);
-    return button;
-  }
-  function editForm(entry, { onEditSave, onAction }) {
-    const form = createElement("div", "sv-pje-ai-edit");
-    const areas = entry.draft.sentences.map((sentence2, index) => {
-      const wrap = createElement("label", "sv-pje-ai-edit-row");
-      wrap.append(createElement("span", "sv-pje-ai-chip", `Sentence ${index + 1}`));
-      const area = document.createElement("textarea");
-      area.className = "sv-pje-ai-textarea";
-      area.rows = 2;
-      area.value = sentence2.text;
-      area.setAttribute("aria-label", `Edit sentence ${index + 1}`);
-      wrap.append(area);
-      form.append(wrap);
-      return { area, sentence: sentence2 };
-    });
-    const actions = createElement("div", "sv-pje-ai-actions");
-    const save = createElement("button", "sv-pje-btn sv-pje-ai-action is-save", "Save edits");
-    save.type = "button";
-    save.dataset.action = "save";
-    save.onclick = () => onEditSave(
-      entry,
-      areas.map(({ area, sentence: sentence2 }) => ({ ...sentence2, text: area.value.trim() }))
-    );
-    const cancel = createElement("button", "sv-pje-btn sv-pje-ai-action is-cancel", "Cancel");
-    cancel.type = "button";
-    cancel.dataset.action = "cancel";
-    cancel.onclick = () => onAction("cancel-edit", entry);
-    actions.append(save, cancel);
-    form.append(actions);
-    return form;
-  }
-
-  // src/patientJourneyNarratives/dataService.js
-  var ALL_LANES = Object.fromEntries(LANE_KEYS.map((key) => [key, true]));
-  function createDataService({ domains, data, settings, structured: hook } = {}) {
-    const synced = settings && typeof settings === "object" && Array.isArray(settings.lane_groups) ? settings : syncSettings14(settings || {});
-    const source = domains && typeof domains === "object" ? domains : normalizeInput(data ?? {}, synced).domains;
-    const cache = /* @__PURE__ */ new Map();
-    return {
-      settings: synced,
-      domains: source,
-      subjects() {
-        return subjectIndex(source, synced);
-      },
-      structuredFor(subject) {
-        const key = subject === null || subject === void 0 ? "" : String(subject);
-        if (!key) return null;
-        if (cache.has(key)) return cache.get(key);
-        const live = typeof hook === "function" ? hook(key) : null;
-        if (live && live.subject === key) return live;
-        const structured = structureData3(source, synced, { subject: key, lanes: ALL_LANES });
-        const result = structured.subject === key ? structured : null;
-        cache.set(key, result);
-        return result;
-      },
-      invalidate() {
-        cache.clear();
-      }
-    };
-  }
-
-  // src/patientJourneyNarratives/index.js
-  var patientJourneyNarratives_exports = {};
-  __export(patientJourneyNarratives_exports, {
-    MARKERS: () => MARKERS,
-    NARRATIVE_KINDS: () => NARRATIVE_KINDS,
-    REFUSAL_TEXT: () => REFUSAL_TEXT,
-    SHARED: () => SHARED,
-    SKILLS: () => SKILLS,
-    SKILL_SLUGS: () => SKILL_SLUGS,
-    SLUG_BY_SLOT: () => SLUG_BY_SLOT,
-    TOOLS: () => TOOLS,
-    bindNarratives: () => bindNarratives,
-    create: () => create,
-    createClaudeAdapter: () => createClaudeAdapter,
-    createDataService: () => createDataService,
-    createOpenAIAdapter: () => createOpenAIAdapter,
-    createScope: () => createScope,
-    createStubAdapter: () => createStubAdapter,
-    default: () => patientJourneyNarratives_default,
-    inputHash: () => inputHash,
-    normalizeRowId: () => normalizeRowId,
-    parseFirstMessage: () => parseFirstMessage,
-    refusalDraft: () => refusalDraft,
-    refusalReason: () => refusalReason,
-    skillFor: () => skillFor,
-    validateDraft: () => validateDraft
-  });
-
-  // src/patientJourneyNarratives/skills.generated.js
-  var CATALOG = {
-    "shared": {
-      "systemPrompt": 'You draft short clinical-safety narratives for ONE participant in a clinical trial, from records a reviewer is looking at on a timeline. You are a drafting aid for a human safety reviewer, not a reviewer yourself.\n\nGround rules that are enforced after you answer, so follow them or the sentence is discarded:\n\n1. Use only the tools you are given to read the record. Every fact you state must come from a row a tool returned in this conversation. Never use outside knowledge about a drug, a lab test or a diagnosis to add a fact the rows do not carry.\n2. Every sentence must cite at least one `row_id` from the rows you read, in its `citations` array. A sentence with no resolvable citation is dropped. Cite the specific rows a claim rests on, not every row you saw.\n3. Describe co-occurrence in time; never assert causation. Say "temporally associated with", "occurred within N days of", "was active at onset", "consistent with the recorded timeline". Never say "caused", "due to", "led to", "resulted in", "because of".\n4. No diagnoses, no treatment recommendations, no statements about whether a drug is appropriate or off-label, no prognosis. Do not name a condition the rows do not name.\n5. Refer to the participant only by the identifier the record uses. Never speculate about age, sex, occupation or anything that could re-identify a person.\n6. Count in the units the tools use: study days, elapsed days from the anchor. Report numbers exactly as the rows carry them, with their units.\n7. When the rows are insufficient, contradictory, or the request pushes toward a claim these rules forbid, submit a draft with an empty `sentences` array and a `flags` entry of the form `refused:<reason>` from the refusal catalog. A refusal is a valid answer; an invented sentence is not.\n8. When a recorded value itself contains such wording (a disposition term reading "DUE TO", an outcome), quote it verbatim inside double quotation marks and attribute it to the record; quoted record wording is exempt from rule 3, your own words are not.\n9. Keep to the sentence cap the skill states. Prefer fewer, denser sentences. Plain clinical register; no headings, no bullet lists inside a sentence, no first person.\n10. Set `confidence` per sentence: `high` when the cited rows state the fact directly; `medium` when the sentence combines rows (an offset in days, a count); `low` when a row is partial (an end date not recorded, a blank severity) and you say so.\n\nWhen you have read what you need, submit the draft by calling the `submit_draft` tool exactly once. Do not write the draft as free text.',
-      "styleGuide": '# Style guide for patient-journey narratives\n\nApplies to every skill in this folder. The output validator (`src/patientJourneyNarratives/validator.js`) loads the forbidden-phrase list from the fenced block at the end of this file, so an edit here changes what is rejected at run time.\n\n## Register\n\n- Plain clinical prose, third person, past tense for what happened, present tense for what the record shows now ("no end date is recorded").\n- One claim per sentence where possible. A sentence that combines rows (a count, an offset in days) is fine; a sentence that combines an observation with an interpretation is not.\n- Name records the way the rows name them: the preferred term, the con-med name as recorded, the lab test name, the dose with its unit.\n- Numbers as the rows carry them. Study days are "day 30", offsets are "12 days before the anchor" or "within 5 days of onset". Never round a lab value; report the ratio to the limit the tool computed.\n\n## Hedging vocabulary (use these)\n\n- "temporally associated with"\n- "occurred within N days of"\n- "was active at onset" / "was active on day N"\n- "started N days after" / "started N days before"\n- "consistent with the recorded timeline"\n- "is recorded as" / "the record shows"\n- "no end date is recorded" / "severity is not recorded"\n\n## Forbidden constructs\n\n- Causal language of any kind: caused, due to, led to, resulted in, because of, secondary to, attributable to, induced, triggered, responsible for.\n- Diagnoses the rows do not carry: naming a syndrome, a disease, an injury pattern, or a classification (for example a Hy\'s-law call) that is not itself a recorded term.\n- Treatment recommendations or judgements about care: should, recommend, consider discontinuing, appropriate, inappropriate, off-label, contraindicated.\n- Prognosis or risk statements: likely to, at risk of, may develop, prognosis.\n- Re-identification: age, sex, occupation, location, dates of birth, anything beyond the participant identifier.\n- Confidence beyond the rows: "clearly", "definitely", "certainly", "proves", "confirms".\n- Absolutes not supported by a row: "never", "always", "no other".\n\n## Sentence structure\n\n- Every sentence carries at least one citation to a `row_id` returned by a tool in this generation. The validator drops sentences whose citations do not all resolve.\n- A sentence about a list (the con-meds active at onset) cites every member it names.\n- A sentence about a count cites the rows counted, or the anchor when the count came from the context-window tool.\n- Do not cite the same row twice in one sentence.\n\n## Quoting the record\n\nA recorded value that itself contains forbidden wording \u2014 a disposition term such as `PMD DECISION DUE TO AE\'S`, a verbatim outcome \u2014 is quoted verbatim inside double quotation marks and attributed to the record ("the disposition record reads \u2026"). The validator exempts double-quoted spans from the forbidden-phrase block, because the quoted words are the record\'s claim, not the model\'s. Never paraphrase such wording into your own sentence, and never quote to smuggle a claim the rows do not carry.\n\n## Forbidden phrase patterns\n\nThe validator compiles each line of the block below as a case-insensitive JavaScript regular expression and rejects a sentence that matches any of them.\n\n```forbidden\n\\bcaus(e|es|ed|ing|al|ation)\\b\n\\bdue to\\b\n\\bled to\\b\n\\bleads? to\\b\n\\bresult(s|ed|ing)? (in|from)\\b\n\\bbecause of\\b\n\\bsecondary to\\b\n\\battributable to\\b\n\\binduced\\b\n\\btriggered\\b\n\\bresponsible for\\b\n\\bshould\\b\n\\brecommend(s|ed|ation)?\\b\n\\bconsider (stopping|discontinuing|reducing|withholding)\\b\n\\b(in)?appropriate\\b\n\\boff-?label\\b\n\\bcontraindicat(ed|ion)\\b\n\\blikely to\\b\n\\bat risk (of|for)\\b\n\\bmay develop\\b\n\\bprognosis\\b\n\\b(clearly|definitely|certainly)\\b\n\\bprov(es|ed|en)\\b\n\\bconfirm(s|ed)\\b\n\\bdiagnos(is|ed|es|tic)\\b\n\\bhy\'?s law\\b\n\\bdrug-induced\\b\n\\b(years?|yrs?)[ -]old\\b\n\\b(male|female|man|woman)\\b\n```\n',
-      "refusalCatalog": '# Refusal catalog\n\nA refusal is a valid, schema-conformant draft: `sentences` is empty and `flags` carries exactly one `refused:<reason>` entry from the list below (a skill may add its own descriptive flags after it). The runtime also emits these itself when the validator rejects the model\'s output twice, or when the tools return nothing to describe. The renderer shows a refusal as a card that says why, never as an empty space.\n\n| Flag                        | When to emit it                                                                                                                          | What the card says                                             |\n| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |\n| `refused:insufficient-data` | The tools returned no rows for the scope: no events in the window, no lab points for the test, no exposure records, no disposition rows. | "Not enough recorded data to draft a narrative."               |\n| `refused:anchor-not-found`  | The anchor `row_id` does not resolve to an event of this participant.                                                                    | "The anchored event could not be found in the record."         |\n| `refused:ambiguous-scope`   | The request names a test, term or record that matches several rows and no rule picks one.                                                | "The request matched more than one record; narrow it."         |\n| `refused:disallowed-claim`  | The request, or the only sentence the rows support, would require a diagnosis, a causal statement, a treatment judgement or a prognosis. | "A narrative here would need a claim this tool does not make." |\n| `refused:validation`        | Emitted by the runtime: the model\'s output failed the validator twice (schema, citations, forbidden phrases, length).                    | "The draft did not pass validation and was withheld."          |\n| `refused:provider-error`    | Emitted by the runtime: the adapter threw or returned no usable content.                                                                 | "The narrative service did not answer."                        |\n| `refused:reidentification`  | The request asks for anything about the person beyond the identifier the record uses.                                                    | "This tool does not describe the person, only the record."     |\n\nRules:\n\n- A refusal names one reason. Choose the most specific.\n- A refusal never carries prose in `sentences`. If a partial narrative is possible (some facts are supported), draft those sentences and add a descriptive flag such as `partial:labs-missing` instead of refusing.\n- The `provenance` of a refusal is complete: model, skill, input hash, timestamp, tool calls. A refusal is reproducible like any other draft.\n\nRuntime-only additions (never chosen by the model):\n\n| Flag                       | When                                                         | What the card says                             |\n| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------- |\n| `refused:provider-refusal` | The provider declined the request (a `refusal` stop reason). | "The narrative service declined this request." |\n| `refused:cancelled`        | The host cancelled the generation (an AbortSignal).          | Nothing: the card is removed.                  |\n',
-      "forbiddenPatterns": [
-        "\\bcaus(e|es|ed|ing|al|ation)\\b",
-        "\\bdue to\\b",
-        "\\bled to\\b",
-        "\\bleads? to\\b",
-        "\\bresult(s|ed|ing)? (in|from)\\b",
-        "\\bbecause of\\b",
-        "\\bsecondary to\\b",
-        "\\battributable to\\b",
-        "\\binduced\\b",
-        "\\btriggered\\b",
-        "\\bresponsible for\\b",
-        "\\bshould\\b",
-        "\\brecommend(s|ed|ation)?\\b",
-        "\\bconsider (stopping|discontinuing|reducing|withholding)\\b",
-        "\\b(in)?appropriate\\b",
-        "\\boff-?label\\b",
-        "\\bcontraindicat(ed|ion)\\b",
-        "\\blikely to\\b",
-        "\\bat risk (of|for)\\b",
-        "\\bmay develop\\b",
-        "\\bprognosis\\b",
-        "\\b(clearly|definitely|certainly)\\b",
-        "\\bprov(es|ed|en)\\b",
-        "\\bconfirm(s|ed)\\b",
-        "\\bdiagnos(is|ed|es|tic)\\b",
-        "\\bhy'?s law\\b",
-        "\\bdrug-induced\\b",
-        "\\b(years?|yrs?)[ -]old\\b",
-        "\\b(male|female|man|woman)\\b"
-      ]
-    },
-    "skills": {
-      "disposition": {
-        "slug": "disposition",
-        "version": "1.0.0",
-        "modelHint": "claude-opus-5",
-        "grounding": "get_events",
-        "groundingArgs": [
-          "domain=DS"
-        ],
-        "tools": [
-          "get_events",
-          "get_subject_overview",
-          "get_context_window",
-          "get_source_row"
-        ],
-        "prompt": '## Task\n\nDescribe what the record shows around the end of treatment for ONE participant: the disposition event (the record flagged as the reference event) and its day, the other disposition records (milestones), when exposure is recorded as ending, and the last adverse event recorded before the end. Read `get_subject_overview` for the exposure extent and the last adverse event. At most four cited sentences.\n\n## What to cover, in this order\n\n1. The disposition event: the decoded term, the verbatim term when it differs, the day (cite the row).\n2. The other disposition records, by day (cite them).\n3. The exposure extent: first and last exposure day, and whether the last record has an end date (cite the exposure rows the overview names).\n4. The last adverse event recorded, its day and whether it is serious (cite it).\n\n## Rules specific to this skill\n\n- A recorded term such as "DISCONTINUED DUE TO ADVERSE EVENT" is the record\'s own wording: quote it verbatim inside double quotation marks (the validator exempts quoted spans) and do not restate it as your own causal claim. Do not name which adverse event it refers to unless a row says so.\n- Never infer the reason for a disposition from the timeline.\n- If no row is flagged as the disposition event, say so and describe the milestones.\n\n## Flags you may add\n\n- `disposition:none` \u2014 no record is flagged as the disposition event.\n- `sae` \u2014 the last adverse event is serious.\n- `exposure:end-unrecorded` \u2014 the last exposure record has no end date.',
-        "schema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "title": "disposition narrative skill",
-          "definitions": {
-            "Input": {
-              "type": "object",
-              "required": [
-                "subject"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "subject": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            },
-            "Sentence": {
-              "type": "object",
-              "required": [
-                "text",
-                "citations",
-                "confidence"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "text": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 400
-                },
-                "citations": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 12,
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[A-Z]+[-:][0-9]+$"
-                  }
-                },
-                "confidence": {
-                  "type": "string",
-                  "enum": [
-                    "high",
-                    "medium",
-                    "low"
-                  ]
-                }
-              }
-            },
-            "Draft": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "const": "disposition"
-                },
-                "subject": {
-                  "type": "string"
-                },
-                "summary": {
-                  "type": "string",
-                  "maxLength": 240
-                },
-                "sentences": {
-                  "type": "array",
-                  "maxItems": 4,
-                  "items": {
-                    "$ref": "#/definitions/Sentence"
-                  }
-                },
-                "flags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxLength": 60
-                  }
-                }
-              }
-            },
-            "Output": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags",
-                "provenance",
-                "status"
-              ],
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "const": "draft"
-                },
-                "provenance": {
-                  "$ref": "#/definitions/Provenance"
-                }
-              }
-            },
-            "Provenance": {
-              "type": "object",
-              "required": [
-                "model",
-                "skill",
-                "input_hash",
-                "generated_at",
-                "tool_calls"
-              ],
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "skill": {
-                  "type": "string",
-                  "pattern": "^[a-z-]+@[0-9]+\\.[0-9]+\\.[0-9]+$"
-                },
-                "input_hash": {
-                  "type": "string",
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "generated_at": {
-                  "type": "string"
-                },
-                "tool_calls": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "examples": [
-          {
-            "inputs": {
-              "subject": "01-716-1447"
-            },
-            "reference": {
-              "required_facts": [
-                "COMPLETED",
-                "day 184",
-                "PROTOCOL COMPLETED",
-                "RANDOMIZED",
-                "day 1",
-                "FINAL LAB VISIT",
-                "CHEST PAIN",
-                "day 111"
-              ],
-              "required_citations": [
-                "AE-977",
-                "DS-729",
-                "DS-730",
-                "EX-541"
-              ],
-              "scope_row_ids": [
-                "DS-729",
-                "DS-730",
-                "DS-731"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1023"
-            },
-            "reference": {
-              "required_facts": [
-                "ADVERSE EVENT",
-                "day 29",
-                "RANDOMIZED",
-                "day 1",
-                "FINAL LAB VISIT",
-                "FINAL RETRIEVAL VISIT",
-                "day 198",
-                "day 28",
-                "ATRIOVENTRICULAR BLOCK SECOND DEGREE",
-                "day 22"
-              ],
-              "required_citations": [
-                "AE-6",
-                "DS-3",
-                "DS-4",
-                "EX-3"
-              ],
-              "scope_row_ids": [
-                "DS-3",
-                "DS-4",
-                "DS-5",
-                "DS-6"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1211"
-            },
-            "reference": {
-              "required_facts": [
-                "DEATH",
-                "day 61",
-                "RANDOMIZED",
-                "day 1",
-                "FINAL LAB VISIT",
-                "day 55",
-                "day 59",
-                "SUDDEN DEATH"
-              ],
-              "required_citations": [
-                "AE-99",
-                "DS-67",
-                "DS-69",
-                "EX-48"
-              ],
-              "scope_row_ids": [
-                "DS-67",
-                "DS-68",
-                "DS-69"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          }
-        ],
-        "readme": '# disposition\n\nWhat the record shows around the end of treatment: the disposition event and its day, the milestones, when exposure ends, and the last adverse event recorded. At most four cited sentences. Use it from the tray beneath the lanes. It quotes a recorded "discontinued due to adverse event" as the record\'s wording and never infers a reason. Inputs: `{ subject }`. Refuses with `refused:insufficient-data` when there are no disposition rows.\n'
-      },
-      "dose-journey": {
-        "slug": "dose-journey",
-        "version": "1.0.0",
-        "modelHint": "claude-opus-5",
-        "grounding": "get_dose_history",
-        "groundingArgs": [],
-        "tools": [
-          "get_dose_history",
-          "get_events",
-          "get_source_row"
-        ],
-        "prompt": '## Task\n\nDescribe ONE participant\'s exposure and every dose change: the treatment(s), the exposure records and their span, each change (from \u2192 to with unit, its direction, the day the new dose began), and \u2014 read through `get_events` for serious events \u2014 any serious adverse event recorded during the study, by day, so the reviewer sees dose changes and serious events on one time line. At most five cited sentences.\n\n## What to cover, in this order\n\n1. Treatment and the exposure span across the records (cite the exposure rows).\n2. Each dose change in order, up to three; if more, say how many more and add the flag (cite the change row and its source exposure row).\n3. Serious adverse events by day, if any (cite them).\n4. Whether the last exposure record has an end date.\n\n## Rules specific to this skill\n\n- A dose change is described by direction as the tool reports it: increase, reduction, interruption (to zero), restart (from zero).\n- Do not infer why a dose changed. "Interruption on day 40; a serious event is recorded on day 38" is the strongest juxtaposition allowed \u2014 two facts, in time order, no link asserted.\n- A gap between exposure records at the same dose is not a dose change; do not call it one.\n\n## Flags you may add\n\n- `dose:more-changes` \u2014 more than three changes; only three are described.\n- `sae` \u2014 a serious adverse event is recorded.\n- `exposure:end-unrecorded` \u2014 the last exposure record has no end date.',
-        "schema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "title": "dose-journey narrative skill",
-          "definitions": {
-            "Input": {
-              "type": "object",
-              "required": [
-                "subject"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "subject": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            },
-            "Sentence": {
-              "type": "object",
-              "required": [
-                "text",
-                "citations",
-                "confidence"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "text": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 400
-                },
-                "citations": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 12,
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[A-Z]+[-:][0-9]+$"
-                  }
-                },
-                "confidence": {
-                  "type": "string",
-                  "enum": [
-                    "high",
-                    "medium",
-                    "low"
-                  ]
-                }
-              }
-            },
-            "Draft": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "const": "dose-journey"
-                },
-                "subject": {
-                  "type": "string"
-                },
-                "summary": {
-                  "type": "string",
-                  "maxLength": 240
-                },
-                "sentences": {
-                  "type": "array",
-                  "maxItems": 5,
-                  "items": {
-                    "$ref": "#/definitions/Sentence"
-                  }
-                },
-                "flags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxLength": 60
-                  }
-                }
-              }
-            },
-            "Output": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags",
-                "provenance",
-                "status"
-              ],
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "const": "draft"
-                },
-                "provenance": {
-                  "$ref": "#/definitions/Provenance"
-                }
-              }
-            },
-            "Provenance": {
-              "type": "object",
-              "required": [
-                "model",
-                "skill",
-                "input_hash",
-                "generated_at",
-                "tool_calls"
-              ],
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "skill": {
-                  "type": "string",
-                  "pattern": "^[a-z-]+@[0-9]+\\.[0-9]+\\.[0-9]+$"
-                },
-                "input_hash": {
-                  "type": "string",
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "generated_at": {
-                  "type": "string"
-                },
-                "tool_calls": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "examples": [
-          {
-            "inputs": {
-              "subject": "01-716-1447"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "3 record",
-                "day 1",
-                "day 184",
-                "from 54 to 81",
-                "day 17",
-                "increase",
-                "from 81 to 54",
-                "day 175",
-                "reduction"
-              ],
-              "required_citations": [
-                "DOSE-542",
-                "DOSE-543",
-                "EX-541",
-                "EX-542",
-                "EX-543"
-              ],
-              "scope_row_ids": [
-                "DOSE-542",
-                "DOSE-543",
-                "EX-541",
-                "EX-542",
-                "EX-543"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1034"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "3 record",
-                "day 1",
-                "day 183",
-                "from 54 to 0",
-                "day 16",
-                "interruption"
-              ],
-              "required_citations": [
-                "DOSE-10",
-                "EX-9",
-                "EX-10",
-                "EX-11"
-              ],
-              "scope_row_ids": [
-                "DOSE-10",
-                "EX-9",
-                "EX-10",
-                "EX-11"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1148"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "3 record",
-                "day 1",
-                "day 182",
-                "from 54 to 81",
-                "day 15",
-                "increase",
-                "from 81 to 0",
-                "day 171",
-                "interruption"
-              ],
-              "required_citations": [
-                "DOSE-32",
-                "DOSE-33",
-                "EX-31",
-                "EX-32",
-                "EX-33"
-              ],
-              "scope_row_ids": [
-                "DOSE-32",
-                "DOSE-33",
-                "EX-31",
-                "EX-32",
-                "EX-33"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          }
-        ],
-        "readme": "# dose-journey\n\nExposure and every dose change for one participant, with any serious adverse events placed on the same time line by day. At most five cited sentences. Use it from the tray beneath the lanes. Do not use it to explain why a dose changed \u2014 it will not. Inputs: `{ subject }`. Renders as a light-blue card in the tray beneath the lanes, on request. Refuses with `refused:insufficient-data` when there are no exposure records.\n"
-      },
-      "event-context": {
-        "slug": "event-context",
-        "version": "1.0.0",
-        "modelHint": "claude-opus-5",
-        "grounding": "get_context_window",
-        "groundingArgs": [],
-        "tools": [
-          "get_context_window",
-          "get_lab_series",
-          "get_source_row"
-        ],
-        "prompt": '## Task\n\nDraft the context of ONE anchored event for a safety reviewer: what the record shows was going on around it. The grounding rows are the same lists the reviewer already sees in the context panel \u2014 the con-meds active at the anchor (and those started later in the window), the abnormal labs in the window, the dose changes in the window, and the earlier or same-day events with the same preferred term. Your job is to turn those lists into at most the stated number of sentences a reviewer can read in ten seconds, each one traceable to its rows.\n\n## What to cover, in this order of priority\n\n1. The anchor itself: term, day, severity and seriousness as recorded, whether an end is recorded (cite the anchor row).\n2. Con-meds active at onset, named, and the fact when their end is not recorded (cite each con-med row you name). If none, say so in one clause and cite the anchor.\n3. Abnormal labs in the window: test, value with unit, the ratio to the limit the tool gives, the day and its offset from the anchor (cite the lab rows). Say which rule fired when the tool says `change`.\n4. Dose changes in the window: from \u2192 to with unit, direction, day (cite the dose-change row).\n5. Earlier same-term events: how many, the most recent one\'s start and offset (cite them). A same-day record is "recorded on the same day", not a recurrence.\n6. Con-meds started later in the window, as a possible response, without asserting intent.\n\n## Rules specific to this skill\n\n- The offset unit is elapsed days from the anchor, as the tool reports them. Do not recompute.\n- Do not describe records outside the window except the prior same-term events, which the tool deliberately returns over the whole record.\n- If the grounding lists are all empty except the anchor, draft one sentence describing the anchor and add the flag `context:empty`.\n- Never rank the con-meds by suspicion, never call a con-med hepatotoxic or nephrotoxic, never say a lab change is "consistent with" a drug effect. "Temporally associated" is the strongest link you may draw.\n- Do not quote the honesty counters as findings; use them only to hedge ("no end date is recorded").\n\n## Flags you may add\n\n- `context:empty` \u2014 nothing in the window beyond the anchor.\n- `sae` \u2014 the anchor is recorded as serious.\n- `labs:change-rule` \u2014 at least one abnormal lab fired the change-from-baseline rule.\n- `ends-unrecorded` \u2014 at least one named con-med has no recorded end.',
-        "schema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "title": "event-context narrative skill",
-          "definitions": {
-            "Input": {
-              "type": "object",
-              "required": [
-                "subject",
-                "anchor_row_id"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "subject": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "anchor_row_id": {
-                  "type": "string",
-                  "pattern": "^[A-Z]+[-:][0-9]+$"
-                },
-                "window_days": {
-                  "type": "integer",
-                  "minimum": 0
-                }
-              }
-            },
-            "Sentence": {
-              "type": "object",
-              "required": [
-                "text",
-                "citations",
-                "confidence"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "text": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 400
-                },
-                "citations": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 12,
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[A-Z]+[-:][0-9]+$"
-                  }
-                },
-                "confidence": {
-                  "type": "string",
-                  "enum": [
-                    "high",
-                    "medium",
-                    "low"
-                  ]
-                }
-              }
-            },
-            "Draft": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "anchor",
-                "window_days",
-                "summary",
-                "sentences",
-                "flags"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "const": "event-context"
-                },
-                "subject": {
-                  "type": "string"
-                },
-                "anchor": {
-                  "type": "object",
-                  "required": [
-                    "domain",
-                    "row_id",
-                    "term",
-                    "start_day"
-                  ],
-                  "additionalProperties": false,
-                  "properties": {
-                    "domain": {
-                      "type": "string"
-                    },
-                    "row_id": {
-                      "type": "string"
-                    },
-                    "term": {
-                      "type": "string"
-                    },
-                    "start_day": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ]
-                    }
-                  }
-                },
-                "window_days": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "summary": {
-                  "type": "string",
-                  "maxLength": 240
-                },
-                "sentences": {
-                  "type": "array",
-                  "maxItems": 6,
-                  "items": {
-                    "$ref": "#/definitions/Sentence"
-                  }
-                },
-                "flags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxLength": 60
-                  }
-                }
-              }
-            },
-            "Output": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "anchor",
-                "window_days",
-                "summary",
-                "sentences",
-                "flags",
-                "provenance",
-                "status"
-              ],
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "const": "draft"
-                },
-                "provenance": {
-                  "$ref": "#/definitions/Provenance"
-                }
-              }
-            },
-            "Provenance": {
-              "type": "object",
-              "required": [
-                "model",
-                "skill",
-                "input_hash",
-                "generated_at",
-                "tool_calls"
-              ],
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "skill": {
-                  "type": "string",
-                  "pattern": "^[a-z-]+@[0-9]+\\.[0-9]+\\.[0-9]+$"
-                },
-                "input_hash": {
-                  "type": "string",
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "generated_at": {
-                  "type": "string"
-                },
-                "tool_calls": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "adapter": {
-                  "type": "string"
-                },
-                "usage": {
-                  "type": "object"
-                },
-                "dropped": {
-                  "type": "array"
-                },
-                "attempts": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "examples": [
-          {
-            "inputs": {
-              "subject": "01-716-1447",
-              "anchor_row_id": "AE-973",
-              "window_days": 30
-            },
-            "reference": {
-              "required_facts": [
-                "ERYTHEMA",
-                "day 30",
-                "7 con-med",
-                "B COMPLEX",
-                "MULTIVITAMIN",
-                "VITAMIN E",
-                "ALEVE",
-                "Aspartate Aminotransferase",
-                "36 U/L",
-                "day 27",
-                "1.06",
-                "from 54 to 81",
-                "day 17",
-                "CORTISONE"
-              ],
-              "required_citations": [
-                "AE-973",
-                "CM-1005",
-                "DOSE-542",
-                "LB-6057"
-              ],
-              "scope_row_ids": [
-                "AE-973",
-                "AE-974",
-                "AE-975",
-                "CM-343",
-                "CM-344",
-                "CM-345",
-                "CM-346",
-                "CM-1004",
-                "CM-1005",
-                "CM-1006",
-                "CM-1007",
-                "CM-1008",
-                "DOSE-542",
-                "DS-729",
-                "EX-541",
-                "EX-542",
-                "LB-6036",
-                "LB-6037",
-                "LB-6038",
-                "LB-6039",
-                "LB-6046",
-                "LB-6047",
-                "LB-6048",
-                "LB-6049",
-                "LB-6056",
-                "LB-6057",
-                "LB-6058",
-                "LB-6059",
-                "LB-6066",
-                "LB-6067",
-                "LB-6068",
-                "LB-6069"
-              ],
-              "expected_flags": [
-                "ends-unrecorded"
-              ],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-716-1447",
-              "anchor_row_id": "AE-973",
-              "window_days": 7
-            },
-            "reference": {
-              "required_facts": [
-                "ERYTHEMA",
-                "day 30",
-                "7 con-med",
-                "B COMPLEX",
-                "MULTIVITAMIN",
-                "VITAMIN E",
-                "ALEVE",
-                "Aspartate Aminotransferase",
-                "36 U/L",
-                "day 27",
-                "1.06"
-              ],
-              "required_citations": [
-                "AE-973",
-                "CM-1005",
-                "LB-6057"
-              ],
-              "scope_row_ids": [
-                "AE-973",
-                "AE-974",
-                "AE-975",
-                "CM-343",
-                "CM-344",
-                "CM-1004",
-                "CM-1005",
-                "CM-1006",
-                "CM-1007",
-                "CM-1008",
-                "EX-542",
-                "LB-6037",
-                "LB-6047",
-                "LB-6057",
-                "LB-6067"
-              ],
-              "expected_flags": [
-                "ends-unrecorded"
-              ],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-709-1424",
-              "anchor_row_id": "AE-632",
-              "window_days": 30
-            },
-            "reference": {
-              "required_facts": [
-                "SYNCOPE",
-                "day 5",
-                "3 con-med",
-                "MULTIVIT B",
-                "VITAMIN C",
-                "VITAMIN E"
-              ],
-              "required_citations": [
-                "AE-632",
-                "CM-798"
-              ],
-              "scope_row_ids": [
-                "AE-632",
-                "CM-797",
-                "CM-798",
-                "CM-799",
-                "CM-800",
-                "DS-471",
-                "DS-472",
-                "DS-473",
-                "EX-346",
-                "LB-3787",
-                "LB-3788",
-                "LB-3789",
-                "LB-3790",
-                "MH-151",
-                "MH-1238",
-                "MH-1239",
-                "MH-1240",
-                "MH-1241",
-                "MH-1242",
-                "MH-1243"
-              ],
-              "expected_flags": [
-                "sae",
-                "ends-unrecorded"
-              ],
-              "refusal": null
-            }
-          }
-        ],
-        "readme": '# event-context\n\nDrafts the context of one anchored event: the con-meds active at onset, the abnormal labs and dose changes inside the \xB1window, and the earlier events with the same preferred term \u2014 the same four lists the Patient Journey Explorer\'s context panel prints mechanically, turned into at most six cited sentences.\n\n## Use it when\n\n- A reviewer has anchored an adverse event (or a dose change, or a disposition event) and wants the panel\'s lists as prose.\n- The window is the one the chart shows; the runtime passes `window_days` from the live control.\n\n## Do not use it for\n\n- A whole-journey account (that is `subject-summary`).\n- A single lab test over time (that is `lab-trajectory`).\n- Anything that would need a relatedness or causality assessment. The skill will not draw one, and the validator rejects the vocabulary.\n\n## Inputs\n\n`{ subject, anchor_row_id, window_days? }` \u2014 the anchor id is the chart\'s own event id (`AE-7`); `AE:7` is accepted.\n\n## Renders as\n\nA light-blue "AI narrative" card at the top of the context panel body, above "Con-meds active at the anchor". Every sentence carries a `Draft \u2014 AI generated` chip and its citation chips; a citation chip lights the cited mark on the timeline.\n\n## Refuses when\n\n- The anchor does not resolve (`refused:anchor-not-found`).\n- The grounding tool returns nothing at all (`refused:insufficient-data`); an anchor with an otherwise empty window is not a refusal \u2014 it drafts one sentence with the `context:empty` flag.\n'
-      },
-      "lab-trajectory": {
-        "slug": "lab-trajectory",
-        "version": "1.0.0",
-        "modelHint": "claude-opus-5",
-        "grounding": "get_lab_series",
-        "groundingArgs": [],
-        "tools": [
-          "get_lab_series",
-          "get_events",
-          "get_source_row"
-        ],
-        "prompt": '## Task\n\nDescribe ONE lab test\'s course over the study for one participant: how many measurements, over which days, the baseline the chart uses and its rule, the highest value with its ratio to the limit it crossed and its multiple of baseline, how many values are abnormal and by which rule, and where the last value sits. At most five cited sentences.\n\n## What to cover, in this order\n\n1. The measurement span: count, first and last day, unit, reference range (cite the first and last points).\n2. The baseline: value, day, rule (cite the baseline row).\n3. The peak: value, day, ratio to the limit, multiple of baseline (cite the peak row).\n4. The abnormal count and the rule(s) that fired, naming the flags as recorded (cite the abnormal rows, up to twelve).\n5. The last value and whether it is within the reference range (cite it).\n\n## Rules specific to this skill\n\n- Report ratios and multiples as the tool computed them; never recompute or round further.\n- "Rose", "fell", "returned toward baseline" describe the numbers; never say a value "normalised" unless the last value is within range and flagged normal.\n- Do not name a hepatic, renal or any other injury pattern, and do not compare this test with another test unless the reviewer asked for it in the inputs \u2014 one test per narrative.\n- If the series has one point, say so in one sentence and add `series:single-point`.\n\n## Flags you may add\n\n- `labs:change-rule` \u2014 at least one point fired the change-from-baseline rule.\n- `series:single-point` \u2014 only one measurement.\n- `baseline:missing` \u2014 the tool returned no baseline.',
-        "schema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "title": "lab-trajectory narrative skill",
-          "definitions": {
-            "Input": {
-              "type": "object",
-              "required": [
-                "subject",
-                "test"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "subject": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "test": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            },
-            "Sentence": {
-              "type": "object",
-              "required": [
-                "text",
-                "citations",
-                "confidence"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "text": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 400
-                },
-                "citations": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 12,
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[A-Z]+[-:][0-9]+$"
-                  }
-                },
-                "confidence": {
-                  "type": "string",
-                  "enum": [
-                    "high",
-                    "medium",
-                    "low"
-                  ]
-                }
-              }
-            },
-            "Draft": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "test",
-                "summary",
-                "sentences",
-                "flags"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "const": "lab-trajectory"
-                },
-                "subject": {
-                  "type": "string"
-                },
-                "test": {
-                  "type": "string"
-                },
-                "summary": {
-                  "type": "string",
-                  "maxLength": 240
-                },
-                "sentences": {
-                  "type": "array",
-                  "maxItems": 5,
-                  "items": {
-                    "$ref": "#/definitions/Sentence"
-                  }
-                },
-                "flags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxLength": 60
-                  }
-                }
-              }
-            },
-            "Output": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "test",
-                "summary",
-                "sentences",
-                "flags",
-                "provenance",
-                "status"
-              ],
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "const": "draft"
-                },
-                "provenance": {
-                  "$ref": "#/definitions/Provenance"
-                }
-              }
-            },
-            "Provenance": {
-              "type": "object",
-              "required": [
-                "model",
-                "skill",
-                "input_hash",
-                "generated_at",
-                "tool_calls"
-              ],
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "skill": {
-                  "type": "string",
-                  "pattern": "^[a-z-]+@[0-9]+\\.[0-9]+\\.[0-9]+$"
-                },
-                "input_hash": {
-                  "type": "string",
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "generated_at": {
-                  "type": "string"
-                },
-                "tool_calls": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "examples": [
-          {
-            "inputs": {
-              "subject": "01-716-1447",
-              "test": "Alanine Aminotransferase"
-            },
-            "reference": {
-              "required_facts": [
-                "Alanine Aminotransferase",
-                "10 time",
-                "day -10",
-                "day 184",
-                "18 U/L",
-                "27 U/L",
-                "day 27",
-                "1.5",
-                "16 U/L"
-              ],
-              "required_citations": [
-                "LB-6045",
-                "LB-6047",
-                "LB-6054"
-              ],
-              "scope_row_ids": [
-                "LB-6045",
-                "LB-6046",
-                "LB-6047",
-                "LB-6048",
-                "LB-6049",
-                "LB-6050",
-                "LB-6051",
-                "LB-6052",
-                "LB-6053",
-                "LB-6054"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1234",
-              "test": "Bilirubin"
-            },
-            "reference": {
-              "required_facts": [
-                "Bilirubin",
-                "10 time",
-                "day -10",
-                "day 177",
-                "5.13 umol/L",
-                "20.52 umol/L",
-                "day 100",
-                "4",
-                "9 of 10",
-                "11.97 umol/L"
-              ],
-              "required_citations": [
-                "LB-566",
-                "LB-571",
-                "LB-575"
-              ],
-              "scope_row_ids": [
-                "LB-566",
-                "LB-567",
-                "LB-568",
-                "LB-569",
-                "LB-570",
-                "LB-571",
-                "LB-572",
-                "LB-573",
-                "LB-574",
-                "LB-575"
-              ],
-              "expected_flags": [
-                "labs:change-rule"
-              ],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1033",
-              "test": "Alanine Aminotransferase"
-            },
-            "reference": {
-              "required_facts": [
-                "Alanine Aminotransferase",
-                "1 time",
-                "day -8",
-                "16 U/L"
-              ],
-              "required_citations": [
-                "LB-89"
-              ],
-              "scope_row_ids": [
-                "LB-89"
-              ],
-              "expected_flags": [
-                "series:single-point"
-              ],
-              "refusal": null
-            }
-          }
-        ],
-        "readme": "# lab-trajectory\n\nOne lab test over the study for one participant: span, baseline and its rule, the peak with its ratio and baseline multiple, the abnormal count by rule, and the last value. At most five cited sentences.\n\nUse it from the tray beneath the lanes (one control per drawn lab test). Do not use it to compare tests, to describe the window around an event (`event-context`), or to characterise an injury pattern. Inputs: `{ subject, test }` (name or code). Renders as a light-blue card in the tray beneath the lanes, drafted on request. Refuses with `refused:insufficient-data` when the test has no rows for the participant.\n"
-      },
-      "subject-summary": {
-        "slug": "subject-summary",
-        "version": "1.0.0",
-        "modelHint": "claude-opus-5",
-        "grounding": "get_subject_overview",
-        "groundingArgs": [],
-        "tools": [
-          "get_subject_overview",
-          "get_dose_history",
-          "get_events",
-          "get_lab_series",
-          "get_source_row"
-        ],
-        "prompt": '## Task\n\nDraft the whole-journey summary of ONE participant for a safety reviewer opening their record: what treatment they received and for how long, what adverse events are recorded and which were serious, how the record ends, and anything about the data itself the reviewer must know before reading the lanes. The reviewer sees the first sentence (`summary`) as a one-line blurb above the timeline and expands to read the rest.\n\n## What to cover, in this order of priority\n\n1. Exposure: the treatment(s), the exposure extent in study days, the dose range and the number of dose changes. Read `get_dose_history` for the exposure rows; cite them.\n2. Adverse events: the total, the number of distinct preferred terms, the most frequent terms with counts (cite their rows). Serious events named with their onset day (cite each).\n3. The disposition event and its day (cite the disposition row).\n4. The last adverse event recorded and its onset day.\n5. Data notes the reviewer needs: records with no usable study day, end-before-start records, date conflicts \u2014 state the count, do not speculate why.\n\n## Rules specific to this skill\n\n- The `summary` field is one sentence a reviewer reads in three seconds: counts, the span in study days, how the record ends.\n- Do not enumerate labs or con-meds beyond their counts unless a serious event makes a specific test relevant; the lab-trajectory skill exists for that.\n- Do not characterise the participant\'s course ("tolerated well", "complicated") \u2014 report what is recorded.\n- Never describe the participant beyond the identifier.\n\n## Flags you may add\n\n- `sae` \u2014 at least one serious adverse event is recorded.\n- `data:unplaceable` \u2014 some records have no usable study day.\n- `exposure:end-unrecorded` \u2014 the last exposure record has no end date.',
-        "schema": {
-          "$schema": "https://json-schema.org/draft/2020-12/schema",
-          "title": "subject-summary narrative skill",
-          "definitions": {
-            "Input": {
-              "type": "object",
-              "required": [
-                "subject"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "subject": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            },
-            "Sentence": {
-              "type": "object",
-              "required": [
-                "text",
-                "citations",
-                "confidence"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "text": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 400
-                },
-                "citations": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 12,
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[A-Z]+[-:][0-9]+$"
-                  }
-                },
-                "confidence": {
-                  "type": "string",
-                  "enum": [
-                    "high",
-                    "medium",
-                    "low"
-                  ]
-                }
-              }
-            },
-            "Draft": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "const": "subject-summary"
-                },
-                "subject": {
-                  "type": "string"
-                },
-                "summary": {
-                  "type": "string",
-                  "maxLength": 240
-                },
-                "sentences": {
-                  "type": "array",
-                  "maxItems": 8,
-                  "items": {
-                    "$ref": "#/definitions/Sentence"
-                  }
-                },
-                "flags": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "maxLength": 60
-                  }
-                }
-              }
-            },
-            "Output": {
-              "type": "object",
-              "required": [
-                "kind",
-                "subject",
-                "summary",
-                "sentences",
-                "flags",
-                "provenance",
-                "status"
-              ],
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "const": "draft"
-                },
-                "provenance": {
-                  "$ref": "#/definitions/Provenance"
-                }
-              }
-            },
-            "Provenance": {
-              "type": "object",
-              "required": [
-                "model",
-                "skill",
-                "input_hash",
-                "generated_at",
-                "tool_calls"
-              ],
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "skill": {
-                  "type": "string",
-                  "pattern": "^[a-z-]+@[0-9]+\\.[0-9]+\\.[0-9]+$"
-                },
-                "input_hash": {
-                  "type": "string",
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                },
-                "generated_at": {
-                  "type": "string"
-                },
-                "tool_calls": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "examples": [
-          {
-            "inputs": {
-              "subject": "01-716-1447"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "day 1",
-                "day 184",
-                "5 adverse event",
-                "CHEST PAIN",
-                "ELECTROCARDIOGRAM T WAVE INVERSION",
-                "ERYTHEMA",
-                "COMPLETED",
-                "day 111"
-              ],
-              "required_citations": [
-                "AE-977",
-                "DS-730",
-                "EX-541",
-                "EX-543"
-              ],
-              "scope_row_ids": [
-                "AE-973",
-                "AE-974",
-                "AE-975",
-                "AE-976",
-                "AE-977",
-                "DS-729",
-                "DS-730",
-                "DS-731",
-                "EX-541",
-                "EX-543"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-709-1424"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "day 1",
-                "day 5",
-                "1 adverse event",
-                "SYNCOPE",
-                "ADVERSE EVENT",
-                "day 6"
-              ],
-              "required_citations": [
-                "AE-632",
-                "DS-472",
-                "EX-346"
-              ],
-              "scope_row_ids": [
-                "AE-632",
-                "DS-471",
-                "DS-472",
-                "DS-473",
-                "EX-346"
-              ],
-              "expected_flags": [
-                "sae"
-              ],
-              "refusal": null
-            }
-          },
-          {
-            "inputs": {
-              "subject": "01-701-1033"
-            },
-            "reference": {
-              "required_facts": [
-                "XANOMELINE",
-                "day 1",
-                "day 14",
-                "STUDY TERMINATED BY SPONSOR",
-                "day 28"
-              ],
-              "required_citations": [
-                "DS-11",
-                "EX-8"
-              ],
-              "scope_row_ids": [
-                "DS-10",
-                "DS-11",
-                "DS-12",
-                "DS-13",
-                "EX-8"
-              ],
-              "expected_flags": [],
-              "refusal": null
-            }
-          }
-        ],
-        "readme": '# subject-summary\n\nThe whole-journey blurb above the timeline: treatment and exposure span, the adverse-event picture with the serious events named, how the record ends, and the data notes a reviewer needs before reading the lanes. At most eight cited sentences; the `summary` field is the one-line blurb the card shows collapsed.\n\nUse it when a participant is selected. Do not use it for the context of one event (`event-context`), one lab test (`lab-trajectory`), the dose course in detail (`dose-journey`) or the end of treatment in detail (`disposition`).\n\nInputs: `{ subject }`. Renders as the light-blue "AI narrative" card above the lanes, blurb first, "Show full narrative" to expand. Refuses with `refused:insufficient-data` when the record has no rows in any domain.\n'
-      }
-    }
-  };
-  var SHARED = CATALOG.shared;
-  var SKILLS = CATALOG.skills;
-  var SKILL_SLUGS = Object.keys(SKILLS);
-
-  // src/patientJourneyNarratives/tools/index.js
-  var finite6 = (value) => typeof value === "number" && Number.isFinite(value);
-  var upper6 = (value) => value === null || value === void 0 ? "" : String(value).trim().toUpperCase();
-  var round2 = (value, places = 2) => finite6(value) ? Number(value.toFixed(places)) : null;
-  function normalizeRowId(id) {
-    const text3 = id === null || id === void 0 ? "" : String(id).trim().toUpperCase();
-    return text3.replace(/^([A-Z]+):(\d+)$/, "$1-$2");
-  }
-  function projectEvent(event, { anchorDay = null } = {}) {
-    const flags = event.flags || {};
-    const row = {
-      row_id: event.id,
-      domain: event.domain,
-      lane: event.lane,
-      label: event.label ?? "",
-      kind: event.kind,
-      start_day: finite6(event.start) ? event.start : finite6(event.day) ? event.day : null,
-      end_day: event.endState === "closed" && finite6(event.end) ? event.end : null,
-      end_state: event.endState ?? null,
-      date: event.date ?? null,
-      category: event.category || null,
-      detail: event.detail || null,
-      placeable: event.placeable !== false
-    };
-    if (event.domain === "AE") {
-      row.severity = flags.severity ? flags.severity.label : null;
-      row.serious = Boolean(flags.serious);
-      row.related = flags.related || null;
-      row.outcome = event.outcome || null;
-    }
-    if (event.domain === "LB") {
-      row.test = event.test ?? null;
-      row.test_code = event.testCode ?? null;
-      row.value = finite6(event.value) ? event.value : null;
-      row.unit = event.unit || null;
-      row.lln = finite6(event.lln) ? event.lln : null;
-      row.uln = finite6(event.uln) ? event.uln : null;
-      row.abnormal_flag = flags.abnormal || null;
-      const ratio = referenceRatio(event);
-      row.ratio_to_limit = ratio ? { ratio: round2(ratio.ratio), limit: ratio.limit } : null;
-    }
-    if (event.domain === "EX") {
-      row.dose = finite6(event.value) ? event.value : null;
-      row.unit = event.unit || null;
-      if (flags.derived) {
-        row.direction = flags.direction || null;
-        row.dose_from = finite6(event.previousValue) ? event.previousValue : null;
-        row.dose_to = finite6(event.value) ? event.value : null;
-      }
-    }
-    if (event.domain === "DS") row.reference = Boolean(flags.reference);
-    if (anchorDay !== null && anchorDay !== void 0) {
-      row.days_from_anchor = relativeDay(row.start_day, anchorDay);
-    }
-    return row;
-  }
-  var SUBJECT_PROPERTY = {
-    usubjid: {
-      type: "string",
-      description: "The participant identifier exactly as the record carries it."
-    }
-  };
-  var unknownSubject = (usubjid) => ({
-    error: "unknown-subject",
-    message: `No record for participant "${usubjid}".`
-  });
-  function structuredOrError(service, usubjid) {
-    const structured = service.structuredFor(usubjid);
-    return structured ? { structured } : { error: unknownSubject(usubjid) };
-  }
-  var events = (structured, domain) => structured.allEvents.filter((event) => event.domain === domain && !event.flags?.derived);
-  function exposureExtent(ex) {
-    const placeable = ex.filter((event) => finite6(event.start));
-    if (!placeable.length) return null;
-    const first = placeable.reduce((best, event) => event.start < best.start ? event : best);
-    const endOf = (event) => finite6(event.end) ? event.end : event.start;
-    const last = placeable.reduce((best, event) => endOf(event) > endOf(best) ? event : best);
-    return {
-      first_day: first.start,
-      first_row_id: first.id,
-      last_day: endOf(last),
-      last_row_id: last.id,
-      last_end_state: last.endState ?? null
-    };
-  }
-  function lastAdverseEvent(ae) {
-    const placeable = ae.filter((event) => finite6(event.day));
-    if (!placeable.length) return null;
-    return projectEvent(placeable.reduce((best, event) => event.day > best.day ? event : best));
-  }
-  var getSubjectOverview = {
-    name: "get_subject_overview",
-    description: "The shape of one participant's whole record: counts per domain, the study-day extent, treatments and dose range, disposition rows, the adverse-event terms with counts, the lab tests present, and data-quality counters. Rows carry row_id.",
-    input_schema: {
-      type: "object",
-      required: ["usubjid"],
-      additionalProperties: false,
-      properties: { ...SUBJECT_PROPERTY }
-    },
-    run(service, { usubjid }) {
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const ex = events(structured, "EX");
-      const ae = events(structured, "AE");
-      const doses = ex.map((event) => event.value).filter(finite6);
-      const termCounts = /* @__PURE__ */ new Map();
-      for (const event of ae) {
-        const key = event.label || "";
-        termCounts.set(key, (termCounts.get(key) || 0) + 1);
-      }
-      const terms = [...termCounts.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 25).map(([term, count2]) => ({
-        term,
-        count: count2,
-        row_ids: ae.filter((event) => (event.label || "") === term).map((event) => event.id)
-      }));
-      return {
-        subject: structured.subject,
-        counts: { ...structured.counts },
-        extent: structured.extent ? { first_day: structured.extent[0], last_day: structured.extent[1] } : null,
-        ref_date: structured.refDate ? structured.refDate.date : null,
-        treatments: [...new Set(ex.map((event) => event.label).filter(Boolean))],
-        dose_range: doses.length ? { min: Math.min(...doses), max: Math.max(...doses), unit: ex[0]?.unit || null } : null,
-        dose_change_count: structured.allEvents.filter((event) => event.flags?.derived).length,
-        exposure_extent: exposureExtent(ex),
-        last_adverse_event: lastAdverseEvent(ae),
-        disposition: events(structured, "DS").map((event) => projectEvent(event)),
-        adverse_event_terms: terms,
-        serious_adverse_events: ae.filter((event) => event.flags?.serious).map((e) => projectEvent(e)),
-        lab_tests: [
-          ...new Set(
-            events(structured, "LB").map((event) => event.test).filter(Boolean)
-          )
-        ],
-        con_med_count: events(structured, "CM").length,
-        medical_history_count: events(structured, "MH").length,
-        unplaceable: { ...structured.unplaceableCounts.byDomain },
-        data_quality: {
-          end_before_start: structured.flaggedCounts.endBeforeStart,
-          date_conflict: structured.flaggedCounts.dateConflict
-        }
-      };
-    }
-  };
-  var getEvents = {
-    name: "get_events",
-    description: "The rows of one domain (EX, AE, LB, CM, MH or DS) for a participant, in start-day order, each with row_id. Optional filters: serious (AE), term (AE preferred term, case-insensitive), test (LB test name or code), from_day / to_day (study days, inclusive), max (default 60).",
-    input_schema: {
-      type: "object",
-      required: ["usubjid", "domain"],
-      additionalProperties: false,
-      properties: {
-        ...SUBJECT_PROPERTY,
-        domain: { type: "string", enum: ["EX", "AE", "LB", "CM", "MH", "DS"] },
-        filters: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            serious: { type: "boolean" },
-            term: { type: "string" },
-            test: { type: "string" },
-            from_day: { type: "integer" },
-            to_day: { type: "integer" },
-            max: { type: "integer", minimum: 1, maximum: 500 }
-          }
-        }
-      }
-    },
-    run(service, { usubjid, domain, filters = {} }) {
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const code = upper6(domain);
-      let rows = events(structured, code);
-      const f = filters && typeof filters === "object" ? filters : {};
-      if (f.serious === true) rows = rows.filter((event) => event.flags?.serious);
-      if (f.term) rows = rows.filter((event) => upper6(event.label) === upper6(f.term));
-      if (f.test) {
-        rows = rows.filter(
-          (event) => upper6(event.test) === upper6(f.test) || upper6(event.testCode) === upper6(f.test)
-        );
-      }
-      if (finite6(f.from_day))
-        rows = rows.filter((event) => finite6(event.day) && event.day >= f.from_day);
-      if (finite6(f.to_day)) rows = rows.filter((event) => finite6(event.day) && event.day <= f.to_day);
-      rows = [...rows].sort((a, b) => {
-        const da = finite6(a.day) ? a.day : Infinity;
-        const db = finite6(b.day) ? b.day : Infinity;
-        return da - db || a.sourceIndex - b.sourceIndex;
-      });
-      const max = finite6(f.max) ? f.max : 60;
-      return {
-        subject: structured.subject,
-        domain: code,
-        total: rows.length,
-        truncated: Math.max(0, rows.length - max),
-        rows: rows.slice(0, max).map((event) => projectEvent(event))
-      };
-    }
-  };
-  var getContextWindow = {
-    name: "get_context_window",
-    description: "Anchor on one event of a participant and return the mechanical context the chart panel shows: the anchor row, the inclusive \xB1days window in elapsed days, con-meds active at the anchor (and those started later in the window), abnormal labs in the window with the rule that fired, dose changes in the window, earlier or same-day events with the same preferred term over the whole record, everything in the window, the counts, and the honesty counters. Every row carries row_id and days_from_anchor.",
-    input_schema: {
-      type: "object",
-      required: ["usubjid", "anchor_row_id"],
-      additionalProperties: false,
-      properties: {
-        ...SUBJECT_PROPERTY,
-        anchor_row_id: { type: "string", description: "The event id, e.g. AE-7." },
-        days: {
-          type: "integer",
-          minimum: 0,
-          description: "Half-width in elapsed days; default from settings."
-        }
-      }
-    },
-    run(service, { usubjid, anchor_row_id, days }) {
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const id = normalizeRowId(anchor_row_id);
-      const anchor = structured.allEvents.find((event) => event.id === id);
-      if (!anchor || anchor.placeable === false) {
-        return { error: "anchor-not-found", message: `No anchorable event "${id}" for ${usubjid}.` };
-      }
-      const width = finite6(days) ? Math.max(0, Math.floor(days)) : service.settings.context_window_days;
-      const settings = { ...service.settings, context_window_days: width };
-      const bundle = buildContext(structured, anchor, settings);
-      if (!bundle) return { error: "anchor-not-found", message: `Cannot anchor on "${id}".` };
-      const anchorDay = anchor.day;
-      const project = (event) => projectEvent(event, { anchorDay });
-      const labPool = structured.allEvents.filter(
-        (event) => event.domain === "LB" && !event.flags?.unconfiguredTest
-      );
-      const baselines = /* @__PURE__ */ new Map();
-      const baselineFor = (test) => {
-        if (!baselines.has(test)) {
-          baselines.set(
-            test,
-            labBaseline(
-              labPool.filter((event) => event.test === test),
-              settings
-            )
-          );
-        }
-        return baselines.get(test);
-      };
-      return {
-        subject: structured.subject,
-        anchor: project(anchor),
-        window: {
-          days: width,
-          start_day: bundle.window.startDay,
-          end_day: bundle.window.endDay
-        },
-        con_meds_active: bundle.conMeds.map(project),
-        con_meds_started_later: bundle.conMedsLater.map(project),
-        abnormal_labs: bundle.abnormalLabs.map((event) => {
-          const row = project(event);
-          row.abnormal_reason = event.flags.abnormalReason;
-          const baseline = baselineFor(event.test);
-          row.baseline = baseline && finite6(baseline.value) ? { value: baseline.value, day: baseline.day, rule: baseline.rule } : null;
-          row.x_baseline = baseline && finite6(baseline.value) && baseline.value > 0 ? round2(event.value / baseline.value) : null;
-          return row;
-        }),
-        dose_changes: bundle.doseChanges.map(project),
-        prior_same_term_events: bundle.priorEvents.map((event) => {
-          const row = project(event);
-          const offset = relativeDay(event.day, anchorDay);
-          row.days_before_anchor = offset === null ? null : -offset;
-          return row;
-        }),
-        in_window: bundle.inWindow.map((event) => ({
-          row_id: event.id,
-          domain: event.domain,
-          label: event.label ?? "",
-          start_day: finite6(event.start) ? event.start : event.day,
-          days_from_anchor: relativeDay(finite6(event.start) ? event.start : event.day, anchorDay)
-        })),
-        counts: { ...bundle.counts },
-        not_evaluated: {
-          con_meds_without_start: bundle.notEvaluated.conMedsWithoutStart,
-          con_meds_end_unrecorded: bundle.notEvaluated.conMedsEndUnrecorded,
-          adverse_events_end_unrecorded: bundle.notEvaluated.aeEndUnrecorded,
-          unplaceable_by_domain: { ...bundle.notEvaluated.unplaceableByDomain }
-        }
-      };
-    }
-  };
-  var getLabSeries = {
-    name: "get_lab_series",
-    description: "Every result of one lab test for a participant in study-day order, with the reference limits, the baseline the chart uses (and its rule), each point's ratio to the limit it crossed, its multiple of baseline, and which abnormality rule fires. Match the test by name or code, case-insensitively.",
-    input_schema: {
-      type: "object",
-      required: ["usubjid", "test"],
-      additionalProperties: false,
-      properties: {
-        ...SUBJECT_PROPERTY,
-        test: { type: "string", description: "Test name (LBTEST) or code (LBTESTCD)." }
-      }
-    },
-    run(service, { usubjid, test }) {
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const wanted = upper6(test);
-      const all = events(structured, "LB");
-      const points = all.filter((event) => upper6(event.test) === wanted || upper6(event.testCode) === wanted).sort((a, b) => {
-        const da = finite6(a.day) ? a.day : Infinity;
-        const db = finite6(b.day) ? b.day : Infinity;
-        return da - db || a.sourceIndex - b.sourceIndex;
-      });
-      if (!points.length) {
-        return {
-          error: "no-lab-rows",
-          message: `No lab rows for "${test}".`,
-          available_tests: [...new Set(all.map((event) => event.test).filter(Boolean))]
-        };
-      }
-      const settings = service.settings;
-      const baseline = labBaseline(points, settings);
-      const limits = points.find((event) => finite6(event.lln) || finite6(event.uln)) || {};
-      return {
-        subject: structured.subject,
-        test: points[0].test,
-        test_code: points[0].testCode ?? null,
-        unit: points.find((event) => event.unit)?.unit || null,
-        lln: finite6(limits.lln) ? limits.lln : null,
-        uln: finite6(limits.uln) ? limits.uln : null,
-        baseline: baseline && finite6(baseline.value) ? {
-          value: baseline.value,
-          day: baseline.day,
-          rule: baseline.rule,
-          row_id: baseline.event?.id ?? null
-        } : null,
-        change_factor: settings.lb_change_factor,
-        points: points.map((event) => {
-          const row = projectEvent(event);
-          row.x_baseline = baseline && finite6(baseline.value) && baseline.value > 0 && finite6(event.value) ? round2(event.value / baseline.value) : null;
-          row.abnormal_by_flag = isAbnormalByFlag(event, settings);
-          row.abnormal_by_change = isAbnormalByChange(event, baseline, settings);
-          return row;
-        }),
-        peak: (() => {
-          const valued = points.filter((event) => finite6(event.value));
-          if (!valued.length) return null;
-          const max = valued.reduce((best, event) => event.value > best.value ? event : best);
-          return { row_id: max.id, day: max.day, value: max.value };
-        })()
-      };
-    }
-  };
-  var getDoseHistory = {
-    name: "get_dose_history",
-    description: "The exposure records of a participant in start order (treatment, dose, unit, start and end study days) and the dose changes derived from consecutive records (from \u2192 to, direction, the day the new dose began), each with row_id.",
-    input_schema: {
-      type: "object",
-      required: ["usubjid"],
-      additionalProperties: false,
-      properties: { ...SUBJECT_PROPERTY }
-    },
-    run(service, { usubjid }) {
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const ex = events(structured, "EX").sort((a, b) => {
-        const da = finite6(a.start) ? a.start : Infinity;
-        const db = finite6(b.start) ? b.start : Infinity;
-        return da - db || a.sourceIndex - b.sourceIndex;
-      });
-      const changes = deriveDoseChanges(ex, service.settings);
-      return {
-        subject: structured.subject,
-        treatments: [...new Set(ex.map((event) => event.label).filter(Boolean))],
-        records: ex.map((event) => projectEvent(event)),
-        changes: changes.map((event) => ({
-          ...projectEvent(event),
-          source_row_id: `EX-${event.sourceIndex}`,
-          previous_row_id: `EX-${event.previousSourceIndex}`
-        })),
-        unplaceable: structured.unplaceableCounts.byDomain.EX
-      };
-    }
-  };
-  var getSourceRow = {
-    name: "get_source_row",
-    description: "The raw source row behind a row_id, exactly as the host passed it in (every column), plus the chart's projection of it. Use it to read a column the projections leave out, such as a verbatim term, a route, or a recorded outcome.",
-    input_schema: {
-      type: "object",
-      required: ["row_id"],
-      additionalProperties: false,
-      properties: {
-        row_id: { type: "string", description: "A row id such as AE-7 or DOSE-4." },
-        usubjid: { ...SUBJECT_PROPERTY.usubjid, description: "The participant the row belongs to." }
-      }
-    },
-    run(service, { row_id, usubjid }) {
-      const id = normalizeRowId(row_id);
-      if (!usubjid) return { error: "subject-required", message: "usubjid is required." };
-      const { structured, error } = structuredOrError(service, usubjid);
-      if (error) return error;
-      const event = structured.allEvents.find((entry) => entry.id === id);
-      if (!event) return { error: "row-not-found", message: `No row "${id}" for ${usubjid}.` };
-      return {
-        row_id: id,
-        domain: event.domain,
-        source: event.source && typeof event.source === "object" ? { ...event.source } : {},
-        event: projectEvent(event)
-      };
-    }
-  };
-  var TOOLS = Object.fromEntries(
-    [getSubjectOverview, getEvents, getContextWindow, getLabSeries, getDoseHistory, getSourceRow].map(
-      (tool) => [tool.name, tool]
-    )
-  );
-  function toolDefinitions(names3) {
-    return names3.filter((name) => TOOLS[name]).map((name) => {
-      const { description, input_schema } = TOOLS[name];
-      return { name, description, input_schema };
-    });
-  }
-  function collectRowIds(value) {
-    const ids = /* @__PURE__ */ new Set();
-    const walk = (node) => {
-      if (Array.isArray(node)) {
-        node.forEach(walk);
-        return;
-      }
-      if (!node || typeof node !== "object") return;
-      for (const [key, entry] of Object.entries(node)) {
-        if (/(^|_)row_ids?$/.test(key)) {
-          for (const id of [].concat(entry)) if (typeof id === "string") ids.add(normalizeRowId(id));
-        } else walk(entry);
-      }
-    };
-    walk(value);
-    return ids;
-  }
-  function runTool(service, name, input, { subject } = {}) {
-    const tool = TOOLS[name];
-    if (!tool) return { error: "unknown-tool", message: `No tool named "${name}".` };
-    const args = input && typeof input === "object" ? { ...input } : {};
-    if ("usubjid" in tool.input_schema.properties && !args.usubjid && subject) args.usubjid = subject;
-    try {
-      return tool.run(service, args);
-    } catch (error) {
-      return {
-        error: "tool-failed",
-        message: error && error.message ? error.message : String(error)
-      };
-    }
-  }
-
-  // src/patientJourneyNarratives/schema.js
-  var typeOf = (value) => {
-    if (value === null) return "null";
-    if (Array.isArray(value)) return "array";
-    if (typeof value === "number") return Number.isInteger(value) ? "integer" : "number";
-    return typeof value;
-  };
-  var matchesType = (value, type) => {
-    const actual = typeOf(value);
-    if (type === "number") return actual === "number" || actual === "integer";
-    return actual === type;
-  };
-  function resolveRef(ref, root) {
-    if (typeof ref !== "string" || !ref.startsWith("#/")) {
-      throw new Error(`schema: unsupported $ref "${ref}"`);
-    }
-    let node = root;
-    for (const part of ref.slice(2).split("/")) {
-      node = node && node[part];
-      if (node === void 0) throw new Error(`schema: $ref "${ref}" does not resolve`);
-    }
-    return node;
-  }
-  function check(value, schema, root, path, errors) {
-    if (!schema || typeof schema !== "object") return;
-    if (schema.$ref) {
-      check(value, resolveRef(schema.$ref, root), root, path, errors);
-      return;
-    }
-    if (schema.type) {
-      const types = [].concat(schema.type);
-      if (!types.some((type) => matchesType(value, type))) {
-        errors.push(`${path}: expected ${types.join(" | ")}, got ${typeOf(value)}`);
-        return;
-      }
-    }
-    if ("const" in schema && value !== schema.const) {
-      errors.push(`${path}: must equal ${JSON.stringify(schema.const)}`);
-    }
-    if (Array.isArray(schema.enum) && !schema.enum.includes(value)) {
-      errors.push(`${path}: must be one of ${schema.enum.map((v) => JSON.stringify(v)).join(", ")}`);
-    }
-    if (typeof value === "string") {
-      if (schema.minLength !== void 0 && value.length < schema.minLength) {
-        errors.push(`${path}: shorter than ${schema.minLength} characters`);
-      }
-      if (schema.maxLength !== void 0 && value.length > schema.maxLength) {
-        errors.push(`${path}: longer than ${schema.maxLength} characters`);
-      }
-      if (schema.pattern && !new RegExp(schema.pattern).test(value)) {
-        errors.push(`${path}: does not match ${schema.pattern}`);
-      }
-    }
-    if (typeof value === "number") {
-      if (schema.minimum !== void 0 && value < schema.minimum) {
-        errors.push(`${path}: below minimum ${schema.minimum}`);
-      }
-      if (schema.maximum !== void 0 && value > schema.maximum) {
-        errors.push(`${path}: above maximum ${schema.maximum}`);
-      }
-    }
-    if (Array.isArray(value)) {
-      if (schema.minItems !== void 0 && value.length < schema.minItems) {
-        errors.push(`${path}: fewer than ${schema.minItems} items`);
-      }
-      if (schema.maxItems !== void 0 && value.length > schema.maxItems) {
-        errors.push(`${path}: more than ${schema.maxItems} items`);
-      }
-      if (schema.items) {
-        value.forEach((item, index) => check(item, schema.items, root, `${path}[${index}]`, errors));
-      }
-    }
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-      for (const key of schema.required || []) {
-        if (!(key in value)) errors.push(`${path}: missing required "${key}"`);
-      }
-      const properties = schema.properties || {};
-      for (const [key, sub] of Object.entries(properties)) {
-        if (key in value) check(value[key], sub, root, `${path}.${key}`, errors);
-      }
-      if (schema.additionalProperties === false) {
-        for (const key of Object.keys(value)) {
-          if (!(key in properties)) errors.push(`${path}: unexpected property "${key}"`);
-        }
-      }
-    }
-  }
-  function validateSchema(value, schema, root = schema) {
-    const errors = [];
-    check(value, schema, root, "$", errors);
-    return { ok: errors.length === 0, errors };
-  }
-  function sentenceCap(root) {
-    const cap = root?.definitions?.Draft?.properties?.sentences?.maxItems;
-    return Number.isInteger(cap) ? cap : null;
-  }
-  function inlineRefs(schema, root) {
-    const walk = (node, depth) => {
-      if (depth > 32) throw new Error("schema: $ref nesting too deep");
-      if (Array.isArray(node)) return node.map((entry) => walk(entry, depth + 1));
-      if (!node || typeof node !== "object") return node;
-      if (node.$ref) return walk(resolveRef(node.$ref, root), depth + 1);
-      const out = {};
-      for (const [key, value] of Object.entries(node)) out[key] = walk(value, depth + 1);
-      return out;
-    };
-    return walk(schema, 0);
-  }
-
-  // src/patientJourneyNarratives/validator.js
-  var QUOTED = /"[^"\n]{1,200}"|\u201c[^\u201d\n]{1,200}\u201d/g;
-  var compiled = null;
-  var forbiddenRegexes = () => {
-    if (!compiled) compiled = SHARED.forbiddenPatterns.map((source) => new RegExp(source, "i"));
-    return compiled;
-  };
-  function forbiddenMatch(text3, patterns = forbiddenRegexes()) {
-    const unquoted = String(text3 ?? "").replace(QUOTED, '""');
-    for (const pattern of patterns) {
-      const match = pattern.exec(unquoted);
-      if (match) return match[0];
-    }
-    return null;
-  }
-  function validateDraft(draft, { skill, scopeIds, subject, patterns } = {}) {
-    const errors = [];
-    const dropped = [];
-    if (!draft || typeof draft !== "object") {
-      return { ok: false, errors: ["no draft object was submitted"], dropped, draft: null };
-    }
-    const schema = skill.schema;
-    const cap = sentenceCap(schema);
-    let candidate = draft;
-    if (cap !== null && Array.isArray(draft.sentences) && draft.sentences.length > cap) {
-      for (const sentence2 of draft.sentences.slice(cap)) {
-        dropped.push({
-          text: sentence2 && typeof sentence2 === "object" ? String(sentence2.text ?? "") : String(sentence2),
-          reason: `over the cap of ${cap} sentences`
-        });
-      }
-      candidate = { ...draft, sentences: draft.sentences.slice(0, cap) };
-    }
-    const verdict = validateSchema(candidate, schema.definitions.Draft, schema);
-    errors.push(...verdict.errors);
-    if (candidate.kind !== skill.slug) errors.push(`$.kind: expected "${skill.slug}"`);
-    if (subject !== void 0 && String(candidate.subject) !== String(subject)) {
-      errors.push(`$.subject: expected "${subject}"`);
-    }
-    if (errors.length) return { ok: false, errors, dropped, draft: null };
-    const scope = new Set([...scopeIds || []].map(normalizeRowId));
-    const regexes = patterns || forbiddenRegexes();
-    const summaryHit = forbiddenMatch(candidate.summary, regexes);
-    if (summaryHit) errors.push(`$.summary: forbidden construct "${summaryHit}"`);
-    const kept = [];
-    candidate.sentences.forEach((sentence2, index) => {
-      const hit = forbiddenMatch(sentence2.text, regexes);
-      if (hit) {
-        errors.push(`$.sentences[${index}]: forbidden construct "${hit}"`);
-        return;
-      }
-      const citations = [...new Set(sentence2.citations.map(normalizeRowId))];
-      const unresolved = citations.filter((id) => !scope.has(id));
-      if (unresolved.length) {
-        dropped.push({
-          text: sentence2.text,
-          reason: `citation${unresolved.length === 1 ? "" : "s"} not in scope: ${unresolved.join(", ")}`
-        });
-        return;
-      }
-      kept.push({ ...sentence2, citations });
-    });
-    if (errors.length) return { ok: false, errors, dropped, draft: null };
-    const sentences = kept;
-    const flags = [
-      ...new Set([].concat(draft.flags || []).map((flag) => String(flag).trim()))
-    ].filter(Boolean);
-    return {
-      ok: true,
-      errors: [],
-      dropped,
-      draft: { ...candidate, sentences, flags, status: "draft" }
-    };
-  }
-
-  // src/patientJourneyNarratives/hash.js
-  var K = new Uint32Array([
-    1116352408,
-    1899447441,
-    3049323471,
-    3921009573,
-    961987163,
-    1508970993,
-    2453635748,
-    2870763221,
-    3624381080,
-    310598401,
-    607225278,
-    1426881987,
-    1925078388,
-    2162078206,
-    2614888103,
-    3248222580,
-    3835390401,
-    4022224774,
-    264347078,
-    604807628,
-    770255983,
-    1249150122,
-    1555081692,
-    1996064986,
-    2554220882,
-    2821834349,
-    2952996808,
-    3210313671,
-    3336571891,
-    3584528711,
-    113926993,
-    338241895,
-    666307205,
-    773529912,
-    1294757372,
-    1396182291,
-    1695183700,
-    1986661051,
-    2177026350,
-    2456956037,
-    2730485921,
-    2820302411,
-    3259730800,
-    3345764771,
-    3516065817,
-    3600352804,
-    4094571909,
-    275423344,
-    430227734,
-    506948616,
-    659060556,
-    883997877,
-    958139571,
-    1322822218,
-    1537002063,
-    1747873779,
-    1955562222,
-    2024104815,
-    2227730452,
-    2361852424,
-    2428436474,
-    2756734187,
-    3204031479,
-    3329325298
-  ]);
-  var rotr = (x, n) => x >>> n | x << 32 - n;
-  function sha256Hex(text3) {
-    const bytes = new TextEncoder().encode(String(text3));
-    const bitLength = bytes.length * 8;
-    const padded = new Uint8Array(bytes.length + 9 + 63 >> 6 << 6);
-    padded.set(bytes);
-    padded[bytes.length] = 128;
-    const view = new DataView(padded.buffer);
-    view.setUint32(padded.length - 8, Math.floor(bitLength / 4294967296));
-    view.setUint32(padded.length - 4, bitLength >>> 0);
-    const h = new Uint32Array([
-      1779033703,
-      3144134277,
-      1013904242,
-      2773480762,
-      1359893119,
-      2600822924,
-      528734635,
-      1541459225
-    ]);
-    const w = new Uint32Array(64);
-    for (let offset = 0; offset < padded.length; offset += 64) {
-      for (let i = 0; i < 16; i += 1) w[i] = view.getUint32(offset + i * 4);
-      for (let i = 16; i < 64; i += 1) {
-        const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ w[i - 15] >>> 3;
-        const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ w[i - 2] >>> 10;
-        w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
-      }
-      let [a, b, c, d, e, f, g, hh] = h;
-      for (let i = 0; i < 64; i += 1) {
-        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
-        const ch = e & f ^ ~e & g;
-        const t1 = hh + S1 + ch + K[i] + w[i] >>> 0;
-        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
-        const maj = a & b ^ a & c ^ b & c;
-        const t2 = S0 + maj >>> 0;
-        hh = g;
-        g = f;
-        f = e;
-        e = d + t1 >>> 0;
-        d = c;
-        c = b;
-        b = a;
-        a = t1 + t2 >>> 0;
-      }
-      h[0] = h[0] + a >>> 0;
-      h[1] = h[1] + b >>> 0;
-      h[2] = h[2] + c >>> 0;
-      h[3] = h[3] + d >>> 0;
-      h[4] = h[4] + e >>> 0;
-      h[5] = h[5] + f >>> 0;
-      h[6] = h[6] + g >>> 0;
-      h[7] = h[7] + hh >>> 0;
-    }
-    return [...h].map((n) => n.toString(16).padStart(8, "0")).join("");
-  }
-  function canonicalJson(value) {
-    const walk = (v) => {
-      if (v === null || v === void 0) return null;
-      if (typeof v === "number") return Number.isFinite(v) ? v : null;
-      if (typeof v === "function") return null;
-      if (Array.isArray(v)) return v.map(walk);
-      if (typeof v === "object") {
-        const out = {};
-        for (const key of Object.keys(v).sort()) {
-          if (v[key] === void 0 || typeof v[key] === "function") continue;
-          out[key] = walk(v[key]);
-        }
-        return out;
-      }
-      return v;
-    };
-    return JSON.stringify(walk(value));
-  }
-  function inputHash(value) {
-    return `sha256:${sha256Hex(canonicalJson(value))}`;
-  }
-
-  // src/patientJourneyNarratives/adapters/claude.js
-  var DEFAULT_MODEL = "claude-opus-5";
-  var API_VERSION = "2023-06-01";
-  var EFFORT_MODELS = /claude-(opus-5|opus-4-[678]|sonnet-5|sonnet-4-6|fable|mythos)/;
-  var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
-  function createClaudeAdapter(options = {}) {
-    const {
-      apiKey = null,
-      getToken = null,
-      baseUrl = "https://api.anthropic.com",
-      model = DEFAULT_MODEL,
-      maxTokens = 4096,
-      effort = "medium",
-      temperature,
-      headers = {},
-      fetch: fetchImpl = typeof fetch === "function" ? fetch : null
-    } = options;
-    if (!fetchImpl) throw new Error("claude adapter: no fetch implementation available");
-    async function credential() {
-      if (typeof getToken === "function") return getToken();
-      return apiKey;
-    }
-    return {
-      name: "claude",
-      model,
-      async messages({ system, messages, tools = [], model: modelOverride, signal } = {}) {
-        const key = await credential();
-        if (!key) throw new Error("claude adapter: no API key or getToken() credential");
-        const useModel = modelOverride || model;
-        const body = {
-          model: useModel,
-          max_tokens: maxTokens,
-          system,
-          messages,
-          tools
-        };
-        if (typeof temperature === "number") body.temperature = temperature;
-        else if (effort && EFFORT_MODELS.test(useModel)) body.output_config = { effort };
-        const requestHeaders = {
-          "content-type": "application/json",
-          "anthropic-version": API_VERSION,
-          "x-api-key": key,
-          ...headers
-        };
-        if (isBrowser()) requestHeaders["anthropic-dangerous-direct-browser-access"] = "true";
-        const response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/v1/messages`, {
-          method: "POST",
-          headers: requestHeaders,
-          body: JSON.stringify(body),
-          signal
-        });
-        const text3 = await response.text();
-        let data = null;
-        try {
-          data = text3 ? JSON.parse(text3) : null;
-        } catch {
-          data = null;
-        }
-        if (!response.ok) {
-          const message = data?.error?.message || text3 || `HTTP ${response.status}`;
-          const error = new Error(`claude adapter: HTTP ${response.status}: ${message}`);
-          error.status = response.status;
-          throw error;
-        }
-        return {
-          content: Array.isArray(data?.content) ? data.content : [],
-          stop_reason: data?.stop_reason ?? null,
-          stop_details: data?.stop_details ?? null,
-          usage: {
-            input_tokens: data?.usage?.input_tokens ?? 0,
-            output_tokens: data?.usage?.output_tokens ?? 0
-          },
-          model: data?.model || useModel
-        };
-      }
-    };
-  }
-
-  // src/patientJourneyNarratives/adapters/openai.js
-  var isBrowser2 = () => typeof window !== "undefined" && typeof document !== "undefined";
-  function toChatMessages(system, messages) {
-    const out = [];
-    if (system) out.push({ role: "system", content: system });
-    for (const message of messages) {
-      const blocks = Array.isArray(message.content) ? message.content : [{ type: "text", text: String(message.content ?? "") }];
-      if (message.role === "assistant") {
-        const text4 = blocks.filter((block) => block.type === "text").map((block) => block.text).join("\n");
-        const calls = blocks.filter((block) => block.type === "tool_use").map((block) => ({
-          id: block.id,
-          type: "function",
-          function: { name: block.name, arguments: JSON.stringify(block.input ?? {}) }
-        }));
-        const entry = { role: "assistant", content: text4 || null };
-        if (calls.length) entry.tool_calls = calls;
-        out.push(entry);
-        continue;
-      }
-      const results = blocks.filter((block) => block.type === "tool_result");
-      for (const block of results) {
-        out.push({
-          role: "tool",
-          tool_call_id: block.tool_use_id,
-          content: typeof block.content === "string" ? block.content : JSON.stringify(block.content)
-        });
-      }
-      const text3 = blocks.filter((block) => block.type === "text").map((block) => block.text).join("\n");
-      if (text3) out.push({ role: "user", content: text3 });
-    }
-    return out;
-  }
-  function fromChatChoice(choice) {
-    const message = choice?.message || {};
-    const content = [];
-    if (message.content) content.push({ type: "text", text: String(message.content) });
-    for (const call of message.tool_calls || []) {
-      let input = {};
-      try {
-        input = call.function?.arguments ? JSON.parse(call.function.arguments) : {};
-      } catch {
-        input = { __invalid_json: call.function?.arguments ?? "" };
-      }
-      content.push({ type: "tool_use", id: call.id, name: call.function?.name, input });
-    }
-    const finish = choice?.finish_reason;
-    const stop_reason = finish === "tool_calls" ? "tool_use" : finish === "length" ? "max_tokens" : finish === "content_filter" ? "refusal" : "end_turn";
-    return { content, stop_reason };
-  }
-  function createOpenAIAdapter(options = {}) {
-    const {
-      apiKey = null,
-      getToken = null,
-      baseUrl = "https://api.openai.com",
-      model,
-      maxTokens = 4096,
-      temperature = 0.2,
-      headers = {},
-      fetch: fetchImpl = typeof fetch === "function" ? fetch : null
-    } = options;
-    if (!model) throw new Error("openai adapter: a model id is required");
-    if (!fetchImpl) throw new Error("openai adapter: no fetch implementation available");
-    async function credential() {
-      if (typeof getToken === "function") return getToken();
-      return apiKey;
-    }
-    return {
-      name: "openai",
-      model,
-      async messages({ system, messages, tools = [], model: modelOverride, signal } = {}) {
-        const key = await credential();
-        if (!key) throw new Error("openai adapter: no API key or getToken() credential");
-        const useModel = modelOverride || model;
-        const body = {
-          model: useModel,
-          max_completion_tokens: maxTokens,
-          messages: toChatMessages(system, messages),
-          tools: tools.map((tool) => ({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              parameters: tool.input_schema
-            }
-          }))
-        };
-        if (typeof temperature === "number") body.temperature = temperature;
-        const requestHeaders = {
-          "content-type": "application/json",
-          authorization: `Bearer ${key}`,
-          ...headers
-        };
-        void isBrowser2;
-        const response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/v1/chat/completions`, {
-          method: "POST",
-          headers: requestHeaders,
-          body: JSON.stringify(body),
-          signal
-        });
-        const text3 = await response.text();
-        let data = null;
-        try {
-          data = text3 ? JSON.parse(text3) : null;
-        } catch {
-          data = null;
-        }
-        if (!response.ok) {
-          const message = data?.error?.message || text3 || `HTTP ${response.status}`;
-          const error = new Error(`openai adapter: HTTP ${response.status}: ${message}`);
-          error.status = response.status;
-          throw error;
-        }
-        const { content, stop_reason } = fromChatChoice(data?.choices?.[0]);
-        return {
-          content,
-          stop_reason,
-          stop_details: null,
-          usage: {
-            input_tokens: data?.usage?.prompt_tokens ?? 0,
-            output_tokens: data?.usage?.completion_tokens ?? 0
-          },
-          model: data?.model || useModel
-        };
-      }
-    };
-  }
-
-  // src/patientJourneyNarratives/adapters/stub.js
-  var plural2 = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-  var were = (n) => n === 1 ? "was" : "were";
-  var is = (n) => n === 1 ? "is" : "are";
-  var finite7 = (value) => typeof value === "number" && Number.isFinite(value);
-  var unitText = (unit) => unit ? ` ${unit}` : "";
-  var names2 = (rows) => rows.map((row) => row.label).join(", ");
-  var cite = (rows) => [...new Set(rows.map((row) => row.row_id))].slice(0, 12);
-  var offsetPhrase = (dfa) => {
-    if (!finite7(dfa)) return "at an unplaceable day";
-    if (dfa === 0) return "on the anchor day";
-    return dfa < 0 ? `${plural2(-dfa, "day")} before the anchor` : `${plural2(dfa, "day")} after the anchor`;
-  };
-  var spanText = (row) => {
-    if (!finite7(row.start_day)) return "with no usable start day";
-    if (finite7(row.end_day))
-      return row.end_day === row.start_day ? `on day ${row.start_day}` : `from day ${row.start_day} to day ${row.end_day}`;
-    if (row.end_state === "ongoing") return `from day ${row.start_day}, recorded as ongoing`;
-    return `from day ${row.start_day}, with no end date recorded`;
-  };
-  var ratioText = (row) => row.ratio_to_limit ? `${row.ratio_to_limit.ratio} \xD7 ${row.ratio_to_limit.limit}` : "within the reference range";
-  var sentence = (text3, rows, confidence = "high") => ({
-    text: text3,
-    citations: Array.isArray(rows) ? cite(rows) : cite([rows]),
-    confidence
-  });
-  function eventContext(inputs, g, extra) {
-    const a = g.anchor;
-    const sentences = [];
-    const flags = [];
-    const severity = a.severity ? a.severity.toLowerCase() : "severity not recorded";
-    sentences.push(
-      sentence(
-        `${a.label} is recorded ${spanText(a)}, ${severity}${a.serious ? ", serious" : ""}${a.outcome ? `, outcome ${a.outcome.toLowerCase()}` : ""}.`,
-        a
-      )
-    );
-    if (a.serious) flags.push("sae");
-    const cm = g.con_meds_active || [];
-    if (cm.length) {
-      const unrecorded = g.not_evaluated?.con_meds_end_unrecorded ?? 0;
-      let text3 = `${plural2(cm.length, "con-med")} ${were(cm.length)} active at onset: ${names2(cm)}.`;
-      if (unrecorded > 0) {
-        text3 += unrecorded === cm.length ? " No end date is recorded for any of them." : ` No end date is recorded for ${unrecorded} of them.`;
-        flags.push("ends-unrecorded");
-      }
-      sentences.push(sentence(text3, cm, unrecorded > 0 ? "low" : "high"));
-    } else {
-      sentences.push(sentence("No con-meds were active at onset.", a));
-    }
-    const labs = g.abnormal_labs || [];
-    for (const lab of labs.slice(0, 2)) {
-      const change = lab.abnormal_reason !== "flag" && finite7(lab.x_baseline);
-      if (change) flags.push("labs:change-rule");
-      sentences.push(
-        sentence(
-          `${lab.test} was ${lab.value}${unitText(lab.unit)} on day ${lab.start_day} (${ratioText(lab)}${change ? `, ${lab.x_baseline} \xD7 baseline` : ""}), ${offsetPhrase(lab.days_from_anchor)}.`,
-          lab,
-          "medium"
-        )
-      );
-    }
-    const doses = g.dose_changes || [];
-    if (doses.length) {
-      const d = doses[0];
-      sentences.push(
-        sentence(
-          `The dose changed from ${d.dose_from} to ${d.dose_to}${unitText(d.unit)} on day ${d.start_day} (${d.direction || "change"}), ${offsetPhrase(d.days_from_anchor)}${doses.length > 1 ? `; ${plural2(doses.length - 1, "further dose change")} ${is(doses.length - 1)} in the window` : ""}.`,
-          doses,
-          "medium"
-        )
-      );
-    }
-    const prior = g.prior_same_term_events || [];
-    if (prior.length) {
-      const recent = prior[0];
-      const when = recent.days_before_anchor === 0 ? "recorded on the same day" : `started ${plural2(recent.days_before_anchor, "day")} before the anchor`;
-      sentences.push(
-        sentence(
-          `${plural2(prior.length, "earlier or same-day event")} with the same preferred term ${is(prior.length)} recorded; the most recent ${when}.`,
-          prior,
-          "medium"
-        )
-      );
-    }
-    const later = g.con_meds_started_later || [];
-    if (later.length && sentences.length < 6) {
-      sentences.push(
-        sentence(
-          `${names2(later)} started later in the window, ${offsetPhrase(later[0].days_from_anchor)}.`,
-          later,
-          "medium"
-        )
-      );
-    }
-    const c = g.counts || {};
-    if (!cm.length && !labs.length && !doses.length && !prior.length && !later.length)
-      flags.push("context:empty");
-    return {
-      kind: "event-context",
-      subject: inputs.subject,
-      anchor: { domain: a.domain, row_id: a.row_id, term: a.label, start_day: a.start_day },
-      window_days: g.window.days,
-      summary: `${a.label} on day ${a.start_day}: ${plural2(c.conMeds ?? cm.length, "con-med")} active, ${plural2(c.abnormalLabs ?? labs.length, "abnormal lab")}, ${plural2(c.doseChanges ?? doses.length, "dose change")} within \xB1${g.window.days} days.`,
-      sentences: sentences.slice(0, 6),
-      flags,
-      __extraUsed: Boolean(extra)
-    };
-  }
-  function subjectSummary(inputs, g, extra) {
-    const sentences = [];
-    const flags = [];
-    const counts = g.counts || {};
-    const dose = extra && extra.records ? extra : null;
-    if (dose && dose.records.length) {
-      const range = g.dose_range;
-      sentences.push(
-        sentence(
-          `Exposure to ${g.treatments.join(" and ")} is recorded from day ${g.exposure_extent.first_day} to day ${g.exposure_extent.last_day}${range ? ` at ${range.min === range.max ? range.min : `${range.min}\u2013${range.max}`}${unitText(range.unit)}` : ""}, with ${plural2(dose.changes.length, "dose change")}.`,
-          dose.records
-        )
-      );
-    }
-    const terms = g.adverse_event_terms || [];
-    if (counts.AE > 0 && terms.length) {
-      const top = terms.slice(0, 3);
-      sentences.push(
-        sentence(
-          `${plural2(counts.AE, "adverse event")} ${is(counts.AE)} recorded across ${plural2(terms.length, "preferred term")}; the most frequent ${is(top.length)} ${top.map((t) => `${t.term} (${t.count})`).join(", ")}.`,
-          top.flatMap((t) => t.row_ids.map((row_id) => ({ row_id }))),
-          "medium"
-        )
-      );
-    }
-    const sae = g.serious_adverse_events || [];
-    if (sae.length) {
-      flags.push("sae");
-      sentences.push(
-        sentence(
-          `${plural2(sae.length, "serious adverse event")} ${is(sae.length)} recorded: ${sae.map((e) => `${e.label} on day ${e.start_day}`).join("; ")}.`,
-          sae
-        )
-      );
-    }
-    const dispo = (g.disposition || []).filter((row) => row.reference);
-    if (dispo.length) {
-      sentences.push(
-        sentence(
-          `The disposition event is ${dispo.map((d) => `${d.label} on day ${d.start_day}`).join("; ")}.`,
-          dispo
-        )
-      );
-    }
-    if (g.last_adverse_event) {
-      sentences.push(
-        sentence(
-          `The last adverse event recorded is ${g.last_adverse_event.label} on day ${g.last_adverse_event.start_day}.`,
-          g.last_adverse_event
-        )
-      );
-    }
-    const unplaceable = Object.values(g.unplaceable || {}).reduce((sum, n) => sum + n, 0);
-    if (unplaceable > 0) flags.push("data:unplaceable");
-    return {
-      kind: "subject-summary",
-      subject: inputs.subject,
-      summary: `${plural2(counts.AE || 0, "adverse event")} (${sae.length} serious), ${plural2(counts.LB || 0, "lab result")} and ${plural2(counts.CM || 0, "con-med record")}${g.extent ? ` over days ${g.extent.first_day} to ${g.extent.last_day}` : ""}${dispo.length ? `; ${dispo[0].label.toLowerCase()} on day ${dispo[0].start_day}` : ""}.`,
-      sentences: sentences.slice(0, 8),
-      flags
-    };
-  }
-  function labTrajectory(inputs, g) {
-    const points = g.points || [];
-    const sentences = [];
-    const flags = [];
-    const first = points[0];
-    const last = points[points.length - 1];
-    if (points.length === 1) flags.push("series:single-point");
-    sentences.push(
-      sentence(
-        `${g.test} was measured ${plural2(points.length, "time")} between day ${first.start_day} and day ${last.start_day}${g.unit ? ` (${g.unit}` : ""}${finite7(g.lln) && finite7(g.uln) ? `${g.unit ? "; " : "("}reference ${g.lln}\u2013${g.uln})` : g.unit ? ")" : ""}.`,
-        [first, last]
-      )
-    );
-    if (g.baseline && g.baseline.row_id) {
-      sentences.push(
-        sentence(
-          `Baseline is ${g.baseline.value}${unitText(g.unit)} on day ${g.baseline.day} (${g.baseline.rule === "flag" ? "the flagged baseline record" : g.baseline.rule === "day" ? "the last value on or before the baseline day" : "the earliest value"}).`,
-          { row_id: g.baseline.row_id }
-        )
-      );
-    }
-    if (g.peak) {
-      const peakRow = points.find((p) => p.row_id === g.peak.row_id) || { row_id: g.peak.row_id };
-      sentences.push(
-        sentence(
-          `The highest value, ${g.peak.value}${unitText(g.unit)} on day ${g.peak.day}, is ${ratioText(peakRow)}${finite7(peakRow.x_baseline) ? ` and ${peakRow.x_baseline} \xD7 baseline` : ""}.`,
-          peakRow,
-          "medium"
-        )
-      );
-    }
-    const abnormal = points.filter((p) => p.abnormal_by_flag || p.abnormal_by_change);
-    if (abnormal.length) {
-      if (abnormal.some((p) => p.abnormal_by_change)) flags.push("labs:change-rule");
-      const flagged = abnormal.filter((p) => p.abnormal_flag).map((p) => p.abnormal_flag);
-      sentences.push(
-        sentence(
-          `${abnormal.length} of ${points.length} values ${is(abnormal.length)} abnormal${flagged.length ? ` (flagged ${[...new Set(flagged)].join(", ")})` : " by the change-from-baseline rule"}.`,
-          abnormal,
-          "medium"
-        )
-      );
-    } else {
-      sentences.push(
-        sentence(
-          "No value is flagged abnormal and none crosses the change-from-baseline rule.",
-          points,
-          "medium"
-        )
-      );
-    }
-    if (last !== first) {
-      sentences.push(
-        sentence(
-          `The last value, ${last.value}${unitText(g.unit)} on day ${last.start_day}, is ${ratioText(last)}.`,
-          last
-        )
-      );
-    }
-    return {
-      kind: "lab-trajectory",
-      subject: inputs.subject,
-      test: g.test,
-      summary: `${g.test}: ${plural2(points.length, "value")}, ${abnormal.length} abnormal; peak ${g.peak ? `${g.peak.value}${unitText(g.unit)} on day ${g.peak.day}` : "not available"}.`,
-      sentences: sentences.slice(0, 5),
-      flags
-    };
-  }
-  function doseJourney(inputs, g, extra) {
-    const sentences = [];
-    const flags = [];
-    const records = g.records || [];
-    const changes = g.changes || [];
-    const first = records[0];
-    const last = records[records.length - 1];
-    sentences.push(
-      sentence(
-        `${g.treatments.join(" and ")} exposure is recorded across ${plural2(records.length, "record")}, from day ${first.start_day}${finite7(last.end_day) ? ` to day ${last.end_day}` : last.end_state === "unrecorded" ? ", with no end date recorded for the last record" : ""}.`,
-        records
-      )
-    );
-    if (changes.length) {
-      for (const change of changes.slice(0, 3)) {
-        sentences.push(
-          sentence(
-            `On day ${change.start_day} the dose changed from ${change.dose_from} to ${change.dose_to}${unitText(change.unit)} (${change.direction || "change"}).`,
-            [change, { row_id: change.source_row_id }],
-            "medium"
-          )
-        );
-      }
-      if (changes.length > 3) flags.push("dose:more-changes");
-    } else {
-      sentences.push(
-        sentence(
-          `No dose change is recorded; the dose stayed at ${first.dose}${unitText(first.unit)} throughout.`,
-          records
-        )
-      );
-    }
-    const sae = extra && Array.isArray(extra.rows) ? extra.rows : [];
-    if (sae.length && sentences.length < 5) {
-      flags.push("sae");
-      sentences.push(
-        sentence(
-          `${plural2(sae.length, "serious adverse event")} ${is(sae.length)} recorded during the study: ${sae.map((e) => `${e.label} on day ${e.start_day}`).join("; ")}.`,
-          sae
-        )
-      );
-    }
-    return {
-      kind: "dose-journey",
-      subject: inputs.subject,
-      summary: `${g.treatments.join(" and ")}: ${plural2(records.length, "exposure record")}, ${plural2(changes.length, "dose change")}${changes.length ? ` (${changes.map((c) => c.direction).filter(Boolean).join(", ")})` : ""}.`,
-      sentences: sentences.slice(0, 5),
-      flags
-    };
-  }
-  function disposition(inputs, g, extra) {
-    const rows = g.rows || [];
-    const sentences = [];
-    const flags = [];
-    const reference = rows.filter((row) => row.reference);
-    const milestones = rows.filter((row) => !row.reference);
-    if (reference.length) {
-      sentences.push(
-        sentence(
-          `The disposition event is ${reference.map((d) => `${d.label} on day ${d.start_day}${d.detail && d.detail !== d.label ? ` (the record reads "${d.detail}")` : ""}`).join("; ")}.`,
-          reference
-        )
-      );
-    }
-    if (milestones.length) {
-      sentences.push(
-        sentence(
-          `${plural2(milestones.length, "other disposition record")} ${is(milestones.length)} recorded: ${milestones.map((d) => `${d.label} on day ${d.start_day}`).join(", ")}.`,
-          milestones,
-          "medium"
-        )
-      );
-    }
-    const overview = extra && extra.exposure_extent ? extra : null;
-    if (overview) {
-      const ext = overview.exposure_extent;
-      sentences.push(
-        sentence(
-          `Exposure is recorded from day ${ext.first_day} to day ${ext.last_day}${ext.last_end_state === "unrecorded" ? " (end not recorded)" : ""}.`,
-          [{ row_id: ext.first_row_id }, { row_id: ext.last_row_id }]
-        )
-      );
-      if (overview.last_adverse_event) {
-        const lastAe = overview.last_adverse_event;
-        sentences.push(
-          sentence(
-            `The last adverse event recorded is ${lastAe.label} on day ${lastAe.start_day}${lastAe.serious ? ", serious" : ""}.`,
-            lastAe
-          )
-        );
-        if (lastAe.serious) flags.push("sae");
-      }
-    }
-    return {
-      kind: "disposition",
-      subject: inputs.subject,
-      summary: reference.length ? `${reference[0].label} on day ${reference[0].start_day}; ${plural2(rows.length, "disposition record")} in total.` : `${plural2(rows.length, "disposition record")}, none marked as the disposition event.`,
-      sentences: sentences.slice(0, 4),
-      flags
-    };
-  }
-  var COMPOSERS = {
-    "event-context": eventContext,
-    "subject-summary": subjectSummary,
-    "lab-trajectory": labTrajectory,
-    "dose-journey": doseJourney,
-    disposition
-  };
-  function extraCall(skill, inputs, grounding) {
-    switch (skill) {
-      case "event-context":
-        return {
-          name: "get_source_row",
-          input: { row_id: grounding.anchor.row_id, usubjid: inputs.subject }
-        };
-      case "subject-summary":
-        return { name: "get_dose_history", input: { usubjid: inputs.subject } };
-      case "lab-trajectory":
-        return grounding.peak ? {
-          name: "get_source_row",
-          input: { row_id: grounding.peak.row_id, usubjid: inputs.subject }
-        } : null;
-      case "dose-journey":
-        return {
-          name: "get_events",
-          input: { usubjid: inputs.subject, domain: "AE", filters: { serious: true } }
-        };
-      case "disposition":
-        return { name: "get_subject_overview", input: { usubjid: inputs.subject } };
-      default:
-        return null;
-    }
-  }
-  function createStubAdapter({
-    model = "stub-1",
-    delay = 0,
-    extraCall: useExtra = true
-  } = {}) {
-    return {
-      name: "stub",
-      model,
-      async messages({ messages }) {
-        if (delay > 0) await new Promise((resolve2) => setTimeout(resolve2, delay));
-        const first = messages[0];
-        const firstText = (first?.content || []).find((block) => block.type === "text")?.text;
-        const payload = parseFirstMessage(firstText);
-        if (!payload) {
-          return {
-            content: [{ type: "text", text: "stub: cannot read the request" }],
-            stop_reason: "end_turn",
-            usage: { input_tokens: 0, output_tokens: 0 },
-            model
-          };
-        }
-        const { skill, inputs, grounding } = payload;
-        const assistantTurns = messages.filter((m) => m.role === "assistant").length;
-        const call = useExtra ? extraCall(skill, inputs, grounding) : null;
-        if (assistantTurns === 0 && call) {
-          return {
-            content: [{ type: "tool_use", id: "stub-call-1", name: call.name, input: call.input }],
-            stop_reason: "tool_use",
-            usage: { input_tokens: 0, output_tokens: 0 },
-            model
-          };
-        }
-        let extra = null;
-        if (call) {
-          const results = messages.filter((m) => m.role === "user").flatMap((m) => m.content || []).filter((block) => block.type === "tool_result" && block.tool_use_id === "stub-call-1");
-          if (results.length) {
-            try {
-              extra = JSON.parse(results[0].content);
-            } catch {
-              extra = null;
-            }
-            if (extra && extra.error) extra = null;
-          }
-        }
-        const compose = COMPOSERS[skill];
-        if (!compose) {
-          return {
-            content: [{ type: "text", text: `stub: no composer for ${skill}` }],
-            stop_reason: "end_turn",
-            usage: { input_tokens: 0, output_tokens: 0 },
-            model
-          };
-        }
-        const draft = compose(inputs, grounding, extra);
-        delete draft.__extraUsed;
-        return {
-          content: [{ type: "tool_use", id: "stub-submit", name: "submit_draft", input: draft }],
-          stop_reason: "tool_use",
-          usage: { input_tokens: 0, output_tokens: 0 },
-          model
-        };
-      }
-    };
-  }
-
-  // src/patientJourneyNarratives/bind.js
-  function bindNarratives(instance, options = {}) {
-    if (!instance || typeof instance.setSettings !== "function") {
-      throw new Error("bindNarratives: an explorer instance with setSettings() is required");
-    }
-    const service = () => createDataService({
-      domains: instance.domains || {},
-      settings: instance.settings,
-      structured: (subject) => instance.structured && instance.structured.subject === subject ? instance.structured : null
-    });
-    const generator = create({
-      ...options,
-      dataService: {
-        structuredFor: (subject) => service().structuredFor(subject),
-        subjects: () => service().subjects(),
-        get settings() {
-          return instance.settings;
-        },
-        get domains() {
-          return instance.domains || {};
-        },
-        invalidate() {
-        }
-      }
-    });
-    const slots = {
-      subjectSummary: (subject) => generator.run("subject-summary", { subject }),
-      eventContext: (subject, anchorRowId, { windowDays } = {}) => generator.run("event-context", {
-        subject,
-        anchor_row_id: anchorRowId,
-        ...Number.isFinite(windowDays) ? { window_days: windowDays } : {}
-      }),
-      labTrajectory: (subject, test) => generator.run("lab-trajectory", { subject, test }),
-      doseJourney: (subject) => generator.run("dose-journey", { subject }),
-      disposition: (subject) => generator.run("disposition", { subject })
-    };
-    instance.setSettings({ narratives: slots });
-    generator.unbind = () => instance.setSettings({ narratives: null });
-    generator.slots = slots;
-    return generator;
-  }
-
-  // src/patientJourneyNarratives/index.js
-  var MARKERS = { inputs: "<<INPUTS>>", grounding: "<<GROUNDING>>", end: "<<END>>" };
-  var SUBMIT_TOOL = "submit_draft";
-  var ALIASES = { usubjid: "subject", days: "window_days" };
-  function groundingArgs(skill, inputs) {
-    const tool = TOOLS[skill.grounding];
-    if (!tool)
-      throw new Error(`narratives: skill ${skill.slug} grounds on unknown tool ${skill.grounding}`);
-    const args = {};
-    for (const name of Object.keys(tool.input_schema.properties)) {
-      const source = name in inputs ? inputs[name] : inputs[ALIASES[name]];
-      if (source !== void 0 && source !== null) args[name] = source;
-    }
-    for (const entry of skill.groundingArgs || []) {
-      const [key, value] = String(entry).split("=");
-      if (key && value !== void 0) args[key.trim()] = value.trim();
-    }
-    return args;
-  }
-  function scopeIsEmpty(skill, grounding) {
-    if (!grounding || grounding.error) return true;
-    switch (skill.grounding) {
-      case "get_subject_overview":
-        return !Object.values(grounding.counts || {}).some((n) => n > 0);
-      case "get_lab_series":
-        return !(grounding.points || []).length;
-      case "get_dose_history":
-        return !(grounding.records || []).length;
-      case "get_events":
-        return !(grounding.rows || []).length;
-      default:
-        return false;
-    }
-  }
-  function groundingRefusal(skill, grounding) {
-    if (grounding && grounding.error === "anchor-not-found") return "anchor-not-found";
-    return scopeIsEmpty(skill, grounding) ? "insufficient-data" : null;
-  }
-  function identityFields(skill, inputs, grounding) {
-    const fields = { kind: skill.slug, subject: String(inputs.subject) };
-    if (skill.slug === "event-context") {
-      const id = normalizeRowId(inputs.anchor_row_id);
-      const anchor = grounding && grounding.anchor;
-      fields.anchor = {
-        domain: anchor ? anchor.domain : id.split("-")[0] || "",
-        row_id: id,
-        term: anchor ? String(anchor.label ?? "") : "",
-        start_day: anchor && Number.isFinite(anchor.start_day) ? anchor.start_day : null
-      };
-      fields.window_days = grounding && grounding.window ? grounding.window.days : inputs.window_days ?? 0;
-    }
-    if (skill.slug === "lab-trajectory") {
-      fields.test = grounding && grounding.test ? grounding.test : String(inputs.test ?? "");
-    }
-    return fields;
-  }
-  function systemPrompt(skill) {
-    const cap = sentenceCap(skill.schema);
-    return [
-      SHARED.systemPrompt,
-      `# Skill: ${skill.slug} (version ${skill.version})`,
-      skill.prompt,
-      cap !== null ? `Sentence cap for this skill: at most ${cap} sentences.` : "",
-      "Row ids look like AE-7, CM-11, LB-203, DOSE-4; cite them exactly as the tools return them."
-    ].filter(Boolean).join("\n\n");
-  }
-  function firstMessage(skill, inputs, grounding) {
-    return [
-      `Draft the ${skill.slug} narrative for participant ${inputs.subject}.`,
-      MARKERS.inputs,
-      JSON.stringify(inputs),
-      `${MARKERS.grounding} ${skill.grounding} (already run; every row_id below is in scope for citations)`,
-      JSON.stringify(grounding),
-      MARKERS.end,
-      `Call other declared tools only when you need a column the grounding rows do not carry, then call ${SUBMIT_TOOL} exactly once.`
-    ].join("\n");
-  }
-  function parseFirstMessage(text3) {
-    const source = String(text3 ?? "");
-    const skill = /^Draft the ([a-z-]+) narrative/.exec(source);
-    const inputsAt = source.indexOf(MARKERS.inputs);
-    const groundingAt = source.indexOf(MARKERS.grounding);
-    const endAt = source.indexOf(MARKERS.end);
-    if (!skill || inputsAt < 0 || groundingAt < 0 || endAt < 0) return null;
-    try {
-      const inputs = JSON.parse(source.slice(inputsAt + MARKERS.inputs.length, groundingAt).trim());
-      const groundingText = source.slice(groundingAt, endAt);
-      const grounding = JSON.parse(groundingText.slice(groundingText.indexOf("\n") + 1).trim());
-      return { skill: skill[1], inputs, grounding };
-    } catch {
-      return null;
-    }
-  }
-  function refusalDraft(skill, inputs, reason, provenance, grounding = null) {
-    return {
-      ...identityFields(skill, inputs, grounding),
-      summary: reason in REFUSAL_TEXT ? REFUSAL_TEXT[reason] : `Narrative withheld (${reason}).`,
-      sentences: [],
-      flags: [`refused:${reason}`],
-      provenance,
-      status: "draft"
-    };
-  }
-  function skillFor(slug) {
-    const key = SLUG_BY_SLOT[slug] || slug;
-    const skill = SKILLS[key];
-    if (!skill) {
-      throw new Error(`narratives: unknown skill "${slug}" (known: ${SKILL_SLUGS.join(", ")})`);
-    }
-    return skill;
-  }
-  function createScope(dataService) {
-    function scope(slug, rawInputs = {}) {
-      const skill = skillFor(slug);
-      const inputs = { ...rawInputs };
-      if (inputs.subject !== void 0) inputs.subject = String(inputs.subject);
-      const args = groundingArgs(skill, inputs);
-      const grounding = runTool(dataService, skill.grounding, args, { subject: inputs.subject });
-      const hash = inputHash({ skill: skill.slug, version: skill.version, inputs, grounding });
-      return { skill, grounding, hash };
-    }
-    return { scope, scopeHash: (slug, inputs) => scope(slug, inputs).hash };
-  }
-  function resolveAdapter(options) {
-    if (options.adapter && typeof options.adapter.messages === "function") return options.adapter;
-    const common = {
-      apiKey: options.apiKey,
-      getToken: options.getToken,
-      baseUrl: options.baseUrl,
-      model: options.model,
-      maxTokens: options.maxTokens,
-      effort: options.effort,
-      temperature: options.temperature,
-      headers: options.headers,
-      fetch: options.fetch
-    };
-    for (const key of Object.keys(common)) if (common[key] === void 0) delete common[key];
-    switch (options.provider || "stub") {
-      case "claude":
-        return createClaudeAdapter(common);
-      case "openai":
-        return createOpenAIAdapter(common);
-      case "stub":
-        return createStubAdapter(options.stub || {});
-      default:
-        throw new Error(`narratives: unknown provider "${options.provider}"`);
-    }
-  }
-  function resolveCache(cache) {
-    if (cache === false || cache === null) return null;
-    if (cache && typeof cache.get === "function" && typeof cache.set === "function") return cache;
-    const map2 = /* @__PURE__ */ new Map();
-    return {
-      get: (key) => map2.get(key),
-      set: (key, value) => map2.set(key, value),
-      clear: () => map2.clear()
-    };
-  }
-  function create(options = {}) {
-    const adapter = resolveAdapter(options);
-    const dataService = options.dataService && typeof options.dataService.structuredFor === "function" ? options.dataService : createDataService(options.dataService || {});
-    const cache = resolveCache(options.cache === void 0 ? "memory" : options.cache);
-    const maxToolCalls = Number.isInteger(options.maxToolCalls) ? options.maxToolCalls : 8;
-    const log = typeof options.log === "function" ? options.log : (message) => {
-      if (typeof console !== "undefined") console.warn(`narratives: ${message}`);
-    };
-    function checkInputs15(skill, inputs) {
-      const verdict = validateSchema(inputs, skill.schema.definitions.Input, skill.schema);
-      if (!verdict.ok) {
-        throw new Error(`narratives: invalid inputs for ${skill.slug}: ${verdict.errors.join("; ")}`);
-      }
-    }
-    const { scope } = createScope(dataService);
-    async function run(slug, rawInputs = {}, { signal } = {}) {
-      const skill = skillFor(slug);
-      const inputs = { ...rawInputs };
-      if (inputs.subject !== void 0) inputs.subject = String(inputs.subject);
-      checkInputs15(skill, inputs);
-      const { grounding, hash } = scope(skill.slug, inputs);
-      const cacheKey = `${skill.slug}@${skill.version}|${hash}|${adapter.name}:${adapter.model}`;
-      if (cache) {
-        const hit = cache.get(cacheKey);
-        if (hit) return hit;
-      }
-      const startedAt = (/* @__PURE__ */ new Date()).toISOString();
-      const toolCalls = [skill.grounding];
-      const usage = { input_tokens: 0, output_tokens: 0, calls: 0 };
-      const provenance = () => ({
-        model: adapter.model,
-        skill: `${skill.slug}@${skill.version}`,
-        input_hash: hash,
-        generated_at: (/* @__PURE__ */ new Date()).toISOString(),
-        started_at: startedAt,
-        tool_calls: [...toolCalls],
-        adapter: adapter.name,
-        usage: { ...usage },
-        dropped: [],
-        attempts: 0
-      });
-      const finish = (draft) => {
-        if (cache) cache.set(cacheKey, draft);
-        return draft;
-      };
-      const refusal = groundingRefusal(skill, grounding);
-      if (refusal) return finish(refusalDraft(skill, inputs, refusal, provenance(), grounding));
-      const declared = skill.tools.filter((name) => TOOLS[name]);
-      const tools = [
-        ...toolDefinitions(declared),
-        {
-          name: SUBMIT_TOOL,
-          description: "Submit the finished narrative draft. Call exactly once, after any tool reads. Every sentence must cite row_ids returned in this conversation.",
-          input_schema: inlineRefs(skill.schema.definitions.Draft, skill.schema)
-        }
-      ];
-      const system = systemPrompt(skill);
-      const messages = [
-        { role: "user", content: [{ type: "text", text: firstMessage(skill, inputs, grounding) }] }
-      ];
-      const scopeIds = collectRowIds(grounding);
-      if (skill.slug === "event-context") scopeIds.add(normalizeRowId(inputs.anchor_row_id));
-      const identity = identityFields(skill, inputs, grounding);
-      let attempts = 0;
-      let validationRetried = false;
-      let submitNudged = false;
-      let lastErrors = [];
-      let lastDropped = [];
-      const maxRounds = maxToolCalls + 4;
-      for (let round3 = 0; round3 < maxRounds; round3 += 1) {
-        if (signal && signal.aborted) {
-          const draft = refusalDraft(skill, inputs, "cancelled", provenance(), grounding);
-          return draft;
-        }
-        let response;
-        try {
-          response = await adapter.messages({ system, messages, tools, signal });
-        } catch (error) {
-          log(`${skill.slug}: adapter failed: ${error && error.message ? error.message : error}`);
-          const draft = refusalDraft(skill, inputs, "provider-error", provenance(), grounding);
-          draft.provenance.error = String(error && error.message ? error.message : error);
-          return draft;
-        }
-        usage.input_tokens += response.usage?.input_tokens ?? 0;
-        usage.output_tokens += response.usage?.output_tokens ?? 0;
-        usage.calls += 1;
-        if (response.stop_reason === "refusal") {
-          const draft = refusalDraft(skill, inputs, "provider-refusal", provenance(), grounding);
-          if (response.stop_details) draft.provenance.stop_details = response.stop_details;
-          return finish(draft);
-        }
-        const content = Array.isArray(response.content) ? response.content : [];
-        const toolUses = content.filter((block) => block && block.type === "tool_use");
-        if (content.length) messages.push({ role: "assistant", content });
-        const results = [];
-        let submitted = null;
-        for (const use of toolUses) {
-          if (use.name === SUBMIT_TOOL) {
-            submitted = submitted || use;
-            continue;
-          }
-          let result;
-          if (!declared.includes(use.name)) {
-            result = {
-              error: "tool-not-available",
-              message: `${use.name} is not available to this skill.`
-            };
-          } else if (toolCalls.length - 1 >= maxToolCalls) {
-            result = {
-              error: "tool-call-cap",
-              message: `The tool-call cap (${maxToolCalls}) is reached; submit the draft.`
-            };
-          } else {
-            result = runTool(dataService, use.name, use.input, { subject: inputs.subject });
-            toolCalls.push(use.name);
-            for (const id of collectRowIds(result)) scopeIds.add(id);
-          }
-          results.push({
-            type: "tool_result",
-            tool_use_id: use.id,
-            content: JSON.stringify(result),
-            ...result && result.error ? { is_error: true } : {}
-          });
-        }
-        if (submitted) {
-          attempts += 1;
-          const candidate = { ...submitted.input, ...identity };
-          const verdict = validateDraft(candidate, { skill, scopeIds, subject: inputs.subject });
-          lastErrors = verdict.errors;
-          lastDropped = verdict.dropped;
-          const allDropped = verdict.ok && !verdict.draft.sentences.length && verdict.dropped.length > 0;
-          if (verdict.ok && !allDropped) {
-            for (const drop of verdict.dropped)
-              log(`${skill.slug}: dropped sentence (${drop.reason}): "${drop.text}"`);
-            const prov3 = provenance();
-            prov3.dropped = verdict.dropped;
-            prov3.attempts = attempts;
-            prov3.model = response.model || adapter.model;
-            return finish({ ...verdict.draft, provenance: prov3, status: "draft" });
-          }
-          if (!validationRetried) {
-            validationRetried = true;
-            const problems = [
-              ...verdict.errors,
-              ...verdict.dropped.map((drop) => `dropped "${drop.text}" (${drop.reason})`)
-            ];
-            results.push({
-              type: "tool_result",
-              tool_use_id: submitted.id,
-              content: JSON.stringify({ error: "validation-failed", problems }),
-              is_error: true
-            });
-            results.push({
-              type: "text",
-              text: "VALIDATION FEEDBACK: the draft was rejected. Fix every problem listed in the submit_draft result \u2014 cite only row_ids returned in this conversation, remove forbidden constructs, keep to the schema \u2014 and call submit_draft again."
-            });
-            messages.push({ role: "user", content: results });
-            continue;
-          }
-          const prov2 = provenance();
-          prov2.dropped = verdict.dropped;
-          prov2.errors = verdict.errors;
-          prov2.attempts = attempts;
-          log(
-            `${skill.slug}: refused after ${attempts} attempts: ${[...verdict.errors, ...verdict.dropped.map((d) => d.reason)].join("; ")}`
-          );
-          return finish(refusalDraft(skill, inputs, "validation", prov2, grounding));
-        }
-        if (!toolUses.length) {
-          const text3 = content.filter((block) => block.type === "text").map((block) => block.text).join("\n");
-          const parsed = parseJsonObject(text3);
-          if (parsed && Array.isArray(parsed.sentences)) {
-            messages.push({
-              role: "assistant",
-              content: [{ type: "tool_use", id: `text-${round3}`, name: SUBMIT_TOOL, input: parsed }]
-            });
-            toolUses.push({
-              type: "tool_use",
-              id: `text-${round3}`,
-              name: SUBMIT_TOOL,
-              input: parsed
-            });
-            messages.pop();
-            messages.push({
-              role: "assistant",
-              content: [{ type: "tool_use", id: `text-${round3}`, name: SUBMIT_TOOL, input: parsed }]
-            });
-            const synthetic = await handleSynthetic(parsed, `text-${round3}`);
-            if (synthetic) return synthetic;
-            continue;
-          }
-          if (response.stop_reason === "max_tokens") {
-            log(`${skill.slug}: the model hit max_tokens without submitting`);
-            const prov3 = provenance();
-            prov3.attempts = attempts;
-            return finish(refusalDraft(skill, inputs, "provider-error", prov3, grounding));
-          }
-          if (!submitNudged) {
-            submitNudged = true;
-            messages.push({
-              role: "user",
-              content: [{ type: "text", text: `Call ${SUBMIT_TOOL} now with the finished draft.` }]
-            });
-            continue;
-          }
-          const prov2 = provenance();
-          prov2.attempts = attempts;
-          prov2.errors = ["the model ended without submitting a draft"];
-          return finish(refusalDraft(skill, inputs, "validation", prov2, grounding));
-        }
-        messages.push({ role: "user", content: results });
-      }
-      const prov = provenance();
-      prov.attempts = attempts;
-      prov.errors = lastErrors.length ? lastErrors : ["round cap reached"];
-      prov.dropped = lastDropped;
-      return finish(refusalDraft(skill, inputs, "validation", prov, grounding));
-      async function handleSynthetic(parsed, id) {
-        attempts += 1;
-        const candidate = { ...parsed, ...identity };
-        const verdict = validateDraft(candidate, { skill, scopeIds, subject: inputs.subject });
-        const allDropped = verdict.ok && !verdict.draft.sentences.length && verdict.dropped.length > 0;
-        if (verdict.ok && !allDropped) {
-          const prov3 = provenance();
-          prov3.dropped = verdict.dropped;
-          prov3.attempts = attempts;
-          return finish({ ...verdict.draft, provenance: prov3, status: "draft" });
-        }
-        if (!validationRetried) {
-          validationRetried = true;
-          messages.push({
-            role: "user",
-            content: [
-              {
-                type: "tool_result",
-                tool_use_id: id,
-                content: JSON.stringify({
-                  error: "validation-failed",
-                  problems: [
-                    ...verdict.errors,
-                    ...verdict.dropped.map((d) => `dropped "${d.text}" (${d.reason})`)
-                  ]
-                }),
-                is_error: true
-              },
-              {
-                type: "text",
-                text: "VALIDATION FEEDBACK: fix the problems and call submit_draft again."
-              }
-            ]
-          });
-          return null;
-        }
-        const prov2 = provenance();
-        prov2.dropped = verdict.dropped;
-        prov2.errors = verdict.errors;
-        prov2.attempts = attempts;
-        return finish(refusalDraft(skill, inputs, "validation", prov2, grounding));
-      }
-    }
-    return {
-      run,
-      scope,
-      scopeHash: (slug, inputs) => scope(slug, inputs).hash,
-      skills: SKILLS,
-      adapter,
-      dataService,
-      cache
-    };
-  }
-  function parseJsonObject(text3) {
-    const source = String(text3 ?? "");
-    const start = source.indexOf("{");
-    if (start < 0) return null;
-    for (let end = source.lastIndexOf("}"); end > start; end = source.lastIndexOf("}", end - 1)) {
-      try {
-        return JSON.parse(source.slice(start, end + 1));
-      } catch {
-      }
-    }
-    return null;
-  }
-  var patientJourneyNarratives_default = { create, bindNarratives };
-
   // src/patient-journey-explorer.js
   Chart.register(
     BarController,
@@ -41890,14 +38646,12 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     "pjeLaneToggled",
     "pjeFilterChanged",
     "pjeTimeModeChanged",
-    "pjeNarrativeAction",
     "participantsSelected"
   ];
   var CALLBACK_BY_EVENT = {
     pjeSubjectSelected: (settings, detail) => settings.on_select_subject?.(detail.subject, detail),
     pjeEventAnchored: (settings, detail) => settings.on_anchor_event?.(detail.anchor, detail.context),
-    pjeContextChanged: (settings, detail) => settings.on_context_change?.(detail),
-    pjeNarrativeAction: (settings, detail) => settings.on_narrative_action?.(detail)
+    pjeContextChanged: (settings, detail) => settings.on_context_change?.(detail)
   };
   var DOMAIN_NOUNS = {
     EX: "exposure record",
@@ -41924,8 +38678,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
   var CUE_ANCHORED_DETAIL = "Click another mark to move the anchor; Escape or the Clear anchor control releases it.";
   var instanceCounter = 0;
   var warn2 = (message) => console.warn(`patient-journey-explorer: ${message}`);
-  var plural3 = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-  var upper7 = (value) => value === null || value === void 0 ? "" : String(value).trim().toUpperCase();
+  var plural2 = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  var upper6 = (value) => value === null || value === void 0 ? "" : String(value).trim().toUpperCase();
   var raf = typeof requestAnimationFrame === "function" ? (fn) => requestAnimationFrame(fn) : (fn) => setTimeout(fn, 16);
   function coerceWindowDays(value, fallback) {
     if (value === null || value === void 0 || value === "") return fallback;
@@ -41958,9 +38712,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       this.suppressTooltip = false;
       this.sourceLinkWarned = false;
       this.lastEffectiveMode = null;
-      this.narrativeEntries = /* @__PURE__ */ new Map();
-      this.narrativeSeq = 0;
-      this.citedMarkId = null;
       this.destroyed = false;
       this.state = this.seedState();
       Object.assign(
@@ -41981,13 +38732,9 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       this.cueEl = createElement("div", "sv-pje-cue");
       this.cueEl.setAttribute("role", "note");
       this.cueEl.hidden = true;
-      this.narrativeBannerEl = createElement("div", "sv-pje-narrative-banner");
-      this.chartWrap.insertBefore(this.narrativeBannerEl, this.mainAnnotation);
       this.chartWrap.insertBefore(this.cueEl, this.mainAnnotation);
       this.chartWrap.insertBefore(this.lanesEl, this.mainAnnotation);
       this.chartWrap.insertBefore(this.axisEl, this.mainAnnotation);
-      this.narrativeTrayEl = createElement("div", "sv-pje-ai-tray");
-      this.chartWrap.insertBefore(this.narrativeTrayEl, this.mainAnnotation);
       this.tooltipEl = createElement("div", "sv-pje-tooltip");
       this.tooltipEl.setAttribute("role", "tooltip");
       this.tooltipEl.hidden = true;
@@ -42109,7 +38856,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     describeMark(event, sameDay = []) {
       const base = laneAriaLabel(event, this.settings, this.display());
       if (!sameDay.length) return base;
-      return `${base} Also on this day, ${plural3(sameDay.length, "more record")} at this mark: ${sameDay.join(", ")}. Use the arrow keys to reach each one.`;
+      return `${base} Also on this day, ${plural2(sameDay.length, "more record")} at this mark: ${sameDay.join(", ")}. Use the arrow keys to reach each one.`;
     }
     /**
      * The settings the pure logic sees this render: the synced settings with the
@@ -42162,7 +38909,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       this.anchoredEvent = null;
       this.context = null;
       this.clearFootnote();
-      this.narrativeEntries.clear();
       this.sourceLinkWarned = false;
       this.subjectList = subjectIndex(domains, this.settings);
       this.liveFilterSpecs = liveFilters(this.settings.filters, domains);
@@ -42195,7 +38941,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       if ("time" in overrides2) this.state.mode = this.settings.time.mode;
       if ("filters" in overrides2) this.state.filters = initFilterState(this.settings.filters);
       if ("subject" in overrides2 && this.settings.subject) this.state.subject = this.settings.subject;
-      if ("narratives" in overrides2) this.narrativeEntries.clear();
       this.lanesEl.style.maxHeight = `${this.settings.height}px`;
       this.element.style.width = this.settings.width;
       if (!this.domains) return this;
@@ -42332,7 +39077,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
             let label = spec.label;
             if (String(spec.flag_value) !== "__abnormal__") {
               const n = rows.filter(
-                (row) => row && upper7(row[spec.value_col]) === upper7(spec.flag_value)
+                (row) => row && upper6(row[spec.value_col]) === upper6(spec.flag_value)
               ).length;
               label = `${spec.label} (${n} in this study)`;
             }
@@ -42366,7 +39111,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           this.filterControls[spec.value_col] = control;
           if (spec.domain === "CM" && spec.value_col === settings.cm_class_col && rows.length) {
             const uncoded = rows.filter(
-              (row) => row && upper7(row[spec.value_col]) === upper7(settings.cm_uncoded_value)
+              (row) => row && upper6(row[spec.value_col]) === upper6(settings.cm_uncoded_value)
             ).length;
             if (uncoded > 0) {
               filterSection.append(
@@ -42433,7 +39178,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         option(select, id, id === this.subject ? `${id} (current)` : id, id === this.subject);
       }
       if (this.subject && shown.includes(this.subject)) select.value = this.subject;
-      count2.textContent = `${plural3(this.subjectList.length, "subject")} \xB7 ${shown.length} shown`;
+      count2.textContent = `${plural2(this.subjectList.length, "subject")} \xB7 ${shown.length} shown`;
     }
     /**
      * Enable the calendar-date option only when a reference date resolves.
@@ -42527,13 +39272,8 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         }
       }
       this.updateNotes();
-      this.citedMarkId = null;
-      this.syncNarratives();
       this.renderPanel();
       this.buildLanes();
-      this.renderNarrativeBanner();
-      this.mountPanelNarrative();
-      this.renderNarrativeTray();
       this.renderSourceDrawer();
       this.renderAnnotation();
       this.renderCue();
@@ -42595,7 +39335,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         createElement(
           "span",
           null,
-          `Anchored on ${this.anchoredEvent.label}: ${plural3(c.conMeds, "con-med")} active, ${plural3(c.abnormalLabs, "abnormal lab")}, ${plural3(c.doseChanges, "dose change")}, ${plural3(c.priorEvents, "earlier or same-day event")} with this term.`
+          `Anchored on ${this.anchoredEvent.label}: ${plural2(c.conMeds, "con-med")} active, ${plural2(c.abnormalLabs, "abnormal lab")}, ${plural2(c.doseChanges, "dose change")}, ${plural2(c.priorEvents, "earlier or same-day event")} with this term.`
         )
       );
       const show = createElement("button", "sv-pje-annotation-link", "Show the context panel");
@@ -42635,10 +39375,10 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     updateNotes() {
       this.notes.innerHTML = "";
       const { counts, subjects, flaggedCounts } = this.structured;
-      const summary = this.subject ? `Participant ${this.subject} \xB7 ` + Object.keys(DOMAIN_NOUNS).map((domain) => plural3(counts[domain] || 0, DOMAIN_NOUNS[domain])).join(", ") + "." : "No participant selected.";
+      const summary = this.subject ? `Participant ${this.subject} \xB7 ` + Object.keys(DOMAIN_NOUNS).map((domain) => plural2(counts[domain] || 0, DOMAIN_NOUNS[domain])).join(", ") + "." : "No participant selected.";
       this.notes.append(createElement("span", null, summary));
       this.notes.append(
-        createElement("span", null, `${plural3(subjects.length, "participant")} in the supplied data.`)
+        createElement("span", null, `${plural2(subjects.length, "participant")} in the supplied data.`)
       );
       if (flaggedCounts.endBeforeStart > 0) {
         const n = flaggedCounts.endBeforeStart;
@@ -42646,7 +39386,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           createElement(
             "span",
             "sv-warning",
-            `${plural3(n, "record")} ${n === 1 ? "has" : "have"} an end date before ${n === 1 ? "its" : "their"} start date and ${n === 1 ? "is" : "are"} drawn as ${n === 1 ? "a single-day mark" : "single-day marks"}.`
+            `${plural2(n, "record")} ${n === 1 ? "has" : "have"} an end date before ${n === 1 ? "its" : "their"} start date and ${n === 1 ? "is" : "are"} drawn as ${n === 1 ? "a single-day mark" : "single-day marks"}.`
           )
         );
       }
@@ -42656,7 +39396,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           createElement(
             "span",
             "sv-warning",
-            `${plural3(n, "record")} ${n === 1 ? "has" : "have"} a recorded date that does not match ${n === 1 ? "its" : "their"} study day; the study day was used.`
+            `${plural2(n, "record")} ${n === 1 ? "has" : "have"} a recorded date that does not match ${n === 1 ? "its" : "their"} study day; the study day was used.`
           )
         );
       }
@@ -42673,7 +39413,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       const note = createElement("span", "sv-warning");
       note.append(
         document.createTextNode(
-          `${plural3(rows.length, "unusable record")} in the supplied data (all participants). `
+          `${plural2(rows.length, "unusable record")} in the supplied data (all participants). `
         ),
         csvDownloadLink(
           () => toCsv(rows, droppedRowColumns2(rows)),
@@ -42856,420 +39596,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         onJump: (anchorId) => this.jumpToSource(anchorId)
       });
       this.railWrap.hidden = false;
-      this.mountPanelNarrative();
-    }
-    // ---------------------------------------------------------------------------
-    // AI narratives (#146, obot.roadmap#351, PJE-NARR-009 … 014). The orchestrator
-    // owns the entries — which narrative is requested for the current subject,
-    // its draft, the scope hash at request time — and narratives.js draws the
-    // cards. A slot with no function bound requests nothing and renders nothing.
-    // ---------------------------------------------------------------------------
-    /**
-     * The bound slot function for a narrative kind, or null.
-     * @private
-     */
-    narrativeSlot(slot) {
-      const slots = this.settings.narratives;
-      return slots && typeof slots[slot] === "function" ? slots[slot] : null;
-    }
-    /**
-     * The scope helper over this instance's live record: the same grounding
-     * tool and hash the runtime uses, so a draft's `input_hash` and the
-     * renderer's staleness check agree (PJE-NARR-012).
-     * @private
-     */
-    narrativeScope() {
-      return createScope(
-        createDataService({
-          domains: this.domains || {},
-          settings: this.settings,
-          structured: (subject) => this.structured && this.structured.subject === subject ? this.structured : null
-        })
-      );
-    }
-    /**
-     * The run() inputs of a slot for a key (the anchor id or the lab test).
-     * @private
-     */
-    narrativeInputs(slot, key) {
-      const subject = this.subject;
-      switch (slot) {
-        case "eventContext":
-          return { subject, anchor_row_id: key, window_days: this.state.windowDays };
-        case "labTrajectory":
-          return { subject, test: key };
-        default:
-          return { subject };
-      }
-    }
-    /**
-     * Request a narrative from its slot function and keep the entry; the card
-     * shows a pending state until the promise settles. A later request for the
-     * same slot and key supersedes an earlier one still in flight.
-     * @private
-     */
-    requestNarrative(slot, key = null) {
-      const fn = this.narrativeSlot(slot);
-      if (!fn || !this.subject) return null;
-      const inputs = this.narrativeInputs(slot, key);
-      const slug = SLUG_BY_SLOT[slot];
-      let hash = null;
-      try {
-        hash = this.narrativeScope().scopeHash(slug, inputs);
-      } catch (error) {
-        warn2(`could not hash the ${slug} scope: ${error && error.message}`);
-      }
-      const id = `${this.uid}-ai-${this.narrativeSeq += 1}`;
-      const labelEvent = slot === "eventContext" ? this.findEvent(key) : null;
-      const entry = {
-        id,
-        slot,
-        kind: slug,
-        subject: this.subject,
-        key: key === null || key === void 0 ? null : String(key),
-        label: labelEvent ? labelEvent.label : slot === "labTrajectory" ? String(key) : null,
-        inputs,
-        hash,
-        status: "loading",
-        draft: null,
-        stale: false,
-        expanded: slot !== "subjectSummary",
-        collapsible: slot === "subjectSummary",
-        editing: false,
-        error: null
-      };
-      this.narrativeEntries.set(`${slot}|${entry.key ?? ""}`, entry);
-      const args = slot === "eventContext" ? [this.subject, key, { windowDays: this.state.windowDays, hash }] : slot === "labTrajectory" ? [this.subject, key, { hash }] : [this.subject, { hash }];
-      Promise.resolve().then(() => fn(...args)).then((draft) => {
-        if (this.destroyed || this.narrativeEntries.get(`${slot}|${entry.key ?? ""}`) !== entry)
-          return;
-        if (!draft || typeof draft !== "object" || !Array.isArray(draft.sentences)) {
-          throw new Error("the narrative slot did not return a draft");
-        }
-        entry.draft = draft;
-        entry.status = "ready";
-        entry.error = null;
-        this.refreshNarrativeCards();
-        this.announce(`AI narrative ready: ${cardTitle(entry)}.`);
-      }).catch((error) => {
-        if (this.destroyed || this.narrativeEntries.get(`${slot}|${entry.key ?? ""}`) !== entry)
-          return;
-        entry.status = "error";
-        entry.error = `The narrative could not be drafted: ${error && error.message ? error.message : error}`;
-        warn2(
-          `the ${slug} narrative slot failed: ${error && error.message ? error.message : error}`
-        );
-        this.refreshNarrativeCards();
-      });
-      return entry;
-    }
-    /**
-     * Reconcile the narrative entries with the render state: drop another
-     * subject's entries and a stale anchor's card, request the participant
-     * summary and the anchored event's context when their slots are bound,
-     * re-request the event context when the window width changed (emitting a
-     * regenerate action), and recompute staleness for every ready entry.
-     * @private
-     */
-    syncNarratives() {
-      const entries2 = this.narrativeEntries;
-      for (const [key, entry] of [...entries2]) {
-        if (entry.subject !== this.subject) entries2.delete(key);
-      }
-      if (!this.settings.narratives || !this.subject) {
-        entries2.clear();
-        return;
-      }
-      if (this.narrativeSlot("subjectSummary") && !entries2.has("subjectSummary|")) {
-        this.requestNarrative("subjectSummary");
-      }
-      const anchorId = this.anchoredEvent ? this.anchoredEvent.id : null;
-      for (const [key, entry] of [...entries2]) {
-        if (entry.slot === "eventContext" && entry.key !== anchorId) entries2.delete(key);
-      }
-      if (anchorId && this.narrativeSlot("eventContext")) {
-        const existing = entries2.get(`eventContext|${anchorId}`);
-        if (!existing) this.requestNarrative("eventContext", anchorId);
-        else if (existing.inputs.window_days !== this.state.windowDays) {
-          this.emitNarrativeAction("regenerate", existing, { reason: "window" });
-          this.requestNarrative("eventContext", anchorId);
-        }
-      }
-      let scope = null;
-      for (const entry of entries2.values()) {
-        if (entry.status !== "ready" || !entry.hash) continue;
-        try {
-          scope = scope || this.narrativeScope();
-          entry.stale = scope.scopeHash(entry.kind, entry.inputs) !== entry.hash;
-        } catch {
-          entry.stale = false;
-        }
-      }
-    }
-    /**
-     * The card handlers narratives.js calls back into.
-     * @private
-     */
-    narrativeHandlers() {
-      return {
-        describe: (rowId) => {
-          const id = normalizeRowId(rowId);
-          const event = this.findEvent(id);
-          const label = !event ? id : event.domain === "LB" && event.test ? `${event.test} ${event.label}` : event.label;
-          return { label, onTimeline: Boolean(this.markButton(id)) };
-        },
-        onCite: (rowId, options) => this.citeRow(rowId, options),
-        onAction: (type, entry) => this.handleNarrativeAction(type, entry),
-        onToggle: (entry, expanded) => {
-          entry.expanded = expanded;
-          this.withFocusRestore(() => this.refreshNarrativeCards());
-        },
-        onEditSave: (entry, sentences) => {
-          entry.editing = false;
-          entry.draft = { ...entry.draft, sentences, status: "edited" };
-          this.emitNarrativeAction("edit", entry, { editedSentences: sentences });
-          this.withFocusRestore(() => this.refreshNarrativeCards());
-        }
-      };
-    }
-    /**
-     * Draw one entry's card.
-     * @private
-     */
-    narrativeCard(entry) {
-      return renderNarrativeCard(entry, this.narrativeHandlers());
-    }
-    /**
-     * The mark button for an event id, or null when it is not on the timeline.
-     * @private
-     */
-    markButton(id) {
-      return this.lanesEl.querySelector(
-        `.sv-pje-mark[data-event-id="${String(id).replace(/"/g, "")}"]`
-      );
-    }
-    /**
-     * Light the cited mark on the timeline and move keyboard focus to it, or
-     * open the row's source record when the mark is not drawn (its lane is off,
-     * a filter removed it, the row cap) or when asked to jump (PJE-NARR-011).
-     * @param {string} rowId The cited row id (`AE-7`).
-     * @param {Object} [options] Options: `jump` (boolean) opens the source record instead of lighting the mark.
-     * @returns {SafetyPatientJourneyExplorer} The instance, for chaining.
-     */
-    citeRow(rowId, { jump = false } = {}) {
-      const id = normalizeRowId(rowId);
-      const button = this.markButton(id);
-      const event = this.findEvent(id);
-      if (jump || !button) {
-        if (event) this.jumpToSource(event.sourceAnchorId);
-        if (!button)
-          this.announce(
-            `${event ? event.label : id} is not on the timeline; opened its source record.`
-          );
-        return this;
-      }
-      this.clearCitedMark();
-      button.classList.add("is-cited");
-      this.citedMarkId = id;
-      if (typeof button.scrollIntoView === "function") button.scrollIntoView({ block: "nearest" });
-      this.overlay.focusMark(button);
-      this.announce(`Cited: ${event ? event.label : id}.`);
-      return this;
-    }
-    /**
-     * Remove the citation highlight.
-     * @private
-     */
-    clearCitedMark() {
-      if (!this.citedMarkId) return;
-      for (const lit of this.lanesEl.querySelectorAll(".sv-pje-mark.is-cited"))
-        lit.classList.remove("is-cited");
-      this.citedMarkId = null;
-    }
-    /**
-     * A reviewer action on a card: accept, reject and regenerate emit and leave
-     * the draft as it is (the host application decides what accepting means and
-     * passes the accepted draft back through refreshNarrative); edit opens the
-     * in-place form; regenerate also re-requests the draft.
-     * @private
-     */
-    handleNarrativeAction(type, entry) {
-      if (type === "edit") {
-        entry.editing = true;
-        this.withFocusRestore(() => this.refreshNarrativeCards());
-        return;
-      }
-      if (type === "cancel-edit") {
-        entry.editing = false;
-        this.withFocusRestore(() => this.refreshNarrativeCards());
-        return;
-      }
-      if (type === "regenerate") {
-        this.emitNarrativeAction("regenerate", entry, { reason: entry.stale ? "stale" : "manual" });
-        this.withFocusRestore(() => {
-          this.requestNarrative(entry.slot, entry.key);
-          this.refreshNarrativeCards();
-        });
-        return;
-      }
-      if (type === "accept" || type === "reject") this.emitNarrativeAction(type, entry);
-    }
-    /**
-     * Emit a narrative action on the three channels (PJE-NARR-013).
-     * @private
-     */
-    emitNarrativeAction(type, entry, extra = {}) {
-      this.emit("pjeNarrativeAction", {
-        type,
-        kind: entry.kind,
-        subject: entry.subject,
-        row_id: entry.key,
-        draft: entry.draft,
-        ...extra
-      });
-    }
-    /**
-     * Replace a narrative's draft with one the host passes back — the accepted
-     * copy, an edited copy, or a fresh generation — and redraw its card. The
-     * draft is matched by kind, subject and key (the anchor row id or the lab
-     * test); an unmatched draft warns and changes nothing.
-     * @param {Object} draft A narrative draft (with `status: 'accepted'` to mark it accepted).
-     * @returns {SafetyPatientJourneyExplorer} The instance, for chaining.
-     */
-    refreshNarrative(draft) {
-      if (!draft || typeof draft !== "object") return this;
-      const slot = NARRATIVE_KINDS[draft.kind];
-      const key = draft.kind === "event-context" ? normalizeRowId(draft.anchor && draft.anchor.row_id) : draft.kind === "lab-trajectory" ? String(draft.test ?? "") : null;
-      const entry = this.narrativeEntries.get(`${slot}|${key ?? ""}`);
-      if (!entry || String(entry.subject) !== String(draft.subject)) {
-        warn2(
-          `refreshNarrative: no ${draft.kind} card for ${draft.subject}${key ? ` / ${key}` : ""}.`
-        );
-        return this;
-      }
-      entry.draft = draft;
-      entry.status = "ready";
-      entry.error = null;
-      entry.editing = false;
-      this.withFocusRestore(() => this.refreshNarrativeCards());
-      return this;
-    }
-    /**
-     * Redraw every mounted narrative card from the entries: the banner above
-     * the lanes, the card at the top of the panel body, the lane slots.
-     * @private
-     */
-    refreshNarrativeCards() {
-      this.renderNarrativeBanner();
-      this.mountPanelNarrative();
-      this.renderNarrativeTray();
-    }
-    /**
-     * The participant-summary card above the lanes (PJE-NARR-009).
-     * @private
-     */
-    renderNarrativeBanner() {
-      this.narrativeBannerEl.innerHTML = "";
-      const entry = this.narrativeEntries.get("subjectSummary|");
-      if (entry) this.narrativeBannerEl.append(this.narrativeCard(entry));
-    }
-    /**
-     * The event-context card at the top of the panel body (PJE-NARR-010).
-     * @private
-     */
-    mountPanelNarrative() {
-      const body = this.railWrap.querySelector(".sv-pje-panel-body");
-      if (!body) return;
-      for (const old of body.querySelectorAll(":scope > .sv-pje-ai")) old.remove();
-      const anchorId = this.anchoredEvent ? this.anchoredEvent.id : null;
-      const entry = anchorId ? this.narrativeEntries.get(`eventContext|${anchorId}`) : null;
-      if (entry) body.prepend(this.narrativeCard(entry));
-    }
-    /**
-     * The on-demand narratives one request at a time (PJE-NARR-014): every
-     * available kind — the dose journey when exposure rows exist, one lab test
-     * per drawn small multiple, the disposition when its rows exist — is a
-     * control in the tray beneath the axis strip until it is requested; then
-     * its card sits in the tray with the others. A slot with no function bound
-     * offers nothing.
-     * @private
-     */
-    narrativeTrayOffers() {
-      if (!this.structured || !this.structured.domain) return [];
-      const offers = [];
-      const lanes = this.structured.lanes || {};
-      if (this.narrativeSlot("doseJourney") && lanes.exposure && lanes.exposure.drawn.length) {
-        offers.push({ slot: "doseJourney", key: "", label: "Dose journey" });
-      }
-      if (this.narrativeSlot("labTrajectory") && lanes.labs) {
-        for (const test of lanes.labs.rows) {
-          offers.push({ slot: "labTrajectory", key: String(test), label: String(test) });
-        }
-      }
-      if (this.narrativeSlot("disposition") && lanes.disposition && lanes.disposition.drawn.length) {
-        offers.push({ slot: "disposition", key: "", label: "Disposition" });
-      }
-      return offers;
-    }
-    /**
-     * Draw the tray: the request controls for the kinds not yet drafted, then
-     * the drafted cards.
-     * @private
-     */
-    renderNarrativeTray() {
-      const tray = this.narrativeTrayEl;
-      tray.innerHTML = "";
-      const offers = this.narrativeTrayOffers();
-      if (!offers.length) return;
-      const pending = offers.filter(
-        (offer) => !this.narrativeEntries.has(`${offer.slot}|${offer.key}`)
-      );
-      if (pending.length) {
-        const head = createElement("div", "sv-pje-ai-tray-head");
-        head.setAttribute("role", "group");
-        head.setAttribute("aria-label", "Draft an AI narrative");
-        head.append(
-          createElement("span", "sv-pje-ai-label", "AI narrative"),
-          createElement("span", "sv-pje-ai-tray-hint", "Draft on request:")
-        );
-        for (const offer of pending) {
-          const button = createElement("button", "sv-pje-btn sv-pje-ai-request-btn", offer.label);
-          button.type = "button";
-          button.dataset.slot = offer.slot;
-          button.dataset.key = offer.key;
-          button.setAttribute("data-sv-focus", `ai-request-${offer.slot}-${offer.key}`);
-          button.title = `Draft the ${offer.label} narrative from the recorded rows`;
-          button.onclick = () => {
-            this.requestNarrative(offer.slot, offer.key || null);
-            this.withFocusRestore(() => this.refreshNarrativeCards());
-          };
-          head.append(button);
-        }
-        tray.append(head);
-      }
-      for (const offer of offers) {
-        const entry = this.narrativeEntries.get(`${offer.slot}|${offer.key}`);
-        if (entry) tray.append(this.narrativeCard(entry));
-      }
-    }
-    /**
-     * The narrative entries for the current subject: kind, key, status, draft,
-     * stale flag and scope hash. A read model for hosts and tests.
-     * @type {Object[]}
-     */
-    get narratives() {
-      return [...this.narrativeEntries.values()].map((entry) => ({
-        kind: entry.kind,
-        slot: entry.slot,
-        subject: entry.subject,
-        key: entry.key,
-        status: entry.status,
-        draft: entry.draft,
-        stale: entry.stale,
-        hash: entry.hash,
-        expanded: entry.expanded,
-        error: entry.error
-      }));
     }
     /**
      * Whether an event of the current subject is on the timeline, and if not,
@@ -43360,7 +39686,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         lines.splice(
           lines.length - 1,
           0,
-          `and ${plural3(n, "more record")} on this day: ${stacked.split("; ").join(", ")}`
+          `and ${plural2(n, "more record")} on this day: ${stacked.split("; ").join(", ")}`
         );
       }
       return lines;
@@ -43419,7 +39745,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       const target = event.target;
       const textEntry = target && (target.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/i.test(target.type) || target.tagName === "TEXTAREA");
       if (textEntry && this.tooltipEl.hidden) return;
-      this.clearCitedMark();
       if (!this.tooltipEl.hidden) {
         this.hideTooltip();
       } else if (this.state.anchorId) {
@@ -43507,7 +39832,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       });
       this.emit("participantsSelected", { data: [this.subject] });
       this.announce(
-        `Subject ${this.subject}. ` + ["AE", "LB", "EX", "CM"].map((code) => plural3(counts[code] || 0, DOMAIN_NOUNS[code])).join(", ") + "."
+        `Subject ${this.subject}. ` + ["AE", "LB", "EX", "CM"].map((code) => plural2(counts[code] || 0, DOMAIN_NOUNS[code])).join(", ") + "."
       );
       return this;
     }
@@ -43543,7 +39868,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       this.emit("pjeContextChanged", this.context);
       const c = this.context.counts;
       this.announce(
-        `Anchored on ${this.anchoredEvent.label}, day ${this.anchoredEvent.day}. Window day ${this.context.window.startDay} to day ${this.context.window.endDay}. ${plural3(c.conMeds, "con-med")} active, ${plural3(c.abnormalLabs, "abnormal lab")}, ${plural3(c.doseChanges, "dose change")}, ${plural3(c.priorEvents, "earlier or same-day event")} with this term.`
+        `Anchored on ${this.anchoredEvent.label}, day ${this.anchoredEvent.day}. Window day ${this.context.window.startDay} to day ${this.context.window.endDay}. ${plural2(c.conMeds, "con-med")} active, ${plural2(c.abnormalLabs, "abnormal lab")}, ${plural2(c.doseChanges, "dose change")}, ${plural2(c.priorEvents, "earlier or same-day event")} with this term.`
       );
       return this;
     }
@@ -43662,7 +39987,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
         ).length;
         const active = selection !== null && selection !== void 0;
         this.announce(
-          `${spec.label} ${active ? "on" : "off"}. ${shown} of ${plural3(all, DOMAIN_NOUNS[spec.domain] || "record")} shown.`
+          `${spec.label} ${active ? "on" : "off"}. ${shown} of ${plural2(all, DOMAIN_NOUNS[spec.domain] || "record")} shown.`
         );
       }
     }
@@ -43684,7 +40009,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     /**
      * Register a listener for one of the module events (pjeSubjectSelected,
      * pjeEventAnchored, pjeContextChanged, pjeLaneToggled, pjeFilterChanged,
-     * pjeTimeModeChanged, pjeNarrativeAction, participantsSelected); the handler receives the
+     * pjeTimeModeChanged, participantsSelected); the handler receives the
      * event's detail.
      * @param {string} name The event name.
      * @param {Function} handler The listener.
@@ -43754,7 +40079,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
       if (this.root) this.root.removeEventListener("keydown", this.rootKeyHandler);
       this.overlay.detach();
       this.listeners.clear();
-      this.narrativeEntries.clear();
       this.destroyed = true;
       this.structured = null;
       this.anchoredEvent = null;
@@ -43824,7 +40148,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
   // src/data/portfolio.json
   var portfolio_default = {
     $schema: "./schema/portfolio.json",
-    version: 1,
+    version: 2,
     description: "The standard domain set a study supplies to safety.viz, and what every chart module reads from it. Column names are the ADaM-shaped defaults the modules already expect; each setting is the key in the module\u2019s own data schema (src/data/schema/<module>.json), with the column it defaults to and whether that schema requires it. A test holds the two in agreement.",
     domains: {
       subject: {
@@ -44606,14 +40930,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
           }
         },
         note: "Takes two tables: the adverse events as the events, without the placeholder rows for event-free participants, and the subject-level table as the population. The participant column must carry the same name in both."
-      },
-      "patient-journey-explorer": {
-        export: "patientJourneyExplorer",
-        title: "Patient Journey Explorer",
-        domains: [],
-        externalDomains: ["ex", "ae", "lb", "cm", "mh", "ds"],
-        settings: {},
-        note: "Reads six domains of its own under SDTM column names: exposure, adverse events, labs, concomitant medications, medical history and disposition. None is supplied by the standard domain set, so its column settings are not mapped here; see its data schema."
       }
     }
   };
@@ -44635,6 +40951,7 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     ALL_VALUE,
     normalizeFilterSpec,
     initFilterState,
+    reconcileFilters,
     filterMatches,
     renderFilterControl,
     // src/axis-limits.js — the Lower/Upper axis-limit inputs.
@@ -44683,7 +41000,6 @@ ${CONCERN_PHRASE[ribbon.concern]}`;
     nepExplorer,
     timeToEvent,
     patientJourneyExplorer,
-    narratives: patientJourneyNarratives_exports,
     portfolio: portfolio_default,
     kit
   };
