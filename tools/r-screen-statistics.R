@@ -58,21 +58,33 @@ source("tools/r-json.R")
 # A member that is a list of values is an unnamed list, so it is written as a
 # JSON array whatever its length. Text is sorted by code point
 # (`method = "radix"`), which is the order the chart sorts in.
+# A value as the chart writes it into the identity: as text. A number is
+# written as the chart writes one, in full and with no exponent, one value at a
+# time, so a visit column holding the number 4 is written "4".
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.numeric(x)) {
+    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
+                  character(1)))
+  }
+  as.character(x)
+}
+
 biomarker_screen_key <- function(dfFrame, lView) {
   lDataId <- list(chart = "biomarker-screen", value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
-  if (identical(lView$comparison, "correlation")) lDataId$with <- lView$with
+  if (identical(lView$comparison, "correlation")) lDataId$with <- lapply(lView$with, chart_text)
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
-  lArgs <- list(chrCols = as.list(lView$biomarkers), strComparison = lView$comparison)
+  lArgs <- list(chrCols = as.list(chart_text(lView$biomarkers)), strComparison = lView$comparison)
   if (identical(lView$comparison, "difference")) {
     lArgs$strGroupCol <- lView$group_by
-    lArgs$chrGroups <- as.list(lView$groups)
+    lArgs$chrGroups <- as.list(chart_text(lView$groups))
   } else {
     lArgs$strWithCol <- lView$with_name
     lArgs$strCorMethod <- lView$method

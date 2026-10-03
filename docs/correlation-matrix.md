@@ -42,6 +42,8 @@ A setting that is not known, or a value a setting cannot take, is refused: `corr
 
 `init` and `setData` take `{ results, participants }`, each an array of records, one object per row: the tables the [core](core.md) reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## The grid's variables
 
 | Mode           | The variables                             | Set by                                               |
@@ -256,19 +258,47 @@ In R, the key of one grid's stored result, from the frame and what the view is s
 #          variables is an unnamed list, one per column of the grid in order, each a
 #          variable as the settings write one: list(measure =, value =, visit =),
 #          without visit for a baseline value.
+# ---- The recipe: the key of one grid's stored result --------------------------
+#
+# dfFrame  the frame, one row per participant: the id, and one numeric column
+#          per variable of the grid, named v1, v2, … in the grid's order, NA
+#          where the participant has no value
+# lView    the view, by the chart's names: statistic, method, min_pairs (NULL
+#          for R's own minimum), variables (an unnamed list, one per column of
+#          the grid in order, each a variable as the settings write one:
+#          list(measure =, value =, visit =), without `visit` for a baseline
+#          value), baseline_visits, baseline_stat, filters (a named list of
+#          column to values)
+#
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list of values is an unnamed list, so it is written as a
+# JSON array whatever its length. Text is sorted by code point
+# (`method = "radix"`), which is the order the chart sorts in.
+# A value as the chart writes it into the identity: as text. A number is
+# written as the chart writes one, in full and with no exponent, one value at a
+# time, so a panel column holding the number 2 is written "2".
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.numeric(x)) {
+    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
+                  character(1)))
+  }
+  as.character(x)
+}
 correlation_matrix_key <- function(dfFrame, lView) {
-  lDataId <- list(chart = "correlation-matrix", variables = unname(lView$variables))
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  lDataId <- list(chart = "correlation-matrix", variables = lapply(unname(lView$variables), function(variable) lapply(variable, chart_text)))
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   lArgs <- list(
     chrCols = as.list(paste0("v", seq_along(lView$variables))),
     strMethod = lView$method
   )
+  # The minimum is sent only when the reader set one; otherwise it is R's own.
   if (!is.null(lView$min_pairs)) lArgs$nMinPairs <- lView$min_pairs
   list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfFrame))
 }

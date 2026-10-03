@@ -187,6 +187,19 @@ export function readGiven(chart, data) {
         throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
       }
     }
+    // A participant table is read by its participant id. Without that column no
+    // participant in it could be matched to a result.
+    const participantIdCol = chart.settings.participant_id_col || chart.settings.id_col;
+    if (
+      tables.participants != null &&
+      tables.participants.length &&
+      !tables.participants.some((row) => participantIdCol in row)
+    ) {
+      throw new TypeError(
+        `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the ` +
+          'participant (`participant_id_col`, or `id_col` when that is not set).'
+      );
+    }
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = '';
@@ -197,6 +210,44 @@ export function readGiven(chart, data) {
     results: tables.results,
     participants: tables.participants && tables.participants.length ? tables.participants : null
   };
+}
+
+/**
+ * Draws the chart, and when drawing fails says so in the chart's element
+ * instead of leaving a page half drawn. Whatever was drawn is taken away, the
+ * statistics round is ended so no answer lands on it, the footnote says why the
+ * chart could not be drawn, and the controls stay, so the reader can change
+ * what is asked. The error is logged for a developer.
+ *
+ * @param {object} chart The chart.
+ * @param {Function} draw Draws everything the chart shows.
+ */
+export function drawSafely(chart, draw) {
+  chart.footnote.classList.remove('bv-failure');
+  try {
+    draw();
+  } catch (error) {
+    if (chart.desk) chart.desk.begin();
+    chart.asked = [];
+    chart.model = null;
+    chart.destroyCharts();
+    for (const wrap of [
+      chart.notes,
+      chart.multiplesWrap,
+      chart.listingWrap,
+      chart.gridWrap,
+      chart.screenWrap
+    ]) {
+      if (wrap) wrap.innerHTML = '';
+    }
+    if (chart.chartWrap) chart.chartWrap.classList.add('sv-hidden');
+    chart.statLine.textContent = '';
+    chart.statLine.dataset.state = 'empty';
+    const message = String((error && error.message) || error).replace(/^bio\.viz: /, '');
+    chart.footnote.textContent = `This chart could not be drawn: ${message}`;
+    chart.footnote.classList.add('bv-failure');
+    console.error(error);
+  }
 }
 
 /** The settings the kit's listing and rail read, after the chart's settings change. */

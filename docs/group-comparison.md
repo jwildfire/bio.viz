@@ -55,6 +55,8 @@ Only the results table is required. With it alone the chart has no filters, and 
 
 With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most `max_levels` different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## The chart's methods
 
 The lifecycle is safety.viz's, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.
@@ -291,29 +293,55 @@ In R, the key of one panel's stored result, from the panel's rows and what the v
 ```r
 # dfRows: the panel's rows, one per participant: the id, y, x (and color, panel when set).
 # lView:  the view, by the chart's names; a member that is not set is NULL.
+# ---- The recipe: the key of one panel's stored result ------------------------
+#
+# dfRows   the panel's rows, one per participant: the id, `y`, `x`, and `color`
+#          and `panel` when the view has them
+# lView    the view, by the chart's names: statistic, test, pairwise, measure,
+#          value_type, visit, baseline_visits, baseline_stat, group_by, color_by,
+#          panel_by, panel, filters (a named list of column to values), y_scale
+#
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list is an unnamed list, so it is written as a JSON array
+# whatever its length. Text is sorted by code point (`method = "radix"`), which
+# is the order the chart sorts in.
+# A value as the chart writes it into the identity: as text. A number is
+# written as the chart writes one, in full and with no exponent, one value at a
+# time, so a panel column holding the number 2 is written "2".
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.numeric(x)) {
+    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
+                  character(1)))
+  }
+  as.character(x)
+}
 group_comparison_key <- function(dfRows, lView) {
-  chrGroups <- sort(unique(as.character(dfRows$x)), method = "radix")
-  lDataId <- list(chart = "group-comparison", measure = lView$measure, value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
   lDataId$groups <- as.list(chrGroups)
   if (!is.null(lView$color_by)) lDataId$color_by <- lView$color_by
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by <- lView$panel_by
-    lDataId$panel <- lView$panel
+    lDataId$panel <- chart_text(lView$panel)
   }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
   list(
     name = lView$statistic,
     args = list(
-      strValueCol = "y", strGroupCol = "x", strMethod = lView$test,
+      strValueCol = "y",
+      strGroupCol = "x",
+      strMethod = lView$test,
+      # Pairs exist only among more than two groups.
       bPairwise = isTRUE(lView$pairwise) && length(chrGroups) > 2
     ),
     dataId = lDataId,

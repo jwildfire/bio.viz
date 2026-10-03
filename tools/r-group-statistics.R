@@ -52,22 +52,34 @@ source(file.path(vendored, "statistics.R"))
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = "radix"`), which
 # is the order the chart sorts in.
+# A value as the chart writes it into the identity: as text. A number is
+# written as the chart writes one, in full and with no exponent, one value at a
+# time, so a panel column holding the number 2 is written "2".
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.numeric(x)) {
+    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
+                  character(1)))
+  }
+  as.character(x)
+}
+
 group_comparison_key <- function(dfRows, lView) {
-  chrGroups <- sort(unique(as.character(dfRows$x)), method = "radix")
-  lDataId <- list(chart = "group-comparison", measure = lView$measure, value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
   lDataId$groups <- as.list(chrGroups)
   if (!is.null(lView$color_by)) lDataId$color_by <- lView$color_by
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by <- lView$panel_by
-    lDataId$panel <- lView$panel
+    lDataId$panel <- chart_text(lView$panel)
   }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
@@ -138,6 +150,24 @@ results <- lapply(seq_len(nrow(cases)), function(i) {
   )
 })
 
+# The recipe on a data frame as R holds one: the rows of the panel for F, with
+# the panel column a number, 2, as a cohort number is in a data frame. The chart
+# names the panel as text, so the key the recipe writes must too.
+recipes <- local({
+  case <- as.list(cases[cases$case == "welch-panel-women", ])
+  rows <- read_rows(case$file)
+  rows$panel <- 2
+  view <- read_view(case)
+  view$panel_by <- "COHORT"
+  view$panel <- unique(rows$panel)
+  key <- group_comparison_key(rows, view)
+  list(c(
+    list(case = "numeric-panel", file = case$file),
+    key,
+    list(value = do.call(key$name, c(list(rows), key$args)))
+  ))
+})
+
 # Which statistics file answered: the commit and the checksum its record gives.
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
 recorded <- function(member) {
@@ -160,6 +190,9 @@ lines <- c(
   paste0("  \"made_by\": ", to_json(made_by), ","),
   "  \"results\": [",
   paste0("    ", vapply(results, to_json, character(1)), c(rep(",", length(results) - 1), "")),
+  "  ],",
+  "  \"recipes\": [",
+  paste0("    ", vapply(recipes, to_json, character(1)), c(rep(",", length(recipes) - 1), "")),
   "  ]",
   "}"
 )

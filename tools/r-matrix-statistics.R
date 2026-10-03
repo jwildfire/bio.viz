@@ -55,13 +55,25 @@ source("tools/r-json.R")
 # A member that is a list of values is an unnamed list, so it is written as a
 # JSON array whatever its length. Text is sorted by code point
 # (`method = "radix"`), which is the order the chart sorts in.
+# A value as the chart writes it into the identity: as text. A number is
+# written as the chart writes one, in full and with no exponent, one value at a
+# time, so a panel column holding the number 2 is written "2".
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.numeric(x)) {
+    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
+                  character(1)))
+  }
+  as.character(x)
+}
+
 correlation_matrix_key <- function(dfFrame, lView) {
-  lDataId <- list(chart = "correlation-matrix", variables = unname(lView$variables))
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  lDataId <- list(chart = "correlation-matrix", variables = lapply(unname(lView$variables), function(variable) lapply(variable, chart_text)))
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   lArgs <- list(

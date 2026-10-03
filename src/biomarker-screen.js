@@ -58,7 +58,8 @@ import {
   mountShell,
   readGiven,
   renderPager,
-  writeStatistic
+  writeStatistic,
+  drawSafely
 } from './shared/chartHost.js';
 import { pageCount, pageOf } from './shared/paging.js';
 import { coreSettings } from './shared/settings.js';
@@ -146,6 +147,9 @@ class BiomarkerScreen {
   // The connection the screen asks: the one given in settings, or one with no R
   // attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -514,6 +518,11 @@ class BiomarkerScreen {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     this.close();
     const round = this.desk.begin();
     this.asked = [];
@@ -588,6 +597,7 @@ class BiomarkerScreen {
       if (model.empty)
         add(`${model.empty} left out: no value for any biomarker of the screen.`, true);
     }
+    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
     model.unused
       .filter((entry) => entry.reason !== UNUSED.MISSING_RESULT)
       .forEach((entry) =>

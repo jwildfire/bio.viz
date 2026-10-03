@@ -43,7 +43,8 @@ import {
   writeStatistic,
   mountToolbar,
   renderPager,
-  toolbarStyles
+  toolbarStyles,
+  drawSafely
 } from './shared/chartHost.js';
 import { VALUE_TYPES } from './core/variable.js';
 import { NOBODY_PASSES } from './shared/tables.js';
@@ -150,6 +151,9 @@ class GroupComparison {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -550,6 +554,11 @@ class GroupComparison {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();
