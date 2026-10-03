@@ -2265,6 +2265,11 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits2;
     return visits2.filter((visit) => visit !== baselineVisits[0]);
   }
+  function measureVisits(results, settings, measure) {
+    const config = coreSettings(settings);
+    const rows = results.filter((row) => String(row[config.measure_col]) === String(measure));
+    return rows.length ? visits(rows, config) : [];
+  }
   var EVERYONE = "All participants";
   var BAND = 0.8;
   function slots(colours) {
@@ -2306,7 +2311,9 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       };
     }
     const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
-    const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
+    const atMeasure = measureVisits(results, settings, state.measure);
+    const asked = state.visits.filter((visit) => atMeasure.includes(visit));
+    const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
     const visitList = needsVisit ? drawnVisits : [null];
     const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
     const variablesFor = (visit) => ({
@@ -2396,7 +2403,7 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       halfWidth,
       baselineVisits: framed.length ? framed[0].made.baseline_visits : baselineVisits.length ? baselineVisits : null,
       // The baseline visit that was chosen and not drawn, when there is one.
-      visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
+      visitsNotDrawn: needsVisit ? asked.filter((visit) => !drawnVisits.includes(visit)) : [],
       extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
       filtered: kept ? kept.length : null
     };
@@ -2681,12 +2688,16 @@ ${toolbarStyles(".bv-group-comparison")}
         value
       );
       if (state.valueType !== "baseline") {
+        const offered = this.visitsOffered();
+        const shown2 = state.visits.filter((visit) => offered.includes(visit));
         const visits2 = kit.multiSelect({
-          values: this.visits.all,
-          selected: state.visits.length === this.visits.all.length ? null : state.visits,
+          values: offered,
+          selected: shown2.length === offered.length ? null : shown2,
           onChange: (next) => {
-            const chosen = next === null ? this.visits.all : next;
-            state.visits = this.visits.all.filter((visit) => chosen.includes(visit));
+            const chosen = next === null ? offered : next;
+            state.visits = this.visits.all.filter(
+              (visit) => chosen.includes(visit) || !offered.includes(visit)
+            );
             redraw(false);
           }
         });
@@ -2812,6 +2823,12 @@ ${toolbarStyles(".bv-group-comparison")}
         this.render();
       });
     }
+    // The visits the Visit control offers: the open biomarker's, or every visit
+    // in the overview.
+    visitsOffered() {
+      if (this.isOverview()) return this.visits.all;
+      return measureVisits(this.tables.results, this.settings, this.state.measure);
+    }
     // Every level of the group column in the tables, whatever the filters are set to.
     levelsOffered() {
       if (!this.state.groupBy) return [];
@@ -2887,7 +2904,8 @@ ${toolbarStyles(".bv-group-comparison")}
         this.footnote.textContent = "No results to draw.";
         return;
       }
-      if (needsVisit && !this.state.visits.length) {
+      const offered = this.visitsOffered();
+      if (needsVisit && !this.state.visits.some((visit) => offered.includes(visit))) {
         this.footnote.textContent = "Choose a visit to draw.";
         return;
       }
@@ -3162,8 +3180,10 @@ ${toolbarStyles(".bv-group-comparison")}
               title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
               ticks: {
                 autoSkip: false,
-                // A small panel turns its labels when they would run together.
-                maxRotation: compact ? 50 : 0,
+                // A panel turns its labels when they would run together, as a
+                // narrow visit panel's long group names would; labels that fit
+                // stay level.
+                maxRotation: compact ? 50 : 90,
                 ...compact ? { font: { size: 10 }, padding: 2 } : {},
                 callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
               },

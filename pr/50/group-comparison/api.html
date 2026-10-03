@@ -136,6 +136,7 @@
 <p>For a change, a fold change or a percent change from baseline, the baseline visit itself is not drawn when it is the only baseline visit: there the value is the same for every participant by definition, no change or a fold of one, and there is nothing to draw or to compare. The note above the chart says so. With several baseline visits a value at one of them is measured against the baseline over all of them, and every visit is drawn.</p>
 <p>On a logarithmic scale a value of zero or less cannot be shown. It is left out, and the note above the chart counts how many were.</p>
 <p>The note above the chart says how many participants were drawn, of how many, and why any was left out, in the <a href="../core/api.html#dropped">core&#39;s words</a>.</p>
+<p>The groups&#39; labels under a panel stay level when they fit, and turn when they would run into one another, as narrow visit panels&#39; long group names would.</p>
 <h2 id="the-overview">The overview</h2>
 <p>With no biomarker chosen the chart draws every biomarker: the view it opens on when <code>start_value</code> is null, and the entry All Biomarkers at the head of the Biomarker control. It is the way in, as the all-measures view of safety.viz&#39;s histogram is.</p>
 <ul><li>One row per biomarker, in the Biomarker control&#39;s order: the setting <code>measures</code>, or by name. A row is headed by the biomarker and the unit its values are in.</li><li>In a row, one small panel per visit chosen, in visit order, with the groups drawn as the mark chosen and the number in each group beneath. With the Visit control on all visits, which is how the chart opens, that is every visit.</li><li>Each biomarker has its own value axis, the same across its visits, so the panels of a row compare by eye and biomarkers on different scales do not flatten one another. The axis runs as far as the row&#39;s marks reach: for boxes, from the lowest whisker to the highest.</li><li>A row is a button named <code>View IL-6</code>: a click on it, or Enter or Space when the keyboard is on it, opens that biomarker alone, with its visits as panels, the listing, the participant profile and a statistics line under each panel. All Biomarkers in the Biomarker control leads back, and Reset chart returns to whichever the settings open on.</li></ul>
@@ -154,7 +155,7 @@
 <table class="doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
 <tbody><tr><td data-label="Section">Value</td><td data-label="Control">Biomarker</td><td data-label="What it sets">All Biomarkers, which is the overview, or one biomarker.</td></tr>
 <tr><td data-label="Section">Value</td><td data-label="Control">Value</td><td data-label="What it sets">The value type: result, baseline, change, fold change or percent change from baseline.</td></tr>
-<tr><td data-label="Section">Value</td><td data-label="Control">Visit</td><td data-label="What it sets">The visit, or visits. Not shown for a baseline value, which has no visit.</td></tr>
+<tr><td data-label="Section">Value</td><td data-label="Control">Visit</td><td data-label="What it sets">The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; in the overview, every visit. Not shown for a baseline value, which has no visit.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Group by</td><td data-label="What it sets">The column on the axis.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Levels</td><td data-label="What it sets">Which of its levels are drawn.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Colour by</td><td data-label="What it sets">The second grouping, or none.</td></tr>
@@ -332,7 +333,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/31f296b1c35cee58cd2983bc3ac9ae2423c513a5"><code>31f296b</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/bfcec37a1f70362759df606ff8bcf98145c1fd28"><code>bfcec37</code></a>.
       </p>
       <p>
         Built in the open — follow the
