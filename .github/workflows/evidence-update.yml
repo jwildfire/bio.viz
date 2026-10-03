@@ -1,0 +1,102 @@
+name: Update evidence baselines
+
+# Screenshot baselines belong to this runner. A capture is compared against the
+# committed PNG in docs/evidence/<module>/ only on the Linux runner continuous
+# integration uses (tests/e2e/evidence.js), so this is the only place a new or
+# changed baseline can be made: it reruns the browser tests with
+# --update-snapshots and rebuilds the evidence sets.
+#
+# It commits nothing. The refreshed docs/evidence/ folder is uploaded as the
+# artifact `evidence-baselines`; whoever asked for it downloads that, commits
+# the files and pushes. A commit pushed by a workflow starts no continuous
+# integration run, so a pull request whose head was pushed from here would wait
+# for ever on its required check; a commit pushed by a person or an agent does
+# not have that problem.
+#
+# Two ways to ask for it:
+#
+#   - Put the label `update-baselines` on a pull request. It runs then, once,
+#     on the pull request's head commit. Anything that can label a pull request
+#     can do this, including an agent whose token may not start workflows. To
+#     run it again after a push, take the label off and put it back; take it
+#     off when the baselines are in.
+#   - Run it from the Actions tab against a branch (workflow_dispatch).
+#
+# Then, in a checkout of the branch:
+#
+#   gh run download <run id> -R jwildfire/bio.viz -n evidence-baselines -D docs/evidence
+#   git add docs/evidence && git commit && git push
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # Only the labelling itself. Listening for pushes as well would leave a
+    # skipped check on every pull request that never asked for this.
+    types: [labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evidence-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-evidence:
+    name: Refresh baselines and evidence sets
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'update-baselines'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The pull request's own head, not its merge with the base branch: the
+          # baselines are committed to that head.
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Exits 1 when a test fails. The artifact is uploaded all the same: the
+      # run that makes a module's first baseline fails the test that looks for
+      # that baseline on its evidence page, because the page was built before
+      # the baseline existed.
+      - name: Regenerate baselines and evidence sets
+        run: npm run evidence:update
+
+      - name: Upload the refreshed evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-baselines
+          path: docs/evidence/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Say what to do with it
+        if: always()
+        run: |
+          {
+            echo '### Refreshed evidence'
+            echo
+            echo 'Nothing was committed. In a checkout of the branch:'
+            echo
+            echo '```sh'
+            echo "gh run download $GITHUB_RUN_ID -R $GITHUB_REPOSITORY -n evidence-baselines -D docs/evidence"
+            echo 'git add docs/evidence && git commit && git push'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

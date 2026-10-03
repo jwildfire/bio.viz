@@ -1,0 +1,48 @@
+{
+  "name": "bio.viz",
+  "version": "0.1.0",
+  "description": "Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R.",
+  "private": true,
+  "type": "module",
+  "module": "src/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:check-dist": "node scripts/check-dist-drift.mjs",
+    "site": "node scripts/site.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "r-check:measure": "R_CHECK_RECORD=1 playwright test r-connection",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "evidence": "node scripts/evidence.mjs",
+    "evidence:check": "node scripts/evidence.mjs --check",
+    "evidence:update": "node scripts/evidence.mjs --update",
+    "requirements": "node scripts/requirements.mjs",
+    "requirements:check": "node scripts/requirements.mjs --check",
+    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R && Rscript tools/r-association-statistics.R && Rscript tools/r-matrix-statistics.R && Rscript tools/r-screen-statistics.R",
+    "fixtures:check": "node scripts/check-r-fixtures.mjs",
+    "data:check": "node tools/vendor-synthetic-study.mjs --check",
+    "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source",
+    "kit:check": "node tools/vendor-safety-viz.mjs --check",
+    "kit:check-source": "node tools/vendor-safety-viz.mjs --check-source",
+    "portfolio:check": "node tools/vendor-portfolio-schema.mjs --check",
+    "portfolio:check-source": "node tools/vendor-portfolio-schema.mjs --check-source",
+    "statistics:check": "node tools/vendor-statistics.mjs --check",
+    "statistics:check-source": "node tools/vendor-statistics.mjs --check-source"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "ajv": "^8.20.0",
+    "esbuild": "^0.28.1",
+    "prettier": "^3.9.4",
+    "vitest": "^4.1.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwildfire/bio.viz.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jwildfire/bio.viz/issues"
+  },
+  "homepage": "https://github.com/jwildfire/bio.viz#readme"
+}

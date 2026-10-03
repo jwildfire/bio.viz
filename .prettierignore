@@ -1,0 +1,40 @@
+dist/
+node_modules/
+playwright-report/
+test-results/
+package-lock.json
+_site/
+
+# Requirement matrices are wide, hand-maintained data tables. Alignment padding
+# would rewrite every row on each edit and bury the one that changed.
+requirements/*.md
+!requirements/README.md
+
+# Written by scripts, and their bytes are the scripts': the desktop-R expected
+# results (tools/r-fixtures.R), the recorded measurement (the browser test), and
+# the R check page's tables with their source note (tools/cut-r-check-fixture.mjs).
+site/r-check/expected.json
+tests/fixtures/group-comparison-r.json
+tests/fixtures/group-statistics-r.json
+tests/fixtures/association-statistics-r.json
+tests/fixtures/matrix-statistics-r.json
+tests/fixtures/screen-statistics-r.json
+site/r-check/measured.json
+site/r-check/data/
+
+# The derived fixtures and their records, written by tools/derive-*.mjs: the
+# unit tests hold each to what its tool writes.
+tests/e2e/fixtures/data/
+
+# The vendored synthetic study and its source record are written by
+# tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
+site/data/
+
+# safety.viz's bundle and gsm.bio's statistics file, each copied byte for byte
+# by its vendoring tool (tools/vendor-safety-viz.mjs, tools/vendor-statistics.mjs),
+# with its record.
+site/vendor/
+
+# safety.viz's portfolio manifest format, copied byte for byte by
+# tools/vendor-portfolio-schema.mjs, with its record.
+src/data/schema/

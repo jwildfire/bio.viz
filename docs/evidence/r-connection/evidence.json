@@ -1,0 +1,1400 @@
+{
+  "module": "r-connection",
+  "generatedAt": "2026-10-03T08:36:04.957Z",
+  "environment": {
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
+    "playwright": "1.61.1",
+    "chromium": "149.0.7827.55"
+  },
+  "run": {
+    "id": "37110218227",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
+  },
+  "records": [
+    {
+      "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-002: the home page holds at a 390px-wide viewport with no horizontal scroll (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: every module has an API reference page that documents each name it exports (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-012"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-013: each module’s evidence page holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-013"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-014: each module’s API reference holds at a 390px-wide viewport, with its tables restacked (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-014"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-015: the site serves the synthetic study, and the gallery gives its row counts and the commit it was copied from (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "PVAL-FMT-001: a page formats a result from the connection with its method and counts (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LAZY-003: when webR cannot be fetched the page answers unavailable with the cause (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LAZY-004: the browser form requests nothing until the first run, and two simultaneous first runs load webR once (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-001: with no R attached the page answers that statistics are unavailable (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-002: the precomputed form gives the desktop-R answers with no R loaded and no request to R's hosts (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-002"],
+      "issueRefs": [3],
+      "screenshots": ["RCON-LIVE-002-answers-shipped-with-the-page.png"]
+    },
+    {
+      "test": "RCON-LIVE-003: R in the browser gives the rank-sum result desktop R gives, within the stated tolerance (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-004: the survival package installs and loads, and the log-rank result is the one desktop R gives (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-004"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-005: cold, a first visit with nothing cached: megabytes, requests and seconds to the first result (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-005"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-006: reload, the page loaded again with the files cached: R starts again and gives the same answers (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-006"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-007: warm, R already running: a repeated call makes no request (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-007"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-008: the R check page holds at a 390px-wide viewport with its results shown (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-008"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-LIVE-009: the three measurements are recorded where a reader of the run can find them (#3)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-LIVE-009"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-PRE-001: with stored results the page answers without making a network request (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-RES-002: with neither form configured the page answers unavailable, and requests nothing (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "RCON-WEBR-001: by default the page asks the public CDN for webR 0.6.0, and only on the first run (#2)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-006"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a function the reference documents that the bundle does not export is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a namespace in the surface stands for each of its members, and a constant carries its value (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a parameter the source documents and the reference leaves out is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a reference that documents every export, parameter and constant has no problems (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export no module claims, a surface the bundle lacks and an empty surface are each a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export with no heading in the reference is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the committed references document everything the committed bundle exports (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the connection’s reference is held to the parameters its source documents (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-API-005: BioViz.r.createConnection and BioViz.r.formatStatistic are exported by both committed bundles (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-001: the build bundles only files under src/ and does not resolve the webR import (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-002: the committed bundles keep the dynamic import and carry none of webR (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the connection ships, webR does not RCON-BUILD-003: the r module imports nothing from outside src/r (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-BUILD-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-API-004: a browser form with a malformed setting is refused when the connection is created (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-ISO-001: two connections share nothing: each starts its own engine (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-ISO-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-001: creating a connection starts nothing; the first run starts the engine with its configuration (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-002: two simultaneous first calls cause one start, and later calls reuse it (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the browser form starts R lazily and once RCON-LAZY-003: a failed start answers unavailable for every waiting call, and the next run tries again (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-001: createConnection returns an object whose one call is run (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-002: run resolves and never rejects, whatever the engine throws (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-API-003: a call run cannot make sense of resolves to an error, without starting R (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-API-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-001: ok carries the value R returned and the form that answered (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-002: with neither form configured, run answers unavailable with a reason (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the call and its three answers RCON-RES-003: error carries R's message when the R function fails (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-RES-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-001: a stored result is answered with nothing loaded and no network request (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-002: a stored result is keyed by function name, arguments and data identity; argument order does not matter (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-003: a call with no stored result answers unavailable, never another result (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-004: stored results that are malformed or ambiguous are refused when the connection is created (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-005: with both forms, a call with no stored result goes to R in the browser (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the precomputed form RCON-PRE-006: changing a returned value does not change the stored result (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildRun builds GitHub Actions run provenance from the environment (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence flags status drift and test-set changes, ignoring screenshots (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence ignores provenance so --check never drifts on generatedAt/environment/run (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a requirement row with no test named for it is reported (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizePlaywright walks nested suites into browser-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizeVitest maps assertion results to unit-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName extracts requirement IDs and issue refs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName recognizes any requirement-ID prefix, not just SH (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer provenance lives in dedicated top-level keys; the records array stays timestamp-free (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: a requirement with no test says so, and the summary counts it (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: results recorded on a developer’s machine say so, and absent provenance is not invented (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: the page says when and where the results were recorded and links the run (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page the page links the module’s requirement matrix and its committed evidence set (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-001: a pair’s p-value comes with its method, the two groups’ counts and its adjustment label, by the rules a whole result is held to (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-ROW-001"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatComparison: one pair of groups from a result’s rows PVAL-ROW-002: a pair with no method, no counts or no groups is refused, and one R could not compute shows R’s words and no number (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-ROW-002"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatEstimate: an estimate and its interval PVAL-EST-001: an estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, to four significant figures (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-EST-001"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatEstimate: an estimate and its interval PVAL-EST-002: an estimate with no name or no number, or with half an interval, is refused and nothing is printed in its place (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-EST-002"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-001: a group’s estimate comes with its interval at the level R gave, and its p-value with its method, the group’s count and its label, by the rules a whole result is held to (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-GRP-001"],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "formatGroup: one group’s result from a result’s rows PVAL-GRP-002: a group with no name, no method, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words and no number (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-GRP-002"],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-001: a pair’s estimate comes with its interval at the level R gave and its count, in parts for a cell and a table, and with no p-value even where a row carries one (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-PAIR-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "formatPair: one pair’s result from a correlation matrix’s rows PVAL-PAIR-002: a pair with no two variables, no count, no estimate or half an interval is refused, and one R could not compute shows R’s words with its count and no number (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-PAIR-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "formatScreenRow: one row of a biomarker screen PVAL-SCREEN-001: a row’s estimate comes with its interval, its unadjusted p-value with its method and each group’s count, and its adjusted p-value with the adjustment by name and how many rows it covered, in parts for a table (#36)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-SCREEN-001"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "formatScreenRow: one row of a biomarker screen PVAL-SCREEN-002: a row with something missing is refused, and one R could not compute shows R’s words with its counts and no number (#36)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-SCREEN-002"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-001: an ordinary p-value is shown to three decimals with its method and counts (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-002: a small p-value is shown as p < 0.001, never as zero (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-003: a p-value that would print as 1.000 is shown as p > 0.999 (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the formatted text PVAL-FMT-004: counts are printed for each group, or as one total (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-001: a p-value with no method named is refused, and no number is printed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-002: a p-value with no counts is refused, and no number is printed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-003: a result is labelled exploratory and unadjusted unless an adjustment is named (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-004: no stars and never the word significant, however small the p-value (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-005: a group too small to test shows the reason in place of a number (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-006: a p-value that is not a number between 0 and 1 is refused, not repaired (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: the rules PVAL-RULE-007: the same result always formats to the same text, and the result is not changed (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-007"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-008: a reason that already says the result was not computed is printed as it is, and \"not computed\" is said once (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-008"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-009: a result R marked as an error is printed as R’s message, said to be an error, with no number (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-009"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-010: an adjustment R names by its p.adjust method is printed by its usual name, and any other name as given (#16)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-010"],
+      "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: the registry as committed lists the core and the connection to R as shared parts (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-015: the gallery says what each table of the synthetic study holds, its rows, and the commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page links each module’s evidence page and API reference, and the gallery (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page says there are no charts yet only while none is published (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a fenced block is code, escaped and left as written, and a # inside it is not a heading (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline mdText strips the marks and keeps the words (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline reads nothing inside a code span as a link or as emphasis (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline renders code, links, bold and italic, and escapes everything else (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry without its matrix or its API reference is refused, as is a name registered twice (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: the registry as committed is well formed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-001: the page has a button that starts R, the stated tolerance and the versions desktop R used (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-002: the recorded megabytes, requests and seconds are shown for cold, reload and warm, with how they were measured (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-003: with no recorded measurement the page says so and prints no number in its place (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-001: two numbers agree when they differ by no more than 1 part in 10^8, and not beyond (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-002: every member is compared: numbers by the tolerance, text and structure exactly (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-003: a number is shown in full, so a difference in the last digit is visible (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: comparing two answers from R RCON-CHECK-004: a table is read from CSV with its numeric columns as numbers and blanks as missing (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-004"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: the committed expected results RCON-CHECK-005: the expected results name the script, the R version and the survival version that made them (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-005"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page: the committed expected results RCON-CHECK-006: each expected result is a stored result on its committed table, which the precomputed form answers (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CHECK-006"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags added and removed requirement IDs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags changed requirement text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard reports fresh when the committed set matches a fresh extraction (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing ignores the header, separator, and non-requirement content (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing keeps an escaped pipe inside a requirement cell as a single row (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing maps each requirement ID to its reviewed text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: requirement set wraps the parsed map with module + matrix provenance (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices passes when every matrix file is registered, ignoring the README and non-markdown files (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices reports a matrix file no module in site/config.json names (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages CORE-SITE-001: the home page names the library and its version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages escapeHtml escapes the five HTML-significant characters (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages renderShell fills title, description, version and root, and leaves no token behind (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages summarizeModule counts requirement rows and passing test records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page links to the R check page (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page lists each registered module with its counts and a link to its matrix (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links flags internal links and asset references that do not resolve (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links passes a site whose internal links all resolve, ignoring external and fragment links (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the formatter in the README PVAL-FMT-005: the README’s example prints what formatStatistic prints for desktop R’s own Wilcoxon answer, R’s method name as R wrote it (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-FMT-005"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-001: the records go to R as columns, with the function name and the arguments (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-002: recordsToColumns gives every column every row, with missing values as null (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-003: the list R returns becomes plain JavaScript (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-004: toPlain maps each kind of R value to one JavaScript shape (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-005: an R error is reported with R's message, and the R objects of the call are released (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-006: nested arguments go to R as nested lists, and a call with no data or arguments sends neither (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-006"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-007: the R that passes a table in and a result out uses base R only (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-007"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: one call RCON-CALL-008: a data frame R returns becomes an array of row objects, whatever its size and depth (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-CALL-008"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-LAZY-004: nothing is imported until the first run, and two simultaneous first runs import once (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-LAZY-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-001: webR is pinned to 0.6.0 and loaded from the public CDN unless another location is given (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-001"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-002: webR is started on the PostMessage channel (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-002"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-003: the packages it was told to are installed and attached, and the R source is evaluated once (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-003"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-004: an R source given by URL is fetched on the first run, not before (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-004"],
+      "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "webR engine: what is loaded, and from where RCON-WEBR-005: a start that fails closes what it opened and reports why (#2)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-WEBR-005"],
+      "issueRefs": [2],
+      "screenshots": []
+    }
+  ]
+}

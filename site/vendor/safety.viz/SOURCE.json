@@ -1,0 +1,16 @@
+{
+  "bundle": "safety.viz script-tag bundle",
+  "repository": "https://github.com/jwildfire/safety.viz",
+  "ref": "dev",
+  "commit": "096cc26d48e5d3cd1bf03eb78249658974c7a307",
+  "version": "1.9.0",
+  "merged_to_dev": true,
+  "files": [
+    {
+      "file": "safety.viz.js",
+      "source": "dist/safety.viz-1.9.0/safety.viz.js",
+      "sha256": "67236ba4c206c3eabd77c9860331f2afa0fdbfc44be76407aa46fae34acfa0d7",
+      "bytes": 1588881
+    }
+  ]
+}

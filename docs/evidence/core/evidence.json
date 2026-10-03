@@ -1,0 +1,1232 @@
+{
+  "module": "core",
+  "generatedAt": "2026-10-03T08:36:04.957Z",
+  "environment": {
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
+    "playwright": "1.61.1",
+    "chromium": "149.0.7827.55"
+  },
+  "run": {
+    "id": "37110218227",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
+  },
+  "records": [
+    {
+      "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-API-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-MAN-007: the site publishes the chart list as portfolio.json, the same list a page reads as BioViz.portfolio, and the format it names at schema/portfolio.json (#32)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-007"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-002: the home page holds at a 390px-wide viewport with no horizontal scroll (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
+      "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: every module has an API reference page that documents each name it exports (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-012"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-013: each module’s evidence page holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-013"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-014: each module’s API reference holds at a 390px-wide viewport, with its tables restacked (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-014"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-015: the site serves the synthetic study, and the gallery gives its row counts and the commit it was copied from (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "API reference: held to the code CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-006"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a function the reference documents that the bundle does not export is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a namespace in the surface stands for each of its members, and a constant carries its value (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a parameter the source documents and the reference leaves out is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a reference that documents every export, parameter and constant has no problems (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export no module claims, a surface the bundle lacks and an empty surface are each a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export with no heading in the reference is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the committed references document everything the committed bundle exports (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the connection’s reference is held to the parameters its source documents (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-API-001: BioViz.version in the committed IIFE bundle equals the package version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-API-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-API-001: src/main.js exports version equal to the package version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-API-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-API-001: version in the committed ESM bundle equals the package version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-API-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-BUILD-001: the committed IIFE bundle defines the global BioViz (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-BUILD-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-BUILD-002: the committed ESM bundle has the same exports as the IIFE bundle (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-BUILD-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "bio.viz core CORE-DEP-001: package.json declares no runtime dependencies (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DEP-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: a biomarker at a visit and a column are each written one way and returned in full (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: a variable that was returned can be handed back, and cannot be changed (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-001: the five value types are raw, baseline, change, fold change and percent change (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-002: a malformed variable is refused with a message naming what is wrong (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: a variable CORE-VAR-009: a variable is named in words for an axis or a legend (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-009"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-012: column names are settings, and their defaults are the synthetic study’s (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-012"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-013: a call that cannot be made is refused with a message naming what is wrong (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-013"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-016: the visits of a results table are listed in visit order, the ones with a usable result only (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-016"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "core: settings CORE-FRAME-017: visit order is one total order, whatever order the rows come in: numbered visits by their least number, then visits with no number by name (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-017"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-001: the frame has one record per participant, holding the id and one field per variable, named as given (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-001"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-002: IL-6 change from Baseline to Week 4 has 186 participants and 14 dropped (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-003: every participant seen is either in the frame or counted once in the dropped list (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-004: the results table alone gives a frame, with no participant column in it (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-004"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-005: a column is read from the participant table when it is given, and otherwise from a column carried on the results rows (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: the frame on the synthetic study CORE-FRAME-006: a wide table with one row per participant resolves as it is, every column a variable (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-004: raw is the result as the table holds it at the visit (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-004"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: baseline is the result at the baseline visit named in settings (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: several baseline visits are brought to one value by their mean, or by the statistic named (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-005: with no baseline visit named, the first visit in visit order is the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-005"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-006: a participant with no baseline result has no change, fold change or percent change, and is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-006: change is the result at the visit minus the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-006"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-007, CORE-VAR-008: a baseline of zero, or below it, gives no fold or percent change, and the participant is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-007", "CORE-VAR-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-007: fold change is the result at the visit divided by the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-007"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: value types on the synthetic study CORE-VAR-008: percent change is one hundred times the change divided by the baseline (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VAR-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-API-002: BioViz.core is exported by both committed bundles, with the variable, the frame and their vocabulary (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-API-002"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-BUILD-003: the core module imports nothing from outside src/core, and reaches for no page and no network (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-BUILD-003"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-014: the frame’s records go to R through the connection as they are, with the fields named as the statistics functions take them (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-014"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what leaves the frame, and what the module is made of CORE-FRAME-015: the frame changes nothing it is given (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-015"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-007: of several results for one participant, biomarker and visit the first usable one is used and the rest are counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-007"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-008: a result that is missing or not a number is not a result, and a participant with no other is dropped and counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-008"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-009: participants in one table and not the other are each handled and counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-009"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-010: a column carried on the results rows must hold one value for the participant; one that is empty, varies or is not a number is counted (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-010"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "core: what the frame leaves out CORE-FRAME-011: a variable that is not required is left empty rather than dropping the participant (#8)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-FRAME-011"],
+      "issueRefs": [8],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildRun builds GitHub Actions run provenance from the environment (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence flags status drift and test-set changes, ignoring screenshots (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence ignores provenance so --check never drifts on generatedAt/environment/run (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a requirement row with no test named for it is reported (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizePlaywright walks nested suites into browser-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizeVitest maps assertion results to unit-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName extracts requirement IDs and issue refs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName recognizes any requirement-ID prefix, not just SH (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer provenance lives in dedicated top-level keys; the records array stays timestamp-free (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: a requirement with no test says so, and the summary counts it (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-006-a-requirement-and-its-tests.png"]
+    },
+    {
+      "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: results recorded on a developer’s machine say so, and absent provenance is not invented (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: the page says when and where the results were recorded and links the run (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page the page links the module’s requirement matrix and its committed evidence set (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
+      "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
+      "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-003-gallery.png"]
+    },
+    {
+      "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: the registry as committed lists the core and the connection to R as shared parts (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-015: the gallery says what each table of the synthetic study holds, its rows, and the commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page links each module’s evidence page and API reference, and the gallery (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page says there are no charts yet only while none is published (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a fenced block is code, escaped and left as written, and a # inside it is not a heading (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline mdText strips the marks and keeps the words (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline reads nothing inside a code span as a link or as emphasis (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline renders code, links, bold and italic, and escapes everything else (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry without its matrix or its API reference is refused, as is a name registered twice (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: the registry as committed is well formed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-001: the page has a button that starts R, the stated tolerance and the versions desktop R used (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-002: the recorded megabytes, requests and seconds are shown for cold, reload and warm, with how they were measured (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-003: with no recorded measurement the page says so and prints no number in its place (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags added and removed requirement IDs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags changed requirement text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard reports fresh when the committed set matches a fresh extraction (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing ignores the header, separator, and non-requirement content (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing keeps an escaped pipe inside a requirement cell as a single row (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing maps each requirement ID to its reviewed text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: requirement set wraps the parsed map with module + matrix provenance (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices passes when every matrix file is registered, ignoring the README and non-markdown files (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices reports a matrix file no module in site/config.json names (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages CORE-SITE-001: the home page names the library and its version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages escapeHtml escapes the five HTML-significant characters (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages renderShell fills title, description, version and root, and leaves no token behind (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages summarizeModule counts requirement rows and passing test records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page links to the R check page (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page lists each registered module with its counts and a link to its matrix (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links flags internal links and asset references that do not resolve (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links passes a site whose internal links all resolve, ignoring external and fragment links (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-001: BioViz.portfolio is the chart list, the same object in the source and in both committed bundles (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-001"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-002: the chart list validates against safety.viz’s manifest schema at the recorded commit (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-002"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-003: the copied schema matches its record, which names safety.viz’s dev branch and a commit on it (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-003"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-004: every entry names bio.viz, is listed in the declared biomarker group, and takes the results table from labs and vitals and the participant table, optional, from the subject-level file (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-004"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-004: there is one entry for each available chart in site/config.json, under its title and its export, and no other (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-004"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-005: a chart that refuses a null column is passed nothing for an unmapped one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-005"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-005"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored synthetic study CORE-DATA-001: the three files are in site/data/synthetic-study/ with a record naming the gsm.bio commit and each file there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-001"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored synthetic study CORE-DATA-002: each vendored file matches its recorded checksum, size, columns and row count (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-002"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored synthetic study CORE-DATA-003: the results table has its six columns and 11,472 rows, one per participant, biomarker and visit (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored synthetic study CORE-DATA-004: the participant table has its six columns and 200 rows, one per participant, covering everyone in the results (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "the vendored synthetic study CORE-DATA-005: the outcomes table has its five columns and 200 rows, one per participant and endpoint, all of them known participants (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-002: a changed file fails the check, even by one character (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-002"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-002: a missing file, an unrecorded file and a missing record each fail the check (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-002"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-002: a record edited without its file fails the check (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-002"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-006: a record is refused without the full commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-006: the check against the source fails when a vendored file differs from the commit it names (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "vendoring: the copy and its check CORE-DATA-006: the copy writes each file exactly as the source holds it and records the checksum of those bytes (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-DATA-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    }
+  ]
+}

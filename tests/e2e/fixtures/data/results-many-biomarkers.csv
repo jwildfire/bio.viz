@@ -1,0 +1,2809 @@
+USUBJID,VISIT,VISITNUM,TEST,STRESU,STRESN
+BIO-001,Baseline,0,IL-6,pg/mL,6.927
+BIO-001,Week 4,4,IL-6,pg/mL,5.9
+BIO-001,Baseline,0,CRP,mg/L,1.537
+BIO-001,Week 4,4,CRP,mg/L,3.482
+BIO-001,Baseline,0,TNF-alpha,pg/mL,12.837
+BIO-001,Week 4,4,TNF-alpha,pg/mL,11.426
+BIO-001,Baseline,0,IL-10,pg/mL,5.48
+BIO-001,Week 4,4,IL-10,pg/mL,5.535
+BIO-001,Baseline,0,IFN-gamma,pg/mL,2.51
+BIO-001,Week 4,4,IFN-gamma,pg/mL,4.601
+BIO-001,Baseline,0,IL-2,pg/mL,5.502
+BIO-001,Week 4,4,IL-2,pg/mL,5.51
+BIO-001,Baseline,0,IL-1beta,pg/mL,3.453
+BIO-001,Week 4,4,IL-1beta,pg/mL,4.017
+BIO-001,Baseline,0,IL-8,pg/mL,13.418
+BIO-001,Week 4,4,IL-8,pg/mL,10.88
+BIO-001,Baseline,0,VEGF,pg/mL,203.438
+BIO-001,Week 4,4,VEGF,pg/mL,249.588
+BIO-001,Baseline,0,Ferritin,ng/mL,166.623
+BIO-001,Week 4,4,Ferritin,ng/mL,183.479
+BIO-001,Baseline,0,D-dimer,mg/L,0.74
+BIO-001,Week 4,4,D-dimer,mg/L,
+BIO-001,Baseline,0,LDH,U/L,189.104
+BIO-001,Week 4,4,LDH,U/L,196.561
+BIO-002,Baseline,0,IL-6,pg/mL,5.36
+BIO-002,Week 4,4,IL-6,pg/mL,3.252
+BIO-002,Baseline,0,CRP,mg/L,2.372
+BIO-002,Week 4,4,CRP,mg/L,1.597
+BIO-002,Baseline,0,TNF-alpha,pg/mL,10.04
+BIO-002,Week 4,4,TNF-alpha,pg/mL,10.519
+BIO-002,Baseline,0,IL-10,pg/mL,5.59
+BIO-002,Week 4,4,IL-10,pg/mL,4.496
+BIO-002,Baseline,0,IFN-gamma,pg/mL,3.909
+BIO-002,Week 4,4,IFN-gamma,pg/mL,2.562
+BIO-002,Baseline,0,IL-2,pg/mL,5.689
+BIO-002,Week 4,4,IL-2,pg/mL,6.114
+BIO-002,Baseline,0,IL-1beta,pg/mL,2.898
+BIO-002,Week 4,4,IL-1beta,pg/mL,2.422
+BIO-002,Baseline,0,IL-8,pg/mL,13.862
+BIO-002,Week 4,4,IL-8,pg/mL,17.093
+BIO-002,Baseline,0,VEGF,pg/mL,256.094
+BIO-002,Week 4,4,VEGF,pg/mL,246.441
+BIO-002,Baseline,0,Ferritin,ng/mL,116.353
+BIO-002,Week 4,4,Ferritin,ng/mL,89.938
+BIO-002,Baseline,0,D-dimer,mg/L,0.16
+BIO-002,Week 4,4,D-dimer,mg/L,
+BIO-002,Baseline,0,LDH,U/L,158.394
+BIO-002,Week 4,4,LDH,U/L,160.917
+BIO-003,Baseline,0,IL-6,pg/mL,9.778
+BIO-003,Week 4,4,IL-6,pg/mL,8.038
+BIO-003,Baseline,0,CRP,mg/L,2.146
+BIO-003,Week 4,4,CRP,mg/L,2.62
+BIO-003,Baseline,0,TNF-alpha,pg/mL,16.694
+BIO-003,Week 4,4,TNF-alpha,pg/mL,16.783
+BIO-003,Baseline,0,IL-10,pg/mL,6.948
+BIO-003,Week 4,4,IL-10,pg/mL,7.185
+BIO-003,Baseline,0,IFN-gamma,pg/mL,6.462
+BIO-003,Week 4,4,IFN-gamma,pg/mL,3.092
+BIO-003,Baseline,0,IL-2,pg/mL,4.969
+BIO-003,Week 4,4,IL-2,pg/mL,5.053
+BIO-003,Baseline,0,IL-1beta,pg/mL,2.464
+BIO-003,Week 4,4,IL-1beta,pg/mL,2.775
+BIO-003,Baseline,0,IL-8,pg/mL,17.061
+BIO-003,Week 4,4,IL-8,pg/mL,11.079
+BIO-003,Baseline,0,VEGF,pg/mL,256.52
+BIO-003,Week 4,4,VEGF,pg/mL,271.68
+BIO-003,Baseline,0,Ferritin,ng/mL,106.902
+BIO-003,Week 4,4,Ferritin,ng/mL,115.813
+BIO-003,Baseline,0,D-dimer,mg/L,0.38
+BIO-003,Week 4,4,D-dimer,mg/L,0.457
+BIO-003,Baseline,0,LDH,U/L,196.167
+BIO-003,Week 4,4,LDH,U/L,234.033
+BIO-004,Baseline,0,IL-6,pg/mL,9.151
+BIO-004,Week 4,4,IL-6,pg/mL,6.017
+BIO-004,Baseline,0,CRP,mg/L,1.971
+BIO-004,Week 4,4,CRP,mg/L,1.491
+BIO-004,Baseline,0,TNF-alpha,pg/mL,9.211
+BIO-004,Week 4,4,TNF-alpha,pg/mL,12.259
+BIO-004,Baseline,0,IL-10,pg/mL,5.055
+BIO-004,Week 4,4,IL-10,pg/mL,6.846
+BIO-004,Baseline,0,IFN-gamma,pg/mL,2.729
+BIO-004,Week 4,4,IFN-gamma,pg/mL,2.132
+BIO-004,Baseline,0,IL-2,pg/mL,3.494
+BIO-004,Week 4,4,IL-2,pg/mL,5.216
+BIO-004,Baseline,0,IL-1beta,pg/mL,2.691
+BIO-004,Week 4,4,IL-1beta,pg/mL,2.735
+BIO-004,Baseline,0,IL-8,pg/mL,16.597
+BIO-004,Week 4,4,IL-8,pg/mL,10.985
+BIO-004,Baseline,0,VEGF,pg/mL,225.651
+BIO-004,Week 4,4,VEGF,pg/mL,247.278
+BIO-004,Baseline,0,Ferritin,ng/mL,59.925
+BIO-004,Week 4,4,Ferritin,ng/mL,66.596
+BIO-004,Baseline,0,D-dimer,mg/L,0.179
+BIO-004,Week 4,4,D-dimer,mg/L,0.277
+BIO-004,Baseline,0,LDH,U/L,161.558
+BIO-004,Week 4,4,LDH,U/L,196.172
+BIO-005,Baseline,0,IL-6,pg/mL,10.242
+BIO-005,Week 4,4,IL-6,pg/mL,10.764
+BIO-005,Baseline,0,CRP,mg/L,2.628
+BIO-005,Week 4,4,CRP,mg/L,1.698
+BIO-005,Baseline,0,TNF-alpha,pg/mL,10.163
+BIO-005,Week 4,4,TNF-alpha,pg/mL,9.917
+BIO-005,Baseline,0,IL-10,pg/mL,4.11
+BIO-005,Week 4,4,IL-10,pg/mL,6.587
+BIO-005,Baseline,0,IFN-gamma,pg/mL,4.933
+BIO-005,Week 4,4,IFN-gamma,pg/mL,4.325
+BIO-005,Baseline,0,IL-2,pg/mL,6.021
+BIO-005,Week 4,4,IL-2,pg/mL,5.355
+BIO-005,Baseline,0,IL-1beta,pg/mL,2.856
+BIO-005,Week 4,4,IL-1beta,pg/mL,2.468
+BIO-005,Baseline,0,IL-8,pg/mL,25.75
+BIO-005,Week 4,4,IL-8,pg/mL,29.258
+BIO-005,Baseline,0,VEGF,pg/mL,267.482
+BIO-005,Week 4,4,VEGF,pg/mL,291.698
+BIO-005,Baseline,0,Ferritin,ng/mL,74.261
+BIO-005,Week 4,4,Ferritin,ng/mL,75.848
+BIO-005,Baseline,0,D-dimer,mg/L,0.88
+BIO-005,Week 4,4,D-dimer,mg/L,0.572
+BIO-005,Baseline,0,LDH,U/L,143.36
+BIO-005,Week 4,4,LDH,U/L,178.352
+BIO-006,Baseline,0,IL-6,pg/mL,6.872
+BIO-006,Week 4,4,IL-6,pg/mL,6.366
+BIO-006,Baseline,0,CRP,mg/L,0.502
+BIO-006,Week 4,4,CRP,mg/L,1.423
+BIO-006,Baseline,0,TNF-alpha,pg/mL,12.077
+BIO-006,Week 4,4,TNF-alpha,pg/mL,12.552
+BIO-006,Baseline,0,IL-10,pg/mL,5.474
+BIO-006,Week 4,4,IL-10,pg/mL,6.113
+BIO-006,Baseline,0,IFN-gamma,pg/mL,3.677
+BIO-006,Week 4,4,IFN-gamma,pg/mL,
+BIO-006,Baseline,0,IL-2,pg/mL,5.299
+BIO-006,Week 4,4,IL-2,pg/mL,5.466
+BIO-006,Baseline,0,IL-1beta,pg/mL,2.186
+BIO-006,Week 4,4,IL-1beta,pg/mL,1.858
+BIO-006,Baseline,0,IL-8,pg/mL,13.458
+BIO-006,Week 4,4,IL-8,pg/mL,12.788
+BIO-006,Baseline,0,VEGF,pg/mL,186.127
+BIO-006,Week 4,4,VEGF,pg/mL,164.039
+BIO-006,Baseline,0,Ferritin,ng/mL,123.313
+BIO-006,Week 4,4,Ferritin,ng/mL,163.434
+BIO-006,Baseline,0,D-dimer,mg/L,0.79
+BIO-006,Week 4,4,D-dimer,mg/L,0.386
+BIO-006,Baseline,0,LDH,U/L,217.822
+BIO-006,Week 4,4,LDH,U/L,195.726
+BIO-007,Baseline,0,IL-6,pg/mL,7.909
+BIO-007,Week 4,4,IL-6,pg/mL,6.59
+BIO-007,Baseline,0,CRP,mg/L,2.479
+BIO-007,Week 4,4,CRP,mg/L,1.369
+BIO-007,Baseline,0,TNF-alpha,pg/mL,15.308
+BIO-007,Week 4,4,TNF-alpha,pg/mL,13.645
+BIO-007,Baseline,0,IL-10,pg/mL,9.06
+BIO-007,Week 4,4,IL-10,pg/mL,8.456
+BIO-007,Baseline,0,IFN-gamma,pg/mL,5.832
+BIO-007,Week 4,4,IFN-gamma,pg/mL,3.024
+BIO-007,Baseline,0,IL-2,pg/mL,4.768
+BIO-007,Week 4,4,IL-2,pg/mL,4.846
+BIO-007,Baseline,0,IL-1beta,pg/mL,2.566
+BIO-007,Week 4,4,IL-1beta,pg/mL,2.676
+BIO-007,Baseline,0,IL-8,pg/mL,24.602
+BIO-007,Week 4,4,IL-8,pg/mL,38.242
+BIO-007,Baseline,0,VEGF,pg/mL,133.236
+BIO-007,Week 4,4,VEGF,pg/mL,200.879
+BIO-007,Baseline,0,Ferritin,ng/mL,171.966
+BIO-007,Week 4,4,Ferritin,ng/mL,122.943
+BIO-007,Baseline,0,D-dimer,mg/L,0.246
+BIO-007,Week 4,4,D-dimer,mg/L,0.279
+BIO-007,Baseline,0,LDH,U/L,162.36
+BIO-007,Week 4,4,LDH,U/L,178.325
+BIO-008,Baseline,0,IL-6,pg/mL,5.968
+BIO-008,Week 4,4,IL-6,pg/mL,6.269
+BIO-008,Baseline,0,CRP,mg/L,3.499
+BIO-008,Week 4,4,CRP,mg/L,6.494
+BIO-008,Baseline,0,TNF-alpha,pg/mL,12.802
+BIO-008,Week 4,4,TNF-alpha,pg/mL,19.188
+BIO-008,Baseline,0,IL-10,pg/mL,8.497
+BIO-008,Week 4,4,IL-10,pg/mL,10.03
+BIO-008,Baseline,0,IFN-gamma,pg/mL,6.847
+BIO-008,Week 4,4,IFN-gamma,pg/mL,4.333
+BIO-008,Baseline,0,IL-2,pg/mL,2.003
+BIO-008,Week 4,4,IL-2,pg/mL,4.297
+BIO-008,Baseline,0,IL-1beta,pg/mL,3.124
+BIO-008,Week 4,4,IL-1beta,pg/mL,2.01
+BIO-008,Baseline,0,IL-8,pg/mL,16.891
+BIO-008,Week 4,4,IL-8,pg/mL,28.067
+BIO-008,Baseline,0,VEGF,pg/mL,312.578
+BIO-008,Week 4,4,VEGF,pg/mL,324.415
+BIO-008,Baseline,0,Ferritin,ng/mL,230.242
+BIO-008,Week 4,4,Ferritin,ng/mL,146.191
+BIO-008,Baseline,0,D-dimer,mg/L,0.387
+BIO-008,Week 4,4,D-dimer,mg/L,0.31
+BIO-008,Baseline,0,LDH,U/L,204.178
+BIO-008,Week 4,4,LDH,U/L,179.947
+BIO-009,Baseline,0,IL-6,pg/mL,9.614
+BIO-009,Week 4,4,IL-6,pg/mL,5.961
+BIO-009,Baseline,0,CRP,mg/L,2.669
+BIO-009,Week 4,4,CRP,mg/L,3.418
+BIO-009,Baseline,0,TNF-alpha,pg/mL,9.43
+BIO-009,Week 4,4,TNF-alpha,pg/mL,11.484
+BIO-009,Baseline,0,IL-10,pg/mL,5.828
+BIO-009,Week 4,4,IL-10,pg/mL,6.176
+BIO-009,Baseline,0,IFN-gamma,pg/mL,2.747
+BIO-009,Week 4,4,IFN-gamma,pg/mL,1.946
+BIO-009,Baseline,0,IL-2,pg/mL,7.436
+BIO-009,Week 4,4,IL-2,pg/mL,6.049
+BIO-009,Baseline,0,IL-1beta,pg/mL,2.651
+BIO-009,Week 4,4,IL-1beta,pg/mL,2.942
+BIO-009,Baseline,0,IL-8,pg/mL,13.834
+BIO-009,Week 4,4,IL-8,pg/mL,13.436
+BIO-009,Baseline,0,VEGF,pg/mL,263.98
+BIO-009,Week 4,4,VEGF,pg/mL,262.401
+BIO-009,Baseline,0,Ferritin,ng/mL,149.562
+BIO-009,Week 4,4,Ferritin,ng/mL,231.769
+BIO-009,Baseline,0,D-dimer,mg/L,0.889
+BIO-009,Week 4,4,D-dimer,mg/L,0.389
+BIO-009,Baseline,0,LDH,U/L,209.128
+BIO-009,Week 4,4,LDH,U/L,191.582
+BIO-010,Baseline,0,IL-6,pg/mL,6.822
+BIO-010,Baseline,0,CRP,mg/L,3.592
+BIO-010,Baseline,0,TNF-alpha,pg/mL,9.676
+BIO-010,Baseline,0,IL-10,pg/mL,7.198
+BIO-010,Baseline,0,IFN-gamma,pg/mL,2.214
+BIO-010,Baseline,0,IL-2,pg/mL,4.836
+BIO-010,Baseline,0,IL-1beta,pg/mL,2.09
+BIO-010,Baseline,0,IL-8,pg/mL,8.417
+BIO-010,Baseline,0,VEGF,pg/mL,196.746
+BIO-010,Baseline,0,Ferritin,ng/mL,174.694
+BIO-010,Baseline,0,D-dimer,mg/L,0.501
+BIO-010,Baseline,0,LDH,U/L,186.617
+BIO-011,Baseline,0,IL-6,pg/mL,7.194
+BIO-011,Week 4,4,IL-6,pg/mL,7.6
+BIO-011,Baseline,0,CRP,mg/L,2.222
+BIO-011,Week 4,4,CRP,mg/L,5.431
+BIO-011,Baseline,0,TNF-alpha,pg/mL,16.164
+BIO-011,Week 4,4,TNF-alpha,pg/mL,15.137
+BIO-011,Baseline,0,IL-10,pg/mL,8.211
+BIO-011,Week 4,4,IL-10,pg/mL,6.691
+BIO-011,Baseline,0,IFN-gamma,pg/mL,6.244
+BIO-011,Week 4,4,IFN-gamma,pg/mL,3.096
+BIO-011,Baseline,0,IL-2,pg/mL,3.188
+BIO-011,Week 4,4,IL-2,pg/mL,4.827
+BIO-011,Baseline,0,IL-1beta,pg/mL,1.523
+BIO-011,Week 4,4,IL-1beta,pg/mL,1.329
+BIO-011,Baseline,0,IL-8,pg/mL,16.118
+BIO-011,Week 4,4,IL-8,pg/mL,10.893
+BIO-011,Baseline,0,VEGF,pg/mL,271.81
+BIO-011,Week 4,4,VEGF,pg/mL,245.815
+BIO-011,Baseline,0,Ferritin,ng/mL,80.716
+BIO-011,Week 4,4,Ferritin,ng/mL,239.977
+BIO-011,Baseline,0,D-dimer,mg/L,0.25
+BIO-011,Week 4,4,D-dimer,mg/L,0.249
+BIO-011,Baseline,0,LDH,U/L,152.65
+BIO-011,Week 4,4,LDH,U/L,198.078
+BIO-012,Baseline,0,IL-6,pg/mL,6.297
+BIO-012,Week 4,4,IL-6,pg/mL,5.337
+BIO-012,Baseline,0,CRP,mg/L,7.132
+BIO-012,Week 4,4,CRP,mg/L,8.481
+BIO-012,Baseline,0,TNF-alpha,pg/mL,11.79
+BIO-012,Week 4,4,TNF-alpha,pg/mL,11.62
+BIO-012,Baseline,0,IL-10,pg/mL,4.185
+BIO-012,Week 4,4,IL-10,pg/mL,4.159
+BIO-012,Baseline,0,IFN-gamma,pg/mL,5.731
+BIO-012,Week 4,4,IFN-gamma,pg/mL,5.213
+BIO-012,Baseline,0,IL-2,pg/mL,5.966
+BIO-012,Week 4,4,IL-2,pg/mL,4.881
+BIO-012,Baseline,0,IL-1beta,pg/mL,3.042
+BIO-012,Week 4,4,IL-1beta,pg/mL,3.169
+BIO-012,Baseline,0,IL-8,pg/mL,10.602
+BIO-012,Week 4,4,IL-8,pg/mL,18.151
+BIO-012,Baseline,0,VEGF,pg/mL,256.287
+BIO-012,Week 4,4,VEGF,pg/mL,266.466
+BIO-012,Baseline,0,Ferritin,ng/mL,170.961
+BIO-012,Week 4,4,Ferritin,ng/mL,103.431
+BIO-012,Baseline,0,D-dimer,mg/L,0.183
+BIO-012,Week 4,4,D-dimer,mg/L,0.175
+BIO-012,Baseline,0,LDH,U/L,203.572
+BIO-012,Week 4,4,LDH,U/L,188.01
+BIO-013,Baseline,0,IL-6,pg/mL,8.547
+BIO-013,Week 4,4,IL-6,pg/mL,9.157
+BIO-013,Baseline,0,CRP,mg/L,2.03
+BIO-013,Week 4,4,CRP,mg/L,2.946
+BIO-013,Baseline,0,TNF-alpha,pg/mL,6.059
+BIO-013,Week 4,4,TNF-alpha,pg/mL,
+BIO-013,Baseline,0,IL-10,pg/mL,2.904
+BIO-013,Week 4,4,IL-10,pg/mL,1.246
+BIO-013,Baseline,0,IFN-gamma,pg/mL,10.171
+BIO-013,Week 4,4,IFN-gamma,pg/mL,6.501
+BIO-013,Baseline,0,IL-2,pg/mL,4.618
+BIO-013,Week 4,4,IL-2,pg/mL,4.192
+BIO-013,Baseline,0,IL-1beta,pg/mL,2.575
+BIO-013,Week 4,4,IL-1beta,pg/mL,2.53
+BIO-013,Baseline,0,IL-8,pg/mL,17.84
+BIO-013,Week 4,4,IL-8,pg/mL,24.26
+BIO-013,Baseline,0,VEGF,pg/mL,251.967
+BIO-013,Week 4,4,VEGF,pg/mL,211.637
+BIO-013,Baseline,0,Ferritin,ng/mL,129.59
+BIO-013,Week 4,4,Ferritin,ng/mL,111.527
+BIO-013,Baseline,0,D-dimer,mg/L,0.421
+BIO-013,Week 4,4,D-dimer,mg/L,0.798
+BIO-013,Baseline,0,LDH,U/L,202.934
+BIO-013,Week 4,4,LDH,U/L,191.754
+BIO-014,Baseline,0,IL-6,pg/mL,9.481
+BIO-014,Week 4,4,IL-6,pg/mL,5.938
+BIO-014,Baseline,0,CRP,mg/L,1.417
+BIO-014,Week 4,4,CRP,mg/L,2.226
+BIO-014,Baseline,0,TNF-alpha,pg/mL,12.71
+BIO-014,Week 4,4,TNF-alpha,pg/mL,6.862
+BIO-014,Baseline,0,IL-10,pg/mL,6.318
+BIO-014,Week 4,4,IL-10,pg/mL,2.588
+BIO-014,Baseline,0,IFN-gamma,pg/mL,4.529
+BIO-014,Week 4,4,IFN-gamma,pg/mL,7.395
+BIO-014,Baseline,0,IL-2,pg/mL,5.557
+BIO-014,Week 4,4,IL-2,pg/mL,5.399
+BIO-014,Baseline,0,IL-1beta,pg/mL,2.681
+BIO-014,Week 4,4,IL-1beta,pg/mL,2.476
+BIO-014,Baseline,0,IL-8,pg/mL,15.674
+BIO-014,Week 4,4,IL-8,pg/mL,21.326
+BIO-014,Baseline,0,VEGF,pg/mL,206.884
+BIO-014,Week 4,4,VEGF,pg/mL,217.936
+BIO-014,Baseline,0,Ferritin,ng/mL,143.307
+BIO-014,Week 4,4,Ferritin,ng/mL,165.867
+BIO-014,Baseline,0,D-dimer,mg/L,0.692
+BIO-014,Week 4,4,D-dimer,mg/L,0.715
+BIO-014,Baseline,0,LDH,U/L,177.36
+BIO-014,Week 4,4,LDH,U/L,189.749
+BIO-015,Baseline,0,IL-6,pg/mL,7.35
+BIO-015,Week 4,4,IL-6,pg/mL,8.194
+BIO-015,Baseline,0,CRP,mg/L,1.448
+BIO-015,Week 4,4,CRP,mg/L,2.471
+BIO-015,Baseline,0,TNF-alpha,pg/mL,14.152
+BIO-015,Week 4,4,TNF-alpha,pg/mL,10.119
+BIO-015,Baseline,0,IL-10,pg/mL,6.601
+BIO-015,Week 4,4,IL-10,pg/mL,6.029
+BIO-015,Baseline,0,IFN-gamma,pg/mL,2.67
+BIO-015,Week 4,4,IFN-gamma,pg/mL,3.963
+BIO-015,Baseline,0,IL-2,pg/mL,4.403
+BIO-015,Week 4,4,IL-2,pg/mL,4.833
+BIO-015,Baseline,0,IL-1beta,pg/mL,1.664
+BIO-015,Week 4,4,IL-1beta,pg/mL,2.079
+BIO-015,Baseline,0,IL-8,pg/mL,12.973
+BIO-015,Week 4,4,IL-8,pg/mL,14.545
+BIO-015,Baseline,0,VEGF,pg/mL,178.982
+BIO-015,Week 4,4,VEGF,pg/mL,210.875
+BIO-015,Baseline,0,Ferritin,ng/mL,91.665
+BIO-015,Week 4,4,Ferritin,ng/mL,94.026
+BIO-015,Baseline,0,D-dimer,mg/L,0.366
+BIO-015,Week 4,4,D-dimer,mg/L,0.785
+BIO-015,Baseline,0,LDH,U/L,181.223
+BIO-015,Week 4,4,LDH,U/L,197.277
+BIO-016,Baseline,0,IL-6,pg/mL,8.548
+BIO-016,Week 4,4,IL-6,pg/mL,8.12
+BIO-016,Baseline,0,CRP,mg/L,4.66
+BIO-016,Week 4,4,CRP,mg/L,3.061
+BIO-016,Baseline,0,TNF-alpha,pg/mL,11.064
+BIO-016,Week 4,4,TNF-alpha,pg/mL,10.344
+BIO-016,Baseline,0,IL-10,pg/mL,3.581
+BIO-016,Week 4,4,IL-10,pg/mL,4.294
+BIO-016,Baseline,0,IFN-gamma,pg/mL,5.784
+BIO-016,Week 4,4,IFN-gamma,pg/mL,3.013
+BIO-016,Baseline,0,IL-2,pg/mL,5.627
+BIO-016,Week 4,4,IL-2,pg/mL,5.021
+BIO-016,Baseline,0,IL-1beta,pg/mL,2.489
+BIO-016,Week 4,4,IL-1beta,pg/mL,2.439
+BIO-016,Baseline,0,IL-8,pg/mL,16.979
+BIO-016,Week 4,4,IL-8,pg/mL,14.034
+BIO-016,Baseline,0,VEGF,pg/mL,241.735
+BIO-016,Week 4,4,VEGF,pg/mL,279.036
+BIO-016,Baseline,0,Ferritin,ng/mL,363.383
+BIO-016,Week 4,4,Ferritin,ng/mL,423.725
+BIO-016,Baseline,0,D-dimer,mg/L,0.32
+BIO-016,Week 4,4,D-dimer,mg/L,0.276
+BIO-016,Baseline,0,LDH,U/L,180.834
+BIO-016,Week 4,4,LDH,U/L,230.822
+BIO-017,Baseline,0,IL-6,pg/mL,8.45
+BIO-017,Week 4,4,IL-6,pg/mL,8.373
+BIO-017,Baseline,0,CRP,mg/L,3.695
+BIO-017,Week 4,4,CRP,mg/L,2.559
+BIO-017,Baseline,0,TNF-alpha,pg/mL,14.26
+BIO-017,Week 4,4,TNF-alpha,pg/mL,15.078
+BIO-017,Baseline,0,IL-10,pg/mL,6.784
+BIO-017,Week 4,4,IL-10,pg/mL,6.995
+BIO-017,Baseline,0,IFN-gamma,pg/mL,4.01
+BIO-017,Week 4,4,IFN-gamma,pg/mL,4.689
+BIO-017,Baseline,0,IL-2,pg/mL,6.044
+BIO-017,Week 4,4,IL-2,pg/mL,6.097
+BIO-017,Baseline,0,IL-1beta,pg/mL,1.442
+BIO-017,Week 4,4,IL-1beta,pg/mL,2.504
+BIO-017,Baseline,0,IL-8,pg/mL,19.968
+BIO-017,Week 4,4,IL-8,pg/mL,13.743
+BIO-017,Baseline,0,VEGF,pg/mL,286.375
+BIO-017,Week 4,4,VEGF,pg/mL,248.066
+BIO-017,Baseline,0,Ferritin,ng/mL,137.939
+BIO-017,Week 4,4,Ferritin,ng/mL,125.954
+BIO-017,Baseline,0,D-dimer,mg/L,0.338
+BIO-017,Week 4,4,D-dimer,mg/L,
+BIO-017,Baseline,0,LDH,U/L,206.01
+BIO-017,Week 4,4,LDH,U/L,
+BIO-018,Baseline,0,IL-6,pg/mL,9.838
+BIO-018,Week 4,4,IL-6,pg/mL,7.784
+BIO-018,Baseline,0,CRP,mg/L,3.065
+BIO-018,Week 4,4,CRP,mg/L,3.312
+BIO-018,Baseline,0,TNF-alpha,pg/mL,8.024
+BIO-018,Week 4,4,TNF-alpha,pg/mL,9.302
+BIO-018,Baseline,0,IL-10,pg/mL,4.844
+BIO-018,Week 4,4,IL-10,pg/mL,6.218
+BIO-018,Baseline,0,IFN-gamma,pg/mL,5.351
+BIO-018,Week 4,4,IFN-gamma,pg/mL,5.974
+BIO-018,Baseline,0,IL-2,pg/mL,4.624
+BIO-018,Week 4,4,IL-2,pg/mL,4.394
+BIO-018,Baseline,0,IL-1beta,pg/mL,3.256
+BIO-018,Week 4,4,IL-1beta,pg/mL,2.584
+BIO-018,Baseline,0,IL-8,pg/mL,7.705
+BIO-018,Week 4,4,IL-8,pg/mL,
+BIO-018,Baseline,0,VEGF,pg/mL,173.687
+BIO-018,Week 4,4,VEGF,pg/mL,206.826
+BIO-018,Baseline,0,Ferritin,ng/mL,116.153
+BIO-018,Week 4,4,Ferritin,ng/mL,113.787
+BIO-018,Baseline,0,D-dimer,mg/L,0.31
+BIO-018,Week 4,4,D-dimer,mg/L,0.572
+BIO-018,Baseline,0,LDH,U/L,205.831
+BIO-018,Week 4,4,LDH,U/L,187.553
+BIO-019,Baseline,0,IL-6,pg/mL,8.98
+BIO-019,Week 4,4,IL-6,pg/mL,5.657
+BIO-019,Baseline,0,CRP,mg/L,7.076
+BIO-019,Week 4,4,CRP,mg/L,7.656
+BIO-019,Baseline,0,TNF-alpha,pg/mL,10.798
+BIO-019,Week 4,4,TNF-alpha,pg/mL,12.766
+BIO-019,Baseline,0,IL-10,pg/mL,5.533
+BIO-019,Week 4,4,IL-10,pg/mL,5.834
+BIO-019,Baseline,0,IFN-gamma,pg/mL,4.51
+BIO-019,Week 4,4,IFN-gamma,pg/mL,3.775
+BIO-019,Baseline,0,IL-2,pg/mL,4.375
+BIO-019,Week 4,4,IL-2,pg/mL,4.071
+BIO-019,Baseline,0,IL-1beta,pg/mL,2.653
+BIO-019,Week 4,4,IL-1beta,pg/mL,2.374
+BIO-019,Baseline,0,IL-8,pg/mL,8.652
+BIO-019,Week 4,4,IL-8,pg/mL,9.317
+BIO-019,Baseline,0,VEGF,pg/mL,331.302
+BIO-019,Week 4,4,VEGF,pg/mL,333.314
+BIO-019,Baseline,0,Ferritin,ng/mL,91.017
+BIO-019,Week 4,4,Ferritin,ng/mL,144.125
+BIO-019,Baseline,0,D-dimer,mg/L,0.334
+BIO-019,Week 4,4,D-dimer,mg/L,
+BIO-019,Baseline,0,LDH,U/L,191.772
+BIO-019,Week 4,4,LDH,U/L,153.713
+BIO-020,Baseline,0,IL-6,pg/mL,5.859
+BIO-020,Week 4,4,IL-6,pg/mL,6.771
+BIO-020,Baseline,0,CRP,mg/L,4.056
+BIO-020,Week 4,4,CRP,mg/L,0.922
+BIO-020,Baseline,0,TNF-alpha,pg/mL,11.952
+BIO-020,Week 4,4,TNF-alpha,pg/mL,12.29
+BIO-020,Baseline,0,IL-10,pg/mL,3.807
+BIO-020,Week 4,4,IL-10,pg/mL,4.518
+BIO-020,Baseline,0,IFN-gamma,pg/mL,4.839
+BIO-020,Week 4,4,IFN-gamma,pg/mL,8.358
+BIO-020,Baseline,0,IL-2,pg/mL,7.74
+BIO-020,Week 4,4,IL-2,pg/mL,5.779
+BIO-020,Baseline,0,IL-1beta,pg/mL,2.978
+BIO-020,Week 4,4,IL-1beta,pg/mL,2.333
+BIO-020,Baseline,0,IL-8,pg/mL,12.22
+BIO-020,Week 4,4,IL-8,pg/mL,10.535
+BIO-020,Baseline,0,VEGF,pg/mL,287.828
+BIO-020,Week 4,4,VEGF,pg/mL,293.604
+BIO-020,Baseline,0,Ferritin,ng/mL,49.077
+BIO-020,Week 4,4,Ferritin,ng/mL,55.826
+BIO-020,Baseline,0,D-dimer,mg/L,0.283
+BIO-020,Week 4,4,D-dimer,mg/L,0.434
+BIO-020,Baseline,0,LDH,U/L,167.785
+BIO-020,Week 4,4,LDH,U/L,165.098
+BIO-021,Baseline,0,IL-6,pg/mL,12.004
+BIO-021,Week 4,4,IL-6,pg/mL,11.164
+BIO-021,Baseline,0,CRP,mg/L,3.152
+BIO-021,Week 4,4,CRP,mg/L,3.303
+BIO-021,Baseline,0,TNF-alpha,pg/mL,12.514
+BIO-021,Week 4,4,TNF-alpha,pg/mL,13.256
+BIO-021,Baseline,0,IL-10,pg/mL,6.2
+BIO-021,Week 4,4,IL-10,pg/mL,7.69
+BIO-021,Baseline,0,IFN-gamma,pg/mL,4.12
+BIO-021,Week 4,4,IFN-gamma,pg/mL,3.214
+BIO-021,Baseline,0,IL-2,pg/mL,4.796
+BIO-021,Week 4,4,IL-2,pg/mL,4.486
+BIO-021,Baseline,0,IL-1beta,pg/mL,2.287
+BIO-021,Week 4,4,IL-1beta,pg/mL,2.016
+BIO-021,Baseline,0,IL-8,pg/mL,20.59
+BIO-021,Week 4,4,IL-8,pg/mL,11.936
+BIO-021,Baseline,0,VEGF,pg/mL,228.592
+BIO-021,Week 4,4,VEGF,pg/mL,302.532
+BIO-021,Baseline,0,Ferritin,ng/mL,323.861
+BIO-021,Week 4,4,Ferritin,ng/mL,123.115
+BIO-021,Baseline,0,D-dimer,mg/L,0.567
+BIO-021,Week 4,4,D-dimer,mg/L,
+BIO-021,Baseline,0,LDH,U/L,170.687
+BIO-021,Week 4,4,LDH,U/L,174.993
+BIO-022,Baseline,0,IL-6,pg/mL,6.406
+BIO-022,Week 4,4,IL-6,pg/mL,6.121
+BIO-022,Baseline,0,CRP,mg/L,8.129
+BIO-022,Week 4,4,CRP,mg/L,3.779
+BIO-022,Baseline,0,TNF-alpha,pg/mL,6.606
+BIO-022,Week 4,4,TNF-alpha,pg/mL,8.604
+BIO-022,Baseline,0,IL-10,pg/mL,5.728
+BIO-022,Week 4,4,IL-10,pg/mL,5.432
+BIO-022,Baseline,0,IFN-gamma,pg/mL,3.188
+BIO-022,Week 4,4,IFN-gamma,pg/mL,3.39
+BIO-022,Baseline,0,IL-2,pg/mL,4.277
+BIO-022,Week 4,4,IL-2,pg/mL,3.746
+BIO-022,Baseline,0,IL-1beta,pg/mL,2.455
+BIO-022,Week 4,4,IL-1beta,pg/mL,3.538
+BIO-022,Baseline,0,IL-8,pg/mL,6.635
+BIO-022,Week 4,4,IL-8,pg/mL,5.477
+BIO-022,Baseline,0,VEGF,pg/mL,287.08
+BIO-022,Week 4,4,VEGF,pg/mL,273.163
+BIO-022,Baseline,0,Ferritin,ng/mL,98.613
+BIO-022,Week 4,4,Ferritin,ng/mL,126.13
+BIO-022,Baseline,0,D-dimer,mg/L,0.355
+BIO-022,Week 4,4,D-dimer,mg/L,0.197
+BIO-022,Baseline,0,LDH,U/L,179.594
+BIO-022,Week 4,4,LDH,U/L,186.749
+BIO-023,Baseline,0,IL-6,pg/mL,5.595
+BIO-023,Week 4,4,IL-6,pg/mL,7.927
+BIO-023,Baseline,0,CRP,mg/L,2.914
+BIO-023,Week 4,4,CRP,mg/L,1.703
+BIO-023,Baseline,0,TNF-alpha,pg/mL,15.907
+BIO-023,Week 4,4,TNF-alpha,pg/mL,
+BIO-023,Baseline,0,IL-10,pg/mL,8.344
+BIO-023,Week 4,4,IL-10,pg/mL,8.273
+BIO-023,Baseline,0,IFN-gamma,pg/mL,4.173
+BIO-023,Week 4,4,IFN-gamma,pg/mL,5.924
+BIO-023,Baseline,0,IL-2,pg/mL,5.238
+BIO-023,Week 4,4,IL-2,pg/mL,6.683
+BIO-023,Baseline,0,IL-1beta,pg/mL,2.898
+BIO-023,Week 4,4,IL-1beta,pg/mL,3.104
+BIO-023,Baseline,0,IL-8,pg/mL,20.366
+BIO-023,Week 4,4,IL-8,pg/mL,11.848
+BIO-023,Baseline,0,VEGF,pg/mL,224.021
+BIO-023,Week 4,4,VEGF,pg/mL,267.763
+BIO-023,Baseline,0,Ferritin,ng/mL,168.681
+BIO-023,Week 4,4,Ferritin,ng/mL,122.964
+BIO-023,Baseline,0,D-dimer,mg/L,0.238
+BIO-023,Week 4,4,D-dimer,mg/L,0.26
+BIO-023,Baseline,0,LDH,U/L,195.37
+BIO-023,Week 4,4,LDH,U/L,199.739
+BIO-024,Baseline,0,IL-6,pg/mL,7.906
+BIO-024,Week 4,4,IL-6,pg/mL,8.784
+BIO-024,Baseline,0,CRP,mg/L,1.076
+BIO-024,Week 4,4,CRP,mg/L,1.294
+BIO-024,Baseline,0,TNF-alpha,pg/mL,13.149
+BIO-024,Week 4,4,TNF-alpha,pg/mL,15.169
+BIO-024,Baseline,0,IL-10,pg/mL,3.568
+BIO-024,Week 4,4,IL-10,pg/mL,5.832
+BIO-024,Baseline,0,IFN-gamma,pg/mL,3.434
+BIO-024,Week 4,4,IFN-gamma,pg/mL,2.655
+BIO-024,Baseline,0,IL-2,pg/mL,4.332
+BIO-024,Week 4,4,IL-2,pg/mL,4.676
+BIO-024,Baseline,0,IL-1beta,pg/mL,2.999
+BIO-024,Week 4,4,IL-1beta,pg/mL,2.631
+BIO-024,Baseline,0,IL-8,pg/mL,16.629
+BIO-024,Week 4,4,IL-8,pg/mL,7.754
+BIO-024,Baseline,0,VEGF,pg/mL,258.807
+BIO-024,Week 4,4,VEGF,pg/mL,259.185
+BIO-024,Baseline,0,Ferritin,ng/mL,143.279
+BIO-024,Week 4,4,Ferritin,ng/mL,173.537
+BIO-024,Baseline,0,D-dimer,mg/L,0.299
+BIO-024,Week 4,4,D-dimer,mg/L,0.531
+BIO-024,Baseline,0,LDH,U/L,145.773
+BIO-024,Week 4,4,LDH,U/L,165.505
+BIO-025,Baseline,0,IL-6,pg/mL,7.664
+BIO-025,Week 4,4,IL-6,pg/mL,7.485
+BIO-025,Baseline,0,CRP,mg/L,1.501
+BIO-025,Week 4,4,CRP,mg/L,1.481
+BIO-025,Baseline,0,TNF-alpha,pg/mL,13.65
+BIO-025,Week 4,4,TNF-alpha,pg/mL,14.271
+BIO-025,Baseline,0,IL-10,pg/mL,6.713
+BIO-025,Week 4,4,IL-10,pg/mL,6.148
+BIO-025,Baseline,0,IFN-gamma,pg/mL,4.047
+BIO-025,Week 4,4,IFN-gamma,pg/mL,2.895
+BIO-025,Baseline,0,IL-2,pg/mL,4.495
+BIO-025,Week 4,4,IL-2,pg/mL,3.989
+BIO-025,Baseline,0,IL-1beta,pg/mL,2.938
+BIO-025,Week 4,4,IL-1beta,pg/mL,2.676
+BIO-025,Baseline,0,IL-8,pg/mL,11.787
+BIO-025,Week 4,4,IL-8,pg/mL,10.496
+BIO-025,Baseline,0,VEGF,pg/mL,277.997
+BIO-025,Week 4,4,VEGF,pg/mL,269.43
+BIO-025,Baseline,0,Ferritin,ng/mL,100.508
+BIO-025,Week 4,4,Ferritin,ng/mL,74.885
+BIO-025,Baseline,0,D-dimer,mg/L,0.338
+BIO-025,Week 4,4,D-dimer,mg/L,0.668
+BIO-025,Baseline,0,LDH,U/L,188.657
+BIO-025,Week 4,4,LDH,U/L,165.645
+BIO-026,Baseline,0,IL-6,pg/mL,8.268
+BIO-026,Week 4,4,IL-6,pg/mL,7.6
+BIO-026,Baseline,0,CRP,mg/L,16.657
+BIO-026,Week 4,4,CRP,mg/L,5.242
+BIO-026,Baseline,0,TNF-alpha,pg/mL,13.586
+BIO-026,Week 4,4,TNF-alpha,pg/mL,10.618
+BIO-026,Baseline,0,IL-10,pg/mL,7.642
+BIO-026,Week 4,4,IL-10,pg/mL,6.156
+BIO-026,Baseline,0,IFN-gamma,pg/mL,5.942
+BIO-026,Week 4,4,IFN-gamma,pg/mL,5.507
+BIO-026,Baseline,0,IL-2,pg/mL,2.628
+BIO-026,Week 4,4,IL-2,pg/mL,4.173
+BIO-026,Baseline,0,IL-1beta,pg/mL,2.732
+BIO-026,Week 4,4,IL-1beta,pg/mL,2.666
+BIO-026,Baseline,0,IL-8,pg/mL,4.222
+BIO-026,Week 4,4,IL-8,pg/mL,5.601
+BIO-026,Baseline,0,VEGF,pg/mL,250.014
+BIO-026,Week 4,4,VEGF,pg/mL,291.971
+BIO-026,Baseline,0,Ferritin,ng/mL,182.407
+BIO-026,Week 4,4,Ferritin,ng/mL,108.786
+BIO-026,Baseline,0,D-dimer,mg/L,0.185
+BIO-026,Week 4,4,D-dimer,mg/L,0.335
+BIO-026,Baseline,0,LDH,U/L,100.98
+BIO-026,Week 4,4,LDH,U/L,115.92
+BIO-027,Baseline,0,IL-6,pg/mL,6.341
+BIO-027,Baseline,0,CRP,mg/L,1.375
+BIO-027,Baseline,0,TNF-alpha,pg/mL,14.317
+BIO-027,Baseline,0,IL-10,pg/mL,7.584
+BIO-027,Baseline,0,IFN-gamma,pg/mL,3.167
+BIO-027,Baseline,0,IL-2,pg/mL,5.848
+BIO-027,Baseline,0,IL-1beta,pg/mL,2.709
+BIO-027,Baseline,0,IL-8,pg/mL,11.257
+BIO-027,Baseline,0,VEGF,pg/mL,191.201
+BIO-027,Baseline,0,Ferritin,ng/mL,64.118
+BIO-027,Baseline,0,D-dimer,mg/L,0.329
+BIO-027,Baseline,0,LDH,U/L,208.265
+BIO-028,Baseline,0,IL-6,pg/mL,8.506
+BIO-028,Week 4,4,IL-6,pg/mL,6.188
+BIO-028,Baseline,0,CRP,mg/L,1.935
+BIO-028,Week 4,4,CRP,mg/L,1.789
+BIO-028,Baseline,0,TNF-alpha,pg/mL,14.474
+BIO-028,Week 4,4,TNF-alpha,pg/mL,17.913
+BIO-028,Baseline,0,IL-10,pg/mL,8.388
+BIO-028,Week 4,4,IL-10,pg/mL,7.802
+BIO-028,Baseline,0,IFN-gamma,pg/mL,3.242
+BIO-028,Week 4,4,IFN-gamma,pg/mL,1.372
+BIO-028,Baseline,0,IL-2,pg/mL,4.216
+BIO-028,Week 4,4,IL-2,pg/mL,4.927
+BIO-028,Baseline,0,IL-1beta,pg/mL,2.697
+BIO-028,Week 4,4,IL-1beta,pg/mL,2.206
+BIO-028,Baseline,0,IL-8,pg/mL,25.671
+BIO-028,Week 4,4,IL-8,pg/mL,21.549
+BIO-028,Baseline,0,VEGF,pg/mL,276.358
+BIO-028,Week 4,4,VEGF,pg/mL,285.637
+BIO-028,Baseline,0,Ferritin,ng/mL,93.252
+BIO-028,Week 4,4,Ferritin,ng/mL,88.294
+BIO-028,Baseline,0,D-dimer,mg/L,0.293
+BIO-028,Week 4,4,D-dimer,mg/L,0.278
+BIO-028,Baseline,0,LDH,U/L,177.075
+BIO-028,Week 4,4,LDH,U/L,
+BIO-029,Baseline,0,IL-6,pg/mL,5.744
+BIO-029,Week 4,4,IL-6,pg/mL,5.316
+BIO-029,Baseline,0,CRP,mg/L,1.36
+BIO-029,Week 4,4,CRP,mg/L,3.51
+BIO-029,Baseline,0,TNF-alpha,pg/mL,8.173
+BIO-029,Week 4,4,TNF-alpha,pg/mL,13.061
+BIO-029,Baseline,0,IL-10,pg/mL,4.863
+BIO-029,Week 4,4,IL-10,pg/mL,6.059
+BIO-029,Baseline,0,IFN-gamma,pg/mL,2.595
+BIO-029,Week 4,4,IFN-gamma,pg/mL,6.886
+BIO-029,Baseline,0,IL-2,pg/mL,4.814
+BIO-029,Week 4,4,IL-2,pg/mL,5.441
+BIO-029,Baseline,0,IL-1beta,pg/mL,1.807
+BIO-029,Week 4,4,IL-1beta,pg/mL,2.73
+BIO-029,Baseline,0,IL-8,pg/mL,16.302
+BIO-029,Week 4,4,IL-8,pg/mL,29.749
+BIO-029,Baseline,0,VEGF,pg/mL,276.459
+BIO-029,Week 4,4,VEGF,pg/mL,320.488
+BIO-029,Baseline,0,Ferritin,ng/mL,177.423
+BIO-029,Week 4,4,Ferritin,ng/mL,165.598
+BIO-029,Baseline,0,D-dimer,mg/L,0.332
+BIO-029,Week 4,4,D-dimer,mg/L,0.652
+BIO-029,Baseline,0,LDH,U/L,167.202
+BIO-029,Week 4,4,LDH,U/L,177.62
+BIO-030,Baseline,0,IL-6,pg/mL,8.893
+BIO-030,Week 4,4,IL-6,pg/mL,9.368
+BIO-030,Baseline,0,CRP,mg/L,1.364
+BIO-030,Week 4,4,CRP,mg/L,1.358
+BIO-030,Baseline,0,TNF-alpha,pg/mL,9.409
+BIO-030,Week 4,4,TNF-alpha,pg/mL,9.692
+BIO-030,Baseline,0,IL-10,pg/mL,4.544
+BIO-030,Week 4,4,IL-10,pg/mL,2.326
+BIO-030,Baseline,0,IFN-gamma,pg/mL,5.554
+BIO-030,Week 4,4,IFN-gamma,pg/mL,6.391
+BIO-030,Baseline,0,IL-2,pg/mL,5.676
+BIO-030,Week 4,4,IL-2,pg/mL,5.975
+BIO-030,Baseline,0,IL-1beta,pg/mL,3.554
+BIO-030,Week 4,4,IL-1beta,pg/mL,3.228
+BIO-030,Baseline,0,IL-8,pg/mL,11.222
+BIO-030,Week 4,4,IL-8,pg/mL,8.867
+BIO-030,Baseline,0,VEGF,pg/mL,224.684
+BIO-030,Week 4,4,VEGF,pg/mL,282.641
+BIO-030,Baseline,0,Ferritin,ng/mL,391.85
+BIO-030,Week 4,4,Ferritin,ng/mL,285.887
+BIO-030,Baseline,0,D-dimer,mg/L,0.654
+BIO-030,Week 4,4,D-dimer,mg/L,0.548
+BIO-030,Baseline,0,LDH,U/L,177.492
+BIO-030,Week 4,4,LDH,U/L,192.667
+BIO-031,Baseline,0,IL-6,pg/mL,9.182
+BIO-031,Week 4,4,IL-6,pg/mL,6.824
+BIO-031,Baseline,0,CRP,mg/L,2.274
+BIO-031,Week 4,4,CRP,mg/L,1.651
+BIO-031,Baseline,0,TNF-alpha,pg/mL,8.979
+BIO-031,Week 4,4,TNF-alpha,pg/mL,9.072
+BIO-031,Baseline,0,IL-10,pg/mL,4.724
+BIO-031,Week 4,4,IL-10,pg/mL,4.462
+BIO-031,Baseline,0,IFN-gamma,pg/mL,1.856
+BIO-031,Week 4,4,IFN-gamma,pg/mL,2.159
+BIO-031,Baseline,0,IL-2,pg/mL,5.064
+BIO-031,Week 4,4,IL-2,pg/mL,4.794
+BIO-031,Baseline,0,IL-1beta,pg/mL,2.262
+BIO-031,Week 4,4,IL-1beta,pg/mL,2.794
+BIO-031,Baseline,0,IL-8,pg/mL,9.74
+BIO-031,Week 4,4,IL-8,pg/mL,13.474
+BIO-031,Baseline,0,VEGF,pg/mL,278.754
+BIO-031,Week 4,4,VEGF,pg/mL,236.697
+BIO-031,Baseline,0,Ferritin,ng/mL,83.301
+BIO-031,Week 4,4,Ferritin,ng/mL,149.884
+BIO-031,Baseline,0,D-dimer,mg/L,0.264
+BIO-031,Week 4,4,D-dimer,mg/L,0.167
+BIO-031,Baseline,0,LDH,U/L,170.785
+BIO-031,Week 4,4,LDH,U/L,166.669
+BIO-032,Baseline,0,IL-6,pg/mL,7.333
+BIO-032,Week 4,4,IL-6,pg/mL,5.84
+BIO-032,Baseline,0,CRP,mg/L,2.449
+BIO-032,Week 4,4,CRP,mg/L,9.218
+BIO-032,Baseline,0,TNF-alpha,pg/mL,9.064
+BIO-032,Week 4,4,TNF-alpha,pg/mL,11.464
+BIO-032,Baseline,0,IL-10,pg/mL,4.722
+BIO-032,Week 4,4,IL-10,pg/mL,5.596
+BIO-032,Baseline,0,IFN-gamma,pg/mL,2.153
+BIO-032,Week 4,4,IFN-gamma,pg/mL,1.996
+BIO-032,Baseline,0,IL-2,pg/mL,4.53
+BIO-032,Week 4,4,IL-2,pg/mL,5.614
+BIO-032,Baseline,0,IL-1beta,pg/mL,2.49
+BIO-032,Week 4,4,IL-1beta,pg/mL,2.764
+BIO-032,Baseline,0,IL-8,pg/mL,23.247
+BIO-032,Week 4,4,IL-8,pg/mL,30.589
+BIO-032,Baseline,0,VEGF,pg/mL,309.001
+BIO-032,Week 4,4,VEGF,pg/mL,235.809
+BIO-032,Baseline,0,Ferritin,ng/mL,97.216
+BIO-032,Week 4,4,Ferritin,ng/mL,140.744
+BIO-032,Baseline,0,D-dimer,mg/L,0.446
+BIO-032,Week 4,4,D-dimer,mg/L,0.771
+BIO-032,Baseline,0,LDH,U/L,220.332
+BIO-032,Week 4,4,LDH,U/L,203.093
+BIO-033,Baseline,0,IL-6,pg/mL,8.772
+BIO-033,Week 4,4,IL-6,pg/mL,9.236
+BIO-033,Baseline,0,CRP,mg/L,4.183
+BIO-033,Week 4,4,CRP,mg/L,1.066
+BIO-033,Baseline,0,TNF-alpha,pg/mL,11.772
+BIO-033,Week 4,4,TNF-alpha,pg/mL,12.521
+BIO-033,Baseline,0,IL-10,pg/mL,4.73
+BIO-033,Week 4,4,IL-10,pg/mL,6.248
+BIO-033,Baseline,0,IFN-gamma,pg/mL,4.578
+BIO-033,Week 4,4,IFN-gamma,pg/mL,4.174
+BIO-033,Baseline,0,IL-2,pg/mL,5.018
+BIO-033,Week 4,4,IL-2,pg/mL,4.523
+BIO-033,Baseline,0,IL-1beta,pg/mL,2.457
+BIO-033,Week 4,4,IL-1beta,pg/mL,1.989
+BIO-033,Baseline,0,IL-8,pg/mL,27.383
+BIO-033,Week 4,4,IL-8,pg/mL,17.694
+BIO-033,Baseline,0,VEGF,pg/mL,265.412
+BIO-033,Week 4,4,VEGF,pg/mL,265.962
+BIO-033,Baseline,0,Ferritin,ng/mL,97.737
+BIO-033,Week 4,4,Ferritin,ng/mL,126.608
+BIO-033,Baseline,0,D-dimer,mg/L,0.371
+BIO-033,Week 4,4,D-dimer,mg/L,0.235
+BIO-033,Baseline,0,LDH,U/L,218.541
+BIO-033,Week 4,4,LDH,U/L,219.655
+BIO-034,Baseline,0,IL-6,pg/mL,8.145
+BIO-034,Week 4,4,IL-6,pg/mL,6.981
+BIO-034,Baseline,0,CRP,mg/L,2.11
+BIO-034,Week 4,4,CRP,mg/L,2.58
+BIO-034,Baseline,0,TNF-alpha,pg/mL,13.656
+BIO-034,Week 4,4,TNF-alpha,pg/mL,12.278
+BIO-034,Baseline,0,IL-10,pg/mL,6.722
+BIO-034,Week 4,4,IL-10,pg/mL,6.557
+BIO-034,Baseline,0,IFN-gamma,pg/mL,5.029
+BIO-034,Week 4,4,IFN-gamma,pg/mL,3.183
+BIO-034,Baseline,0,IL-2,pg/mL,4.106
+BIO-034,Week 4,4,IL-2,pg/mL,4.346
+BIO-034,Baseline,0,IL-1beta,pg/mL,2.541
+BIO-034,Week 4,4,IL-1beta,pg/mL,2.167
+BIO-034,Baseline,0,IL-8,pg/mL,24.207
+BIO-034,Week 4,4,IL-8,pg/mL,44.721
+BIO-034,Baseline,0,VEGF,pg/mL,207.432
+BIO-034,Week 4,4,VEGF,pg/mL,181.925
+BIO-034,Baseline,0,Ferritin,ng/mL,122.982
+BIO-034,Week 4,4,Ferritin,ng/mL,233.043
+BIO-034,Baseline,0,D-dimer,mg/L,0.398
+BIO-034,Week 4,4,D-dimer,mg/L,0.509
+BIO-034,Baseline,0,LDH,U/L,161.593
+BIO-034,Week 4,4,LDH,U/L,165.27
+BIO-035,Baseline,0,IL-6,pg/mL,6.347
+BIO-035,Week 4,4,IL-6,pg/mL,6.201
+BIO-035,Baseline,0,CRP,mg/L,6.556
+BIO-035,Week 4,4,CRP,mg/L,2.403
+BIO-035,Baseline,0,TNF-alpha,pg/mL,16.052
+BIO-035,Week 4,4,TNF-alpha,pg/mL,12.805
+BIO-035,Baseline,0,IL-10,pg/mL,7.047
+BIO-035,Week 4,4,IL-10,pg/mL,5.753
+BIO-035,Baseline,0,IFN-gamma,pg/mL,4.373
+BIO-035,Week 4,4,IFN-gamma,pg/mL,2.442
+BIO-035,Baseline,0,IL-2,pg/mL,5.074
+BIO-035,Week 4,4,IL-2,pg/mL,5.671
+BIO-035,Baseline,0,IL-1beta,pg/mL,2.679
+BIO-035,Week 4,4,IL-1beta,pg/mL,3.301
+BIO-035,Baseline,0,IL-8,pg/mL,10.287
+BIO-035,Week 4,4,IL-8,pg/mL,16.493
+BIO-035,Baseline,0,VEGF,pg/mL,222.695
+BIO-035,Week 4,4,VEGF,pg/mL,232.475
+BIO-035,Baseline,0,Ferritin,ng/mL,98.071
+BIO-035,Week 4,4,Ferritin,ng/mL,75.352
+BIO-035,Baseline,0,D-dimer,mg/L,0.405
+BIO-035,Week 4,4,D-dimer,mg/L,
+BIO-035,Baseline,0,LDH,U/L,172.632
+BIO-035,Week 4,4,LDH,U/L,174.82
+BIO-036,Baseline,0,IL-6,pg/mL,7.62
+BIO-036,Week 4,4,IL-6,pg/mL,5.2
+BIO-036,Baseline,0,CRP,mg/L,2.576
+BIO-036,Week 4,4,CRP,mg/L,2.55
+BIO-036,Baseline,0,TNF-alpha,pg/mL,14.735
+BIO-036,Week 4,4,TNF-alpha,pg/mL,14.808
+BIO-036,Baseline,0,IL-10,pg/mL,6.256
+BIO-036,Week 4,4,IL-10,pg/mL,7.436
+BIO-036,Baseline,0,IFN-gamma,pg/mL,8.54
+BIO-036,Week 4,4,IFN-gamma,pg/mL,5.613
+BIO-036,Baseline,0,IL-2,pg/mL,3.328
+BIO-036,Week 4,4,IL-2,pg/mL,3.811
+BIO-036,Baseline,0,IL-1beta,pg/mL,3.426
+BIO-036,Week 4,4,IL-1beta,pg/mL,2.648
+BIO-036,Baseline,0,IL-8,pg/mL,12.242
+BIO-036,Week 4,4,IL-8,pg/mL,11.399
+BIO-036,Baseline,0,VEGF,pg/mL,275.131
+BIO-036,Week 4,4,VEGF,pg/mL,318.077
+BIO-036,Baseline,0,Ferritin,ng/mL,149.021
+BIO-036,Week 4,4,Ferritin,ng/mL,108.354
+BIO-036,Baseline,0,D-dimer,mg/L,0.405
+BIO-036,Week 4,4,D-dimer,mg/L,0.523
+BIO-036,Baseline,0,LDH,U/L,181.176
+BIO-036,Week 4,4,LDH,U/L,171.719
+BIO-037,Baseline,0,IL-6,pg/mL,7.261
+BIO-037,Week 4,4,IL-6,pg/mL,8.726
+BIO-037,Baseline,0,CRP,mg/L,3.604
+BIO-037,Week 4,4,CRP,mg/L,2.558
+BIO-037,Baseline,0,TNF-alpha,pg/mL,12.318
+BIO-037,Week 4,4,TNF-alpha,pg/mL,10.023
+BIO-037,Baseline,0,IL-10,pg/mL,8.163
+BIO-037,Week 4,4,IL-10,pg/mL,
+BIO-037,Baseline,0,IFN-gamma,pg/mL,3.219
+BIO-037,Week 4,4,IFN-gamma,pg/mL,1.653
+BIO-037,Baseline,0,IL-2,pg/mL,5.525
+BIO-037,Week 4,4,IL-2,pg/mL,5.515
+BIO-037,Baseline,0,IL-1beta,pg/mL,3.147
+BIO-037,Week 4,4,IL-1beta,pg/mL,3.346
+BIO-037,Baseline,0,IL-8,pg/mL,12.086
+BIO-037,Week 4,4,IL-8,pg/mL,11.937
+BIO-037,Baseline,0,VEGF,pg/mL,235.27
+BIO-037,Week 4,4,VEGF,pg/mL,256.482
+BIO-037,Baseline,0,Ferritin,ng/mL,101.587
+BIO-037,Week 4,4,Ferritin,ng/mL,227.722
+BIO-037,Baseline,0,D-dimer,mg/L,0.324
+BIO-037,Week 4,4,D-dimer,mg/L,0.487
+BIO-037,Baseline,0,LDH,U/L,192.102
+BIO-037,Week 4,4,LDH,U/L,174.729
+BIO-038,Baseline,0,IL-6,pg/mL,10.515
+BIO-038,Week 4,4,IL-6,pg/mL,8.496
+BIO-038,Baseline,0,CRP,mg/L,1.813
+BIO-038,Week 4,4,CRP,mg/L,1.912
+BIO-038,Baseline,0,TNF-alpha,pg/mL,13.851
+BIO-038,Week 4,4,TNF-alpha,pg/mL,11.882
+BIO-038,Baseline,0,IL-10,pg/mL,7.754
+BIO-038,Week 4,4,IL-10,pg/mL,6.387
+BIO-038,Baseline,0,IFN-gamma,pg/mL,2.534
+BIO-038,Week 4,4,IFN-gamma,pg/mL,3.675
+BIO-038,Baseline,0,IL-2,pg/mL,3.312
+BIO-038,Week 4,4,IL-2,pg/mL,4.903
+BIO-038,Baseline,0,IL-1beta,pg/mL,2.776
+BIO-038,Week 4,4,IL-1beta,pg/mL,2.887
+BIO-038,Baseline,0,IL-8,pg/mL,33.327
+BIO-038,Week 4,4,IL-8,pg/mL,32.864
+BIO-038,Baseline,0,VEGF,pg/mL,207.066
+BIO-038,Week 4,4,VEGF,pg/mL,236.728
+BIO-038,Baseline,0,Ferritin,ng/mL,241.239
+BIO-038,Week 4,4,Ferritin,ng/mL,106.14
+BIO-038,Baseline,0,D-dimer,mg/L,0.74
+BIO-038,Week 4,4,D-dimer,mg/L,0.607
+BIO-038,Baseline,0,LDH,U/L,174.884
+BIO-038,Week 4,4,LDH,U/L,181.805
+BIO-039,Baseline,0,IL-6,pg/mL,7.674
+BIO-039,Week 4,4,IL-6,pg/mL,6.254
+BIO-039,Baseline,0,CRP,mg/L,3.318
+BIO-039,Week 4,4,CRP,mg/L,2.517
+BIO-039,Baseline,0,TNF-alpha,pg/mL,12.558
+BIO-039,Week 4,4,TNF-alpha,pg/mL,10.894
+BIO-039,Baseline,0,IL-10,pg/mL,7.722
+BIO-039,Week 4,4,IL-10,pg/mL,7.224
+BIO-039,Baseline,0,IFN-gamma,pg/mL,7.811
+BIO-039,Week 4,4,IFN-gamma,pg/mL,5.256
+BIO-039,Baseline,0,IL-2,pg/mL,4.786
+BIO-039,Week 4,4,IL-2,pg/mL,3.433
+BIO-039,Baseline,0,IL-1beta,pg/mL,3.053
+BIO-039,Week 4,4,IL-1beta,pg/mL,3.214
+BIO-039,Baseline,0,IL-8,pg/mL,21.814
+BIO-039,Week 4,4,IL-8,pg/mL,19.127
+BIO-039,Baseline,0,VEGF,pg/mL,270.006
+BIO-039,Week 4,4,VEGF,pg/mL,279.772
+BIO-039,Baseline,0,Ferritin,ng/mL,104.792
+BIO-039,Week 4,4,Ferritin,ng/mL,74.587
+BIO-039,Baseline,0,D-dimer,mg/L,0.341
+BIO-039,Week 4,4,D-dimer,mg/L,0.34
+BIO-039,Baseline,0,LDH,U/L,178.237
+BIO-039,Week 4,4,LDH,U/L,183.947
+BIO-040,Baseline,0,IL-6,pg/mL,6.239
+BIO-040,Week 4,4,IL-6,pg/mL,4.375
+BIO-040,Baseline,0,CRP,mg/L,1.305
+BIO-040,Week 4,4,CRP,mg/L,2.661
+BIO-040,Baseline,0,TNF-alpha,pg/mL,8.242
+BIO-040,Week 4,4,TNF-alpha,pg/mL,7.197
+BIO-040,Baseline,0,IL-10,pg/mL,4.758
+BIO-040,Week 4,4,IL-10,pg/mL,4.102
+BIO-040,Baseline,0,IFN-gamma,pg/mL,9.108
+BIO-040,Week 4,4,IFN-gamma,pg/mL,8
+BIO-040,Baseline,0,IL-2,pg/mL,5.789
+BIO-040,Week 4,4,IL-2,pg/mL,5.144
+BIO-040,Baseline,0,IL-1beta,pg/mL,2.696
+BIO-040,Week 4,4,IL-1beta,pg/mL,2.878
+BIO-040,Baseline,0,IL-8,pg/mL,12.707
+BIO-040,Week 4,4,IL-8,pg/mL,7.114
+BIO-040,Baseline,0,VEGF,pg/mL,346.739
+BIO-040,Week 4,4,VEGF,pg/mL,254.254
+BIO-040,Baseline,0,Ferritin,ng/mL,125.52
+BIO-040,Week 4,4,Ferritin,ng/mL,172.827
+BIO-040,Baseline,0,D-dimer,mg/L,0.386
+BIO-040,Week 4,4,D-dimer,mg/L,0.51
+BIO-040,Baseline,0,LDH,U/L,196.931
+BIO-040,Week 4,4,LDH,U/L,189.977
+BIO-001,Baseline,0,IL-6 B,pg/mL,6.927
+BIO-001,Week 4,4,IL-6 B,pg/mL,5.9
+BIO-001,Baseline,0,CRP B,mg/L,1.537
+BIO-001,Week 4,4,CRP B,mg/L,3.482
+BIO-001,Baseline,0,TNF-alpha B,pg/mL,12.837
+BIO-001,Week 4,4,TNF-alpha B,pg/mL,11.426
+BIO-001,Baseline,0,IL-10 B,pg/mL,5.48
+BIO-001,Week 4,4,IL-10 B,pg/mL,5.535
+BIO-001,Baseline,0,IFN-gamma B,pg/mL,2.51
+BIO-001,Week 4,4,IFN-gamma B,pg/mL,4.601
+BIO-001,Baseline,0,IL-2 B,pg/mL,5.502
+BIO-001,Week 4,4,IL-2 B,pg/mL,5.51
+BIO-001,Baseline,0,IL-1beta B,pg/mL,3.453
+BIO-001,Week 4,4,IL-1beta B,pg/mL,4.017
+BIO-001,Baseline,0,IL-8 B,pg/mL,13.418
+BIO-001,Week 4,4,IL-8 B,pg/mL,10.88
+BIO-001,Baseline,0,VEGF B,pg/mL,203.438
+BIO-001,Week 4,4,VEGF B,pg/mL,249.588
+BIO-001,Baseline,0,Ferritin B,ng/mL,166.623
+BIO-001,Week 4,4,Ferritin B,ng/mL,183.479
+BIO-001,Baseline,0,D-dimer B,mg/L,0.74
+BIO-001,Week 4,4,D-dimer B,mg/L,
+BIO-001,Baseline,0,LDH B,U/L,189.104
+BIO-001,Week 4,4,LDH B,U/L,196.561
+BIO-002,Baseline,0,IL-6 B,pg/mL,5.36
+BIO-002,Week 4,4,IL-6 B,pg/mL,3.252
+BIO-002,Baseline,0,CRP B,mg/L,2.372
+BIO-002,Week 4,4,CRP B,mg/L,1.597
+BIO-002,Baseline,0,TNF-alpha B,pg/mL,10.04
+BIO-002,Week 4,4,TNF-alpha B,pg/mL,10.519
+BIO-002,Baseline,0,IL-10 B,pg/mL,5.59
+BIO-002,Week 4,4,IL-10 B,pg/mL,4.496
+BIO-002,Baseline,0,IFN-gamma B,pg/mL,3.909
+BIO-002,Week 4,4,IFN-gamma B,pg/mL,2.562
+BIO-002,Baseline,0,IL-2 B,pg/mL,5.689
+BIO-002,Week 4,4,IL-2 B,pg/mL,6.114
+BIO-002,Baseline,0,IL-1beta B,pg/mL,2.898
+BIO-002,Week 4,4,IL-1beta B,pg/mL,2.422
+BIO-002,Baseline,0,IL-8 B,pg/mL,13.862
+BIO-002,Week 4,4,IL-8 B,pg/mL,17.093
+BIO-002,Baseline,0,VEGF B,pg/mL,256.094
+BIO-002,Week 4,4,VEGF B,pg/mL,246.441
+BIO-002,Baseline,0,Ferritin B,ng/mL,116.353
+BIO-002,Week 4,4,Ferritin B,ng/mL,89.938
+BIO-002,Baseline,0,D-dimer B,mg/L,0.16
+BIO-002,Week 4,4,D-dimer B,mg/L,
+BIO-002,Baseline,0,LDH B,U/L,158.394
+BIO-002,Week 4,4,LDH B,U/L,160.917
+BIO-003,Baseline,0,IL-6 B,pg/mL,9.778
+BIO-003,Week 4,4,IL-6 B,pg/mL,8.038
+BIO-003,Baseline,0,CRP B,mg/L,2.146
+BIO-003,Week 4,4,CRP B,mg/L,2.62
+BIO-003,Baseline,0,TNF-alpha B,pg/mL,16.694
+BIO-003,Week 4,4,TNF-alpha B,pg/mL,16.783
+BIO-003,Baseline,0,IL-10 B,pg/mL,6.948
+BIO-003,Week 4,4,IL-10 B,pg/mL,7.185
+BIO-003,Baseline,0,IFN-gamma B,pg/mL,6.462
+BIO-003,Week 4,4,IFN-gamma B,pg/mL,3.092
+BIO-003,Baseline,0,IL-2 B,pg/mL,4.969
+BIO-003,Week 4,4,IL-2 B,pg/mL,5.053
+BIO-003,Baseline,0,IL-1beta B,pg/mL,2.464
+BIO-003,Week 4,4,IL-1beta B,pg/mL,2.775
+BIO-003,Baseline,0,IL-8 B,pg/mL,17.061
+BIO-003,Week 4,4,IL-8 B,pg/mL,11.079
+BIO-003,Baseline,0,VEGF B,pg/mL,256.52
+BIO-003,Week 4,4,VEGF B,pg/mL,271.68
+BIO-003,Baseline,0,Ferritin B,ng/mL,106.902
+BIO-003,Week 4,4,Ferritin B,ng/mL,115.813
+BIO-003,Baseline,0,D-dimer B,mg/L,0.38
+BIO-003,Week 4,4,D-dimer B,mg/L,0.457
+BIO-003,Baseline,0,LDH B,U/L,196.167
+BIO-003,Week 4,4,LDH B,U/L,234.033
+BIO-004,Baseline,0,IL-6 B,pg/mL,9.151
+BIO-004,Week 4,4,IL-6 B,pg/mL,6.017
+BIO-004,Baseline,0,CRP B,mg/L,1.971
+BIO-004,Week 4,4,CRP B,mg/L,1.491
+BIO-004,Baseline,0,TNF-alpha B,pg/mL,9.211
+BIO-004,Week 4,4,TNF-alpha B,pg/mL,12.259
+BIO-004,Baseline,0,IL-10 B,pg/mL,5.055
+BIO-004,Week 4,4,IL-10 B,pg/mL,6.846
+BIO-004,Baseline,0,IFN-gamma B,pg/mL,2.729
+BIO-004,Week 4,4,IFN-gamma B,pg/mL,2.132
+BIO-004,Baseline,0,IL-2 B,pg/mL,3.494
+BIO-004,Week 4,4,IL-2 B,pg/mL,5.216
+BIO-004,Baseline,0,IL-1beta B,pg/mL,2.691
+BIO-004,Week 4,4,IL-1beta B,pg/mL,2.735
+BIO-004,Baseline,0,IL-8 B,pg/mL,16.597
+BIO-004,Week 4,4,IL-8 B,pg/mL,10.985
+BIO-004,Baseline,0,VEGF B,pg/mL,225.651
+BIO-004,Week 4,4,VEGF B,pg/mL,247.278
+BIO-004,Baseline,0,Ferritin B,ng/mL,59.925
+BIO-004,Week 4,4,Ferritin B,ng/mL,66.596
+BIO-004,Baseline,0,D-dimer B,mg/L,0.179
+BIO-004,Week 4,4,D-dimer B,mg/L,0.277
+BIO-004,Baseline,0,LDH B,U/L,161.558
+BIO-004,Week 4,4,LDH B,U/L,196.172
+BIO-005,Baseline,0,IL-6 B,pg/mL,10.242
+BIO-005,Week 4,4,IL-6 B,pg/mL,10.764
+BIO-005,Baseline,0,CRP B,mg/L,2.628
+BIO-005,Week 4,4,CRP B,mg/L,1.698
+BIO-005,Baseline,0,TNF-alpha B,pg/mL,10.163
+BIO-005,Week 4,4,TNF-alpha B,pg/mL,9.917
+BIO-005,Baseline,0,IL-10 B,pg/mL,4.11
+BIO-005,Week 4,4,IL-10 B,pg/mL,6.587
+BIO-005,Baseline,0,IFN-gamma B,pg/mL,4.933
+BIO-005,Week 4,4,IFN-gamma B,pg/mL,4.325
+BIO-005,Baseline,0,IL-2 B,pg/mL,6.021
+BIO-005,Week 4,4,IL-2 B,pg/mL,5.355
+BIO-005,Baseline,0,IL-1beta B,pg/mL,2.856
+BIO-005,Week 4,4,IL-1beta B,pg/mL,2.468
+BIO-005,Baseline,0,IL-8 B,pg/mL,25.75
+BIO-005,Week 4,4,IL-8 B,pg/mL,29.258
+BIO-005,Baseline,0,VEGF B,pg/mL,267.482
+BIO-005,Week 4,4,VEGF B,pg/mL,291.698
+BIO-005,Baseline,0,Ferritin B,ng/mL,74.261
+BIO-005,Week 4,4,Ferritin B,ng/mL,75.848
+BIO-005,Baseline,0,D-dimer B,mg/L,0.88
+BIO-005,Week 4,4,D-dimer B,mg/L,0.572
+BIO-005,Baseline,0,LDH B,U/L,143.36
+BIO-005,Week 4,4,LDH B,U/L,178.352
+BIO-006,Baseline,0,IL-6 B,pg/mL,6.872
+BIO-006,Week 4,4,IL-6 B,pg/mL,6.366
+BIO-006,Baseline,0,CRP B,mg/L,0.502
+BIO-006,Week 4,4,CRP B,mg/L,1.423
+BIO-006,Baseline,0,TNF-alpha B,pg/mL,12.077
+BIO-006,Week 4,4,TNF-alpha B,pg/mL,12.552
+BIO-006,Baseline,0,IL-10 B,pg/mL,5.474
+BIO-006,Week 4,4,IL-10 B,pg/mL,6.113
+BIO-006,Baseline,0,IFN-gamma B,pg/mL,3.677
+BIO-006,Week 4,4,IFN-gamma B,pg/mL,
+BIO-006,Baseline,0,IL-2 B,pg/mL,5.299
+BIO-006,Week 4,4,IL-2 B,pg/mL,5.466
+BIO-006,Baseline,0,IL-1beta B,pg/mL,2.186
+BIO-006,Week 4,4,IL-1beta B,pg/mL,1.858
+BIO-006,Baseline,0,IL-8 B,pg/mL,13.458
+BIO-006,Week 4,4,IL-8 B,pg/mL,12.788
+BIO-006,Baseline,0,VEGF B,pg/mL,186.127
+BIO-006,Week 4,4,VEGF B,pg/mL,164.039
+BIO-006,Baseline,0,Ferritin B,ng/mL,123.313
+BIO-006,Week 4,4,Ferritin B,ng/mL,163.434
+BIO-006,Baseline,0,D-dimer B,mg/L,0.79
+BIO-006,Week 4,4,D-dimer B,mg/L,0.386
+BIO-006,Baseline,0,LDH B,U/L,217.822
+BIO-006,Week 4,4,LDH B,U/L,195.726
+BIO-007,Baseline,0,IL-6 B,pg/mL,7.909
+BIO-007,Week 4,4,IL-6 B,pg/mL,6.59
+BIO-007,Baseline,0,CRP B,mg/L,2.479
+BIO-007,Week 4,4,CRP B,mg/L,1.369
+BIO-007,Baseline,0,TNF-alpha B,pg/mL,15.308
+BIO-007,Week 4,4,TNF-alpha B,pg/mL,13.645
+BIO-007,Baseline,0,IL-10 B,pg/mL,9.06
+BIO-007,Week 4,4,IL-10 B,pg/mL,8.456
+BIO-007,Baseline,0,IFN-gamma B,pg/mL,5.832
+BIO-007,Week 4,4,IFN-gamma B,pg/mL,3.024
+BIO-007,Baseline,0,IL-2 B,pg/mL,4.768
+BIO-007,Week 4,4,IL-2 B,pg/mL,4.846
+BIO-007,Baseline,0,IL-1beta B,pg/mL,2.566
+BIO-007,Week 4,4,IL-1beta B,pg/mL,2.676
+BIO-007,Baseline,0,IL-8 B,pg/mL,24.602
+BIO-007,Week 4,4,IL-8 B,pg/mL,38.242
+BIO-007,Baseline,0,VEGF B,pg/mL,133.236
+BIO-007,Week 4,4,VEGF B,pg/mL,200.879
+BIO-007,Baseline,0,Ferritin B,ng/mL,171.966
+BIO-007,Week 4,4,Ferritin B,ng/mL,122.943
+BIO-007,Baseline,0,D-dimer B,mg/L,0.246
+BIO-007,Week 4,4,D-dimer B,mg/L,0.279
+BIO-007,Baseline,0,LDH B,U/L,162.36
+BIO-007,Week 4,4,LDH B,U/L,178.325
+BIO-008,Baseline,0,IL-6 B,pg/mL,5.968
+BIO-008,Week 4,4,IL-6 B,pg/mL,6.269
+BIO-008,Baseline,0,CRP B,mg/L,3.499
+BIO-008,Week 4,4,CRP B,mg/L,6.494
+BIO-008,Baseline,0,TNF-alpha B,pg/mL,12.802
+BIO-008,Week 4,4,TNF-alpha B,pg/mL,19.188
+BIO-008,Baseline,0,IL-10 B,pg/mL,8.497
+BIO-008,Week 4,4,IL-10 B,pg/mL,10.03
+BIO-008,Baseline,0,IFN-gamma B,pg/mL,6.847
+BIO-008,Week 4,4,IFN-gamma B,pg/mL,4.333
+BIO-008,Baseline,0,IL-2 B,pg/mL,2.003
+BIO-008,Week 4,4,IL-2 B,pg/mL,4.297
+BIO-008,Baseline,0,IL-1beta B,pg/mL,3.124
+BIO-008,Week 4,4,IL-1beta B,pg/mL,2.01
+BIO-008,Baseline,0,IL-8 B,pg/mL,16.891
+BIO-008,Week 4,4,IL-8 B,pg/mL,28.067
+BIO-008,Baseline,0,VEGF B,pg/mL,312.578
+BIO-008,Week 4,4,VEGF B,pg/mL,324.415
+BIO-008,Baseline,0,Ferritin B,ng/mL,230.242
+BIO-008,Week 4,4,Ferritin B,ng/mL,146.191
+BIO-008,Baseline,0,D-dimer B,mg/L,0.387
+BIO-008,Week 4,4,D-dimer B,mg/L,0.31
+BIO-008,Baseline,0,LDH B,U/L,204.178
+BIO-008,Week 4,4,LDH B,U/L,179.947
+BIO-009,Baseline,0,IL-6 B,pg/mL,9.614
+BIO-009,Week 4,4,IL-6 B,pg/mL,5.961
+BIO-009,Baseline,0,CRP B,mg/L,2.669
+BIO-009,Week 4,4,CRP B,mg/L,3.418
+BIO-009,Baseline,0,TNF-alpha B,pg/mL,9.43
+BIO-009,Week 4,4,TNF-alpha B,pg/mL,11.484
+BIO-009,Baseline,0,IL-10 B,pg/mL,5.828
+BIO-009,Week 4,4,IL-10 B,pg/mL,6.176
+BIO-009,Baseline,0,IFN-gamma B,pg/mL,2.747
+BIO-009,Week 4,4,IFN-gamma B,pg/mL,1.946
+BIO-009,Baseline,0,IL-2 B,pg/mL,7.436
+BIO-009,Week 4,4,IL-2 B,pg/mL,6.049
+BIO-009,Baseline,0,IL-1beta B,pg/mL,2.651
+BIO-009,Week 4,4,IL-1beta B,pg/mL,2.942
+BIO-009,Baseline,0,IL-8 B,pg/mL,13.834
+BIO-009,Week 4,4,IL-8 B,pg/mL,13.436
+BIO-009,Baseline,0,VEGF B,pg/mL,263.98
+BIO-009,Week 4,4,VEGF B,pg/mL,262.401
+BIO-009,Baseline,0,Ferritin B,ng/mL,149.562
+BIO-009,Week 4,4,Ferritin B,ng/mL,231.769
+BIO-009,Baseline,0,D-dimer B,mg/L,0.889
+BIO-009,Week 4,4,D-dimer B,mg/L,0.389
+BIO-009,Baseline,0,LDH B,U/L,209.128
+BIO-009,Week 4,4,LDH B,U/L,191.582
+BIO-010,Baseline,0,IL-6 B,pg/mL,6.822
+BIO-010,Baseline,0,CRP B,mg/L,3.592
+BIO-010,Baseline,0,TNF-alpha B,pg/mL,9.676
+BIO-010,Baseline,0,IL-10 B,pg/mL,7.198
+BIO-010,Baseline,0,IFN-gamma B,pg/mL,2.214
+BIO-010,Baseline,0,IL-2 B,pg/mL,4.836
+BIO-010,Baseline,0,IL-1beta B,pg/mL,2.09
+BIO-010,Baseline,0,IL-8 B,pg/mL,8.417
+BIO-010,Baseline,0,VEGF B,pg/mL,196.746
+BIO-010,Baseline,0,Ferritin B,ng/mL,174.694
+BIO-010,Baseline,0,D-dimer B,mg/L,0.501
+BIO-010,Baseline,0,LDH B,U/L,186.617
+BIO-011,Baseline,0,IL-6 B,pg/mL,7.194
+BIO-011,Week 4,4,IL-6 B,pg/mL,7.6
+BIO-011,Baseline,0,CRP B,mg/L,2.222
+BIO-011,Week 4,4,CRP B,mg/L,5.431
+BIO-011,Baseline,0,TNF-alpha B,pg/mL,16.164
+BIO-011,Week 4,4,TNF-alpha B,pg/mL,15.137
+BIO-011,Baseline,0,IL-10 B,pg/mL,8.211
+BIO-011,Week 4,4,IL-10 B,pg/mL,6.691
+BIO-011,Baseline,0,IFN-gamma B,pg/mL,6.244
+BIO-011,Week 4,4,IFN-gamma B,pg/mL,3.096
+BIO-011,Baseline,0,IL-2 B,pg/mL,3.188
+BIO-011,Week 4,4,IL-2 B,pg/mL,4.827
+BIO-011,Baseline,0,IL-1beta B,pg/mL,1.523
+BIO-011,Week 4,4,IL-1beta B,pg/mL,1.329
+BIO-011,Baseline,0,IL-8 B,pg/mL,16.118
+BIO-011,Week 4,4,IL-8 B,pg/mL,10.893
+BIO-011,Baseline,0,VEGF B,pg/mL,271.81
+BIO-011,Week 4,4,VEGF B,pg/mL,245.815
+BIO-011,Baseline,0,Ferritin B,ng/mL,80.716
+BIO-011,Week 4,4,Ferritin B,ng/mL,239.977
+BIO-011,Baseline,0,D-dimer B,mg/L,0.25
+BIO-011,Week 4,4,D-dimer B,mg/L,0.249
+BIO-011,Baseline,0,LDH B,U/L,152.65
+BIO-011,Week 4,4,LDH B,U/L,198.078
+BIO-012,Baseline,0,IL-6 B,pg/mL,6.297
+BIO-012,Week 4,4,IL-6 B,pg/mL,5.337
+BIO-012,Baseline,0,CRP B,mg/L,7.132
+BIO-012,Week 4,4,CRP B,mg/L,8.481
+BIO-012,Baseline,0,TNF-alpha B,pg/mL,11.79
+BIO-012,Week 4,4,TNF-alpha B,pg/mL,11.62
+BIO-012,Baseline,0,IL-10 B,pg/mL,4.185
+BIO-012,Week 4,4,IL-10 B,pg/mL,4.159
+BIO-012,Baseline,0,IFN-gamma B,pg/mL,5.731
+BIO-012,Week 4,4,IFN-gamma B,pg/mL,5.213
+BIO-012,Baseline,0,IL-2 B,pg/mL,5.966
+BIO-012,Week 4,4,IL-2 B,pg/mL,4.881
+BIO-012,Baseline,0,IL-1beta B,pg/mL,3.042
+BIO-012,Week 4,4,IL-1beta B,pg/mL,3.169
+BIO-012,Baseline,0,IL-8 B,pg/mL,10.602
+BIO-012,Week 4,4,IL-8 B,pg/mL,18.151
+BIO-012,Baseline,0,VEGF B,pg/mL,256.287
+BIO-012,Week 4,4,VEGF B,pg/mL,266.466
+BIO-012,Baseline,0,Ferritin B,ng/mL,170.961
+BIO-012,Week 4,4,Ferritin B,ng/mL,103.431
+BIO-012,Baseline,0,D-dimer B,mg/L,0.183
+BIO-012,Week 4,4,D-dimer B,mg/L,0.175
+BIO-012,Baseline,0,LDH B,U/L,203.572
+BIO-012,Week 4,4,LDH B,U/L,188.01
+BIO-013,Baseline,0,IL-6 B,pg/mL,8.547
+BIO-013,Week 4,4,IL-6 B,pg/mL,9.157
+BIO-013,Baseline,0,CRP B,mg/L,2.03
+BIO-013,Week 4,4,CRP B,mg/L,2.946
+BIO-013,Baseline,0,TNF-alpha B,pg/mL,6.059
+BIO-013,Week 4,4,TNF-alpha B,pg/mL,
+BIO-013,Baseline,0,IL-10 B,pg/mL,2.904
+BIO-013,Week 4,4,IL-10 B,pg/mL,1.246
+BIO-013,Baseline,0,IFN-gamma B,pg/mL,10.171
+BIO-013,Week 4,4,IFN-gamma B,pg/mL,6.501
+BIO-013,Baseline,0,IL-2 B,pg/mL,4.618
+BIO-013,Week 4,4,IL-2 B,pg/mL,4.192
+BIO-013,Baseline,0,IL-1beta B,pg/mL,2.575
+BIO-013,Week 4,4,IL-1beta B,pg/mL,2.53
+BIO-013,Baseline,0,IL-8 B,pg/mL,17.84
+BIO-013,Week 4,4,IL-8 B,pg/mL,24.26
+BIO-013,Baseline,0,VEGF B,pg/mL,251.967
+BIO-013,Week 4,4,VEGF B,pg/mL,211.637
+BIO-013,Baseline,0,Ferritin B,ng/mL,129.59
+BIO-013,Week 4,4,Ferritin B,ng/mL,111.527
+BIO-013,Baseline,0,D-dimer B,mg/L,0.421
+BIO-013,Week 4,4,D-dimer B,mg/L,0.798
+BIO-013,Baseline,0,LDH B,U/L,202.934
+BIO-013,Week 4,4,LDH B,U/L,191.754
+BIO-014,Baseline,0,IL-6 B,pg/mL,9.481
+BIO-014,Week 4,4,IL-6 B,pg/mL,5.938
+BIO-014,Baseline,0,CRP B,mg/L,1.417
+BIO-014,Week 4,4,CRP B,mg/L,2.226
+BIO-014,Baseline,0,TNF-alpha B,pg/mL,12.71
+BIO-014,Week 4,4,TNF-alpha B,pg/mL,6.862
+BIO-014,Baseline,0,IL-10 B,pg/mL,6.318
+BIO-014,Week 4,4,IL-10 B,pg/mL,2.588
+BIO-014,Baseline,0,IFN-gamma B,pg/mL,4.529
+BIO-014,Week 4,4,IFN-gamma B,pg/mL,7.395
+BIO-014,Baseline,0,IL-2 B,pg/mL,5.557
+BIO-014,Week 4,4,IL-2 B,pg/mL,5.399
+BIO-014,Baseline,0,IL-1beta B,pg/mL,2.681
+BIO-014,Week 4,4,IL-1beta B,pg/mL,2.476
+BIO-014,Baseline,0,IL-8 B,pg/mL,15.674
+BIO-014,Week 4,4,IL-8 B,pg/mL,21.326
+BIO-014,Baseline,0,VEGF B,pg/mL,206.884
+BIO-014,Week 4,4,VEGF B,pg/mL,217.936
+BIO-014,Baseline,0,Ferritin B,ng/mL,143.307
+BIO-014,Week 4,4,Ferritin B,ng/mL,165.867
+BIO-014,Baseline,0,D-dimer B,mg/L,0.692
+BIO-014,Week 4,4,D-dimer B,mg/L,0.715
+BIO-014,Baseline,0,LDH B,U/L,177.36
+BIO-014,Week 4,4,LDH B,U/L,189.749
+BIO-015,Baseline,0,IL-6 B,pg/mL,7.35
+BIO-015,Week 4,4,IL-6 B,pg/mL,8.194
+BIO-015,Baseline,0,CRP B,mg/L,1.448
+BIO-015,Week 4,4,CRP B,mg/L,2.471
+BIO-015,Baseline,0,TNF-alpha B,pg/mL,14.152
+BIO-015,Week 4,4,TNF-alpha B,pg/mL,10.119
+BIO-015,Baseline,0,IL-10 B,pg/mL,6.601
+BIO-015,Week 4,4,IL-10 B,pg/mL,6.029
+BIO-015,Baseline,0,IFN-gamma B,pg/mL,2.67
+BIO-015,Week 4,4,IFN-gamma B,pg/mL,3.963
+BIO-015,Baseline,0,IL-2 B,pg/mL,4.403
+BIO-015,Week 4,4,IL-2 B,pg/mL,4.833
+BIO-015,Baseline,0,IL-1beta B,pg/mL,1.664
+BIO-015,Week 4,4,IL-1beta B,pg/mL,2.079
+BIO-015,Baseline,0,IL-8 B,pg/mL,12.973
+BIO-015,Week 4,4,IL-8 B,pg/mL,14.545
+BIO-015,Baseline,0,VEGF B,pg/mL,178.982
+BIO-015,Week 4,4,VEGF B,pg/mL,210.875
+BIO-015,Baseline,0,Ferritin B,ng/mL,91.665
+BIO-015,Week 4,4,Ferritin B,ng/mL,94.026
+BIO-015,Baseline,0,D-dimer B,mg/L,0.366
+BIO-015,Week 4,4,D-dimer B,mg/L,0.785
+BIO-015,Baseline,0,LDH B,U/L,181.223
+BIO-015,Week 4,4,LDH B,U/L,197.277
+BIO-016,Baseline,0,IL-6 B,pg/mL,8.548
+BIO-016,Week 4,4,IL-6 B,pg/mL,8.12
+BIO-016,Baseline,0,CRP B,mg/L,4.66
+BIO-016,Week 4,4,CRP B,mg/L,3.061
+BIO-016,Baseline,0,TNF-alpha B,pg/mL,11.064
+BIO-016,Week 4,4,TNF-alpha B,pg/mL,10.344
+BIO-016,Baseline,0,IL-10 B,pg/mL,3.581
+BIO-016,Week 4,4,IL-10 B,pg/mL,4.294
+BIO-016,Baseline,0,IFN-gamma B,pg/mL,5.784
+BIO-016,Week 4,4,IFN-gamma B,pg/mL,3.013
+BIO-016,Baseline,0,IL-2 B,pg/mL,5.627
+BIO-016,Week 4,4,IL-2 B,pg/mL,5.021
+BIO-016,Baseline,0,IL-1beta B,pg/mL,2.489
+BIO-016,Week 4,4,IL-1beta B,pg/mL,2.439
+BIO-016,Baseline,0,IL-8 B,pg/mL,16.979
+BIO-016,Week 4,4,IL-8 B,pg/mL,14.034
+BIO-016,Baseline,0,VEGF B,pg/mL,241.735
+BIO-016,Week 4,4,VEGF B,pg/mL,279.036
+BIO-016,Baseline,0,Ferritin B,ng/mL,363.383
+BIO-016,Week 4,4,Ferritin B,ng/mL,423.725
+BIO-016,Baseline,0,D-dimer B,mg/L,0.32
+BIO-016,Week 4,4,D-dimer B,mg/L,0.276
+BIO-016,Baseline,0,LDH B,U/L,180.834
+BIO-016,Week 4,4,LDH B,U/L,230.822
+BIO-017,Baseline,0,IL-6 B,pg/mL,8.45
+BIO-017,Week 4,4,IL-6 B,pg/mL,8.373
+BIO-017,Baseline,0,CRP B,mg/L,3.695
+BIO-017,Week 4,4,CRP B,mg/L,2.559
+BIO-017,Baseline,0,TNF-alpha B,pg/mL,14.26
+BIO-017,Week 4,4,TNF-alpha B,pg/mL,15.078
+BIO-017,Baseline,0,IL-10 B,pg/mL,6.784
+BIO-017,Week 4,4,IL-10 B,pg/mL,6.995
+BIO-017,Baseline,0,IFN-gamma B,pg/mL,4.01
+BIO-017,Week 4,4,IFN-gamma B,pg/mL,4.689
+BIO-017,Baseline,0,IL-2 B,pg/mL,6.044
+BIO-017,Week 4,4,IL-2 B,pg/mL,6.097
+BIO-017,Baseline,0,IL-1beta B,pg/mL,1.442
+BIO-017,Week 4,4,IL-1beta B,pg/mL,2.504
+BIO-017,Baseline,0,IL-8 B,pg/mL,19.968
+BIO-017,Week 4,4,IL-8 B,pg/mL,13.743
+BIO-017,Baseline,0,VEGF B,pg/mL,286.375
+BIO-017,Week 4,4,VEGF B,pg/mL,248.066
+BIO-017,Baseline,0,Ferritin B,ng/mL,137.939
+BIO-017,Week 4,4,Ferritin B,ng/mL,125.954
+BIO-017,Baseline,0,D-dimer B,mg/L,0.338
+BIO-017,Week 4,4,D-dimer B,mg/L,
+BIO-017,Baseline,0,LDH B,U/L,206.01
+BIO-017,Week 4,4,LDH B,U/L,
+BIO-018,Baseline,0,IL-6 B,pg/mL,9.838
+BIO-018,Week 4,4,IL-6 B,pg/mL,7.784
+BIO-018,Baseline,0,CRP B,mg/L,3.065
+BIO-018,Week 4,4,CRP B,mg/L,3.312
+BIO-018,Baseline,0,TNF-alpha B,pg/mL,8.024
+BIO-018,Week 4,4,TNF-alpha B,pg/mL,9.302
+BIO-018,Baseline,0,IL-10 B,pg/mL,4.844
+BIO-018,Week 4,4,IL-10 B,pg/mL,6.218
+BIO-018,Baseline,0,IFN-gamma B,pg/mL,5.351
+BIO-018,Week 4,4,IFN-gamma B,pg/mL,5.974
+BIO-018,Baseline,0,IL-2 B,pg/mL,4.624
+BIO-018,Week 4,4,IL-2 B,pg/mL,4.394
+BIO-018,Baseline,0,IL-1beta B,pg/mL,3.256
+BIO-018,Week 4,4,IL-1beta B,pg/mL,2.584
+BIO-018,Baseline,0,IL-8 B,pg/mL,7.705
+BIO-018,Week 4,4,IL-8 B,pg/mL,
+BIO-018,Baseline,0,VEGF B,pg/mL,173.687
+BIO-018,Week 4,4,VEGF B,pg/mL,206.826
+BIO-018,Baseline,0,Ferritin B,ng/mL,116.153
+BIO-018,Week 4,4,Ferritin B,ng/mL,113.787
+BIO-018,Baseline,0,D-dimer B,mg/L,0.31
+BIO-018,Week 4,4,D-dimer B,mg/L,0.572
+BIO-018,Baseline,0,LDH B,U/L,205.831
+BIO-018,Week 4,4,LDH B,U/L,187.553
+BIO-019,Baseline,0,IL-6 B,pg/mL,8.98
+BIO-019,Week 4,4,IL-6 B,pg/mL,5.657
+BIO-019,Baseline,0,CRP B,mg/L,7.076
+BIO-019,Week 4,4,CRP B,mg/L,7.656
+BIO-019,Baseline,0,TNF-alpha B,pg/mL,10.798
+BIO-019,Week 4,4,TNF-alpha B,pg/mL,12.766
+BIO-019,Baseline,0,IL-10 B,pg/mL,5.533
+BIO-019,Week 4,4,IL-10 B,pg/mL,5.834
+BIO-019,Baseline,0,IFN-gamma B,pg/mL,4.51
+BIO-019,Week 4,4,IFN-gamma B,pg/mL,3.775
+BIO-019,Baseline,0,IL-2 B,pg/mL,4.375
+BIO-019,Week 4,4,IL-2 B,pg/mL,4.071
+BIO-019,Baseline,0,IL-1beta B,pg/mL,2.653
+BIO-019,Week 4,4,IL-1beta B,pg/mL,2.374
+BIO-019,Baseline,0,IL-8 B,pg/mL,8.652
+BIO-019,Week 4,4,IL-8 B,pg/mL,9.317
+BIO-019,Baseline,0,VEGF B,pg/mL,331.302
+BIO-019,Week 4,4,VEGF B,pg/mL,333.314
+BIO-019,Baseline,0,Ferritin B,ng/mL,91.017
+BIO-019,Week 4,4,Ferritin B,ng/mL,144.125
+BIO-019,Baseline,0,D-dimer B,mg/L,0.334
+BIO-019,Week 4,4,D-dimer B,mg/L,
+BIO-019,Baseline,0,LDH B,U/L,191.772
+BIO-019,Week 4,4,LDH B,U/L,153.713
+BIO-020,Baseline,0,IL-6 B,pg/mL,5.859
+BIO-020,Week 4,4,IL-6 B,pg/mL,6.771
+BIO-020,Baseline,0,CRP B,mg/L,4.056
+BIO-020,Week 4,4,CRP B,mg/L,0.922
+BIO-020,Baseline,0,TNF-alpha B,pg/mL,11.952
+BIO-020,Week 4,4,TNF-alpha B,pg/mL,12.29
+BIO-020,Baseline,0,IL-10 B,pg/mL,3.807
+BIO-020,Week 4,4,IL-10 B,pg/mL,4.518
+BIO-020,Baseline,0,IFN-gamma B,pg/mL,4.839
+BIO-020,Week 4,4,IFN-gamma B,pg/mL,8.358
+BIO-020,Baseline,0,IL-2 B,pg/mL,7.74
+BIO-020,Week 4,4,IL-2 B,pg/mL,5.779
+BIO-020,Baseline,0,IL-1beta B,pg/mL,2.978
+BIO-020,Week 4,4,IL-1beta B,pg/mL,2.333
+BIO-020,Baseline,0,IL-8 B,pg/mL,12.22
+BIO-020,Week 4,4,IL-8 B,pg/mL,10.535
+BIO-020,Baseline,0,VEGF B,pg/mL,287.828
+BIO-020,Week 4,4,VEGF B,pg/mL,293.604
+BIO-020,Baseline,0,Ferritin B,ng/mL,49.077
+BIO-020,Week 4,4,Ferritin B,ng/mL,55.826
+BIO-020,Baseline,0,D-dimer B,mg/L,0.283
+BIO-020,Week 4,4,D-dimer B,mg/L,0.434
+BIO-020,Baseline,0,LDH B,U/L,167.785
+BIO-020,Week 4,4,LDH B,U/L,165.098
+BIO-021,Baseline,0,IL-6 B,pg/mL,12.004
+BIO-021,Week 4,4,IL-6 B,pg/mL,11.164
+BIO-021,Baseline,0,CRP B,mg/L,3.152
+BIO-021,Week 4,4,CRP B,mg/L,3.303
+BIO-021,Baseline,0,TNF-alpha B,pg/mL,12.514
+BIO-021,Week 4,4,TNF-alpha B,pg/mL,13.256
+BIO-021,Baseline,0,IL-10 B,pg/mL,6.2
+BIO-021,Week 4,4,IL-10 B,pg/mL,7.69
+BIO-021,Baseline,0,IFN-gamma B,pg/mL,4.12
+BIO-021,Week 4,4,IFN-gamma B,pg/mL,3.214
+BIO-021,Baseline,0,IL-2 B,pg/mL,4.796
+BIO-021,Week 4,4,IL-2 B,pg/mL,4.486
+BIO-021,Baseline,0,IL-1beta B,pg/mL,2.287
+BIO-021,Week 4,4,IL-1beta B,pg/mL,2.016
+BIO-021,Baseline,0,IL-8 B,pg/mL,20.59
+BIO-021,Week 4,4,IL-8 B,pg/mL,11.936
+BIO-021,Baseline,0,VEGF B,pg/mL,228.592
+BIO-021,Week 4,4,VEGF B,pg/mL,302.532
+BIO-021,Baseline,0,Ferritin B,ng/mL,323.861
+BIO-021,Week 4,4,Ferritin B,ng/mL,123.115
+BIO-021,Baseline,0,D-dimer B,mg/L,0.567
+BIO-021,Week 4,4,D-dimer B,mg/L,
+BIO-021,Baseline,0,LDH B,U/L,170.687
+BIO-021,Week 4,4,LDH B,U/L,174.993
+BIO-022,Baseline,0,IL-6 B,pg/mL,6.406
+BIO-022,Week 4,4,IL-6 B,pg/mL,6.121
+BIO-022,Baseline,0,CRP B,mg/L,8.129
+BIO-022,Week 4,4,CRP B,mg/L,3.779
+BIO-022,Baseline,0,TNF-alpha B,pg/mL,6.606
+BIO-022,Week 4,4,TNF-alpha B,pg/mL,8.604
+BIO-022,Baseline,0,IL-10 B,pg/mL,5.728
+BIO-022,Week 4,4,IL-10 B,pg/mL,5.432
+BIO-022,Baseline,0,IFN-gamma B,pg/mL,3.188
+BIO-022,Week 4,4,IFN-gamma B,pg/mL,3.39
+BIO-022,Baseline,0,IL-2 B,pg/mL,4.277
+BIO-022,Week 4,4,IL-2 B,pg/mL,3.746
+BIO-022,Baseline,0,IL-1beta B,pg/mL,2.455
+BIO-022,Week 4,4,IL-1beta B,pg/mL,3.538
+BIO-022,Baseline,0,IL-8 B,pg/mL,6.635
+BIO-022,Week 4,4,IL-8 B,pg/mL,5.477
+BIO-022,Baseline,0,VEGF B,pg/mL,287.08
+BIO-022,Week 4,4,VEGF B,pg/mL,273.163
+BIO-022,Baseline,0,Ferritin B,ng/mL,98.613
+BIO-022,Week 4,4,Ferritin B,ng/mL,126.13
+BIO-022,Baseline,0,D-dimer B,mg/L,0.355
+BIO-022,Week 4,4,D-dimer B,mg/L,0.197
+BIO-022,Baseline,0,LDH B,U/L,179.594
+BIO-022,Week 4,4,LDH B,U/L,186.749
+BIO-023,Baseline,0,IL-6 B,pg/mL,5.595
+BIO-023,Week 4,4,IL-6 B,pg/mL,7.927
+BIO-023,Baseline,0,CRP B,mg/L,2.914
+BIO-023,Week 4,4,CRP B,mg/L,1.703
+BIO-023,Baseline,0,TNF-alpha B,pg/mL,15.907
+BIO-023,Week 4,4,TNF-alpha B,pg/mL,
+BIO-023,Baseline,0,IL-10 B,pg/mL,8.344
+BIO-023,Week 4,4,IL-10 B,pg/mL,8.273
+BIO-023,Baseline,0,IFN-gamma B,pg/mL,4.173
+BIO-023,Week 4,4,IFN-gamma B,pg/mL,5.924
+BIO-023,Baseline,0,IL-2 B,pg/mL,5.238
+BIO-023,Week 4,4,IL-2 B,pg/mL,6.683
+BIO-023,Baseline,0,IL-1beta B,pg/mL,2.898
+BIO-023,Week 4,4,IL-1beta B,pg/mL,3.104
+BIO-023,Baseline,0,IL-8 B,pg/mL,20.366
+BIO-023,Week 4,4,IL-8 B,pg/mL,11.848
+BIO-023,Baseline,0,VEGF B,pg/mL,224.021
+BIO-023,Week 4,4,VEGF B,pg/mL,267.763
+BIO-023,Baseline,0,Ferritin B,ng/mL,168.681
+BIO-023,Week 4,4,Ferritin B,ng/mL,122.964
+BIO-023,Baseline,0,D-dimer B,mg/L,0.238
+BIO-023,Week 4,4,D-dimer B,mg/L,0.26
+BIO-023,Baseline,0,LDH B,U/L,195.37
+BIO-023,Week 4,4,LDH B,U/L,199.739
+BIO-024,Baseline,0,IL-6 B,pg/mL,7.906
+BIO-024,Week 4,4,IL-6 B,pg/mL,8.784
+BIO-024,Baseline,0,CRP B,mg/L,1.076
+BIO-024,Week 4,4,CRP B,mg/L,1.294
+BIO-024,Baseline,0,TNF-alpha B,pg/mL,13.149
+BIO-024,Week 4,4,TNF-alpha B,pg/mL,15.169
+BIO-024,Baseline,0,IL-10 B,pg/mL,3.568
+BIO-024,Week 4,4,IL-10 B,pg/mL,5.832
+BIO-024,Baseline,0,IFN-gamma B,pg/mL,3.434
+BIO-024,Week 4,4,IFN-gamma B,pg/mL,2.655
+BIO-024,Baseline,0,IL-2 B,pg/mL,4.332
+BIO-024,Week 4,4,IL-2 B,pg/mL,4.676
+BIO-024,Baseline,0,IL-1beta B,pg/mL,2.999
+BIO-024,Week 4,4,IL-1beta B,pg/mL,2.631
+BIO-024,Baseline,0,IL-8 B,pg/mL,16.629
+BIO-024,Week 4,4,IL-8 B,pg/mL,7.754
+BIO-024,Baseline,0,VEGF B,pg/mL,258.807
+BIO-024,Week 4,4,VEGF B,pg/mL,259.185
+BIO-024,Baseline,0,Ferritin B,ng/mL,143.279
+BIO-024,Week 4,4,Ferritin B,ng/mL,173.537
+BIO-024,Baseline,0,D-dimer B,mg/L,0.299
+BIO-024,Week 4,4,D-dimer B,mg/L,0.531
+BIO-024,Baseline,0,LDH B,U/L,145.773
+BIO-024,Week 4,4,LDH B,U/L,165.505
+BIO-025,Baseline,0,IL-6 B,pg/mL,7.664
+BIO-025,Week 4,4,IL-6 B,pg/mL,7.485
+BIO-025,Baseline,0,CRP B,mg/L,1.501
+BIO-025,Week 4,4,CRP B,mg/L,1.481
+BIO-025,Baseline,0,TNF-alpha B,pg/mL,13.65
+BIO-025,Week 4,4,TNF-alpha B,pg/mL,14.271
+BIO-025,Baseline,0,IL-10 B,pg/mL,6.713
+BIO-025,Week 4,4,IL-10 B,pg/mL,6.148
+BIO-025,Baseline,0,IFN-gamma B,pg/mL,4.047
+BIO-025,Week 4,4,IFN-gamma B,pg/mL,2.895
+BIO-025,Baseline,0,IL-2 B,pg/mL,4.495
+BIO-025,Week 4,4,IL-2 B,pg/mL,3.989
+BIO-025,Baseline,0,IL-1beta B,pg/mL,2.938
+BIO-025,Week 4,4,IL-1beta B,pg/mL,2.676
+BIO-025,Baseline,0,IL-8 B,pg/mL,11.787
+BIO-025,Week 4,4,IL-8 B,pg/mL,10.496
+BIO-025,Baseline,0,VEGF B,pg/mL,277.997
+BIO-025,Week 4,4,VEGF B,pg/mL,269.43
+BIO-025,Baseline,0,Ferritin B,ng/mL,100.508
+BIO-025,Week 4,4,Ferritin B,ng/mL,74.885
+BIO-025,Baseline,0,D-dimer B,mg/L,0.338
+BIO-025,Week 4,4,D-dimer B,mg/L,0.668
+BIO-025,Baseline,0,LDH B,U/L,188.657
+BIO-025,Week 4,4,LDH B,U/L,165.645
+BIO-026,Baseline,0,IL-6 B,pg/mL,8.268
+BIO-026,Week 4,4,IL-6 B,pg/mL,7.6
+BIO-026,Baseline,0,CRP B,mg/L,16.657
+BIO-026,Week 4,4,CRP B,mg/L,5.242
+BIO-026,Baseline,0,TNF-alpha B,pg/mL,13.586
+BIO-026,Week 4,4,TNF-alpha B,pg/mL,10.618
+BIO-026,Baseline,0,IL-10 B,pg/mL,7.642
+BIO-026,Week 4,4,IL-10 B,pg/mL,6.156
+BIO-026,Baseline,0,IFN-gamma B,pg/mL,5.942
+BIO-026,Week 4,4,IFN-gamma B,pg/mL,5.507
+BIO-026,Baseline,0,IL-2 B,pg/mL,2.628
+BIO-026,Week 4,4,IL-2 B,pg/mL,4.173
+BIO-026,Baseline,0,IL-1beta B,pg/mL,2.732
+BIO-026,Week 4,4,IL-1beta B,pg/mL,2.666
+BIO-026,Baseline,0,IL-8 B,pg/mL,4.222
+BIO-026,Week 4,4,IL-8 B,pg/mL,5.601
+BIO-026,Baseline,0,VEGF B,pg/mL,250.014
+BIO-026,Week 4,4,VEGF B,pg/mL,291.971
+BIO-026,Baseline,0,Ferritin B,ng/mL,182.407
+BIO-026,Week 4,4,Ferritin B,ng/mL,108.786
+BIO-026,Baseline,0,D-dimer B,mg/L,0.185
+BIO-026,Week 4,4,D-dimer B,mg/L,0.335
+BIO-026,Baseline,0,LDH B,U/L,100.98
+BIO-026,Week 4,4,LDH B,U/L,115.92
+BIO-027,Baseline,0,IL-6 B,pg/mL,6.341
+BIO-027,Baseline,0,CRP B,mg/L,1.375
+BIO-027,Baseline,0,TNF-alpha B,pg/mL,14.317
+BIO-027,Baseline,0,IL-10 B,pg/mL,7.584
+BIO-027,Baseline,0,IFN-gamma B,pg/mL,3.167
+BIO-027,Baseline,0,IL-2 B,pg/mL,5.848
+BIO-027,Baseline,0,IL-1beta B,pg/mL,2.709
+BIO-027,Baseline,0,IL-8 B,pg/mL,11.257
+BIO-027,Baseline,0,VEGF B,pg/mL,191.201
+BIO-027,Baseline,0,Ferritin B,ng/mL,64.118
+BIO-027,Baseline,0,D-dimer B,mg/L,0.329
+BIO-027,Baseline,0,LDH B,U/L,208.265
+BIO-028,Baseline,0,IL-6 B,pg/mL,8.506
+BIO-028,Week 4,4,IL-6 B,pg/mL,6.188
+BIO-028,Baseline,0,CRP B,mg/L,1.935
+BIO-028,Week 4,4,CRP B,mg/L,1.789
+BIO-028,Baseline,0,TNF-alpha B,pg/mL,14.474
+BIO-028,Week 4,4,TNF-alpha B,pg/mL,17.913
+BIO-028,Baseline,0,IL-10 B,pg/mL,8.388
+BIO-028,Week 4,4,IL-10 B,pg/mL,7.802
+BIO-028,Baseline,0,IFN-gamma B,pg/mL,3.242
+BIO-028,Week 4,4,IFN-gamma B,pg/mL,1.372
+BIO-028,Baseline,0,IL-2 B,pg/mL,4.216
+BIO-028,Week 4,4,IL-2 B,pg/mL,4.927
+BIO-028,Baseline,0,IL-1beta B,pg/mL,2.697
+BIO-028,Week 4,4,IL-1beta B,pg/mL,2.206
+BIO-028,Baseline,0,IL-8 B,pg/mL,25.671
+BIO-028,Week 4,4,IL-8 B,pg/mL,21.549
+BIO-028,Baseline,0,VEGF B,pg/mL,276.358
+BIO-028,Week 4,4,VEGF B,pg/mL,285.637
+BIO-028,Baseline,0,Ferritin B,ng/mL,93.252
+BIO-028,Week 4,4,Ferritin B,ng/mL,88.294
+BIO-028,Baseline,0,D-dimer B,mg/L,0.293
+BIO-028,Week 4,4,D-dimer B,mg/L,0.278
+BIO-028,Baseline,0,LDH B,U/L,177.075
+BIO-028,Week 4,4,LDH B,U/L,
+BIO-029,Baseline,0,IL-6 B,pg/mL,5.744
+BIO-029,Week 4,4,IL-6 B,pg/mL,5.316
+BIO-029,Baseline,0,CRP B,mg/L,1.36
+BIO-029,Week 4,4,CRP B,mg/L,3.51
+BIO-029,Baseline,0,TNF-alpha B,pg/mL,8.173
+BIO-029,Week 4,4,TNF-alpha B,pg/mL,13.061
+BIO-029,Baseline,0,IL-10 B,pg/mL,4.863
+BIO-029,Week 4,4,IL-10 B,pg/mL,6.059
+BIO-029,Baseline,0,IFN-gamma B,pg/mL,2.595
+BIO-029,Week 4,4,IFN-gamma B,pg/mL,6.886
+BIO-029,Baseline,0,IL-2 B,pg/mL,4.814
+BIO-029,Week 4,4,IL-2 B,pg/mL,5.441
+BIO-029,Baseline,0,IL-1beta B,pg/mL,1.807
+BIO-029,Week 4,4,IL-1beta B,pg/mL,2.73
+BIO-029,Baseline,0,IL-8 B,pg/mL,16.302
+BIO-029,Week 4,4,IL-8 B,pg/mL,29.749
+BIO-029,Baseline,0,VEGF B,pg/mL,276.459
+BIO-029,Week 4,4,VEGF B,pg/mL,320.488
+BIO-029,Baseline,0,Ferritin B,ng/mL,177.423
+BIO-029,Week 4,4,Ferritin B,ng/mL,165.598
+BIO-029,Baseline,0,D-dimer B,mg/L,0.332
+BIO-029,Week 4,4,D-dimer B,mg/L,0.652
+BIO-029,Baseline,0,LDH B,U/L,167.202
+BIO-029,Week 4,4,LDH B,U/L,177.62
+BIO-030,Baseline,0,IL-6 B,pg/mL,8.893
+BIO-030,Week 4,4,IL-6 B,pg/mL,9.368
+BIO-030,Baseline,0,CRP B,mg/L,1.364
+BIO-030,Week 4,4,CRP B,mg/L,1.358
+BIO-030,Baseline,0,TNF-alpha B,pg/mL,9.409
+BIO-030,Week 4,4,TNF-alpha B,pg/mL,9.692
+BIO-030,Baseline,0,IL-10 B,pg/mL,4.544
+BIO-030,Week 4,4,IL-10 B,pg/mL,2.326
+BIO-030,Baseline,0,IFN-gamma B,pg/mL,5.554
+BIO-030,Week 4,4,IFN-gamma B,pg/mL,6.391
+BIO-030,Baseline,0,IL-2 B,pg/mL,5.676
+BIO-030,Week 4,4,IL-2 B,pg/mL,5.975
+BIO-030,Baseline,0,IL-1beta B,pg/mL,3.554
+BIO-030,Week 4,4,IL-1beta B,pg/mL,3.228
+BIO-030,Baseline,0,IL-8 B,pg/mL,11.222
+BIO-030,Week 4,4,IL-8 B,pg/mL,8.867
+BIO-030,Baseline,0,VEGF B,pg/mL,224.684
+BIO-030,Week 4,4,VEGF B,pg/mL,282.641
+BIO-030,Baseline,0,Ferritin B,ng/mL,391.85
+BIO-030,Week 4,4,Ferritin B,ng/mL,285.887
+BIO-030,Baseline,0,D-dimer B,mg/L,0.654
+BIO-030,Week 4,4,D-dimer B,mg/L,0.548
+BIO-030,Baseline,0,LDH B,U/L,177.492
+BIO-030,Week 4,4,LDH B,U/L,192.667
+BIO-031,Baseline,0,IL-6 B,pg/mL,9.182
+BIO-031,Week 4,4,IL-6 B,pg/mL,6.824
+BIO-031,Baseline,0,CRP B,mg/L,2.274
+BIO-031,Week 4,4,CRP B,mg/L,1.651
+BIO-031,Baseline,0,TNF-alpha B,pg/mL,8.979
+BIO-031,Week 4,4,TNF-alpha B,pg/mL,9.072
+BIO-031,Baseline,0,IL-10 B,pg/mL,4.724
+BIO-031,Week 4,4,IL-10 B,pg/mL,4.462
+BIO-031,Baseline,0,IFN-gamma B,pg/mL,1.856
+BIO-031,Week 4,4,IFN-gamma B,pg/mL,2.159
+BIO-031,Baseline,0,IL-2 B,pg/mL,5.064
+BIO-031,Week 4,4,IL-2 B,pg/mL,4.794
+BIO-031,Baseline,0,IL-1beta B,pg/mL,2.262
+BIO-031,Week 4,4,IL-1beta B,pg/mL,2.794
+BIO-031,Baseline,0,IL-8 B,pg/mL,9.74
+BIO-031,Week 4,4,IL-8 B,pg/mL,13.474
+BIO-031,Baseline,0,VEGF B,pg/mL,278.754
+BIO-031,Week 4,4,VEGF B,pg/mL,236.697
+BIO-031,Baseline,0,Ferritin B,ng/mL,83.301
+BIO-031,Week 4,4,Ferritin B,ng/mL,149.884
+BIO-031,Baseline,0,D-dimer B,mg/L,0.264
+BIO-031,Week 4,4,D-dimer B,mg/L,0.167
+BIO-031,Baseline,0,LDH B,U/L,170.785
+BIO-031,Week 4,4,LDH B,U/L,166.669
+BIO-032,Baseline,0,IL-6 B,pg/mL,7.333
+BIO-032,Week 4,4,IL-6 B,pg/mL,5.84
+BIO-032,Baseline,0,CRP B,mg/L,2.449
+BIO-032,Week 4,4,CRP B,mg/L,9.218
+BIO-032,Baseline,0,TNF-alpha B,pg/mL,9.064
+BIO-032,Week 4,4,TNF-alpha B,pg/mL,11.464
+BIO-032,Baseline,0,IL-10 B,pg/mL,4.722
+BIO-032,Week 4,4,IL-10 B,pg/mL,5.596
+BIO-032,Baseline,0,IFN-gamma B,pg/mL,2.153
+BIO-032,Week 4,4,IFN-gamma B,pg/mL,1.996
+BIO-032,Baseline,0,IL-2 B,pg/mL,4.53
+BIO-032,Week 4,4,IL-2 B,pg/mL,5.614
+BIO-032,Baseline,0,IL-1beta B,pg/mL,2.49
+BIO-032,Week 4,4,IL-1beta B,pg/mL,2.764
+BIO-032,Baseline,0,IL-8 B,pg/mL,23.247
+BIO-032,Week 4,4,IL-8 B,pg/mL,30.589
+BIO-032,Baseline,0,VEGF B,pg/mL,309.001
+BIO-032,Week 4,4,VEGF B,pg/mL,235.809
+BIO-032,Baseline,0,Ferritin B,ng/mL,97.216
+BIO-032,Week 4,4,Ferritin B,ng/mL,140.744
+BIO-032,Baseline,0,D-dimer B,mg/L,0.446
+BIO-032,Week 4,4,D-dimer B,mg/L,0.771
+BIO-032,Baseline,0,LDH B,U/L,220.332
+BIO-032,Week 4,4,LDH B,U/L,203.093
+BIO-033,Baseline,0,IL-6 B,pg/mL,8.772
+BIO-033,Week 4,4,IL-6 B,pg/mL,9.236
+BIO-033,Baseline,0,CRP B,mg/L,4.183
+BIO-033,Week 4,4,CRP B,mg/L,1.066
+BIO-033,Baseline,0,TNF-alpha B,pg/mL,11.772
+BIO-033,Week 4,4,TNF-alpha B,pg/mL,12.521
+BIO-033,Baseline,0,IL-10 B,pg/mL,4.73
+BIO-033,Week 4,4,IL-10 B,pg/mL,6.248
+BIO-033,Baseline,0,IFN-gamma B,pg/mL,4.578
+BIO-033,Week 4,4,IFN-gamma B,pg/mL,4.174
+BIO-033,Baseline,0,IL-2 B,pg/mL,5.018
+BIO-033,Week 4,4,IL-2 B,pg/mL,4.523
+BIO-033,Baseline,0,IL-1beta B,pg/mL,2.457
+BIO-033,Week 4,4,IL-1beta B,pg/mL,1.989
+BIO-033,Baseline,0,IL-8 B,pg/mL,27.383
+BIO-033,Week 4,4,IL-8 B,pg/mL,17.694
+BIO-033,Baseline,0,VEGF B,pg/mL,265.412
+BIO-033,Week 4,4,VEGF B,pg/mL,265.962
+BIO-033,Baseline,0,Ferritin B,ng/mL,97.737
+BIO-033,Week 4,4,Ferritin B,ng/mL,126.608
+BIO-033,Baseline,0,D-dimer B,mg/L,0.371
+BIO-033,Week 4,4,D-dimer B,mg/L,0.235
+BIO-033,Baseline,0,LDH B,U/L,218.541
+BIO-033,Week 4,4,LDH B,U/L,219.655
+BIO-034,Baseline,0,IL-6 B,pg/mL,8.145
+BIO-034,Week 4,4,IL-6 B,pg/mL,6.981
+BIO-034,Baseline,0,CRP B,mg/L,2.11
+BIO-034,Week 4,4,CRP B,mg/L,2.58
+BIO-034,Baseline,0,TNF-alpha B,pg/mL,13.656
+BIO-034,Week 4,4,TNF-alpha B,pg/mL,12.278
+BIO-034,Baseline,0,IL-10 B,pg/mL,6.722
+BIO-034,Week 4,4,IL-10 B,pg/mL,6.557
+BIO-034,Baseline,0,IFN-gamma B,pg/mL,5.029
+BIO-034,Week 4,4,IFN-gamma B,pg/mL,3.183
+BIO-034,Baseline,0,IL-2 B,pg/mL,4.106
+BIO-034,Week 4,4,IL-2 B,pg/mL,4.346
+BIO-034,Baseline,0,IL-1beta B,pg/mL,2.541
+BIO-034,Week 4,4,IL-1beta B,pg/mL,2.167
+BIO-034,Baseline,0,IL-8 B,pg/mL,24.207
+BIO-034,Week 4,4,IL-8 B,pg/mL,44.721
+BIO-034,Baseline,0,VEGF B,pg/mL,207.432
+BIO-034,Week 4,4,VEGF B,pg/mL,181.925
+BIO-034,Baseline,0,Ferritin B,ng/mL,122.982
+BIO-034,Week 4,4,Ferritin B,ng/mL,233.043
+BIO-034,Baseline,0,D-dimer B,mg/L,0.398
+BIO-034,Week 4,4,D-dimer B,mg/L,0.509
+BIO-034,Baseline,0,LDH B,U/L,161.593
+BIO-034,Week 4,4,LDH B,U/L,165.27
+BIO-035,Baseline,0,IL-6 B,pg/mL,6.347
+BIO-035,Week 4,4,IL-6 B,pg/mL,6.201
+BIO-035,Baseline,0,CRP B,mg/L,6.556
+BIO-035,Week 4,4,CRP B,mg/L,2.403
+BIO-035,Baseline,0,TNF-alpha B,pg/mL,16.052
+BIO-035,Week 4,4,TNF-alpha B,pg/mL,12.805
+BIO-035,Baseline,0,IL-10 B,pg/mL,7.047
+BIO-035,Week 4,4,IL-10 B,pg/mL,5.753
+BIO-035,Baseline,0,IFN-gamma B,pg/mL,4.373
+BIO-035,Week 4,4,IFN-gamma B,pg/mL,2.442
+BIO-035,Baseline,0,IL-2 B,pg/mL,5.074
+BIO-035,Week 4,4,IL-2 B,pg/mL,5.671
+BIO-035,Baseline,0,IL-1beta B,pg/mL,2.679
+BIO-035,Week 4,4,IL-1beta B,pg/mL,3.301
+BIO-035,Baseline,0,IL-8 B,pg/mL,10.287
+BIO-035,Week 4,4,IL-8 B,pg/mL,16.493
+BIO-035,Baseline,0,VEGF B,pg/mL,222.695
+BIO-035,Week 4,4,VEGF B,pg/mL,232.475
+BIO-035,Baseline,0,Ferritin B,ng/mL,98.071
+BIO-035,Week 4,4,Ferritin B,ng/mL,75.352
+BIO-035,Baseline,0,D-dimer B,mg/L,0.405
+BIO-035,Week 4,4,D-dimer B,mg/L,
+BIO-035,Baseline,0,LDH B,U/L,172.632
+BIO-035,Week 4,4,LDH B,U/L,174.82
+BIO-036,Baseline,0,IL-6 B,pg/mL,7.62
+BIO-036,Week 4,4,IL-6 B,pg/mL,5.2
+BIO-036,Baseline,0,CRP B,mg/L,2.576
+BIO-036,Week 4,4,CRP B,mg/L,2.55
+BIO-036,Baseline,0,TNF-alpha B,pg/mL,14.735
+BIO-036,Week 4,4,TNF-alpha B,pg/mL,14.808
+BIO-036,Baseline,0,IL-10 B,pg/mL,6.256
+BIO-036,Week 4,4,IL-10 B,pg/mL,7.436
+BIO-036,Baseline,0,IFN-gamma B,pg/mL,8.54
+BIO-036,Week 4,4,IFN-gamma B,pg/mL,5.613
+BIO-036,Baseline,0,IL-2 B,pg/mL,3.328
+BIO-036,Week 4,4,IL-2 B,pg/mL,3.811
+BIO-036,Baseline,0,IL-1beta B,pg/mL,3.426
+BIO-036,Week 4,4,IL-1beta B,pg/mL,2.648
+BIO-036,Baseline,0,IL-8 B,pg/mL,12.242
+BIO-036,Week 4,4,IL-8 B,pg/mL,11.399
+BIO-036,Baseline,0,VEGF B,pg/mL,275.131
+BIO-036,Week 4,4,VEGF B,pg/mL,318.077
+BIO-036,Baseline,0,Ferritin B,ng/mL,149.021
+BIO-036,Week 4,4,Ferritin B,ng/mL,108.354
+BIO-036,Baseline,0,D-dimer B,mg/L,0.405
+BIO-036,Week 4,4,D-dimer B,mg/L,0.523
+BIO-036,Baseline,0,LDH B,U/L,181.176
+BIO-036,Week 4,4,LDH B,U/L,171.719
+BIO-037,Baseline,0,IL-6 B,pg/mL,7.261
+BIO-037,Week 4,4,IL-6 B,pg/mL,8.726
+BIO-037,Baseline,0,CRP B,mg/L,3.604
+BIO-037,Week 4,4,CRP B,mg/L,2.558
+BIO-037,Baseline,0,TNF-alpha B,pg/mL,12.318
+BIO-037,Week 4,4,TNF-alpha B,pg/mL,10.023
+BIO-037,Baseline,0,IL-10 B,pg/mL,8.163
+BIO-037,Week 4,4,IL-10 B,pg/mL,
+BIO-037,Baseline,0,IFN-gamma B,pg/mL,3.219
+BIO-037,Week 4,4,IFN-gamma B,pg/mL,1.653
+BIO-037,Baseline,0,IL-2 B,pg/mL,5.525
+BIO-037,Week 4,4,IL-2 B,pg/mL,5.515
+BIO-037,Baseline,0,IL-1beta B,pg/mL,3.147
+BIO-037,Week 4,4,IL-1beta B,pg/mL,3.346
+BIO-037,Baseline,0,IL-8 B,pg/mL,12.086
+BIO-037,Week 4,4,IL-8 B,pg/mL,11.937
+BIO-037,Baseline,0,VEGF B,pg/mL,235.27
+BIO-037,Week 4,4,VEGF B,pg/mL,256.482
+BIO-037,Baseline,0,Ferritin B,ng/mL,101.587
+BIO-037,Week 4,4,Ferritin B,ng/mL,227.722
+BIO-037,Baseline,0,D-dimer B,mg/L,0.324
+BIO-037,Week 4,4,D-dimer B,mg/L,0.487
+BIO-037,Baseline,0,LDH B,U/L,192.102
+BIO-037,Week 4,4,LDH B,U/L,174.729
+BIO-038,Baseline,0,IL-6 B,pg/mL,10.515
+BIO-038,Week 4,4,IL-6 B,pg/mL,8.496
+BIO-038,Baseline,0,CRP B,mg/L,1.813
+BIO-038,Week 4,4,CRP B,mg/L,1.912
+BIO-038,Baseline,0,TNF-alpha B,pg/mL,13.851
+BIO-038,Week 4,4,TNF-alpha B,pg/mL,11.882
+BIO-038,Baseline,0,IL-10 B,pg/mL,7.754
+BIO-038,Week 4,4,IL-10 B,pg/mL,6.387
+BIO-038,Baseline,0,IFN-gamma B,pg/mL,2.534
+BIO-038,Week 4,4,IFN-gamma B,pg/mL,3.675
+BIO-038,Baseline,0,IL-2 B,pg/mL,3.312
+BIO-038,Week 4,4,IL-2 B,pg/mL,4.903
+BIO-038,Baseline,0,IL-1beta B,pg/mL,2.776
+BIO-038,Week 4,4,IL-1beta B,pg/mL,2.887
+BIO-038,Baseline,0,IL-8 B,pg/mL,33.327
+BIO-038,Week 4,4,IL-8 B,pg/mL,32.864
+BIO-038,Baseline,0,VEGF B,pg/mL,207.066
+BIO-038,Week 4,4,VEGF B,pg/mL,236.728
+BIO-038,Baseline,0,Ferritin B,ng/mL,241.239
+BIO-038,Week 4,4,Ferritin B,ng/mL,106.14
+BIO-038,Baseline,0,D-dimer B,mg/L,0.74
+BIO-038,Week 4,4,D-dimer B,mg/L,0.607
+BIO-038,Baseline,0,LDH B,U/L,174.884
+BIO-038,Week 4,4,LDH B,U/L,181.805
+BIO-039,Baseline,0,IL-6 B,pg/mL,7.674
+BIO-039,Week 4,4,IL-6 B,pg/mL,6.254
+BIO-039,Baseline,0,CRP B,mg/L,3.318
+BIO-039,Week 4,4,CRP B,mg/L,2.517
+BIO-039,Baseline,0,TNF-alpha B,pg/mL,12.558
+BIO-039,Week 4,4,TNF-alpha B,pg/mL,10.894
+BIO-039,Baseline,0,IL-10 B,pg/mL,7.722
+BIO-039,Week 4,4,IL-10 B,pg/mL,7.224
+BIO-039,Baseline,0,IFN-gamma B,pg/mL,7.811
+BIO-039,Week 4,4,IFN-gamma B,pg/mL,5.256
+BIO-039,Baseline,0,IL-2 B,pg/mL,4.786
+BIO-039,Week 4,4,IL-2 B,pg/mL,3.433
+BIO-039,Baseline,0,IL-1beta B,pg/mL,3.053
+BIO-039,Week 4,4,IL-1beta B,pg/mL,3.214
+BIO-039,Baseline,0,IL-8 B,pg/mL,21.814
+BIO-039,Week 4,4,IL-8 B,pg/mL,19.127
+BIO-039,Baseline,0,VEGF B,pg/mL,270.006
+BIO-039,Week 4,4,VEGF B,pg/mL,279.772
+BIO-039,Baseline,0,Ferritin B,ng/mL,104.792
+BIO-039,Week 4,4,Ferritin B,ng/mL,74.587
+BIO-039,Baseline,0,D-dimer B,mg/L,0.341
+BIO-039,Week 4,4,D-dimer B,mg/L,0.34
+BIO-039,Baseline,0,LDH B,U/L,178.237
+BIO-039,Week 4,4,LDH B,U/L,183.947
+BIO-040,Baseline,0,IL-6 B,pg/mL,6.239
+BIO-040,Week 4,4,IL-6 B,pg/mL,4.375
+BIO-040,Baseline,0,CRP B,mg/L,1.305
+BIO-040,Week 4,4,CRP B,mg/L,2.661
+BIO-040,Baseline,0,TNF-alpha B,pg/mL,8.242
+BIO-040,Week 4,4,TNF-alpha B,pg/mL,7.197
+BIO-040,Baseline,0,IL-10 B,pg/mL,4.758
+BIO-040,Week 4,4,IL-10 B,pg/mL,4.102
+BIO-040,Baseline,0,IFN-gamma B,pg/mL,9.108
+BIO-040,Week 4,4,IFN-gamma B,pg/mL,8
+BIO-040,Baseline,0,IL-2 B,pg/mL,5.789
+BIO-040,Week 4,4,IL-2 B,pg/mL,5.144
+BIO-040,Baseline,0,IL-1beta B,pg/mL,2.696
+BIO-040,Week 4,4,IL-1beta B,pg/mL,2.878
+BIO-040,Baseline,0,IL-8 B,pg/mL,12.707
+BIO-040,Week 4,4,IL-8 B,pg/mL,7.114
+BIO-040,Baseline,0,VEGF B,pg/mL,346.739
+BIO-040,Week 4,4,VEGF B,pg/mL,254.254
+BIO-040,Baseline,0,Ferritin B,ng/mL,125.52
+BIO-040,Week 4,4,Ferritin B,ng/mL,172.827
+BIO-040,Baseline,0,D-dimer B,mg/L,0.386
+BIO-040,Week 4,4,D-dimer B,mg/L,0.51
+BIO-040,Baseline,0,LDH B,U/L,196.931
+BIO-040,Week 4,4,LDH B,U/L,189.977
+BIO-001,Baseline,0,IL-6 C,pg/mL,6.927
+BIO-001,Week 4,4,IL-6 C,pg/mL,5.9
+BIO-001,Baseline,0,CRP C,mg/L,1.537
+BIO-001,Week 4,4,CRP C,mg/L,3.482
+BIO-001,Baseline,0,TNF-alpha C,pg/mL,12.837
+BIO-001,Week 4,4,TNF-alpha C,pg/mL,11.426
+BIO-001,Baseline,0,IL-10 C,pg/mL,5.48
+BIO-001,Week 4,4,IL-10 C,pg/mL,5.535
+BIO-001,Baseline,0,IFN-gamma C,pg/mL,2.51
+BIO-001,Week 4,4,IFN-gamma C,pg/mL,4.601
+BIO-001,Baseline,0,IL-2 C,pg/mL,5.502
+BIO-001,Week 4,4,IL-2 C,pg/mL,5.51
+BIO-001,Baseline,0,IL-1beta C,pg/mL,3.453
+BIO-001,Week 4,4,IL-1beta C,pg/mL,4.017
+BIO-001,Baseline,0,IL-8 C,pg/mL,13.418
+BIO-001,Week 4,4,IL-8 C,pg/mL,10.88
+BIO-001,Baseline,0,VEGF C,pg/mL,203.438
+BIO-001,Week 4,4,VEGF C,pg/mL,249.588
+BIO-001,Baseline,0,Ferritin C,ng/mL,166.623
+BIO-001,Week 4,4,Ferritin C,ng/mL,183.479
+BIO-001,Baseline,0,D-dimer C,mg/L,0.74
+BIO-001,Week 4,4,D-dimer C,mg/L,
+BIO-001,Baseline,0,LDH C,U/L,189.104
+BIO-001,Week 4,4,LDH C,U/L,196.561
+BIO-002,Baseline,0,IL-6 C,pg/mL,5.36
+BIO-002,Week 4,4,IL-6 C,pg/mL,3.252
+BIO-002,Baseline,0,CRP C,mg/L,2.372
+BIO-002,Week 4,4,CRP C,mg/L,1.597
+BIO-002,Baseline,0,TNF-alpha C,pg/mL,10.04
+BIO-002,Week 4,4,TNF-alpha C,pg/mL,10.519
+BIO-002,Baseline,0,IL-10 C,pg/mL,5.59
+BIO-002,Week 4,4,IL-10 C,pg/mL,4.496
+BIO-002,Baseline,0,IFN-gamma C,pg/mL,3.909
+BIO-002,Week 4,4,IFN-gamma C,pg/mL,2.562
+BIO-002,Baseline,0,IL-2 C,pg/mL,5.689
+BIO-002,Week 4,4,IL-2 C,pg/mL,6.114
+BIO-002,Baseline,0,IL-1beta C,pg/mL,2.898
+BIO-002,Week 4,4,IL-1beta C,pg/mL,2.422
+BIO-002,Baseline,0,IL-8 C,pg/mL,13.862
+BIO-002,Week 4,4,IL-8 C,pg/mL,17.093
+BIO-002,Baseline,0,VEGF C,pg/mL,256.094
+BIO-002,Week 4,4,VEGF C,pg/mL,246.441
+BIO-002,Baseline,0,Ferritin C,ng/mL,116.353
+BIO-002,Week 4,4,Ferritin C,ng/mL,89.938
+BIO-002,Baseline,0,D-dimer C,mg/L,0.16
+BIO-002,Week 4,4,D-dimer C,mg/L,
+BIO-002,Baseline,0,LDH C,U/L,158.394
+BIO-002,Week 4,4,LDH C,U/L,160.917
+BIO-003,Baseline,0,IL-6 C,pg/mL,9.778
+BIO-003,Week 4,4,IL-6 C,pg/mL,8.038
+BIO-003,Baseline,0,CRP C,mg/L,2.146
+BIO-003,Week 4,4,CRP C,mg/L,2.62
+BIO-003,Baseline,0,TNF-alpha C,pg/mL,16.694
+BIO-003,Week 4,4,TNF-alpha C,pg/mL,16.783
+BIO-003,Baseline,0,IL-10 C,pg/mL,6.948
+BIO-003,Week 4,4,IL-10 C,pg/mL,7.185
+BIO-003,Baseline,0,IFN-gamma C,pg/mL,6.462
+BIO-003,Week 4,4,IFN-gamma C,pg/mL,3.092
+BIO-003,Baseline,0,IL-2 C,pg/mL,4.969
+BIO-003,Week 4,4,IL-2 C,pg/mL,5.053
+BIO-003,Baseline,0,IL-1beta C,pg/mL,2.464
+BIO-003,Week 4,4,IL-1beta C,pg/mL,2.775
+BIO-003,Baseline,0,IL-8 C,pg/mL,17.061
+BIO-003,Week 4,4,IL-8 C,pg/mL,11.079
+BIO-003,Baseline,0,VEGF C,pg/mL,256.52
+BIO-003,Week 4,4,VEGF C,pg/mL,271.68
+BIO-003,Baseline,0,Ferritin C,ng/mL,106.902
+BIO-003,Week 4,4,Ferritin C,ng/mL,115.813
+BIO-003,Baseline,0,D-dimer C,mg/L,0.38
+BIO-003,Week 4,4,D-dimer C,mg/L,0.457
+BIO-003,Baseline,0,LDH C,U/L,196.167
+BIO-003,Week 4,4,LDH C,U/L,234.033
+BIO-004,Baseline,0,IL-6 C,pg/mL,9.151
+BIO-004,Week 4,4,IL-6 C,pg/mL,6.017
+BIO-004,Baseline,0,CRP C,mg/L,1.971
+BIO-004,Week 4,4,CRP C,mg/L,1.491
+BIO-004,Baseline,0,TNF-alpha C,pg/mL,9.211
+BIO-004,Week 4,4,TNF-alpha C,pg/mL,12.259
+BIO-004,Baseline,0,IL-10 C,pg/mL,5.055
+BIO-004,Week 4,4,IL-10 C,pg/mL,6.846
+BIO-004,Baseline,0,IFN-gamma C,pg/mL,2.729
+BIO-004,Week 4,4,IFN-gamma C,pg/mL,2.132
+BIO-004,Baseline,0,IL-2 C,pg/mL,3.494
+BIO-004,Week 4,4,IL-2 C,pg/mL,5.216
+BIO-004,Baseline,0,IL-1beta C,pg/mL,2.691
+BIO-004,Week 4,4,IL-1beta C,pg/mL,2.735
+BIO-004,Baseline,0,IL-8 C,pg/mL,16.597
+BIO-004,Week 4,4,IL-8 C,pg/mL,10.985
+BIO-004,Baseline,0,VEGF C,pg/mL,225.651
+BIO-004,Week 4,4,VEGF C,pg/mL,247.278
+BIO-004,Baseline,0,Ferritin C,ng/mL,59.925
+BIO-004,Week 4,4,Ferritin C,ng/mL,66.596
+BIO-004,Baseline,0,D-dimer C,mg/L,0.179
+BIO-004,Week 4,4,D-dimer C,mg/L,0.277
+BIO-004,Baseline,0,LDH C,U/L,161.558
+BIO-004,Week 4,4,LDH C,U/L,196.172
+BIO-005,Baseline,0,IL-6 C,pg/mL,10.242
+BIO-005,Week 4,4,IL-6 C,pg/mL,10.764
+BIO-005,Baseline,0,CRP C,mg/L,2.628
+BIO-005,Week 4,4,CRP C,mg/L,1.698
+BIO-005,Baseline,0,TNF-alpha C,pg/mL,10.163
+BIO-005,Week 4,4,TNF-alpha C,pg/mL,9.917
+BIO-005,Baseline,0,IL-10 C,pg/mL,4.11
+BIO-005,Week 4,4,IL-10 C,pg/mL,6.587
+BIO-005,Baseline,0,IFN-gamma C,pg/mL,4.933
+BIO-005,Week 4,4,IFN-gamma C,pg/mL,4.325
+BIO-005,Baseline,0,IL-2 C,pg/mL,6.021
+BIO-005,Week 4,4,IL-2 C,pg/mL,5.355
+BIO-005,Baseline,0,IL-1beta C,pg/mL,2.856
+BIO-005,Week 4,4,IL-1beta C,pg/mL,2.468
+BIO-005,Baseline,0,IL-8 C,pg/mL,25.75
+BIO-005,Week 4,4,IL-8 C,pg/mL,29.258
+BIO-005,Baseline,0,VEGF C,pg/mL,267.482
+BIO-005,Week 4,4,VEGF C,pg/mL,291.698
+BIO-005,Baseline,0,Ferritin C,ng/mL,74.261
+BIO-005,Week 4,4,Ferritin C,ng/mL,75.848
+BIO-005,Baseline,0,D-dimer C,mg/L,0.88
+BIO-005,Week 4,4,D-dimer C,mg/L,0.572
+BIO-005,Baseline,0,LDH C,U/L,143.36
+BIO-005,Week 4,4,LDH C,U/L,178.352
+BIO-006,Baseline,0,IL-6 C,pg/mL,6.872
+BIO-006,Week 4,4,IL-6 C,pg/mL,6.366
+BIO-006,Baseline,0,CRP C,mg/L,0.502
+BIO-006,Week 4,4,CRP C,mg/L,1.423
+BIO-006,Baseline,0,TNF-alpha C,pg/mL,12.077
+BIO-006,Week 4,4,TNF-alpha C,pg/mL,12.552
+BIO-006,Baseline,0,IL-10 C,pg/mL,5.474
+BIO-006,Week 4,4,IL-10 C,pg/mL,6.113
+BIO-006,Baseline,0,IFN-gamma C,pg/mL,3.677
+BIO-006,Week 4,4,IFN-gamma C,pg/mL,
+BIO-006,Baseline,0,IL-2 C,pg/mL,5.299
+BIO-006,Week 4,4,IL-2 C,pg/mL,5.466
+BIO-006,Baseline,0,IL-1beta C,pg/mL,2.186
+BIO-006,Week 4,4,IL-1beta C,pg/mL,1.858
+BIO-006,Baseline,0,IL-8 C,pg/mL,13.458
+BIO-006,Week 4,4,IL-8 C,pg/mL,12.788
+BIO-006,Baseline,0,VEGF C,pg/mL,186.127
+BIO-006,Week 4,4,VEGF C,pg/mL,164.039
+BIO-006,Baseline,0,Ferritin C,ng/mL,123.313
+BIO-006,Week 4,4,Ferritin C,ng/mL,163.434
+BIO-006,Baseline,0,D-dimer C,mg/L,0.79
+BIO-006,Week 4,4,D-dimer C,mg/L,0.386
+BIO-006,Baseline,0,LDH C,U/L,217.822
+BIO-006,Week 4,4,LDH C,U/L,195.726
+BIO-007,Baseline,0,IL-6 C,pg/mL,7.909
+BIO-007,Week 4,4,IL-6 C,pg/mL,6.59
+BIO-007,Baseline,0,CRP C,mg/L,2.479
+BIO-007,Week 4,4,CRP C,mg/L,1.369
+BIO-007,Baseline,0,TNF-alpha C,pg/mL,15.308
+BIO-007,Week 4,4,TNF-alpha C,pg/mL,13.645
+BIO-007,Baseline,0,IL-10 C,pg/mL,9.06
+BIO-007,Week 4,4,IL-10 C,pg/mL,8.456
+BIO-007,Baseline,0,IFN-gamma C,pg/mL,5.832
+BIO-007,Week 4,4,IFN-gamma C,pg/mL,3.024
+BIO-007,Baseline,0,IL-2 C,pg/mL,4.768
+BIO-007,Week 4,4,IL-2 C,pg/mL,4.846
+BIO-007,Baseline,0,IL-1beta C,pg/mL,2.566
+BIO-007,Week 4,4,IL-1beta C,pg/mL,2.676
+BIO-007,Baseline,0,IL-8 C,pg/mL,24.602
+BIO-007,Week 4,4,IL-8 C,pg/mL,38.242
+BIO-007,Baseline,0,VEGF C,pg/mL,133.236
+BIO-007,Week 4,4,VEGF C,pg/mL,200.879
+BIO-007,Baseline,0,Ferritin C,ng/mL,171.966
+BIO-007,Week 4,4,Ferritin C,ng/mL,122.943
+BIO-007,Baseline,0,D-dimer C,mg/L,0.246
+BIO-007,Week 4,4,D-dimer C,mg/L,0.279
+BIO-007,Baseline,0,LDH C,U/L,162.36
+BIO-007,Week 4,4,LDH C,U/L,178.325
+BIO-008,Baseline,0,IL-6 C,pg/mL,5.968
+BIO-008,Week 4,4,IL-6 C,pg/mL,6.269
+BIO-008,Baseline,0,CRP C,mg/L,3.499
+BIO-008,Week 4,4,CRP C,mg/L,6.494
+BIO-008,Baseline,0,TNF-alpha C,pg/mL,12.802
+BIO-008,Week 4,4,TNF-alpha C,pg/mL,19.188
+BIO-008,Baseline,0,IL-10 C,pg/mL,8.497
+BIO-008,Week 4,4,IL-10 C,pg/mL,10.03
+BIO-008,Baseline,0,IFN-gamma C,pg/mL,6.847
+BIO-008,Week 4,4,IFN-gamma C,pg/mL,4.333
+BIO-008,Baseline,0,IL-2 C,pg/mL,2.003
+BIO-008,Week 4,4,IL-2 C,pg/mL,4.297
+BIO-008,Baseline,0,IL-1beta C,pg/mL,3.124
+BIO-008,Week 4,4,IL-1beta C,pg/mL,2.01
+BIO-008,Baseline,0,IL-8 C,pg/mL,16.891
+BIO-008,Week 4,4,IL-8 C,pg/mL,28.067
+BIO-008,Baseline,0,VEGF C,pg/mL,312.578
+BIO-008,Week 4,4,VEGF C,pg/mL,324.415
+BIO-008,Baseline,0,Ferritin C,ng/mL,230.242
+BIO-008,Week 4,4,Ferritin C,ng/mL,146.191
+BIO-008,Baseline,0,D-dimer C,mg/L,0.387
+BIO-008,Week 4,4,D-dimer C,mg/L,0.31
+BIO-008,Baseline,0,LDH C,U/L,204.178
+BIO-008,Week 4,4,LDH C,U/L,179.947
+BIO-009,Baseline,0,IL-6 C,pg/mL,9.614
+BIO-009,Week 4,4,IL-6 C,pg/mL,5.961
+BIO-009,Baseline,0,CRP C,mg/L,2.669
+BIO-009,Week 4,4,CRP C,mg/L,3.418
+BIO-009,Baseline,0,TNF-alpha C,pg/mL,9.43
+BIO-009,Week 4,4,TNF-alpha C,pg/mL,11.484
+BIO-009,Baseline,0,IL-10 C,pg/mL,5.828
+BIO-009,Week 4,4,IL-10 C,pg/mL,6.176
+BIO-009,Baseline,0,IFN-gamma C,pg/mL,2.747
+BIO-009,Week 4,4,IFN-gamma C,pg/mL,1.946
+BIO-009,Baseline,0,IL-2 C,pg/mL,7.436
+BIO-009,Week 4,4,IL-2 C,pg/mL,6.049
+BIO-009,Baseline,0,IL-1beta C,pg/mL,2.651
+BIO-009,Week 4,4,IL-1beta C,pg/mL,2.942
+BIO-009,Baseline,0,IL-8 C,pg/mL,13.834
+BIO-009,Week 4,4,IL-8 C,pg/mL,13.436
+BIO-009,Baseline,0,VEGF C,pg/mL,263.98
+BIO-009,Week 4,4,VEGF C,pg/mL,262.401
+BIO-009,Baseline,0,Ferritin C,ng/mL,149.562
+BIO-009,Week 4,4,Ferritin C,ng/mL,231.769
+BIO-009,Baseline,0,D-dimer C,mg/L,0.889
+BIO-009,Week 4,4,D-dimer C,mg/L,0.389
+BIO-009,Baseline,0,LDH C,U/L,209.128
+BIO-009,Week 4,4,LDH C,U/L,191.582
+BIO-010,Baseline,0,IL-6 C,pg/mL,6.822
+BIO-010,Baseline,0,CRP C,mg/L,3.592
+BIO-010,Baseline,0,TNF-alpha C,pg/mL,9.676
+BIO-010,Baseline,0,IL-10 C,pg/mL,7.198
+BIO-010,Baseline,0,IFN-gamma C,pg/mL,2.214
+BIO-010,Baseline,0,IL-2 C,pg/mL,4.836
+BIO-010,Baseline,0,IL-1beta C,pg/mL,2.09
+BIO-010,Baseline,0,IL-8 C,pg/mL,8.417
+BIO-010,Baseline,0,VEGF C,pg/mL,196.746
+BIO-010,Baseline,0,Ferritin C,ng/mL,174.694
+BIO-010,Baseline,0,D-dimer C,mg/L,0.501
+BIO-010,Baseline,0,LDH C,U/L,186.617
+BIO-011,Baseline,0,IL-6 C,pg/mL,7.194
+BIO-011,Week 4,4,IL-6 C,pg/mL,7.6
+BIO-011,Baseline,0,CRP C,mg/L,2.222
+BIO-011,Week 4,4,CRP C,mg/L,5.431
+BIO-011,Baseline,0,TNF-alpha C,pg/mL,16.164
+BIO-011,Week 4,4,TNF-alpha C,pg/mL,15.137
+BIO-011,Baseline,0,IL-10 C,pg/mL,8.211
+BIO-011,Week 4,4,IL-10 C,pg/mL,6.691
+BIO-011,Baseline,0,IFN-gamma C,pg/mL,6.244
+BIO-011,Week 4,4,IFN-gamma C,pg/mL,3.096
+BIO-011,Baseline,0,IL-2 C,pg/mL,3.188
+BIO-011,Week 4,4,IL-2 C,pg/mL,4.827
+BIO-011,Baseline,0,IL-1beta C,pg/mL,1.523
+BIO-011,Week 4,4,IL-1beta C,pg/mL,1.329
+BIO-011,Baseline,0,IL-8 C,pg/mL,16.118
+BIO-011,Week 4,4,IL-8 C,pg/mL,10.893
+BIO-011,Baseline,0,VEGF C,pg/mL,271.81
+BIO-011,Week 4,4,VEGF C,pg/mL,245.815
+BIO-011,Baseline,0,Ferritin C,ng/mL,80.716
+BIO-011,Week 4,4,Ferritin C,ng/mL,239.977
+BIO-011,Baseline,0,D-dimer C,mg/L,0.25
+BIO-011,Week 4,4,D-dimer C,mg/L,0.249
+BIO-011,Baseline,0,LDH C,U/L,152.65
+BIO-011,Week 4,4,LDH C,U/L,198.078
+BIO-012,Baseline,0,IL-6 C,pg/mL,6.297
+BIO-012,Week 4,4,IL-6 C,pg/mL,5.337
+BIO-012,Baseline,0,CRP C,mg/L,7.132
+BIO-012,Week 4,4,CRP C,mg/L,8.481
+BIO-012,Baseline,0,TNF-alpha C,pg/mL,11.79
+BIO-012,Week 4,4,TNF-alpha C,pg/mL,11.62
+BIO-012,Baseline,0,IL-10 C,pg/mL,4.185
+BIO-012,Week 4,4,IL-10 C,pg/mL,4.159
+BIO-012,Baseline,0,IFN-gamma C,pg/mL,5.731
+BIO-012,Week 4,4,IFN-gamma C,pg/mL,5.213
+BIO-012,Baseline,0,IL-2 C,pg/mL,5.966
+BIO-012,Week 4,4,IL-2 C,pg/mL,4.881
+BIO-012,Baseline,0,IL-1beta C,pg/mL,3.042
+BIO-012,Week 4,4,IL-1beta C,pg/mL,3.169
+BIO-012,Baseline,0,IL-8 C,pg/mL,10.602
+BIO-012,Week 4,4,IL-8 C,pg/mL,18.151
+BIO-012,Baseline,0,VEGF C,pg/mL,256.287
+BIO-012,Week 4,4,VEGF C,pg/mL,266.466
+BIO-012,Baseline,0,Ferritin C,ng/mL,170.961
+BIO-012,Week 4,4,Ferritin C,ng/mL,103.431
+BIO-012,Baseline,0,D-dimer C,mg/L,0.183
+BIO-012,Week 4,4,D-dimer C,mg/L,0.175
+BIO-012,Baseline,0,LDH C,U/L,203.572
+BIO-012,Week 4,4,LDH C,U/L,188.01
+BIO-013,Baseline,0,IL-6 C,pg/mL,8.547
+BIO-013,Week 4,4,IL-6 C,pg/mL,9.157
+BIO-013,Baseline,0,CRP C,mg/L,2.03
+BIO-013,Week 4,4,CRP C,mg/L,2.946
+BIO-013,Baseline,0,TNF-alpha C,pg/mL,6.059
+BIO-013,Week 4,4,TNF-alpha C,pg/mL,
+BIO-013,Baseline,0,IL-10 C,pg/mL,2.904
+BIO-013,Week 4,4,IL-10 C,pg/mL,1.246
+BIO-013,Baseline,0,IFN-gamma C,pg/mL,10.171
+BIO-013,Week 4,4,IFN-gamma C,pg/mL,6.501
+BIO-013,Baseline,0,IL-2 C,pg/mL,4.618
+BIO-013,Week 4,4,IL-2 C,pg/mL,4.192
+BIO-013,Baseline,0,IL-1beta C,pg/mL,2.575
+BIO-013,Week 4,4,IL-1beta C,pg/mL,2.53
+BIO-013,Baseline,0,IL-8 C,pg/mL,17.84
+BIO-013,Week 4,4,IL-8 C,pg/mL,24.26
+BIO-013,Baseline,0,VEGF C,pg/mL,251.967
+BIO-013,Week 4,4,VEGF C,pg/mL,211.637
+BIO-013,Baseline,0,Ferritin C,ng/mL,129.59
+BIO-013,Week 4,4,Ferritin C,ng/mL,111.527
+BIO-013,Baseline,0,D-dimer C,mg/L,0.421
+BIO-013,Week 4,4,D-dimer C,mg/L,0.798
+BIO-013,Baseline,0,LDH C,U/L,202.934
+BIO-013,Week 4,4,LDH C,U/L,191.754
+BIO-014,Baseline,0,IL-6 C,pg/mL,9.481
+BIO-014,Week 4,4,IL-6 C,pg/mL,5.938
+BIO-014,Baseline,0,CRP C,mg/L,1.417
+BIO-014,Week 4,4,CRP C,mg/L,2.226
+BIO-014,Baseline,0,TNF-alpha C,pg/mL,12.71
+BIO-014,Week 4,4,TNF-alpha C,pg/mL,6.862
+BIO-014,Baseline,0,IL-10 C,pg/mL,6.318
+BIO-014,Week 4,4,IL-10 C,pg/mL,2.588
+BIO-014,Baseline,0,IFN-gamma C,pg/mL,4.529
+BIO-014,Week 4,4,IFN-gamma C,pg/mL,7.395
+BIO-014,Baseline,0,IL-2 C,pg/mL,5.557
+BIO-014,Week 4,4,IL-2 C,pg/mL,5.399
+BIO-014,Baseline,0,IL-1beta C,pg/mL,2.681
+BIO-014,Week 4,4,IL-1beta C,pg/mL,2.476
+BIO-014,Baseline,0,IL-8 C,pg/mL,15.674
+BIO-014,Week 4,4,IL-8 C,pg/mL,21.326
+BIO-014,Baseline,0,VEGF C,pg/mL,206.884
+BIO-014,Week 4,4,VEGF C,pg/mL,217.936
+BIO-014,Baseline,0,Ferritin C,ng/mL,143.307
+BIO-014,Week 4,4,Ferritin C,ng/mL,165.867
+BIO-014,Baseline,0,D-dimer C,mg/L,0.692
+BIO-014,Week 4,4,D-dimer C,mg/L,0.715
+BIO-014,Baseline,0,LDH C,U/L,177.36
+BIO-014,Week 4,4,LDH C,U/L,189.749
+BIO-015,Baseline,0,IL-6 C,pg/mL,7.35
+BIO-015,Week 4,4,IL-6 C,pg/mL,8.194
+BIO-015,Baseline,0,CRP C,mg/L,1.448
+BIO-015,Week 4,4,CRP C,mg/L,2.471
+BIO-015,Baseline,0,TNF-alpha C,pg/mL,14.152
+BIO-015,Week 4,4,TNF-alpha C,pg/mL,10.119
+BIO-015,Baseline,0,IL-10 C,pg/mL,6.601
+BIO-015,Week 4,4,IL-10 C,pg/mL,6.029
+BIO-015,Baseline,0,IFN-gamma C,pg/mL,2.67
+BIO-015,Week 4,4,IFN-gamma C,pg/mL,3.963
+BIO-015,Baseline,0,IL-2 C,pg/mL,4.403
+BIO-015,Week 4,4,IL-2 C,pg/mL,4.833
+BIO-015,Baseline,0,IL-1beta C,pg/mL,1.664
+BIO-015,Week 4,4,IL-1beta C,pg/mL,2.079
+BIO-015,Baseline,0,IL-8 C,pg/mL,12.973
+BIO-015,Week 4,4,IL-8 C,pg/mL,14.545
+BIO-015,Baseline,0,VEGF C,pg/mL,178.982
+BIO-015,Week 4,4,VEGF C,pg/mL,210.875
+BIO-015,Baseline,0,Ferritin C,ng/mL,91.665
+BIO-015,Week 4,4,Ferritin C,ng/mL,94.026
+BIO-015,Baseline,0,D-dimer C,mg/L,0.366
+BIO-015,Week 4,4,D-dimer C,mg/L,0.785
+BIO-015,Baseline,0,LDH C,U/L,181.223
+BIO-015,Week 4,4,LDH C,U/L,197.277
+BIO-016,Baseline,0,IL-6 C,pg/mL,8.548
+BIO-016,Week 4,4,IL-6 C,pg/mL,8.12
+BIO-016,Baseline,0,CRP C,mg/L,4.66
+BIO-016,Week 4,4,CRP C,mg/L,3.061
+BIO-016,Baseline,0,TNF-alpha C,pg/mL,11.064
+BIO-016,Week 4,4,TNF-alpha C,pg/mL,10.344
+BIO-016,Baseline,0,IL-10 C,pg/mL,3.581
+BIO-016,Week 4,4,IL-10 C,pg/mL,4.294
+BIO-016,Baseline,0,IFN-gamma C,pg/mL,5.784
+BIO-016,Week 4,4,IFN-gamma C,pg/mL,3.013
+BIO-016,Baseline,0,IL-2 C,pg/mL,5.627
+BIO-016,Week 4,4,IL-2 C,pg/mL,5.021
+BIO-016,Baseline,0,IL-1beta C,pg/mL,2.489
+BIO-016,Week 4,4,IL-1beta C,pg/mL,2.439
+BIO-016,Baseline,0,IL-8 C,pg/mL,16.979
+BIO-016,Week 4,4,IL-8 C,pg/mL,14.034
+BIO-016,Baseline,0,VEGF C,pg/mL,241.735
+BIO-016,Week 4,4,VEGF C,pg/mL,279.036
+BIO-016,Baseline,0,Ferritin C,ng/mL,363.383
+BIO-016,Week 4,4,Ferritin C,ng/mL,423.725
+BIO-016,Baseline,0,D-dimer C,mg/L,0.32
+BIO-016,Week 4,4,D-dimer C,mg/L,0.276
+BIO-016,Baseline,0,LDH C,U/L,180.834
+BIO-016,Week 4,4,LDH C,U/L,230.822
+BIO-017,Baseline,0,IL-6 C,pg/mL,8.45
+BIO-017,Week 4,4,IL-6 C,pg/mL,8.373
+BIO-017,Baseline,0,CRP C,mg/L,3.695
+BIO-017,Week 4,4,CRP C,mg/L,2.559
+BIO-017,Baseline,0,TNF-alpha C,pg/mL,14.26
+BIO-017,Week 4,4,TNF-alpha C,pg/mL,15.078
+BIO-017,Baseline,0,IL-10 C,pg/mL,6.784
+BIO-017,Week 4,4,IL-10 C,pg/mL,6.995
+BIO-017,Baseline,0,IFN-gamma C,pg/mL,4.01
+BIO-017,Week 4,4,IFN-gamma C,pg/mL,4.689
+BIO-017,Baseline,0,IL-2 C,pg/mL,6.044
+BIO-017,Week 4,4,IL-2 C,pg/mL,6.097
+BIO-017,Baseline,0,IL-1beta C,pg/mL,1.442
+BIO-017,Week 4,4,IL-1beta C,pg/mL,2.504
+BIO-017,Baseline,0,IL-8 C,pg/mL,19.968
+BIO-017,Week 4,4,IL-8 C,pg/mL,13.743
+BIO-017,Baseline,0,VEGF C,pg/mL,286.375
+BIO-017,Week 4,4,VEGF C,pg/mL,248.066
+BIO-017,Baseline,0,Ferritin C,ng/mL,137.939
+BIO-017,Week 4,4,Ferritin C,ng/mL,125.954
+BIO-017,Baseline,0,D-dimer C,mg/L,0.338
+BIO-017,Week 4,4,D-dimer C,mg/L,
+BIO-017,Baseline,0,LDH C,U/L,206.01
+BIO-017,Week 4,4,LDH C,U/L,
+BIO-018,Baseline,0,IL-6 C,pg/mL,9.838
+BIO-018,Week 4,4,IL-6 C,pg/mL,7.784
+BIO-018,Baseline,0,CRP C,mg/L,3.065
+BIO-018,Week 4,4,CRP C,mg/L,3.312
+BIO-018,Baseline,0,TNF-alpha C,pg/mL,8.024
+BIO-018,Week 4,4,TNF-alpha C,pg/mL,9.302
+BIO-018,Baseline,0,IL-10 C,pg/mL,4.844
+BIO-018,Week 4,4,IL-10 C,pg/mL,6.218
+BIO-018,Baseline,0,IFN-gamma C,pg/mL,5.351
+BIO-018,Week 4,4,IFN-gamma C,pg/mL,5.974
+BIO-018,Baseline,0,IL-2 C,pg/mL,4.624
+BIO-018,Week 4,4,IL-2 C,pg/mL,4.394
+BIO-018,Baseline,0,IL-1beta C,pg/mL,3.256
+BIO-018,Week 4,4,IL-1beta C,pg/mL,2.584
+BIO-018,Baseline,0,IL-8 C,pg/mL,7.705
+BIO-018,Week 4,4,IL-8 C,pg/mL,
+BIO-018,Baseline,0,VEGF C,pg/mL,173.687
+BIO-018,Week 4,4,VEGF C,pg/mL,206.826
+BIO-018,Baseline,0,Ferritin C,ng/mL,116.153
+BIO-018,Week 4,4,Ferritin C,ng/mL,113.787
+BIO-018,Baseline,0,D-dimer C,mg/L,0.31
+BIO-018,Week 4,4,D-dimer C,mg/L,0.572
+BIO-018,Baseline,0,LDH C,U/L,205.831
+BIO-018,Week 4,4,LDH C,U/L,187.553
+BIO-019,Baseline,0,IL-6 C,pg/mL,8.98
+BIO-019,Week 4,4,IL-6 C,pg/mL,5.657
+BIO-019,Baseline,0,CRP C,mg/L,7.076
+BIO-019,Week 4,4,CRP C,mg/L,7.656
+BIO-019,Baseline,0,TNF-alpha C,pg/mL,10.798
+BIO-019,Week 4,4,TNF-alpha C,pg/mL,12.766
+BIO-019,Baseline,0,IL-10 C,pg/mL,5.533
+BIO-019,Week 4,4,IL-10 C,pg/mL,5.834
+BIO-019,Baseline,0,IFN-gamma C,pg/mL,4.51
+BIO-019,Week 4,4,IFN-gamma C,pg/mL,3.775
+BIO-019,Baseline,0,IL-2 C,pg/mL,4.375
+BIO-019,Week 4,4,IL-2 C,pg/mL,4.071
+BIO-019,Baseline,0,IL-1beta C,pg/mL,2.653
+BIO-019,Week 4,4,IL-1beta C,pg/mL,2.374
+BIO-019,Baseline,0,IL-8 C,pg/mL,8.652
+BIO-019,Week 4,4,IL-8 C,pg/mL,9.317
+BIO-019,Baseline,0,VEGF C,pg/mL,331.302
+BIO-019,Week 4,4,VEGF C,pg/mL,333.314
+BIO-019,Baseline,0,Ferritin C,ng/mL,91.017
+BIO-019,Week 4,4,Ferritin C,ng/mL,144.125
+BIO-019,Baseline,0,D-dimer C,mg/L,0.334
+BIO-019,Week 4,4,D-dimer C,mg/L,
+BIO-019,Baseline,0,LDH C,U/L,191.772
+BIO-019,Week 4,4,LDH C,U/L,153.713
+BIO-020,Baseline,0,IL-6 C,pg/mL,5.859
+BIO-020,Week 4,4,IL-6 C,pg/mL,6.771
+BIO-020,Baseline,0,CRP C,mg/L,4.056
+BIO-020,Week 4,4,CRP C,mg/L,0.922
+BIO-020,Baseline,0,TNF-alpha C,pg/mL,11.952
+BIO-020,Week 4,4,TNF-alpha C,pg/mL,12.29
+BIO-020,Baseline,0,IL-10 C,pg/mL,3.807
+BIO-020,Week 4,4,IL-10 C,pg/mL,4.518
+BIO-020,Baseline,0,IFN-gamma C,pg/mL,4.839
+BIO-020,Week 4,4,IFN-gamma C,pg/mL,8.358
+BIO-020,Baseline,0,IL-2 C,pg/mL,7.74
+BIO-020,Week 4,4,IL-2 C,pg/mL,5.779
+BIO-020,Baseline,0,IL-1beta C,pg/mL,2.978
+BIO-020,Week 4,4,IL-1beta C,pg/mL,2.333
+BIO-020,Baseline,0,IL-8 C,pg/mL,12.22
+BIO-020,Week 4,4,IL-8 C,pg/mL,10.535
+BIO-020,Baseline,0,VEGF C,pg/mL,287.828
+BIO-020,Week 4,4,VEGF C,pg/mL,293.604
+BIO-020,Baseline,0,Ferritin C,ng/mL,49.077
+BIO-020,Week 4,4,Ferritin C,ng/mL,55.826
+BIO-020,Baseline,0,D-dimer C,mg/L,0.283
+BIO-020,Week 4,4,D-dimer C,mg/L,0.434
+BIO-020,Baseline,0,LDH C,U/L,167.785
+BIO-020,Week 4,4,LDH C,U/L,165.098
+BIO-021,Baseline,0,IL-6 C,pg/mL,12.004
+BIO-021,Week 4,4,IL-6 C,pg/mL,11.164
+BIO-021,Baseline,0,CRP C,mg/L,3.152
+BIO-021,Week 4,4,CRP C,mg/L,3.303
+BIO-021,Baseline,0,TNF-alpha C,pg/mL,12.514
+BIO-021,Week 4,4,TNF-alpha C,pg/mL,13.256
+BIO-021,Baseline,0,IL-10 C,pg/mL,6.2
+BIO-021,Week 4,4,IL-10 C,pg/mL,7.69
+BIO-021,Baseline,0,IFN-gamma C,pg/mL,4.12
+BIO-021,Week 4,4,IFN-gamma C,pg/mL,3.214
+BIO-021,Baseline,0,IL-2 C,pg/mL,4.796
+BIO-021,Week 4,4,IL-2 C,pg/mL,4.486
+BIO-021,Baseline,0,IL-1beta C,pg/mL,2.287
+BIO-021,Week 4,4,IL-1beta C,pg/mL,2.016
+BIO-021,Baseline,0,IL-8 C,pg/mL,20.59
+BIO-021,Week 4,4,IL-8 C,pg/mL,11.936
+BIO-021,Baseline,0,VEGF C,pg/mL,228.592
+BIO-021,Week 4,4,VEGF C,pg/mL,302.532
+BIO-021,Baseline,0,Ferritin C,ng/mL,323.861
+BIO-021,Week 4,4,Ferritin C,ng/mL,123.115
+BIO-021,Baseline,0,D-dimer C,mg/L,0.567
+BIO-021,Week 4,4,D-dimer C,mg/L,
+BIO-021,Baseline,0,LDH C,U/L,170.687
+BIO-021,Week 4,4,LDH C,U/L,174.993
+BIO-022,Baseline,0,IL-6 C,pg/mL,6.406
+BIO-022,Week 4,4,IL-6 C,pg/mL,6.121
+BIO-022,Baseline,0,CRP C,mg/L,8.129
+BIO-022,Week 4,4,CRP C,mg/L,3.779
+BIO-022,Baseline,0,TNF-alpha C,pg/mL,6.606
+BIO-022,Week 4,4,TNF-alpha C,pg/mL,8.604
+BIO-022,Baseline,0,IL-10 C,pg/mL,5.728
+BIO-022,Week 4,4,IL-10 C,pg/mL,5.432
+BIO-022,Baseline,0,IFN-gamma C,pg/mL,3.188
+BIO-022,Week 4,4,IFN-gamma C,pg/mL,3.39
+BIO-022,Baseline,0,IL-2 C,pg/mL,4.277
+BIO-022,Week 4,4,IL-2 C,pg/mL,3.746
+BIO-022,Baseline,0,IL-1beta C,pg/mL,2.455
+BIO-022,Week 4,4,IL-1beta C,pg/mL,3.538
+BIO-022,Baseline,0,IL-8 C,pg/mL,6.635
+BIO-022,Week 4,4,IL-8 C,pg/mL,5.477
+BIO-022,Baseline,0,VEGF C,pg/mL,287.08
+BIO-022,Week 4,4,VEGF C,pg/mL,273.163
+BIO-022,Baseline,0,Ferritin C,ng/mL,98.613
+BIO-022,Week 4,4,Ferritin C,ng/mL,126.13
+BIO-022,Baseline,0,D-dimer C,mg/L,0.355
+BIO-022,Week 4,4,D-dimer C,mg/L,0.197
+BIO-022,Baseline,0,LDH C,U/L,179.594
+BIO-022,Week 4,4,LDH C,U/L,186.749
+BIO-023,Baseline,0,IL-6 C,pg/mL,5.595
+BIO-023,Week 4,4,IL-6 C,pg/mL,7.927
+BIO-023,Baseline,0,CRP C,mg/L,2.914
+BIO-023,Week 4,4,CRP C,mg/L,1.703
+BIO-023,Baseline,0,TNF-alpha C,pg/mL,15.907
+BIO-023,Week 4,4,TNF-alpha C,pg/mL,
+BIO-023,Baseline,0,IL-10 C,pg/mL,8.344
+BIO-023,Week 4,4,IL-10 C,pg/mL,8.273
+BIO-023,Baseline,0,IFN-gamma C,pg/mL,4.173
+BIO-023,Week 4,4,IFN-gamma C,pg/mL,5.924
+BIO-023,Baseline,0,IL-2 C,pg/mL,5.238
+BIO-023,Week 4,4,IL-2 C,pg/mL,6.683
+BIO-023,Baseline,0,IL-1beta C,pg/mL,2.898
+BIO-023,Week 4,4,IL-1beta C,pg/mL,3.104
+BIO-023,Baseline,0,IL-8 C,pg/mL,20.366
+BIO-023,Week 4,4,IL-8 C,pg/mL,11.848
+BIO-023,Baseline,0,VEGF C,pg/mL,224.021
+BIO-023,Week 4,4,VEGF C,pg/mL,267.763
+BIO-023,Baseline,0,Ferritin C,ng/mL,168.681
+BIO-023,Week 4,4,Ferritin C,ng/mL,122.964
+BIO-023,Baseline,0,D-dimer C,mg/L,0.238
+BIO-023,Week 4,4,D-dimer C,mg/L,0.26
+BIO-023,Baseline,0,LDH C,U/L,195.37
+BIO-023,Week 4,4,LDH C,U/L,199.739
+BIO-024,Baseline,0,IL-6 C,pg/mL,7.906
+BIO-024,Week 4,4,IL-6 C,pg/mL,8.784
+BIO-024,Baseline,0,CRP C,mg/L,1.076
+BIO-024,Week 4,4,CRP C,mg/L,1.294
+BIO-024,Baseline,0,TNF-alpha C,pg/mL,13.149
+BIO-024,Week 4,4,TNF-alpha C,pg/mL,15.169
+BIO-024,Baseline,0,IL-10 C,pg/mL,3.568
+BIO-024,Week 4,4,IL-10 C,pg/mL,5.832
+BIO-024,Baseline,0,IFN-gamma C,pg/mL,3.434
+BIO-024,Week 4,4,IFN-gamma C,pg/mL,2.655
+BIO-024,Baseline,0,IL-2 C,pg/mL,4.332
+BIO-024,Week 4,4,IL-2 C,pg/mL,4.676
+BIO-024,Baseline,0,IL-1beta C,pg/mL,2.999
+BIO-024,Week 4,4,IL-1beta C,pg/mL,2.631
+BIO-024,Baseline,0,IL-8 C,pg/mL,16.629
+BIO-024,Week 4,4,IL-8 C,pg/mL,7.754
+BIO-024,Baseline,0,VEGF C,pg/mL,258.807
+BIO-024,Week 4,4,VEGF C,pg/mL,259.185
+BIO-024,Baseline,0,Ferritin C,ng/mL,143.279
+BIO-024,Week 4,4,Ferritin C,ng/mL,173.537
+BIO-024,Baseline,0,D-dimer C,mg/L,0.299
+BIO-024,Week 4,4,D-dimer C,mg/L,0.531
+BIO-024,Baseline,0,LDH C,U/L,145.773
+BIO-024,Week 4,4,LDH C,U/L,165.505
+BIO-025,Baseline,0,IL-6 C,pg/mL,7.664
+BIO-025,Week 4,4,IL-6 C,pg/mL,7.485
+BIO-025,Baseline,0,CRP C,mg/L,1.501
+BIO-025,Week 4,4,CRP C,mg/L,1.481
+BIO-025,Baseline,0,TNF-alpha C,pg/mL,13.65
+BIO-025,Week 4,4,TNF-alpha C,pg/mL,14.271
+BIO-025,Baseline,0,IL-10 C,pg/mL,6.713
+BIO-025,Week 4,4,IL-10 C,pg/mL,6.148
+BIO-025,Baseline,0,IFN-gamma C,pg/mL,4.047
+BIO-025,Week 4,4,IFN-gamma C,pg/mL,2.895
+BIO-025,Baseline,0,IL-2 C,pg/mL,4.495
+BIO-025,Week 4,4,IL-2 C,pg/mL,3.989
+BIO-025,Baseline,0,IL-1beta C,pg/mL,2.938
+BIO-025,Week 4,4,IL-1beta C,pg/mL,2.676
+BIO-025,Baseline,0,IL-8 C,pg/mL,11.787
+BIO-025,Week 4,4,IL-8 C,pg/mL,10.496
+BIO-025,Baseline,0,VEGF C,pg/mL,277.997
+BIO-025,Week 4,4,VEGF C,pg/mL,269.43
+BIO-025,Baseline,0,Ferritin C,ng/mL,100.508
+BIO-025,Week 4,4,Ferritin C,ng/mL,74.885
+BIO-025,Baseline,0,D-dimer C,mg/L,0.338
+BIO-025,Week 4,4,D-dimer C,mg/L,0.668
+BIO-025,Baseline,0,LDH C,U/L,188.657
+BIO-025,Week 4,4,LDH C,U/L,165.645
+BIO-026,Baseline,0,IL-6 C,pg/mL,8.268
+BIO-026,Week 4,4,IL-6 C,pg/mL,7.6
+BIO-026,Baseline,0,CRP C,mg/L,16.657
+BIO-026,Week 4,4,CRP C,mg/L,5.242
+BIO-026,Baseline,0,TNF-alpha C,pg/mL,13.586
+BIO-026,Week 4,4,TNF-alpha C,pg/mL,10.618
+BIO-026,Baseline,0,IL-10 C,pg/mL,7.642
+BIO-026,Week 4,4,IL-10 C,pg/mL,6.156
+BIO-026,Baseline,0,IFN-gamma C,pg/mL,5.942
+BIO-026,Week 4,4,IFN-gamma C,pg/mL,5.507
+BIO-026,Baseline,0,IL-2 C,pg/mL,2.628
+BIO-026,Week 4,4,IL-2 C,pg/mL,4.173
+BIO-026,Baseline,0,IL-1beta C,pg/mL,2.732
+BIO-026,Week 4,4,IL-1beta C,pg/mL,2.666
+BIO-026,Baseline,0,IL-8 C,pg/mL,4.222
+BIO-026,Week 4,4,IL-8 C,pg/mL,5.601
+BIO-026,Baseline,0,VEGF C,pg/mL,250.014
+BIO-026,Week 4,4,VEGF C,pg/mL,291.971
+BIO-026,Baseline,0,Ferritin C,ng/mL,182.407
+BIO-026,Week 4,4,Ferritin C,ng/mL,108.786
+BIO-026,Baseline,0,D-dimer C,mg/L,0.185
+BIO-026,Week 4,4,D-dimer C,mg/L,0.335
+BIO-026,Baseline,0,LDH C,U/L,100.98
+BIO-026,Week 4,4,LDH C,U/L,115.92
+BIO-027,Baseline,0,IL-6 C,pg/mL,6.341
+BIO-027,Baseline,0,CRP C,mg/L,1.375
+BIO-027,Baseline,0,TNF-alpha C,pg/mL,14.317
+BIO-027,Baseline,0,IL-10 C,pg/mL,7.584
+BIO-027,Baseline,0,IFN-gamma C,pg/mL,3.167
+BIO-027,Baseline,0,IL-2 C,pg/mL,5.848
+BIO-027,Baseline,0,IL-1beta C,pg/mL,2.709
+BIO-027,Baseline,0,IL-8 C,pg/mL,11.257
+BIO-027,Baseline,0,VEGF C,pg/mL,191.201
+BIO-027,Baseline,0,Ferritin C,ng/mL,64.118
+BIO-027,Baseline,0,D-dimer C,mg/L,0.329
+BIO-027,Baseline,0,LDH C,U/L,208.265
+BIO-028,Baseline,0,IL-6 C,pg/mL,8.506
+BIO-028,Week 4,4,IL-6 C,pg/mL,6.188
+BIO-028,Baseline,0,CRP C,mg/L,1.935
+BIO-028,Week 4,4,CRP C,mg/L,1.789
+BIO-028,Baseline,0,TNF-alpha C,pg/mL,14.474
+BIO-028,Week 4,4,TNF-alpha C,pg/mL,17.913
+BIO-028,Baseline,0,IL-10 C,pg/mL,8.388
+BIO-028,Week 4,4,IL-10 C,pg/mL,7.802
+BIO-028,Baseline,0,IFN-gamma C,pg/mL,3.242
+BIO-028,Week 4,4,IFN-gamma C,pg/mL,1.372
+BIO-028,Baseline,0,IL-2 C,pg/mL,4.216
+BIO-028,Week 4,4,IL-2 C,pg/mL,4.927
+BIO-028,Baseline,0,IL-1beta C,pg/mL,2.697
+BIO-028,Week 4,4,IL-1beta C,pg/mL,2.206
+BIO-028,Baseline,0,IL-8 C,pg/mL,25.671
+BIO-028,Week 4,4,IL-8 C,pg/mL,21.549
+BIO-028,Baseline,0,VEGF C,pg/mL,276.358
+BIO-028,Week 4,4,VEGF C,pg/mL,285.637
+BIO-028,Baseline,0,Ferritin C,ng/mL,93.252
+BIO-028,Week 4,4,Ferritin C,ng/mL,88.294
+BIO-028,Baseline,0,D-dimer C,mg/L,0.293
+BIO-028,Week 4,4,D-dimer C,mg/L,0.278
+BIO-028,Baseline,0,LDH C,U/L,177.075
+BIO-028,Week 4,4,LDH C,U/L,
+BIO-029,Baseline,0,IL-6 C,pg/mL,5.744
+BIO-029,Week 4,4,IL-6 C,pg/mL,5.316
+BIO-029,Baseline,0,CRP C,mg/L,1.36
+BIO-029,Week 4,4,CRP C,mg/L,3.51
+BIO-029,Baseline,0,TNF-alpha C,pg/mL,8.173
+BIO-029,Week 4,4,TNF-alpha C,pg/mL,13.061
+BIO-029,Baseline,0,IL-10 C,pg/mL,4.863
+BIO-029,Week 4,4,IL-10 C,pg/mL,6.059
+BIO-029,Baseline,0,IFN-gamma C,pg/mL,2.595
+BIO-029,Week 4,4,IFN-gamma C,pg/mL,6.886
+BIO-029,Baseline,0,IL-2 C,pg/mL,4.814
+BIO-029,Week 4,4,IL-2 C,pg/mL,5.441
+BIO-029,Baseline,0,IL-1beta C,pg/mL,1.807
+BIO-029,Week 4,4,IL-1beta C,pg/mL,2.73
+BIO-029,Baseline,0,IL-8 C,pg/mL,16.302
+BIO-029,Week 4,4,IL-8 C,pg/mL,29.749
+BIO-029,Baseline,0,VEGF C,pg/mL,276.459
+BIO-029,Week 4,4,VEGF C,pg/mL,320.488
+BIO-029,Baseline,0,Ferritin C,ng/mL,177.423
+BIO-029,Week 4,4,Ferritin C,ng/mL,165.598
+BIO-029,Baseline,0,D-dimer C,mg/L,0.332
+BIO-029,Week 4,4,D-dimer C,mg/L,0.652
+BIO-029,Baseline,0,LDH C,U/L,167.202
+BIO-029,Week 4,4,LDH C,U/L,177.62
+BIO-030,Baseline,0,IL-6 C,pg/mL,8.893
+BIO-030,Week 4,4,IL-6 C,pg/mL,9.368
+BIO-030,Baseline,0,CRP C,mg/L,1.364
+BIO-030,Week 4,4,CRP C,mg/L,1.358
+BIO-030,Baseline,0,TNF-alpha C,pg/mL,9.409
+BIO-030,Week 4,4,TNF-alpha C,pg/mL,9.692
+BIO-030,Baseline,0,IL-10 C,pg/mL,4.544
+BIO-030,Week 4,4,IL-10 C,pg/mL,2.326
+BIO-030,Baseline,0,IFN-gamma C,pg/mL,5.554
+BIO-030,Week 4,4,IFN-gamma C,pg/mL,6.391
+BIO-030,Baseline,0,IL-2 C,pg/mL,5.676
+BIO-030,Week 4,4,IL-2 C,pg/mL,5.975
+BIO-030,Baseline,0,IL-1beta C,pg/mL,3.554
+BIO-030,Week 4,4,IL-1beta C,pg/mL,3.228
+BIO-030,Baseline,0,IL-8 C,pg/mL,11.222
+BIO-030,Week 4,4,IL-8 C,pg/mL,8.867
+BIO-030,Baseline,0,VEGF C,pg/mL,224.684
+BIO-030,Week 4,4,VEGF C,pg/mL,282.641
+BIO-030,Baseline,0,Ferritin C,ng/mL,391.85
+BIO-030,Week 4,4,Ferritin C,ng/mL,285.887
+BIO-030,Baseline,0,D-dimer C,mg/L,0.654
+BIO-030,Week 4,4,D-dimer C,mg/L,0.548
+BIO-030,Baseline,0,LDH C,U/L,177.492
+BIO-030,Week 4,4,LDH C,U/L,192.667
+BIO-031,Baseline,0,IL-6 C,pg/mL,9.182
+BIO-031,Week 4,4,IL-6 C,pg/mL,6.824
+BIO-031,Baseline,0,CRP C,mg/L,2.274
+BIO-031,Week 4,4,CRP C,mg/L,1.651
+BIO-031,Baseline,0,TNF-alpha C,pg/mL,8.979
+BIO-031,Week 4,4,TNF-alpha C,pg/mL,9.072
+BIO-031,Baseline,0,IL-10 C,pg/mL,4.724
+BIO-031,Week 4,4,IL-10 C,pg/mL,4.462
+BIO-031,Baseline,0,IFN-gamma C,pg/mL,1.856
+BIO-031,Week 4,4,IFN-gamma C,pg/mL,2.159
+BIO-031,Baseline,0,IL-2 C,pg/mL,5.064
+BIO-031,Week 4,4,IL-2 C,pg/mL,4.794
+BIO-031,Baseline,0,IL-1beta C,pg/mL,2.262
+BIO-031,Week 4,4,IL-1beta C,pg/mL,2.794
+BIO-031,Baseline,0,IL-8 C,pg/mL,9.74
+BIO-031,Week 4,4,IL-8 C,pg/mL,13.474
+BIO-031,Baseline,0,VEGF C,pg/mL,278.754
+BIO-031,Week 4,4,VEGF C,pg/mL,236.697
+BIO-031,Baseline,0,Ferritin C,ng/mL,83.301
+BIO-031,Week 4,4,Ferritin C,ng/mL,149.884
+BIO-031,Baseline,0,D-dimer C,mg/L,0.264
+BIO-031,Week 4,4,D-dimer C,mg/L,0.167
+BIO-031,Baseline,0,LDH C,U/L,170.785
+BIO-031,Week 4,4,LDH C,U/L,166.669
+BIO-032,Baseline,0,IL-6 C,pg/mL,7.333
+BIO-032,Week 4,4,IL-6 C,pg/mL,5.84
+BIO-032,Baseline,0,CRP C,mg/L,2.449
+BIO-032,Week 4,4,CRP C,mg/L,9.218
+BIO-032,Baseline,0,TNF-alpha C,pg/mL,9.064
+BIO-032,Week 4,4,TNF-alpha C,pg/mL,11.464
+BIO-032,Baseline,0,IL-10 C,pg/mL,4.722
+BIO-032,Week 4,4,IL-10 C,pg/mL,5.596
+BIO-032,Baseline,0,IFN-gamma C,pg/mL,2.153
+BIO-032,Week 4,4,IFN-gamma C,pg/mL,1.996
+BIO-032,Baseline,0,IL-2 C,pg/mL,4.53
+BIO-032,Week 4,4,IL-2 C,pg/mL,5.614
+BIO-032,Baseline,0,IL-1beta C,pg/mL,2.49
+BIO-032,Week 4,4,IL-1beta C,pg/mL,2.764
+BIO-032,Baseline,0,IL-8 C,pg/mL,23.247
+BIO-032,Week 4,4,IL-8 C,pg/mL,30.589
+BIO-032,Baseline,0,VEGF C,pg/mL,309.001
+BIO-032,Week 4,4,VEGF C,pg/mL,235.809
+BIO-032,Baseline,0,Ferritin C,ng/mL,97.216
+BIO-032,Week 4,4,Ferritin C,ng/mL,140.744
+BIO-032,Baseline,0,D-dimer C,mg/L,0.446
+BIO-032,Week 4,4,D-dimer C,mg/L,0.771
+BIO-032,Baseline,0,LDH C,U/L,220.332
+BIO-032,Week 4,4,LDH C,U/L,203.093
+BIO-033,Baseline,0,IL-6 C,pg/mL,8.772
+BIO-033,Week 4,4,IL-6 C,pg/mL,9.236
+BIO-033,Baseline,0,CRP C,mg/L,4.183
+BIO-033,Week 4,4,CRP C,mg/L,1.066
+BIO-033,Baseline,0,TNF-alpha C,pg/mL,11.772
+BIO-033,Week 4,4,TNF-alpha C,pg/mL,12.521
+BIO-033,Baseline,0,IL-10 C,pg/mL,4.73
+BIO-033,Week 4,4,IL-10 C,pg/mL,6.248
+BIO-033,Baseline,0,IFN-gamma C,pg/mL,4.578
+BIO-033,Week 4,4,IFN-gamma C,pg/mL,4.174
+BIO-033,Baseline,0,IL-2 C,pg/mL,5.018
+BIO-033,Week 4,4,IL-2 C,pg/mL,4.523
+BIO-033,Baseline,0,IL-1beta C,pg/mL,2.457
+BIO-033,Week 4,4,IL-1beta C,pg/mL,1.989
+BIO-033,Baseline,0,IL-8 C,pg/mL,27.383
+BIO-033,Week 4,4,IL-8 C,pg/mL,17.694
+BIO-033,Baseline,0,VEGF C,pg/mL,265.412
+BIO-033,Week 4,4,VEGF C,pg/mL,265.962
+BIO-033,Baseline,0,Ferritin C,ng/mL,97.737
+BIO-033,Week 4,4,Ferritin C,ng/mL,126.608
+BIO-033,Baseline,0,D-dimer C,mg/L,0.371
+BIO-033,Week 4,4,D-dimer C,mg/L,0.235
+BIO-033,Baseline,0,LDH C,U/L,218.541
+BIO-033,Week 4,4,LDH C,U/L,219.655
+BIO-034,Baseline,0,IL-6 C,pg/mL,8.145
+BIO-034,Week 4,4,IL-6 C,pg/mL,6.981
+BIO-034,Baseline,0,CRP C,mg/L,2.11
+BIO-034,Week 4,4,CRP C,mg/L,2.58
+BIO-034,Baseline,0,TNF-alpha C,pg/mL,13.656
+BIO-034,Week 4,4,TNF-alpha C,pg/mL,12.278
+BIO-034,Baseline,0,IL-10 C,pg/mL,6.722
+BIO-034,Week 4,4,IL-10 C,pg/mL,6.557
+BIO-034,Baseline,0,IFN-gamma C,pg/mL,5.029
+BIO-034,Week 4,4,IFN-gamma C,pg/mL,3.183
+BIO-034,Baseline,0,IL-2 C,pg/mL,4.106
+BIO-034,Week 4,4,IL-2 C,pg/mL,4.346
+BIO-034,Baseline,0,IL-1beta C,pg/mL,2.541
+BIO-034,Week 4,4,IL-1beta C,pg/mL,2.167
+BIO-034,Baseline,0,IL-8 C,pg/mL,24.207
+BIO-034,Week 4,4,IL-8 C,pg/mL,44.721
+BIO-034,Baseline,0,VEGF C,pg/mL,207.432
+BIO-034,Week 4,4,VEGF C,pg/mL,181.925
+BIO-034,Baseline,0,Ferritin C,ng/mL,122.982
+BIO-034,Week 4,4,Ferritin C,ng/mL,233.043
+BIO-034,Baseline,0,D-dimer C,mg/L,0.398
+BIO-034,Week 4,4,D-dimer C,mg/L,0.509
+BIO-034,Baseline,0,LDH C,U/L,161.593
+BIO-034,Week 4,4,LDH C,U/L,165.27
+BIO-035,Baseline,0,IL-6 C,pg/mL,6.347
+BIO-035,Week 4,4,IL-6 C,pg/mL,6.201
+BIO-035,Baseline,0,CRP C,mg/L,6.556
+BIO-035,Week 4,4,CRP C,mg/L,2.403
+BIO-035,Baseline,0,TNF-alpha C,pg/mL,16.052
+BIO-035,Week 4,4,TNF-alpha C,pg/mL,12.805
+BIO-035,Baseline,0,IL-10 C,pg/mL,7.047
+BIO-035,Week 4,4,IL-10 C,pg/mL,5.753
+BIO-035,Baseline,0,IFN-gamma C,pg/mL,4.373
+BIO-035,Week 4,4,IFN-gamma C,pg/mL,2.442
+BIO-035,Baseline,0,IL-2 C,pg/mL,5.074
+BIO-035,Week 4,4,IL-2 C,pg/mL,5.671
+BIO-035,Baseline,0,IL-1beta C,pg/mL,2.679
+BIO-035,Week 4,4,IL-1beta C,pg/mL,3.301
+BIO-035,Baseline,0,IL-8 C,pg/mL,10.287
+BIO-035,Week 4,4,IL-8 C,pg/mL,16.493
+BIO-035,Baseline,0,VEGF C,pg/mL,222.695
+BIO-035,Week 4,4,VEGF C,pg/mL,232.475
+BIO-035,Baseline,0,Ferritin C,ng/mL,98.071
+BIO-035,Week 4,4,Ferritin C,ng/mL,75.352
+BIO-035,Baseline,0,D-dimer C,mg/L,0.405
+BIO-035,Week 4,4,D-dimer C,mg/L,
+BIO-035,Baseline,0,LDH C,U/L,172.632
+BIO-035,Week 4,4,LDH C,U/L,174.82
+BIO-036,Baseline,0,IL-6 C,pg/mL,7.62
+BIO-036,Week 4,4,IL-6 C,pg/mL,5.2
+BIO-036,Baseline,0,CRP C,mg/L,2.576
+BIO-036,Week 4,4,CRP C,mg/L,2.55
+BIO-036,Baseline,0,TNF-alpha C,pg/mL,14.735
+BIO-036,Week 4,4,TNF-alpha C,pg/mL,14.808
+BIO-036,Baseline,0,IL-10 C,pg/mL,6.256
+BIO-036,Week 4,4,IL-10 C,pg/mL,7.436
+BIO-036,Baseline,0,IFN-gamma C,pg/mL,8.54
+BIO-036,Week 4,4,IFN-gamma C,pg/mL,5.613
+BIO-036,Baseline,0,IL-2 C,pg/mL,3.328
+BIO-036,Week 4,4,IL-2 C,pg/mL,3.811
+BIO-036,Baseline,0,IL-1beta C,pg/mL,3.426
+BIO-036,Week 4,4,IL-1beta C,pg/mL,2.648
+BIO-036,Baseline,0,IL-8 C,pg/mL,12.242
+BIO-036,Week 4,4,IL-8 C,pg/mL,11.399
+BIO-036,Baseline,0,VEGF C,pg/mL,275.131
+BIO-036,Week 4,4,VEGF C,pg/mL,318.077
+BIO-036,Baseline,0,Ferritin C,ng/mL,149.021
+BIO-036,Week 4,4,Ferritin C,ng/mL,108.354
+BIO-036,Baseline,0,D-dimer C,mg/L,0.405
+BIO-036,Week 4,4,D-dimer C,mg/L,0.523
+BIO-036,Baseline,0,LDH C,U/L,181.176
+BIO-036,Week 4,4,LDH C,U/L,171.719
+BIO-037,Baseline,0,IL-6 C,pg/mL,7.261
+BIO-037,Week 4,4,IL-6 C,pg/mL,8.726
+BIO-037,Baseline,0,CRP C,mg/L,3.604
+BIO-037,Week 4,4,CRP C,mg/L,2.558
+BIO-037,Baseline,0,TNF-alpha C,pg/mL,12.318
+BIO-037,Week 4,4,TNF-alpha C,pg/mL,10.023
+BIO-037,Baseline,0,IL-10 C,pg/mL,8.163
+BIO-037,Week 4,4,IL-10 C,pg/mL,
+BIO-037,Baseline,0,IFN-gamma C,pg/mL,3.219
+BIO-037,Week 4,4,IFN-gamma C,pg/mL,1.653
+BIO-037,Baseline,0,IL-2 C,pg/mL,5.525
+BIO-037,Week 4,4,IL-2 C,pg/mL,5.515
+BIO-037,Baseline,0,IL-1beta C,pg/mL,3.147
+BIO-037,Week 4,4,IL-1beta C,pg/mL,3.346
+BIO-037,Baseline,0,IL-8 C,pg/mL,12.086
+BIO-037,Week 4,4,IL-8 C,pg/mL,11.937
+BIO-037,Baseline,0,VEGF C,pg/mL,235.27
+BIO-037,Week 4,4,VEGF C,pg/mL,256.482
+BIO-037,Baseline,0,Ferritin C,ng/mL,101.587
+BIO-037,Week 4,4,Ferritin C,ng/mL,227.722
+BIO-037,Baseline,0,D-dimer C,mg/L,0.324
+BIO-037,Week 4,4,D-dimer C,mg/L,0.487
+BIO-037,Baseline,0,LDH C,U/L,192.102
+BIO-037,Week 4,4,LDH C,U/L,174.729
+BIO-038,Baseline,0,IL-6 C,pg/mL,10.515
+BIO-038,Week 4,4,IL-6 C,pg/mL,8.496
+BIO-038,Baseline,0,CRP C,mg/L,1.813
+BIO-038,Week 4,4,CRP C,mg/L,1.912
+BIO-038,Baseline,0,TNF-alpha C,pg/mL,13.851
+BIO-038,Week 4,4,TNF-alpha C,pg/mL,11.882
+BIO-038,Baseline,0,IL-10 C,pg/mL,7.754
+BIO-038,Week 4,4,IL-10 C,pg/mL,6.387
+BIO-038,Baseline,0,IFN-gamma C,pg/mL,2.534
+BIO-038,Week 4,4,IFN-gamma C,pg/mL,3.675
+BIO-038,Baseline,0,IL-2 C,pg/mL,3.312
+BIO-038,Week 4,4,IL-2 C,pg/mL,4.903
+BIO-038,Baseline,0,IL-1beta C,pg/mL,2.776
+BIO-038,Week 4,4,IL-1beta C,pg/mL,2.887
+BIO-038,Baseline,0,IL-8 C,pg/mL,33.327
+BIO-038,Week 4,4,IL-8 C,pg/mL,32.864
+BIO-038,Baseline,0,VEGF C,pg/mL,207.066
+BIO-038,Week 4,4,VEGF C,pg/mL,236.728
+BIO-038,Baseline,0,Ferritin C,ng/mL,241.239
+BIO-038,Week 4,4,Ferritin C,ng/mL,106.14
+BIO-038,Baseline,0,D-dimer C,mg/L,0.74
+BIO-038,Week 4,4,D-dimer C,mg/L,0.607
+BIO-038,Baseline,0,LDH C,U/L,174.884
+BIO-038,Week 4,4,LDH C,U/L,181.805
+BIO-039,Baseline,0,IL-6 C,pg/mL,7.674
+BIO-039,Week 4,4,IL-6 C,pg/mL,6.254
+BIO-039,Baseline,0,CRP C,mg/L,3.318
+BIO-039,Week 4,4,CRP C,mg/L,2.517
+BIO-039,Baseline,0,TNF-alpha C,pg/mL,12.558
+BIO-039,Week 4,4,TNF-alpha C,pg/mL,10.894
+BIO-039,Baseline,0,IL-10 C,pg/mL,7.722
+BIO-039,Week 4,4,IL-10 C,pg/mL,7.224
+BIO-039,Baseline,0,IFN-gamma C,pg/mL,7.811
+BIO-039,Week 4,4,IFN-gamma C,pg/mL,5.256
+BIO-039,Baseline,0,IL-2 C,pg/mL,4.786
+BIO-039,Week 4,4,IL-2 C,pg/mL,3.433
+BIO-039,Baseline,0,IL-1beta C,pg/mL,3.053
+BIO-039,Week 4,4,IL-1beta C,pg/mL,3.214
+BIO-039,Baseline,0,IL-8 C,pg/mL,21.814
+BIO-039,Week 4,4,IL-8 C,pg/mL,19.127
+BIO-039,Baseline,0,VEGF C,pg/mL,270.006
+BIO-039,Week 4,4,VEGF C,pg/mL,279.772
+BIO-039,Baseline,0,Ferritin C,ng/mL,104.792
+BIO-039,Week 4,4,Ferritin C,ng/mL,74.587
+BIO-039,Baseline,0,D-dimer C,mg/L,0.341
+BIO-039,Week 4,4,D-dimer C,mg/L,0.34
+BIO-039,Baseline,0,LDH C,U/L,178.237
+BIO-039,Week 4,4,LDH C,U/L,183.947
+BIO-040,Baseline,0,IL-6 C,pg/mL,6.239
+BIO-040,Week 4,4,IL-6 C,pg/mL,4.375
+BIO-040,Baseline,0,CRP C,mg/L,1.305
+BIO-040,Week 4,4,CRP C,mg/L,2.661
+BIO-040,Baseline,0,TNF-alpha C,pg/mL,8.242
+BIO-040,Week 4,4,TNF-alpha C,pg/mL,7.197
+BIO-040,Baseline,0,IL-10 C,pg/mL,4.758
+BIO-040,Week 4,4,IL-10 C,pg/mL,4.102
+BIO-040,Baseline,0,IFN-gamma C,pg/mL,9.108
+BIO-040,Week 4,4,IFN-gamma C,pg/mL,8
+BIO-040,Baseline,0,IL-2 C,pg/mL,5.789
+BIO-040,Week 4,4,IL-2 C,pg/mL,5.144
+BIO-040,Baseline,0,IL-1beta C,pg/mL,2.696
+BIO-040,Week 4,4,IL-1beta C,pg/mL,2.878
+BIO-040,Baseline,0,IL-8 C,pg/mL,12.707
+BIO-040,Week 4,4,IL-8 C,pg/mL,7.114
+BIO-040,Baseline,0,VEGF C,pg/mL,346.739
+BIO-040,Week 4,4,VEGF C,pg/mL,254.254
+BIO-040,Baseline,0,Ferritin C,ng/mL,125.52
+BIO-040,Week 4,4,Ferritin C,ng/mL,172.827
+BIO-040,Baseline,0,D-dimer C,mg/L,0.386
+BIO-040,Week 4,4,D-dimer C,mg/L,0.51
+BIO-040,Baseline,0,LDH C,U/L,196.931
+BIO-040,Week 4,4,LDH C,U/L,189.977

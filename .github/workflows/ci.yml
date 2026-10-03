@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  pull_request:
+    # Explicit types so a draft marked ready for review is checked; the default
+    # set (opened, synchronize, reopened) would leave that transition untested.
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    # The dev and main branch rulesets require this check by its display name;
+    # renaming it leaves them waiting on a check that never reports.
+    name: Build, format, and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Check dist/ matches a fresh build
+        run: npm run build:check-dist
+
+      - name: Run unit tests
+        run: npm test
+
+      # The unit tests hold the vendored synthetic study to its own record. This
+      # holds it to the source: each file is fetched from gsm.bio at the
+      # recorded commit and compared byte for byte.
+      - name: Vendored study equals gsm.bio at the recorded commit
+        run: npm run data:check-source
+
+      # The same for safety.viz's bundle, which a chart's page loads beside
+      # bio.viz: fetched from safety.viz at the recorded commit and compared.
+      - name: Vendored safety.viz bundle equals safety.viz at the recorded commit
+        run: npm run kit:check-source
+
+      # And for gsm.bio's statistics file, the one file R in the browser is
+      # given and the file the expected results below are made with: fetched
+      # from gsm.bio at the recorded commit and compared.
+      - name: Vendored statistics file equals gsm.bio at the recorded commit
+        run: npm run statistics:check-source
+
+      # And for safety.viz's portfolio manifest format, the schema the chart
+      # list (BioViz.portfolio) is validated against: fetched from safety.viz at
+      # the recorded commit and compared.
+      - name: Vendored portfolio schema equals safety.viz at the recorded commit
+        run: npm run portfolio:check-source
+
+      # Desktop R, at the version that made site/r-check/expected.json, so the
+      # step after it re-derives the committed expected results instead of
+      # trusting them: the R check page's, the numbers the group comparison
+      # chart's boxes and violins are held to, and what gsm.bio's vendored
+      # statistics file answers for the rows that chart, the association
+      # scatter, the correlation matrix and the biomarker screen hand R. The
+      # survival package comes with R.
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+
+      - name: Expected results are what desktop R produces
+        run: npm run fixtures:check -- --require-r
+
+      - name: Build site (link validation)
+        run: npm run site
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # On this runner each evidence screenshot is compared with its committed
+      # baseline in docs/evidence/ (tests/e2e/evidence.js); a new or changed
+      # capture fails here until the "Update evidence baselines" workflow has
+      # made its baseline.
+      #
+      # Includes the RCON-LIVE tests, which load webR and the survival package
+      # from their public hosts and run real R, and the GC-STAT-034 to
+      # GC-STAT-042 tests, which run the gallery's group comparison demo against
+      # real R in the browser and hold its answers to desktop R's, and the
+      # AS-LIVE, CM-LIVE and BS-LIVE tests, which do the same for the
+      # association scatter's demo, the correlation matrix's and the biomarker
+      # screen's.
+      # They fail if those hosts cannot be reached; nothing skips or retries. The megabytes
+      # and seconds they measure, and both versions' answers, are printed in this
+      # step's log and uploaded with test-results/.
+      - name: Run browser tests
+        run: npm run test:e2e -- --project=chromium
+
+      - name: Evidence freshness guard
+        run: npm run evidence:check
+
+      # Requirement text is extracted from the matrices in requirements/. Both
+      # source and extract are in this checkout, so the guard fails the build on
+      # any uncommitted drift.
+      - name: Requirement-text sync guard
+        run: npm run requirements:check
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

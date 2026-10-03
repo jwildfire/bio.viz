@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bio.viz group comparison fixture</title>
+    <style>
+      body {
+        margin: 16px;
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Group comparison fixture</h1>
+    <p>
+      Playwright harness page for the group comparison chart (#9). It loads safety.viz's vendored
+      bundle and then bio.viz's committed bundle, as two script tags, and draws the chart on the
+      vendored synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the
+      results and the participant table, the default), <code>results</code> (the results table as
+      vendored, alone), <code>results-with-arm</code> (the derived fixture: results with ARM carried
+      on the rows, and no participant table), <code>arm-sex</code> (both tables, with the demo's
+      four-level column ARM_SEX added to the participants) or <code>many-biomarkers</code> (the
+      derived fixture of thirty-six biomarkers, with the participant table). The biomarker and the
+      visit the chart opens on are stated here, IL-6 at Week 4, not left to the chart's defaults; a
+      test of the overview sets them to null. The tests reach the chart as
+      <code>window.__gc.chart</code>.
+    </p>
+    <div id="chart"></div>
+    <script src="/site/vendor/safety.viz/safety.viz.js"></script>
+    <script src="/dist/bio.viz-0.1.0/bio.viz.js"></script>
+    <script src="/site/demo/synthetic-study.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const which = params.get('data') || 'both';
+      const study = '/site/data/synthetic-study/';
+
+      function tables() {
+        if (which === 'results-with-arm') {
+          return BioVizDemo.read('/tests/e2e/fixtures/data/results-with-arm.csv').then(
+            (results) => ({ results })
+          );
+        }
+        if (which === 'many-biomarkers') {
+          return Promise.all([
+            BioVizDemo.read('/tests/e2e/fixtures/data/results-many-biomarkers.csv'),
+            BioVizDemo.read(study + 'synthetic_participants.csv')
+          ]).then(([results, participants]) => ({
+            results: BioVizDemo.withDay(results),
+            participants
+          }));
+        }
+        return BioVizDemo.loadStudy(study).then((loaded) => {
+          if (which === 'results') return { results: loaded.results };
+          if (which === 'arm-sex') {
+            return {
+              results: loaded.results,
+              participants: BioVizDemo.withArmSex(loaded.participants)
+            };
+          }
+          return loaded;
+        });
+      }
+
+      // A test may set these before the chart is made.
+      window.__gcSettings = window.__gcSettings || {};
+      window.__gc = {
+        ready: tables().then((data) => {
+          const settings = Object.assign(
+            {
+              start_value: 'IL-6',
+              visits: 'Week 4',
+              value_type: 'change',
+              baseline_visits: 'Baseline',
+              studyday_col: which === 'results-with-arm' ? null : 'DAY'
+            },
+            window.__gcSettings
+          );
+          const chart = BioViz.groupComparison('#chart', settings);
+          window.__gc.chart = chart;
+          window.__gc.data = data;
+          chart.init(data);
+          return chart;
+        })
+      };
+    </script>
+  </body>
+</html>

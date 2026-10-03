@@ -1,0 +1,1368 @@
+{
+  "module": "correlation-matrix",
+  "generatedAt": "2026-10-03T08:36:04.957Z",
+  "environment": {
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
+    "playwright": "1.61.1",
+    "chromium": "149.0.7827.55"
+  },
+  "run": {
+    "id": "37110218227",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
+  },
+  "records": [
+    {
+      "test": "CM-CTRL-001: the sidebar offers the mode, the value, the visit and the biomarkers or the biomarker and the visits, how the pairs are drawn, the method, the minimum pairs, a filter per category column, and Reset chart (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-CTRL-002: a change to the mode, the value, the visit, the biomarkers, the biomarker, the visits or a filter draws the grid again for what was chosen, and Reset chart returns every control to what the chart opened on (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-CTRL-003: with the setting `statistic` null there are no Statistics controls, R is asked for nothing, and the grid’s frame is drawn with empty cells (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-CTRL-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-001: it opens on every biomarker at the first visit: a mark below the diagonal whose width and colour are those of R’s coefficient, and R’s coefficient above it (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-001"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRAW-001-biomarkers-at-baseline.png"]
+    },
+    {
+      "test": "CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-003: a key shows the mark for −1, −0.5, 0, 0.5 and 1 and says what width, darkness, colour and shape mean; in greyscale its marks still differ by size, by lightness and by shape (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-003"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRAW-003-the-key.png"]
+    },
+    {
+      "test": "CM-DRAW-004: no p-value is printed anywhere in the chart, for either method: not in a cell, its name, the line, the list or the download (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRAW-005: a cell with fewer complete pairs than the minimum shows R’s reason and no number, and the cells R did answer are drawn as ever (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-005"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRAW-005-cells-under-the-minimum.png"]
+    },
+    {
+      "test": "CM-DRAW-006: across visits the grid is one biomarker’s visits in visit order; for a change from baseline the baseline visit is not a variable, and the note says so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-006"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRAW-006-visits-of-il-6.png"]
+    },
+    {
+      "test": "CM-DRAW-007: for six variables or fewer the pairs can be drawn as small scatters, one point per participant with both values, with R’s coefficient above the diagonal; the view asks R nothing more, and is not offered for more than six (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-007"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRAW-007-small-scatters.png"]
+    },
+    {
+      "test": "CM-DRAW-008: the chart says how many participants are in the frame and how many were left out, and that each cell has its own count; where participants have gaps the cells’ counts differ, and each is R’s (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRAW-008"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-001: a click on a cell opens the association scatter for that pair in place of the grid, the column’s variable on its x axis and the row’s on its y axis, with a button back that takes the keyboard’s place (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-001"],
+      "issueRefs": [27],
+      "screenshots": ["CM-DRILL-001-a-cell-opened.png"]
+    },
+    {
+      "test": "CM-DRILL-002: from the keyboard the arrow keys move among the cells, stepping over the diagonal, Enter or Space on a cell opens its pair, and Enter or Space on the button back returns (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-003: the scatter is handed the grid’s connection itself, its method, its columns and its filters as they are set, with the setting `scatter` beneath; from results stored in the page it prints the coefficient the cell holds (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-004: returning shows the grid exactly as it was, with the keyboard’s place on the cell that was opened, and R is not asked again for the grid (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DRILL-005: chart.open(x, y) opens a pair by its two labels and returns the scatter, chart.scatter() gives it, chart.close() returns to the grid; a label the grid does not have is refused; drawing the grid again closes the scatter (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DRILL-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-003"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-004"],
+      "issueRefs": [52],
+      "screenshots": []
+    },
+    {
+      "test": "CM-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-FAIL-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-FILTER-001: on the demo, filters with nobody in common leave the chart saying, in words, that no participant passes the filters; no grid is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-FILTER-001"],
+      "issueRefs": [29],
+      "screenshots": []
+    },
+    {
+      "test": "CM-FILTER-002: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-FILTER-002"],
+      "issueRefs": [37],
+      "screenshots": []
+    },
+    {
+      "test": "CM-KIT-001: the chart is built from safety.viz’s kit on the page, its small scatters drawn with the kit’s Chart.js; without safety.viz it says what is missing (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-KIT-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIFE-001: init, setData, setSettings, render, resize and destroy drive the chart as they drive a safety.viz chart; setSettings moves the control of a setting, and destroy takes down the grid and a scatter a cell had opened (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIFE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIFE-002: tables the chart cannot read are refused with a message, shown in its place (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIFE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIMIT-002: thirty-six biomarkers open on the first twelve, 66 pairs, and the chart says so and how to choose others; unticking brings others in; with the limit raised it draws all 630 pairs, too narrow for numbers; the drawing is timed (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIMIT-002"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIMIT-002-thirty-six-biomarkers.png"]
+    },
+    {
+      "test": "CM-LIST-001: under the grid is every pair R returned, in R’s order, with its count and its coefficient with R’s interval; a pair’s name opens the pair (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIST-001"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIST-001-every-pair-with-its-count.png"]
+    },
+    {
+      "test": "CM-LIST-002: the list downloads as a CSV file under this chart’s name, with the same columns (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIST-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-001: the demo draws the frame first and starts R when the grid first asks; the line waits, saying what the first start costs, and then every cell’s coefficient, interval and pair count are desktop R’s; the planted cell holds 0.6 inside its interval, and no p-value is printed (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-001"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIVE-001-r-in-the-browser.png"]
+    },
+    {
+      "test": "CM-LIVE-002: Spearman’s rho in every cell is the one desktop R gives, with no interval; where R’s own wording differs between the two versions both are recorded and nothing else differs (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-003: across the visits of one biomarker every cell is the one desktop R gives: for the result, for the change from baseline with the baseline visit left out, and for Spearman on another biomarker (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-004: a change shows the waiting state and then the new grid, as desktop R gives it, and never the old one: with a filter, with gaps, with six biomarkers, with a minimum some cells fall under, and where every cell does (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-005: a cell opens the scatter, which asks the same R, started once, and prints for the pair the coefficient the cell holds; returning shows the grid as it was and asks R nothing (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-005"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIVE-005-a-cell-opened-with-r.png"]
+    },
+    {
+      "test": "CM-LIVE-006: on the fixture of thirty-six biomarkers, with real R, grids of twelve, twenty-four and thirty-six variables are each filled from one answer of R’s: 66, 276 and 630 pairs, with marks on both sides where cells are too narrow for numbers and every pair listed with its count (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-006"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIVE-006-thirty-six-biomarkers-with-r.png"]
+    },
+    {
+      "test": "CM-LIVE-007: the megabytes and seconds of the first grid, and the seconds R takes for a grid of each size once started, are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-007"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-LIVE-008: on a phone the demo fills its grid from R, with marks on both sides of the diagonal, lists every pair with its count and coefficient, and the page does not scroll sideways (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-LIVE-008"],
+      "issueRefs": [27],
+      "screenshots": ["CM-LIVE-008-r-in-the-browser-on-a-phone.png"]
+    },
+    {
+      "test": "CM-MOBILE-001: at 390px the chart fills the width with its controls folded away; twelve variables fit with marks on both sides of the diagonal and the numbers in the list beneath, and six keep their numbers (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-MOBILE-001"],
+      "issueRefs": [27],
+      "screenshots": ["CM-MOBILE-001-twelve-variables-on-a-phone.png"]
+    },
+    {
+      "test": "CM-MOBILE-002: at 390px a tap on a cell, or on a pair in the list, opens the scatter and its button returns; a grid of more variables than fit scrolls inside its own box; the page never scrolls sideways (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-MOBILE-002"],
+      "issueRefs": [27],
+      "screenshots": ["CM-MOBILE-002-a-pair-opened-on-a-phone.png"]
+    },
+    {
+      "test": "CM-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-002: the live demo draws the chart on the synthetic study, opening on its twelve biomarkers at Baseline, with R attached; where R cannot be reached it still draws the grid’s frame, and says so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the grid drawn, the controls open and a pair opened in the scatter (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-003"],
+      "issueRefs": [27],
+      "screenshots": ["CM-SITE-003-demo-on-a-phone.png"]
+    },
+    {
+      "test": "CM-SITE-005: the two demos point at each other: the matrix’s page says a cell opens the association scatter, and the scatter’s page points to the matrix as the overview (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-004: until R answers the line reads that it is waiting, with the page’s note until R has answered once, and every cell is empty; then the cells, the list and the line are filled from R’s answer (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-004"],
+      "issueRefs": [27],
+      "screenshots": ["CM-STAT-004-waiting-for-r.png"]
+    },
+    {
+      "test": "CM-STAT-005: a change to the mode, the value, the visit, the variables, the method, the minimum or a filter clears the cells, the list and the line and asks R again, and the answer to the question before is never shown (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-006: with no R attached the grid’s frame is drawn with empty cells that still open their pairs, no coefficient and no list, and the line says that statistics are unavailable; nothing is fetched to say so (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-006"],
+      "issueRefs": [27],
+      "screenshots": ["CM-STAT-006-with-no-r.png"]
+    },
+    {
+      "test": "CM-STAT-007: with R’s answers stored in the page the grid is filled from them with no R and no request; a view not stored says so and its cells stay empty, never another view’s numbers (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-007"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-008: chart.statistics() returns what the chart asked R for the grid now drawn and what R answered: one entry, with the function, the arguments, the identity and the number of rows (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-008"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-013: for Spearman the cells and the list give R’s rho with no interval, none being made up, and R’s notes and warning are printed as R worded them (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-013"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-014: where no pair has enough complete pairs the line prints R’s reason and no number, every cell is hatched with its own reason, and the list gives each pair’s count (#27)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-014"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-015: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-015"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-016: the waiting note is said until R has answered once on the connection, so a pair the grid opens after R has answered says nothing more of starting R (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-016"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-002: the home page holds at a 390px-wide viewport with no horizontal scroll (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: every module has an API reference page that documents each name it exports (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-012"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-013: each module’s evidence page holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-013"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-014: each module’s API reference holds at a 390px-wide viewport, with its tables restacked (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-014"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-015: the site serves the synthetic study, and the gallery gives its row counts and the commit it was copied from (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-006"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a function the reference documents that the bundle does not export is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a namespace in the surface stands for each of its members, and a constant carries its value (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a parameter the source documents and the reference leaves out is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a reference that documents every export, parameter and constant has no problems (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export no module claims, a surface the bundle lacks and an empty surface are each a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export with no heading in the reference is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the committed references document everything the committed bundle exports (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the connection’s reference is held to the parameters its source documents (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-002: BioViz.correlationMatrix is exported by both committed bundles, which hold none of safety.viz, no Chart.js and no webR, and defining it needs no safety.viz (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-KIT-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-003: the chart is built from the shared parts and writes none of them again; of another chart it imports only the association scatter’s public function, and no chart imports anything of this one (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-KIT-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "bundle: the correlation matrix ships, safety.viz, Chart.js and webR do not CM-KIT-004: the chart’s source holds no statistical inference: no arithmetic of a correlation, an interval or a p-value, nothing ordered by a coefficient, and no p-value read (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-KIT-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: how many variables are drawn CM-LIMIT-001: no more than `limit` variables are drawn, the first of those chosen, and the chart says how many of how many and how to bring others in; thirty-six biomarkers open on twelve (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-LIMIT-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: how many variables are drawn CM-LIMIT-003: a cell is as wide as the room allows, between 18 pixels and 72; below 34 it cannot hold a number (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-LIMIT-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: how R’s answer is described CM-STAT-002: the method as R names it and how many pairs it returned; R’s notes and warnings as R worded them; R’s reason where no pair has enough; R’s error as an error; and a result with no method is refused (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: how R’s answer is described CM-STAT-002: with no R the line says statistics are unavailable, with stored results a view not stored says so, and the desk waits and never shows an answer to the question before (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: how R’s answer is described CM-STAT-003: a cell’s sentence is the shared formatter’s: the pair by its labels, the coefficient by the method’s name, the interval R gave or none, and the count; a p-value on a row is neither read nor printed (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: settings CM-CFG-001: every setting has a default; the column and baseline defaults are the core’s; the chart opens on every biomarker at the first visit, twelve at a time, with Pearson and R’s own minimum (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-CFG-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: settings CM-CFG-002: a caller’s settings are laid over the defaults, a list given as one name is a list of one, and a setting that is not known, or a value a setting cannot take, is refused with a message naming it (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-CFG-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the API reference CM-SITE-004: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-SITE-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the cells and a mark CM-DATA-005: every pair has a cell on each side of the diagonal, a number above it and a mark below, the diagonal holds nothing, and a pair is found by its variables in either order (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-005"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the cells and a mark CM-DATA-006: a mark’s width and darkness grow with the size of R’s coefficient, equally for either sign, so it reads without colour; the sign is the hue and the shape; a number is to two decimals with a true minus (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-006"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the frame CM-DATA-003: the frame is the core’s with none of the variables required: a participant with some of the values is kept with a gap, one with none is left out and counted, and the filters choose participants first (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-003"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the variables of the grid CM-DATA-001: across biomarkers the variables are the biomarkers chosen, in the control’s order, each at the one visit with the one value type, named v1, v2, … (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the variables of the grid CM-DATA-002: across visits the variables are the visits chosen of one biomarker, in visit order; for a change the one baseline visit is left out and named, and a baseline value has nothing to relate (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-002"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: the variables of the grid CM-DATA-004: with fewer than two variables, or for a change at the one baseline visit, there is no grid and the chart says why and what to choose (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-DATA-004"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "correlation matrix: what R is asked CM-STAT-001: one request for the whole grid: the function, the frame, the names of its columns and the method; a minimum only when the reader set one; and an identity that names the chart, the variables in order, the baseline settings and the filters in force (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-001"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildRun builds GitHub Actions run provenance from the environment (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence flags status drift and test-set changes, ignoring screenshots (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence ignores provenance so --check never drifts on generatedAt/environment/run (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a requirement row with no test named for it is reported (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizePlaywright walks nested suites into browser-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizeVitest maps assertion results to unit-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName extracts requirement IDs and issue refs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName recognizes any requirement-ID prefix, not just SH (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer provenance lives in dedicated top-level keys; the records array stays timestamp-free (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: a requirement with no test says so, and the summary counts it (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: results recorded on a developer’s machine say so, and absent provenance is not invented (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: the page says when and where the results were recorded and links the run (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page the page links the module’s requirement matrix and its committed evidence set (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: the registry as committed lists the core and the connection to R as shared parts (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-015: the gallery says what each table of the synthetic study holds, its rows, and the commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page links each module’s evidence page and API reference, and the gallery (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page says there are no charts yet only while none is published (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a fenced block is code, escaped and left as written, and a # inside it is not a heading (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline mdText strips the marks and keeps the words (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline reads nothing inside a code span as a link or as emphasis (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline renders code, links, bold and italic, and escapes everything else (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry without its matrix or its API reference is refused, as is a name registered twice (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: the registry as committed is well formed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-001: the page has a button that starts R, the stated tolerance and the versions desktop R used (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-002: the recorded megabytes, requests and seconds are shown for cold, reload and warm, with how they were measured (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-003: with no recorded measurement the page says so and prints no number in its place (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags added and removed requirement IDs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags changed requirement text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard reports fresh when the committed set matches a fresh extraction (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing ignores the header, separator, and non-requirement content (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing keeps an escaped pipe inside a requirement cell as a single row (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing maps each requirement ID to its reviewed text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: requirement set wraps the parsed map with module + matrix provenance (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices passes when every matrix file is registered, ignoring the README and non-markdown files (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices reports a matrix file no module in site/config.json names (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages CORE-SITE-001: the home page names the library and its version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages escapeHtml escapes the five HTML-significant characters (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages renderShell fills title, description, version and root, and leaves no token behind (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages summarizeModule counts requirement rows and passing test records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page links to the R check page (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page lists each registered module with its counts and a link to its matrix (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links flags internal links and asset references that do not resolve (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links passes a site whose internal links all resolve, ignoring external and fragment links (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the frames R is run on CM-STAT-010: a frame is the chart’s: one row per participant, the id and one column per variable of the grid, a gap an empty cell, and the demo’s settings read from the demo’s own script (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-010"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "the frames R is run on CM-STAT-010: deriving each case’s frame again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-010"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-009: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with, and the recipe in the reference is the script’s (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-009"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-009: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its view, and by no other view’s (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-009"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-011: the expected results name the script, the R version and the vendored statistics file that made them, hold one result per case in both modes and both methods, and no p-value (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-011"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-012: in desktop R’s grid of every biomarker at Baseline the planted pair’s cell, TNF-alpha with IL-10, holds 0.6 inside its interval, on all 200 participants (#27)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-012"],
+      "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-017: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-017"],
+      "issueRefs": [49],
+      "screenshots": []
+    }
+  ]
+}
