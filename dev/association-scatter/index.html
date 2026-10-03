@@ -41,6 +41,7 @@
   <ul class="notes">
     <li>The chart opens on the pair the synthetic study was planted with: TNF-alpha against IL-10 at Baseline, one point per participant, whose true Pearson correlation is 0.6. The points are coloured by arm.</li>
     <li>The overview of every pair is the <a href="../correlation-matrix/index.html">correlation matrix</a>: every biomarker against every other at one visit, with R’s coefficient in each cell. A click on a cell there opens that pair here.</li>
+    <li>To find which biomarker moves with a variable, start from the <a href="../biomarker-screen/index.html">biomarker screen</a>: every biomarker correlated with one variable, one row each, sorted by R’s coefficient. A click on a row there opens that biomarker here.</li>
     <li>Under the chart is R's coefficient with its interval and p-value, for everyone drawn and, in the table, within each arm. R is started in this browser when the page opens: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no statistic itself.</li>
     <li>Choose the variable on each axis in the controls: any biomarker at any visit, as its result, its baseline, or its change, fold change or percent change from baseline; or a participant-level number, age or body-mass index. Each axis can be logarithmic, and the line then says that R was given the logarithms.</li>
     <li>Choose Pearson or Spearman under Statistics. Spearman's coefficient has no interval in R, and none is made up.</li>
@@ -60,7 +61,7 @@
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/23ccdc4cad77b1fa8388cdb4c15ef3897739dbce"><code>23ccdc4</code></a>.
       </p>
       <p>
         Built in the open — follow the

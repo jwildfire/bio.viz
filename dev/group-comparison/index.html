@@ -40,6 +40,7 @@
 <section id="about-demo">
   <ul class="notes">
     <li>The chart opens on every biomarker at every visit: a row for each biomarker, and in the row a small panel for each visit, with the groups drawn in it and the number in each group beneath. Each biomarker has its own value axis, the same across its visits. Click a biomarker, or press Enter or Space on it, to view it alone; choose All Biomarkers under Biomarker in the controls to come back.</li>
+    <li>To find which biomarker differs between two groups, start from the <a href="../biomarker-screen/index.html">biomarker screen</a>: every biomarker at once, one row each, with R's standardised difference and its p-values adjusted across them. A click on a row there opens that biomarker here.</li>
     <li>Choose the value, the visits, the groups and how they are drawn in the controls: they apply to every row. On a phone the controls are folded away above the chart: tap Controls to open them.</li>
     <li>With one biomarker open, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.</li>
     <li>With one biomarker open, the line under each panel is a test of the groups, computed by R. The overview prints no test and asks R for nothing. R is started in this browser the first time a biomarker is opened: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.</li>
@@ -58,7 +59,7 @@
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/23ccdc4cad77b1fa8388cdb4c15ef3897739dbce"><code>23ccdc4</code></a>.
       </p>
       <p>
         Built in the open — follow the

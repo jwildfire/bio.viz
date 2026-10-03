@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#formatgrouprow"><code>formatGroup(row)</code></a></li><li><a href="#formatpairrow"><code>formatPair(row)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#formatgrouprow"><code>formatGroup(row)</code></a></li><li><a href="#formatpairrow"><code>formatPair(row)</code></a></li><li><a href="#formatscreenrowrow-groups"><code>formatScreenRow(row, groups)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -211,6 +211,26 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="Member"><code>bounds</code></td><td data-label="Meaning">The two ends alone, <code>0.5482 to 0.7139</code>, for a table whose header carries the level. Null where <code>interval</code> is.</td></tr>
 <tr><td data-label="Member"><code>level</code></td><td data-label="Meaning">The level alone, <code>95%</code>. Null where <code>interval</code> is.</td></tr></tbody></table>
 <p>No interval is made up: where R returned none, none is printed. A pair R could not compute for, one with too few complete pairs, gives R&#39;s reason and its count and no number: <code>Not computed: 178 complete pairs. The minimum is 183. Counts: n = 178.</code></p>
+<h2 id="formatscreenrowrow-groups"><code>formatScreenRow(row, groups)</code></h2>
+<p>Formats one row of a biomarker screen&#39;s <code>rows</code>: one biomarker&#39;s estimate, a standardised difference or a coefficient, with its interval, the counts it used, and its p-value twice, as R computed it, unadjusted, and as R adjusted it across the rows that have one. Both are held to the rules a whole result is held to: never without the method and the counts, labelled exploratory, the adjustment named, no star and no verdict. It reads <code>biomarker</code>, <code>counts</code>, <code>n_1</code>, <code>n_2</code>, <code>estimate</code>, <code>lower</code>, <code>upper</code>, <code>level</code>, <code>method</code>, <code>p_unadjusted</code>, <code>p_value</code>, <code>adjustment</code>, <code>adjusted_over</code>, <code>status</code> and <code>reason</code>. <code>groups</code>, for a difference, names the two groups so the counts say whose they are.</p>
+<p>It returns the sentence, and its parts for a table:</p>
+<table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>status</code></td><td data-label="Meaning"><code>shown</code>, <code>withheld</code>, <code>error</code> or <code>refused</code>, as <code>formatStatistic</code> gives them. A row with no biomarker, no method, no counts, no estimate, half an interval, no adjustment, no number of rows adjusted across or an adjusted p-value that is not one is <code>refused</code>.</td></tr>
+<tr><td data-label="Member"><code>text</code></td><td data-label="Meaning">The whole sentence: <code>IL-6: 0.9133, 95% confidence interval 0.6111 to 1.213. Welch Two Sample t-test: p &lt; 0.001 unadjusted, p &lt; 0.001 adjusted across 12 biomarkers (Placebo n = 95, Treatment n = 91). Exploratory, adjusted (Benjamini-Hochberg).</code></td></tr>
+<tr><td data-label="Member"><code>result</code></td><td data-label="Meaning">The same without the biomarker&#39;s name.</td></tr>
+<tr><td data-label="Member"><code>biomarker</code></td><td data-label="Meaning">The biomarker&#39;s name, or null.</td></tr>
+<tr><td data-label="Member"><code>n</code></td><td data-label="Meaning">The counts in words, <code>Placebo n = 95, Treatment n = 91</code> or <code>n = 200</code>, or null.</td></tr>
+<tr><td data-label="Member"><code>estimate</code></td><td data-label="Meaning">The estimate as printed, to four significant figures. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>interval</code></td><td data-label="Meaning">Its interval in words with its level. Null where R gave none, as for Spearman&#39;s rho, and unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>bounds</code></td><td data-label="Meaning">The two ends alone. Null where <code>interval</code> is.</td></tr>
+<tr><td data-label="Member"><code>level</code></td><td data-label="Meaning">The level alone, <code>95%</code>. Null where <code>interval</code> is.</td></tr>
+<tr><td data-label="Member"><code>method</code></td><td data-label="Meaning">The method&#39;s name. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>p</code></td><td data-label="Meaning">The unadjusted p-value as printed, <code>p = 0.031</code>. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>adjusted</code></td><td data-label="Meaning">The adjusted p-value as printed. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>adjustment</code></td><td data-label="Meaning">The adjustment by its usual name, <code>Benjamini-Hochberg</code> or <code>Holm</code>. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>over</code></td><td data-label="Meaning">How many rows R adjusted across. Null unless <code>status</code> is <code>shown</code>.</td></tr>
+<tr><td data-label="Member"><code>label</code></td><td data-label="Meaning"><code>Exploratory, adjusted (Benjamini-Hochberg).</code> Null unless <code>status</code> is <code>shown</code>.</td></tr></tbody></table>
+<p>A row R could not compute gives R&#39;s reason and its counts and no number: <code>CRP: Not computed: Placebo has 2; Treatment has 2. The minimum group size is 5. Counts: Placebo n = 2, Treatment n = 2.</code></p>
 <h2 id="checked-against-real-r">Checked against real R</h2>
 <p>The <a href="https://jwildfire.github.io/bio.viz/dev/r-check/">R check page</a> runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named <code>RCON-LIVE-*</code> run that page on every pull request.</p>
 <p>The <a href="../group-comparison/api.html#the-statistics-line">group comparison chart</a> is the first chart to use it: its demo starts R in the browser with gsm.bio&#39;s statistics file, and the browser tests named <code>GC-STAT-034</code> to <code>GC-STAT-042</code> hold what it prints to desktop R.</p>
@@ -225,7 +245,7 @@ if (result.status === &#39;ok&#39;) {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/23ccdc4cad77b1fa8388cdb4c15ef3897739dbce"><code>23ccdc4</code></a>.
       </p>
       <p>
         Built in the open — follow the

@@ -117,6 +117,7 @@
 <tr><td data-label="Setting"><code>test</code></td><td data-label="Default"><code>&#39;t&#39;</code></td><td data-label="Meaning">The test the chart opens on: <code>t</code>, <code>wilcoxon</code>, <code>anova</code>, <code>kruskal</code> or <code>none</code>. See <a href="#which-test">which test</a>.</td></tr>
 <tr><td data-label="Setting"><code>pairwise</code></td><td data-label="Default"><code>false</code></td><td data-label="Meaning">Whether the chart opens with pairwise comparisons switched on. They are made only among more than two groups.</td></tr>
 <tr><td data-label="Setting"><code>waiting_note</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>back</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A way back, for a chart that opened this one in its place: <code>{ label, action }</code>. A button above the chart calls <code>action</code> with the chart. Null means none.</td></tr>
 <tr><td data-label="Setting"><code>profile</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether a row of the listing opens safety.viz&#39;s participant profile.</td></tr>
 <tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s columns shown at the head of the profile. Null means the category columns.</td></tr>
 <tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.</td></tr>
@@ -282,7 +283,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/23ccdc4cad77b1fa8388cdb4c15ef3897739dbce"><code>23ccdc4</code></a>.
       </p>
       <p>
         Built in the open — follow the
