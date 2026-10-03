@@ -18,6 +18,7 @@ tests/fixtures/group-comparison-r.json
 tests/fixtures/group-statistics-r.json
 tests/fixtures/association-statistics-r.json
 tests/fixtures/matrix-statistics-r.json
+tests/fixtures/screen-statistics-r.json
 site/r-check/measured.json
 site/r-check/data/
 
