@@ -1,16 +1,13 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-03T01:20:06.386Z",
+  "generatedAt": "2026-10-03T02:16:18.727Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37085649881",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37085649881"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -226,6 +223,14 @@
       "status": "pass",
       "requirementIds": ["GC-FILTER-006"],
       "issueRefs": [29],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-007: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-007"],
+      "issueRefs": [37],
       "screenshots": []
     },
     {
