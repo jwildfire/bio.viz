@@ -195,6 +195,33 @@ describe('API reference: held to the code', () => {
     expect(check({ names: [] }).join('\n')).toMatch(/documents nothing/);
   });
 
+  it('CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)', () => {
+    const withList = { ...bundle, portfolio: { version: 2, modules: { chart: {} } } };
+    // Claimed by `data`, it is no unclaimed export.
+    expect(unclaimedExports(withList, [{ api: { surface: ['r', 'version'] } }])).toEqual([
+      'portfolio'
+    ]);
+    expect(
+      unclaimedExports(withList, [{ api: { surface: ['r', 'version'], data: ['portfolio'] } }])
+    ).toEqual([]);
+    // One name, not one per field.
+    expect(surfaceNames(withList, [], ['portfolio'])).toEqual([
+      { name: 'portfolio', path: 'portfolio' }
+    ]);
+    const documented = '# Core\n\n## `portfolio`\n\nThe chart list.\n';
+    expect(
+      check({ markdown: documented, names: surfaceNames(withList, [], ['portfolio']) })
+    ).toEqual([]);
+    expect(
+      check({ markdown: '# Core\n', names: surfaceNames(withList, [], ['portfolio']) })
+    ).toEqual([
+      'r-connection: docs/r-connection.md has no heading for `portfolio`, which the bundle exports.'
+    ]);
+    expect(check({ names: surfaceNames(bundle, [], ['portfolio']) }).join('\n')).toMatch(
+      /lists `portfolio`, which the bundle does not export/
+    );
+  });
+
   it('GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)', async () => {
     const entry = config.modules.find((module) => module.module === 'group-comparison');
     expect(entry.api.settings).toBe('src/group-comparison/configure.js');
@@ -236,7 +263,7 @@ describe('API reference: held to the code', () => {
     const committed = await committedBundle();
     expect(unclaimedExports(committed, config.modules)).toEqual([]);
     for (const { module, api } of config.modules) {
-      const names = surfaceNames(committed, api.surface);
+      const names = surfaceNames(committed, api.surface, api.data);
       expect(names.length).toBeGreaterThan(0);
       expect(
         checkApiReference({

@@ -14,6 +14,7 @@
       "api": {
         "doc": "core.md",
         "surface": ["version", "core"],
+        "data": ["portfolio"],
         "source": ["src/main.js", "src/core"]
       }
     },

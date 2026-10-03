@@ -56,3 +56,11 @@ export { correlationMatrix } from './correlation-matrix.js';
  * safety.viz's kit, which the page loads beside this bundle.
  */
 export { biomarkerScreen } from './biomarker-screen.js';
+
+/**
+ * The chart list: every chart above, in safety.viz's portfolio manifest format
+ * (version 2), with the tables it takes and the column each of its column
+ * settings reads, so safety.viz's demo app can list and draw bio.viz's charts
+ * beside its own. The site publishes the same list as `portfolio.json`.
+ */
+export { default as portfolio } from './data/portfolio.json';

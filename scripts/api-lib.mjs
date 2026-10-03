@@ -24,6 +24,9 @@
 //
 // `surface` lists top-level exports of the bundle. One that is a namespace
 // (`r`, which a page reads as `BioViz.r`) stands for every member of it.
+// `data` lists exports that are data, not namespaces (`portfolio`, the chart
+// list): each is documented as one, under one heading, and its fields are not
+// held to the reference one by one.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -32,7 +35,7 @@ const isNamespace = (value) => value !== null && typeof value === 'object' && !A
 
 // The names a module must document: [{ name, path }], where `path` is how a
 // page reaches it (`BioViz.r.createConnection` is path `r.createConnection`).
-export function surfaceNames(bundle, surface = []) {
+export function surfaceNames(bundle, surface = [], data = []) {
   const names = [];
   for (const key of surface) {
     if (!(key in bundle)) {
@@ -45,6 +48,9 @@ export function surfaceNames(bundle, surface = []) {
       names.push(entry(key, key, bundle[key]));
     }
   }
+  for (const key of data) {
+    names.push(key in bundle ? { name: key, path: key } : { name: key, path: key, missing: true });
+  }
   return names;
 }
 
@@ -56,7 +62,11 @@ function entry(name, reach, value) {
 
 // Top-level exports of the bundle that no module's `surface` claims.
 export function unclaimedExports(bundle, modules) {
-  const claimed = new Set(modules.flatMap((entry) => (entry.api && entry.api.surface) || []));
+  const claimed = new Set(
+    modules.flatMap((entry) =>
+      entry.api ? [...(entry.api.surface || []), ...(entry.api.data || [])] : []
+    )
+  );
   return Object.keys(bundle)
     .filter((key) => !claimed.has(key))
     .sort();
