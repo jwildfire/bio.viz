@@ -267,4 +267,14 @@ describe('what desktop R answered, and the key it wrote', () => {
       expect(recipe.text[index], `R's text for ${value}`).toBe(String(value));
     });
   });
+
+  it('GC-STAT-046: chart_text writes NaN as the chart does, and holds to String() for numbers of 13 significant digits, the most its claim covers (#52)', () => {
+    const edge = (fromR.recipes || []).find((entry) => entry.case === 'chart-text-edge');
+    expect(edge, 'the edge case is in the fixture').toBeTruthy();
+    expect(edge.nan).toBe(String(NaN));
+    expect(edge.values.length).toBeGreaterThanOrEqual(7);
+    edge.values.forEach((value, index) => {
+      expect(edge.text[index], `R's text for ${value}`).toBe(String(value));
+    });
+  });
 });
