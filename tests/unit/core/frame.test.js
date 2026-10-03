@@ -409,6 +409,44 @@ describe('core: settings', () => {
     );
   });
 
+  it('CORE-FRAME-017: visit order is one total order, whatever order the rows come in: numbered visits by their least number, then visits with no number by name (#49)', () => {
+    const row = (visit, number, value = 1) => ({
+      USUBJID: '1',
+      TEST: 'A',
+      VISIT: visit,
+      VISITNUM: number,
+      STRESN: value
+    });
+    // The reviewers' case: a visit with no number among numbered ones.
+    const rows = [row('Screening', -1), row('Baseline', 0), row('Day 1', ''), row('Week 4', 4)];
+    const orders = (list) =>
+      list.length <= 1
+        ? [list]
+        : list.flatMap((item, index) =>
+            orders([...list.slice(0, index), ...list.slice(index + 1)]).map((rest) => [
+              item,
+              ...rest
+            ])
+          );
+    const seen = new Set(orders(rows).map((order) => visits(order).join(' < ')));
+    expect(seen.size).toBe(1);
+    expect(visits(rows)).toEqual(['Screening', 'Baseline', 'Week 4', 'Day 1']);
+    // A visit numbered on several rows takes its least number, whichever row comes first.
+    const renumbered = [row('Week 4', 4), row('Week 2', 5), row('Week 2', 2)];
+    expect(visits(renumbered)).toEqual(['Week 2', 'Week 4']);
+    expect(visits([...renumbered].reverse())).toEqual(['Week 2', 'Week 4']);
+    // Two visits with the same number are ordered by name, numbers in a name as numbers.
+    const tied = [
+      row('Visit 10', 1),
+      row('Visit 9', 1),
+      row('Unscheduled 2', ''),
+      row('Unscheduled 10', '')
+    ];
+    for (const order of orders(tied)) {
+      expect(visits(order)).toEqual(['Visit 9', 'Visit 10', 'Unscheduled 2', 'Unscheduled 10']);
+    }
+  });
+
   it('CORE-FRAME-013: a call that cannot be made is refused with a message naming what is wrong (#8)', () => {
     const y = { y: IL6_CHANGE };
     expect(refused(() => frame(results, y))).toMatch(
