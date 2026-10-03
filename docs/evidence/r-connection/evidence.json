@@ -1,13 +1,16 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-03T02:16:18.727Z",
+  "generatedAt": "2026-10-03T02:25:20.918Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37089720894",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37089720894"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
