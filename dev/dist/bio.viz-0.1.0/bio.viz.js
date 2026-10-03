@@ -25,6 +25,7 @@ var BioViz = (() => {
     core: () => core_exports,
     correlationMatrix: () => correlationMatrix,
     groupComparison: () => groupComparison,
+    portfolio: () => portfolio_default,
     r: () => r_exports,
     version: () => version
   });
@@ -7449,6 +7450,275 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
   function biomarkerScreen(element, settings) {
     return new BiomarkerScreen(element, settings);
   }
+
+  // src/data/portfolio.json
+  var portfolio_default = {
+    $schema: "./schema/portfolio.json",
+    version: 2,
+    description: "bio.viz's charts, listed in safety.viz's portfolio manifest format (version 2) so that safety.viz's demo app can list and draw them beside its own. Each chart takes two named tables: the results, from the labs and vitals file, and the participants, from the subject-level file, which is optional. Each setting is the key in the chart's own settings (src/<chart>/configure.js), with the standard column it defaults to and whether the chart cannot be made without it; the participant table's id column is read from the subject-level file, so the two files may name the participant differently. The standard domains are the app's. A test holds this list to the charts (tests/unit/core/portfolio.test.js).",
+    groups: {
+      biomarkers: {
+        label: "Biomarkers",
+        order: 0
+      }
+    },
+    modules: {
+      "group-comparison": {
+        library: "bio.viz",
+        export: "groupComparison",
+        title: "Group comparison",
+        group: "biomarkers",
+        domains: ["bds"],
+        optionalDomains: ["subject"],
+        tables: {
+          results: {
+            domain: "bds",
+            required: true
+          },
+          participants: {
+            domain: "subject",
+            required: false
+          }
+        },
+        unmappedSettings: "omit",
+        settings: {
+          id_col: {
+            domain: "bds",
+            column: "USUBJID",
+            required: true
+          },
+          measure_col: {
+            domain: "bds",
+            column: "TEST",
+            required: true
+          },
+          value_col: {
+            domain: "bds",
+            column: "STRESN",
+            required: true
+          },
+          visit_col: {
+            domain: "bds",
+            column: "VISIT",
+            required: true
+          },
+          visit_order_col: {
+            domain: "bds",
+            column: "VISITNUM",
+            required: false
+          },
+          unit_col: {
+            domain: "bds",
+            column: "STRESU",
+            required: false
+          },
+          participant_id_col: {
+            domain: "subject",
+            column: "USUBJID",
+            required: false
+          },
+          studyday_col: {
+            domain: "bds",
+            column: null,
+            required: false
+          },
+          normal_col_high: {
+            domain: "bds",
+            column: null,
+            required: false
+          },
+          normal_col_low: {
+            domain: "bds",
+            column: null,
+            required: false
+          }
+        }
+      },
+      "association-scatter": {
+        library: "bio.viz",
+        export: "associationScatter",
+        title: "Association scatter",
+        group: "biomarkers",
+        domains: ["bds"],
+        optionalDomains: ["subject"],
+        tables: {
+          results: {
+            domain: "bds",
+            required: true
+          },
+          participants: {
+            domain: "subject",
+            required: false
+          }
+        },
+        unmappedSettings: "omit",
+        settings: {
+          id_col: {
+            domain: "bds",
+            column: "USUBJID",
+            required: true
+          },
+          measure_col: {
+            domain: "bds",
+            column: "TEST",
+            required: true
+          },
+          value_col: {
+            domain: "bds",
+            column: "STRESN",
+            required: true
+          },
+          visit_col: {
+            domain: "bds",
+            column: "VISIT",
+            required: true
+          },
+          visit_order_col: {
+            domain: "bds",
+            column: "VISITNUM",
+            required: false
+          },
+          unit_col: {
+            domain: "bds",
+            column: "STRESU",
+            required: false
+          },
+          participant_id_col: {
+            domain: "subject",
+            column: "USUBJID",
+            required: false
+          },
+          studyday_col: {
+            domain: "bds",
+            column: null,
+            required: false
+          },
+          normal_col_high: {
+            domain: "bds",
+            column: null,
+            required: false
+          },
+          normal_col_low: {
+            domain: "bds",
+            column: null,
+            required: false
+          }
+        }
+      },
+      "correlation-matrix": {
+        library: "bio.viz",
+        export: "correlationMatrix",
+        title: "Correlation matrix",
+        group: "biomarkers",
+        domains: ["bds"],
+        optionalDomains: ["subject"],
+        tables: {
+          results: {
+            domain: "bds",
+            required: true
+          },
+          participants: {
+            domain: "subject",
+            required: false
+          }
+        },
+        unmappedSettings: "omit",
+        settings: {
+          id_col: {
+            domain: "bds",
+            column: "USUBJID",
+            required: true
+          },
+          measure_col: {
+            domain: "bds",
+            column: "TEST",
+            required: true
+          },
+          value_col: {
+            domain: "bds",
+            column: "STRESN",
+            required: true
+          },
+          visit_col: {
+            domain: "bds",
+            column: "VISIT",
+            required: true
+          },
+          visit_order_col: {
+            domain: "bds",
+            column: "VISITNUM",
+            required: false
+          },
+          unit_col: {
+            domain: "bds",
+            column: "STRESU",
+            required: false
+          },
+          participant_id_col: {
+            domain: "subject",
+            column: "USUBJID",
+            required: false
+          }
+        }
+      },
+      "biomarker-screen": {
+        library: "bio.viz",
+        export: "biomarkerScreen",
+        title: "Biomarker screen",
+        group: "biomarkers",
+        domains: ["bds"],
+        optionalDomains: ["subject"],
+        tables: {
+          results: {
+            domain: "bds",
+            required: true
+          },
+          participants: {
+            domain: "subject",
+            required: false
+          }
+        },
+        unmappedSettings: "omit",
+        settings: {
+          id_col: {
+            domain: "bds",
+            column: "USUBJID",
+            required: true
+          },
+          measure_col: {
+            domain: "bds",
+            column: "TEST",
+            required: true
+          },
+          value_col: {
+            domain: "bds",
+            column: "STRESN",
+            required: true
+          },
+          visit_col: {
+            domain: "bds",
+            column: "VISIT",
+            required: true
+          },
+          visit_order_col: {
+            domain: "bds",
+            column: "VISITNUM",
+            required: false
+          },
+          unit_col: {
+            domain: "bds",
+            column: "STRESU",
+            required: false
+          },
+          participant_id_col: {
+            domain: "subject",
+            column: "USUBJID",
+            required: false
+          }
+        }
+      }
+    }
+  };
 
   // src/main.js
   var version = "0.1.0";

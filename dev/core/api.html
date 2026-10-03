@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
+  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -183,6 +183,20 @@ const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
   args: { strValueCol: &#39;y&#39;, strGroupCol: &#39;x&#39;, strMethod: &#39;wilcoxon&#39; }
 });</code></pre>
 <p>A field&#39;s name is the name the caller gave its variable, so it is stable whatever the biomarker is called, and two variables on the same biomarker are told apart by their names: <code>{ week4: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39; }, change: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; } }</code>. R takes any name as a column name here; a short plain one (<code>y</code>, <code>x</code>, <code>v1</code>) is easiest to read in R&#39;s messages.</p>
+<h2 id="portfolio"><code>portfolio</code></h2>
+<p>The chart list: an object naming every chart the library offers, in <a href="https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json">safety.viz&#39;s portfolio manifest format</a>, version 2, so safety.viz&#39;s demo app can list bio.viz&#39;s charts and draw them beside its own on the files a study already has. It is <code>src/data/portfolio.json</code>, and the site publishes the same list at <code>portfolio.json</code>, with the format beside it at <code>schema/portfolio.json</code>.</p>
+<pre><code class="language-js">BioViz.portfolio.version; // 2
+Object.keys(BioViz.portfolio.modules);
+// [&#39;group-comparison&#39;, &#39;association-scatter&#39;, &#39;correlation-matrix&#39;, &#39;biomarker-screen&#39;]</code></pre>
+<table class="doc-table"><thead><tr><th scope="col">Field</th><th scope="col">What it says</th></tr></thead>
+<tbody><tr><td data-label="Field"><code>version</code></td><td data-label="What it says"><code>2</code>, the format&#39;s version.</td></tr>
+<tr><td data-label="Field"><code>groups</code></td><td data-label="What it says">One group, <code>biomarkers</code>, labelled Biomarkers: the app lists the charts under it, on a tab of their own.</td></tr>
+<tr><td data-label="Field"><code>modules</code></td><td data-label="What it says">One entry per chart, keyed by its name: <code>export</code>, the factory&#39;s name on <code>BioViz</code>; <code>title</code>; <code>library</code>, <code>bio.viz</code>; and <code>group</code>, <code>biomarkers</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.tables</code></td><td data-label="What it says">The tables <code>init</code> takes: <code>results</code>, from the labs and vitals domain (<code>bds</code>), required; and <code>participants</code>, from the subject-level domain (<code>subject</code>), optional. They are also the entry&#39;s <code>domains</code> and <code>optionalDomains</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.settings</code></td><td data-label="What it says">Each column setting of the chart, keyed as in its settings: the domain it reads, the standard column it defaults to (<code>null</code> where the chart has no default) and whether the chart cannot be made without it. <code>participant_id_col</code> reads the subject-level domain&#39;s <code>USUBJID</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.unmappedSettings</code></td><td data-label="What it says"><code>omit</code>: a setting with no column mapped is left out, so the chart keeps its default, because a chart refuses <code>null</code> for the columns it needs.</td></tr></tbody></table>
+<p>The participant is named once in each file. <code>id_col</code> reads it from the results and <code>participant_id_col</code> from the participant table, so when the two files call it differently the app maps each file&#39;s own name and the charts join the two on them. Left out, <code>participant_id_col</code> is <code>id_col</code>&#39;s name, as in every chart.</p>
+<p>The list adds nothing to the format, and the format is safety.viz&#39;s: it is copied to <code>src/data/schema/portfolio.json</code> by <code>node tools/vendor-portfolio-schema.mjs</code>, with a record of the commit, and a test validates the list against the copy and holds each entry to its chart&#39;s own settings.</p>
 <h2 id="what-is-not-here">What is not here</h2>
 <p>No statistics. Deriving a change from baseline is arithmetic on one participant&#39;s own results. Nothing in the core tests, estimates or summarises across participants: a median and the quartiles of a box belong to the chart that draws them, and every test to R. And no cut rule: see <code>variable</code> above.</p>
 <h2 id="what-else-is-exported">What else is exported</h2>
@@ -200,7 +214,7 @@ const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/d36216419cff67264bd3fe6b1dcc0cf6d81c0045"><code>d362164</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/29ac72265d86ac5a5e91e14336f7bf45d34b75dc"><code>29ac722</code></a>.
       </p>
       <p>
         Built in the open — follow the
