@@ -75,44 +75,44 @@ Tables the chart cannot read (not arrays of records, or a results table without 
 
 Every setting, with its default. The column settings and the baseline settings are the [core's](core.md#default_settings), under the same names, and safety.viz's charts use the same names for the same columns.
 
-| Setting              | Default                     | Meaning                                                                                                                                                        |
-| -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id_col`             | `'USUBJID'`                 | The participant's id, in the results table.                                                                                                                    |
-| `measure_col`        | `'TEST'`                    | The biomarker's name.                                                                                                                                          |
-| `value_col`          | `'STRESN'`                  | The result.                                                                                                                                                    |
-| `visit_col`          | `'VISIT'`                   | The visit's name.                                                                                                                                              |
-| `visit_order_col`    | `'VISITNUM'`                | A number that orders the visits. May be null.                                                                                                                  |
-| `unit_col`           | `'STRESU'`                  | The unit of the result, printed in the value axis title. May be null.                                                                                          |
-| `participant_id_col` | `null`                      | The participant's id in the participant table, when it is not named as `id_col` is.                                                                            |
-| `baseline_visits`    | `null`                      | The baseline visit, or a list of them. Null means the first visit in visit order.                                                                              |
-| `baseline_stat`      | `'mean'`                    | How several baseline visits are brought to one value: `mean`, `min`, `max` or `first`.                                                                         |
-| `start_value`        | `null`                      | The biomarker the chart opens on. Null means none: the chart opens on [the overview](#the-overview) of every biomarker, as it does for a name the table lacks. |
-| `visits`             | `null`                      | The visit, or visits, the chart opens on. Null means every visit.                                                                                              |
-| `value_type`         | `'raw'`                     | The value type the chart opens on: `raw`, `baseline`, `change`, `fold_change` or `percent_change`, as the [core defines them](core.md#value_types).            |
-| `group_by`           | `null`                      | The column on the axis the chart opens on. Null means the first column offered.                                                                                |
-| `levels`             | `null`                      | The levels of the group the chart opens on. Null means all of them.                                                                                            |
-| `color_by`           | `null`                      | The column of the second grouping, by colour. Null means none.                                                                                                 |
-| `panel_by`           | `null`                      | The column the panels are made by. Null means none.                                                                                                            |
-| `mark`               | `'box'`                     | What a group is drawn as: `box`, `violin` or `points`.                                                                                                         |
-| `y_scale`            | `'linear'`                  | The scale of the value axis: `linear` or `log`.                                                                                                                |
-| `measures`           | `null`                      | The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.                                                  |
-| `groups`             | `null`                      | The columns offered to group, colour and panel by, as names or `{ value_col, label }`. Null means the category columns the tables have.                        |
-| `max_levels`         | `12`                        | The most different values a column may hold and still be offered as a category.                                                                                |
-| `filters`            | `null`                      | The filters, as names or `{ value_col, label }`, with safety.viz's `start`, `all` and `multiple`. Null means every category column of the participant table.   |
-| `overview_limit`     | `12`                        | The most biomarkers [the overview](#the-overview) draws at a time, a whole number of one or more. The rest are reached by pages.                               |
-| `details`            | `null`                      | The columns of the listing, as names or `{ value_col, label }`. Null means the participant, the group, the colour, the panel and the value.                    |
-| `page_size`          | `10`                        | Rows on a page of the listing.                                                                                                                                 |
-| `connection`         | `null`                      | The connection to R the statistics line asks. Null means one with no R attached.                                                                               |
-| `statistic`          | `'Analyze_GroupDifference'` | The R function the statistics line asks for: gsm.bio's, or one that takes the same arguments. Null means no statistics line and no Statistics controls.        |
-| `test`               | `'t'`                       | The test the chart opens on: `t`, `wilcoxon`, `anova`, `kruskal` or `none`. See [which test](#which-test).                                                     |
-| `pairwise`           | `false`                     | Whether the chart opens with pairwise comparisons switched on. They are made only among more than two groups.                                                  |
-| `waiting_note`       | `null`                      | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                           |
-| `back`               | `null`                      | A way back, for a chart that opened this one in its place: `{ label, action }`. A button above the chart calls `action` with the chart. Null means none.       |
-| `profile`            | `true`                      | Whether a row of the listing opens safety.viz's participant profile.                                                                                           |
-| `profile_details`    | `null`                      | The participant's columns shown at the head of the profile. Null means the category columns.                                                                   |
-| `studyday_col`       | `null`                      | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.             |
-| `normal_col_high`    | `null`                      | A column holding the upper limit of normal of each result, when the results have one.                                                                          |
-| `normal_col_low`     | `null`                      | A column holding the lower limit of normal.                                                                                                                    |
+| Setting              | Default                     | Meaning                                                                                                                                                                                                             |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`             | `'USUBJID'`                 | The participant's id, in the results table.                                                                                                                                                                         |
+| `measure_col`        | `'TEST'`                    | The biomarker's name.                                                                                                                                                                                               |
+| `value_col`          | `'STRESN'`                  | The result.                                                                                                                                                                                                         |
+| `visit_col`          | `'VISIT'`                   | The visit's name.                                                                                                                                                                                                   |
+| `visit_order_col`    | `'VISITNUM'`                | A number that orders the visits. May be null.                                                                                                                                                                       |
+| `unit_col`           | `'STRESU'`                  | The unit of the result, printed in the value axis title. May be null.                                                                                                                                               |
+| `participant_id_col` | `null`                      | The participant's id in the participant table, when it is not named as `id_col` is.                                                                                                                                 |
+| `baseline_visits`    | `null`                      | The baseline visit, or a list of them. Null means the first visit in visit order.                                                                                                                                   |
+| `baseline_stat`      | `'mean'`                    | How several baseline visits are brought to one value: `mean`, `min`, `max` or `first`.                                                                                                                              |
+| `start_value`        | `null`                      | The biomarker the chart opens on. Null means none: the chart opens on [the overview](#the-overview) of every biomarker, as it does for a name the table lacks.                                                      |
+| `visits`             | `null`                      | The visit, or visits, the chart opens on. Null means every visit.                                                                                                                                                   |
+| `value_type`         | `'raw'`                     | The value type the chart opens on: `raw`, `baseline`, `change`, `fold_change` or `percent_change`, as the [core defines them](core.md#value_types).                                                                 |
+| `group_by`           | `null`                      | The column on the axis the chart opens on, or a biomarker or number [cut into groups](#a-cut-biomarker-as-the-groups): `{ measure: 'CRP', visit: 'Baseline', cut: 'median' }`. Null means the first column offered. |
+| `levels`             | `null`                      | The levels of the group the chart opens on. Null means all of them.                                                                                                                                                 |
+| `color_by`           | `null`                      | The column of the second grouping, by colour. Null means none.                                                                                                                                                      |
+| `panel_by`           | `null`                      | The column the panels are made by, or a cut variable, as `group_by` takes one. Null means none.                                                                                                                     |
+| `mark`               | `'box'`                     | What a group is drawn as: `box`, `violin` or `points`.                                                                                                                                                              |
+| `y_scale`            | `'linear'`                  | The scale of the value axis: `linear` or `log`.                                                                                                                                                                     |
+| `measures`           | `null`                      | The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.                                                                                                       |
+| `groups`             | `null`                      | The columns offered to group, colour and panel by, as names or `{ value_col, label }`. Null means the category columns the tables have.                                                                             |
+| `max_levels`         | `12`                        | The most different values a column may hold and still be offered as a category.                                                                                                                                     |
+| `filters`            | `null`                      | The filters, as names or `{ value_col, label }`, with safety.viz's `start`, `all` and `multiple`. Null means every category column of the participant table.                                                        |
+| `overview_limit`     | `12`                        | The most biomarkers [the overview](#the-overview) draws at a time, a whole number of one or more. The rest are reached by pages.                                                                                    |
+| `details`            | `null`                      | The columns of the listing, as names or `{ value_col, label }`. Null means the participant, the group, the colour, the panel and the value.                                                                         |
+| `page_size`          | `10`                        | Rows on a page of the listing.                                                                                                                                                                                      |
+| `connection`         | `null`                      | The connection to R the statistics line asks. Null means one with no R attached.                                                                                                                                    |
+| `statistic`          | `'Analyze_GroupDifference'` | The R function the statistics line asks for: gsm.bio's, or one that takes the same arguments. Null means no statistics line and no Statistics controls.                                                             |
+| `test`               | `'t'`                       | The test the chart opens on: `t`, `wilcoxon`, `anova`, `kruskal` or `none`. See [which test](#which-test).                                                                                                          |
+| `pairwise`           | `false`                     | Whether the chart opens with pairwise comparisons switched on. They are made only among more than two groups.                                                                                                       |
+| `waiting_note`       | `null`                      | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                                                                                |
+| `back`               | `null`                      | A way back, for a chart that opened this one in its place: `{ label, action }`. A button above the chart calls `action` with the chart. Null means none.                                                            |
+| `profile`            | `true`                      | Whether a row of the listing opens safety.viz's participant profile.                                                                                                                                                |
+| `profile_details`    | `null`                      | The participant's columns shown at the head of the profile. Null means the category columns.                                                                                                                        |
+| `studyday_col`       | `null`                      | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.                                                                  |
+| `normal_col_high`    | `null`                      | A column holding the upper limit of normal of each result, when the results have one.                                                                                                                               |
+| `normal_col_low`     | `null`                      | A column holding the lower limit of normal.                                                                                                                                                                         |
 
 ## What is drawn
 
@@ -164,6 +164,28 @@ The overview draws at most `overview_limit` biomarkers at a time, twelve by defa
 
 Each panel is a Chart.js chart of its own, as safety.viz's small multiples are, and nothing in a panel answers the pointer: the row does. A page is therefore the limit times the visits in charts: sixty for the synthetic study's twelve biomarkers at five visits. Measured in headless Chromium on a laptop (Apple M3 Pro), that first draw takes about 90 milliseconds from the tables to the last chart, at a desk's width and at a phone's alike, and about 65 to draw again after a control changes; the browser test named `GC-OVW-017` times it on every run and prints what it found. Twelve is the default because it is a page a reader can scan and the synthetic study's biomarkers fit on it; a study with many more visits can set it lower.
 
+## A cut biomarker as the groups
+
+A biomarker, or a participant-level number, can make the groups or the panels when it is cut, by the core's shared [cut rule](core.md#the-cut-rule): at its median, its tertiles, its quartiles or typed points.
+
+```js
+BioViz.groupComparison('#chart', {
+  start_value: 'IL-6',
+  visits: ['Week 4'],
+  value_type: 'change',
+  group_by: { measure: 'CRP', visit: 'Baseline', cut: 'tertiles' },
+  panel_by: { col: 'AGE', type: 'number', cut: [40, 60] }
+}).init({ results, participants });
+```
+
+- The cut points are worked out on every participant the filters keep who has a value of the cut variable, whether or not they have a value to draw, so each visit's panel has the same groups. They move when the filters do.
+- The groups are ordered low to high and labelled with their bounds (`≤ 2.167`, `> 2.167, ≤ 3.467`, `> 3.467`), with the number in each beneath, as for a column. A group nobody is in is not drawn.
+- The footnote says how the variable was cut: `CRP at Baseline is cut at its tertiles, 2.167 and 3.467, worked out on the 200 participants with a value.` When repeated points collapse, it says so and how many groups they make.
+- A participant with no value of the cut variable is left out and counted, as for a column.
+- The Group and Panel controls offer the cut variable after the columns, named in words (`CRP at Baseline, cut at the tertiles`). A cut has no Levels control: every group it makes is drawn.
+- The colour is a column only.
+- R is asked for the test of the cut groups as for a column's, with the cut variable in the identity of the rows (see [What R is asked](#what-r-is-asked)).
+
 ## The controls
 
 In safety.viz's sidebar, in five sections.
@@ -184,7 +206,7 @@ In safety.viz's sidebar, in five sections.
 | Filters    | one per filter       | The participants drawn. Only with a participant table.                                 |
 |            | Reset chart          | Returns every control to what the chart opened on.                                     |
 
-The Statistics section is there when the setting `statistic` names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level, a minimum group size or a cut: those are R's.
+The Statistics section is there when the setting `statistic` names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level or a minimum group size: those are R's. A cut is chosen in the settings, as part of the variable that makes the groups.
 
 ## Listing and participant profile
 
@@ -262,21 +284,21 @@ Nothing else is sent. The groups are the ones in the rows, in the order R sorts 
 
 `dataId` states what the rows are. A [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together, so the identity is built only from what the settings and the controls say, by the settings' own names, and from the group names in the rows:
 
-| Member            | Value                                                                                                                 | Left out when                      |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `chart`           | `'group-comparison'`.                                                                                                 | never                              |
-| `measure`         | The biomarker.                                                                                                        | never                              |
-| `value_type`      | `raw`, `baseline`, `change`, `fold_change` or `percent_change`.                                                       | never                              |
-| `visit`           | The panel's visit.                                                                                                    | the value type is `baseline`       |
-| `baseline_visits` | The setting, as a list.                                                                                               | the setting is null                |
-| `baseline_stat`   | The setting.                                                                                                          | never                              |
-| `group_by`        | The column on the axis.                                                                                               | never, for a panel that has a test |
-| `groups`          | The distinct values of `x` in the rows, as text, sorted by code point.                                                | never                              |
-| `color_by`        | The colour column.                                                                                                    | there is no colour                 |
-| `panel_by`        | The panel column.                                                                                                     | there are no panels by a variable  |
-| `panel`           | The panel's level of that column.                                                                                     | there are no panels by a variable  |
-| `filters`         | An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point. | no filter is in force              |
-| `positive_only`   | `true` on a logarithmic scale, where a value of zero or less is left out.                                             | the scale is linear                |
+| Member            | Value                                                                                                                                                                     | Left out when                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `chart`           | `'group-comparison'`.                                                                                                                                                     | never                              |
+| `measure`         | The biomarker.                                                                                                                                                            | never                              |
+| `value_type`      | `raw`, `baseline`, `change`, `fold_change` or `percent_change`.                                                                                                           | never                              |
+| `visit`           | The panel's visit.                                                                                                                                                        | the value type is `baseline`       |
+| `baseline_visits` | The setting, as a list.                                                                                                                                                   | the setting is null                |
+| `baseline_stat`   | The setting.                                                                                                                                                              | never                              |
+| `group_by`        | The column on the axis, or the cut variable as the settings write it: `{ measure, visit, value, cut }`, the visit left out for a baseline value, or `{ col, type, cut }`. | never, for a panel that has a test |
+| `groups`          | The distinct values of `x` in the rows, as text, sorted by code point.                                                                                                    | never                              |
+| `color_by`        | The colour column.                                                                                                                                                        | there is no colour                 |
+| `panel_by`        | The panel column, or the cut variable, written as `group_by` writes one.                                                                                                  | there are no panels by a variable  |
+| `panel`           | The panel's level of that column, or the label of its group of the cut.                                                                                                   | there are no panels by a variable  |
+| `filters`         | An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point.                                                     | no filter is in force              |
+| `positive_only`   | `true` on a logarithmic scale, where a value of zero or less is left out.                                                                                                 | the scale is linear                |
 
 A member that is not set is left out, never written as null. A list is a list whatever its length. Sorting by code point is what R's `sort(x, method = "radix")` does, so both sides write the same list without a locale.
 
@@ -345,4 +367,4 @@ In the overview a biomarker's row is a card as wide as the page. Its visits sit 
 
 ## What is not here
 
-No statistical test, estimate, interval, p-value or adjustment is computed here: the chart chooses which of R's to ask for and prints R's answer. And no rule that cuts a continuous variable into groups: a group comes from a column.
+No statistical test, estimate, interval, p-value or adjustment is computed here: the chart chooses which of R's to ask for and prints R's answer. A cut point describes the values, as a box's median does, and is the core's shared [cut rule](core.md#the-cut-rule).

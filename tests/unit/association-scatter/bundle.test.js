@@ -65,9 +65,12 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     // group comparison chart, which names no variable that way, does not.
     // src/shared/paging.js (#36) is how a long list is paged: the group
     // comparison chart's overview and the biomarker screen use it.
+    // src/shared/cut.js (#43) is how a cut variable makes groups: the group
+    // comparison chart uses it, and this chart, whose axes are numbers, does not.
     const everything = sourceFiles('src/shared');
     expect(everything).toEqual([
       'src/shared/chartHost.js',
+      'src/shared/cut.js',
       'src/shared/paging.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
@@ -75,7 +78,8 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
       'src/shared/variables.js'
     ]);
     const shared = everything.filter(
-      (file) => !['src/shared/variables.js', 'src/shared/paging.js'].includes(file)
+      (file) =>
+        !['src/shared/variables.js', 'src/shared/paging.js', 'src/shared/cut.js'].includes(file)
     );
     const reached = (files) => new Set(files.flatMap(importsOf));
     const fromScatter = reached(scatter);

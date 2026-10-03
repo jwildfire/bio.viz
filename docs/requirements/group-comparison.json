@@ -125,6 +125,14 @@
     "GC-SITE-001": "The gallery lists the group comparison chart with its picture and links to its live demo, its evidence page and its API reference.",
     "GC-SITE-002": "The live demo draws the chart on the synthetic study from safety.viz's vendored bundle and bio.viz's committed one, with R attached and gsm.bio's statistics file published beside it. Where R's host cannot be reached it still draws, and its statistics line says that R could not be started.",
     "GC-SITE-003": "The live demo holds at a 390-pixel-wide viewport with no horizontal scroll.",
-    "GC-SITE-004": "The API reference has a table row for every setting the chart has; the site build fails when one is missing."
+    "GC-SITE-004": "The API reference has a table row for every setting the chart has; the site build fails when one is missing.",
+    "GC-CUT-001": "The chart draws a biomarker by a cut biomarker as its category: IL-6's change to Week 4 by CRP at Baseline cut at the median, the tertiles, the quartiles and typed points, on the synthetic study, the groups low to high with the number in each beneath, each participant in the group desktop R puts them in.",
+    "GC-CUT-002": "With a cut category or panel the footnote states the cut and its points, and how many participants' values they were worked out on.",
+    "GC-CUT-003": "A cut biomarker can make the panels, in its order low to high, each panel holding the participants desktop R puts in that group.",
+    "GC-CUT-004": "When repeated cut points collapse, the footnote says the points repeat and how many groups they make instead; a cut variable with no value says it makes no groups.",
+    "GC-CUT-005": "`group_by` and `panel_by` take a column or a cut variable, which the settings keep as the core writes one; a variable with no cut, or a malformed cut, is refused with a sentence; `color_by` stays a column.",
+    "GC-CUT-006": "A cut's points are worked out on the participants the filters keep who have a value of the cut variable, whether or not they have a value to draw, so a visit's panels share one set of groups; they move when the filters do.",
+    "GC-CUT-007": "The statistics request names a cut category in the identity of its rows as the cut variable written by the settings' own names, and the groups by their labels, so a stored result written from R is found.",
+    "GC-CUT-008": "A cut category has no Levels control: every group it makes is drawn, and the controls say so."
   }
 }

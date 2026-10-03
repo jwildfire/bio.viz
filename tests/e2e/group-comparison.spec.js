@@ -3191,3 +3191,130 @@ test.describe('group comparison: the filter rules safety.viz’s charts follow',
     await expectFilterRules(page, warnings, () => ({ ...window.__gc.chart.state.filters }));
   });
 });
+
+// ---- The shared cut rule (#43) ---------------------------------------------------
+
+// What desktop R makes of each cut (tools/r-cut.R): the points, the labels and,
+// for the drawn biomarker, the count in each group. No number below was typed.
+const cutsFromR = readJson('../fixtures/cut-r.json');
+const cutCase = (name) => cutsFromR.cases.find((entry) => entry.name === name);
+const CRP_CUTS = [
+  ['median', 'CRP at Baseline, cut at the median'],
+  ['tertiles', 'CRP at Baseline, cut at the tertiles'],
+  ['quartiles', 'CRP at Baseline, cut at the quartiles'],
+  [[2, 5], 'CRP at Baseline, cut at 2 and 5']
+];
+const crpCut = (cut) => ({ measure: 'CRP', visit: 'Baseline', cut });
+const IL6_WEEK_4 = { start_value: 'IL-6', visits: ['Week 4'], value_type: 'change' };
+// The groups R drew a biomarker in, low to high, each with its count; a group
+// with nobody in it is not drawn.
+const ticksOf = (entry) =>
+  entry.labels
+    .map((group, index) => [group, `n = ${entry.drawn.counts[index]}`])
+    .filter((tick) => tick[1] !== 'n = 0');
+
+test.describe('group comparison: a cut biomarker makes the groups', () => {
+  test('GC-CUT-001: IL-6’s change to Week 4 by CRP at Baseline cut at the median, the tertiles, the quartiles and typed points: the groups low to high, each with R’s count beneath (#43)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    for (const [cut, name] of CRP_CUTS) {
+      const entry = cutCase(name);
+      await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut(cut) } });
+      const [panel] = await drawn(page);
+      expect(panel.ticks, name).toEqual(ticksOf(entry));
+      expect(
+        panel.cells.map((cell) => cell.level),
+        name
+      ).toEqual(entry.labels);
+      // The Group control names the cut, and holds it.
+      await expect(page.locator('select[data-control="group-by"] option:checked')).toHaveText(name);
+      if (cut === 'tertiles') {
+        await captureEvidence(page.locator('.sv-main'), 'GC-CUT-001', 'il-6-by-crp-tertiles');
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-CUT-002: the footnote states the cut and its points, worked out on the participants with a value (#43)', async ({
+    page
+  }) => {
+    const median = cutCase('CRP at Baseline, cut at the median');
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('median') } });
+    await expect(page.locator('.sv-footnote')).toHaveText(
+      'Click a box to list its participants. CRP at Baseline is cut at its median, ' +
+        `${median.labels[1].slice(2)}, worked out on the ${median.n} participants with a value.`
+    );
+    const tertiles = cutCase('CRP at Baseline, cut at the tertiles');
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('tertiles') } });
+    await expect(page.locator('.sv-footnote')).toContainText(
+      `CRP at Baseline is cut at its tertiles, ${tertiles.labels[0].slice(2)} and ` +
+        `${tertiles.labels[2].slice(2)}, worked out on the ${tertiles.n} participants with a value.`
+    );
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut([2, 5]) } });
+    await expect(page.locator('.sv-footnote')).toContainText('CRP at Baseline is cut at 2 and 5.');
+  });
+
+  test('GC-CUT-003: a cut biomarker makes the panels, in its order, each with R’s counts (#43)', async ({
+    page
+  }) => {
+    const entry = cutCase('CRP at Baseline, cut at the median');
+    await open(page, {
+      settings: { ...IL6_WEEK_4, group_by: null, panel_by: crpCut('median') }
+    });
+    const panels = await drawn(page);
+    expect(panels.map((panel) => panel.title)).toEqual(entry.labels);
+    // By arm within each panel; together the panels hold R's count of each group.
+    panels.forEach((panel, index) => {
+      const n = panel.cells.reduce((total, cell) => total + cell.n, 0);
+      expect(n, panel.title).toBe(entry.drawn.counts[index]);
+    });
+    await expect(page.locator('select[data-control="panel-by"] option:checked')).toHaveText(
+      'CRP at Baseline, cut at the median'
+    );
+    await expect(page.locator('.sv-footnote')).toContainText(
+      'CRP at Baseline is cut at its median'
+    );
+    await captureEvidence(page.locator('.sv-main'), 'GC-CUT-003', 'panels-by-crp-median');
+  });
+
+  test('GC-CUT-006: the cut points are worked out on the participants the filters keep, and move with the filters (#43)', async ({
+    page
+  }) => {
+    const women = cutCase('IL-6 at baseline, cut at the median, for women');
+    await open(page, {
+      settings: {
+        start_value: 'IL-6',
+        visits: ['Week 4'],
+        value_type: 'baseline',
+        group_by: { measure: 'IL-6', value: 'baseline', cut: 'median' },
+        filters: [{ value_col: 'SEX', label: 'Sex', start: 'F' }]
+      }
+    });
+    const [panel] = await drawn(page);
+    expect(panel.ticks).toEqual(
+      women.labels.map((group, index) => [group, `n = ${women.counts[index]}`])
+    );
+    await expect(page.locator('.sv-footnote')).toContainText(
+      `IL-6 at baseline is cut at its median, ${women.labels[1].slice(2)}, worked out on the ` +
+        `${women.n} participants with a value.`
+    );
+    // All participants: the median moves.
+    await page.locator('.sv-sidebar select[data-filter="SEX"]').selectOption('__all__');
+    const [all] = await drawn(page);
+    expect(all.ticks.map((tick) => tick[0])).not.toEqual(women.labels);
+  });
+
+  test('GC-CUT-008: a cut has no Levels control: every group it makes is drawn (#43)', async ({
+    page
+  }) => {
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('quartiles') } });
+    await expect(page.locator('[data-control="levels"]')).toHaveCount(0);
+    await expect(page.locator('.bv-control-note')).toContainText(
+      'Every group a cut makes is drawn.'
+    );
+    // A column again: the control is back.
+    await choose(page, 'group-by', 'ARM');
+    await expect(page.locator('[data-control="levels"]')).toHaveCount(1);
+  });
+});

@@ -15,6 +15,7 @@ import { label as variableLabel } from '../core/variable.js';
 import { coreSettings } from '../shared/settings.js';
 import { pageCount, pageOf } from '../shared/paging.js';
 import { keepFiltered, levelsOf, unitOf } from '../shared/tables.js';
+import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 
 // What the controls offer is read from the tables the same way by every chart,
 // in src/shared/tables.js; this file has always exported it, and still does.
@@ -204,7 +205,9 @@ export function tickLabel(level, cells) {
  * @param {object} settings The chart's settings (syncSettings).
  * @param {object} state What the controls are set to: `measure`, `visits`,
  *   `valueType`, `groupBy`, `levels`, `colorBy`, `panelBy`, `mark`, `yScale`,
- *   `filters`.
+ *   `filters`. `groupBy` and `panelBy` are each a column's name or a cut
+ *   variable, whose groups are the core's cut rule worked out on the
+ *   participants the filters keep.
  * @param {object} [options]
  * @param {Function} [options.filterMatches] safety.viz's test of one value
  *   against one filter's selection.
@@ -237,6 +240,7 @@ export function buildPanels({ results, participants }, settings, state, options 
       visitsNotDrawn: [],
       extent: null,
       filtered: kept ? kept.length : null,
+      cuts: {},
       // No row to frame, as against rows that frame to no panel.
       noRows: true
     };
@@ -252,12 +256,32 @@ export function buildPanels({ results, participants }, settings, state, options 
     needsVisit
       ? { measure: state.measure, visit, value: state.valueType }
       : { measure: state.measure, value: 'baseline' };
+  // A cut variable's points are worked out once, on every participant the
+  // filters keep who has a value of it, whether or not they have a value to
+  // draw: so the groups are the same in every visit's panel.
+  const cuts = {};
+  for (const [field, by] of [
+    ['x', state.groupBy],
+    ['panel', state.panelBy]
+  ]) {
+    if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
+  }
+  const grouping = (by) => (isCut(by) ? by : { col: by });
   const variablesFor = (visit) => ({
     y: yOf(visit),
-    ...(state.groupBy ? { x: { col: state.groupBy } } : {}),
+    ...(state.groupBy ? { x: grouping(state.groupBy) } : {}),
     ...(state.colorBy ? { color: { col: state.colorBy } } : {}),
-    ...(state.panelBy ? { panel: { col: state.panelBy } } : {})
+    ...(state.panelBy ? { panel: grouping(state.panelBy) } : {})
   });
+  // A cut variable's number, as its group's label.
+  const grouped = (record) => {
+    const out = { ...record };
+    for (const [field, cut] of Object.entries(cuts)) out[field] = groupLabel(record[field], cut);
+    return out;
+  };
+  // A cut's groups, low to high, those with someone in them.
+  const cutLevels = (cut, field, records) =>
+    cut.labels.filter((group) => records.some((record) => record[field] === group));
 
   const framed = visitList.map((visit) => {
     const made = frame(
@@ -266,19 +290,24 @@ export function buildPanels({ results, participants }, settings, state, options 
       config
     );
     // With no column to group by, everyone is one group.
-    const all = state.groupBy ? made.data : made.data.map((record) => ({ ...record, x: EVERYONE }));
+    const data = made.data.map(grouped);
+    const all = state.groupBy ? data : data.map((record) => ({ ...record, x: EVERYONE }));
     // A logarithmic axis has no place for zero or less.
     const positive = state.yScale === 'log' ? all.filter((record) => record.y > 0) : all;
     return { visit, made, data: positive, nonPositive: made.data.length - positive.length };
   });
 
   const everyRecord = framed.flatMap((entry) => entry.data);
-  const levels = levelsOf(everyRecord.map((record) => record.x));
-  const shownLevels = state.levels
-    ? levels.filter((level) => state.levels.includes(level))
-    : levels;
+  const levels = cuts.x
+    ? cutLevels(cuts.x, 'x', everyRecord)
+    : levelsOf(everyRecord.map((record) => record.x));
+  // Every group a cut makes is drawn: the Levels control is for a column.
+  const shownLevels =
+    state.levels && !cuts.x ? levels.filter((level) => state.levels.includes(level)) : levels;
   const colors = state.colorBy ? levelsOf(everyRecord.map((record) => record.color)) : [null];
-  const panelLevels = state.panelBy ? levelsOf(everyRecord.map((record) => record.panel)) : [null];
+  let panelLevels = [null];
+  if (cuts.panel) panelLevels = cutLevels(cuts.panel, 'panel', everyRecord);
+  else if (state.panelBy) panelLevels = levelsOf(everyRecord.map((record) => record.panel));
   const { offsets, halfWidth } = slots(colors.length);
   const logged = state.yScale === 'log';
 
@@ -362,7 +391,9 @@ export function buildPanels({ results, participants }, settings, state, options 
     // The baseline visit that was chosen and not drawn, when there is one.
     visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
-    filtered: kept ? kept.length : null
+    filtered: kept ? kept.length : null,
+    // How each cut variable was cut, for the footnote: `x`, `panel`.
+    cuts
   };
 }
 
