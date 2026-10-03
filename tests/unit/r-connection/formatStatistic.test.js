@@ -350,3 +350,19 @@ describe('formatComparison: one pair of groups from a result’s rows', () => {
     expect(formatComparison(undefined).status).toBe('refused');
   });
 });
+
+describe('the formatter in the README', () => {
+  it('PVAL-FMT-005: the README’s example prints what formatStatistic prints for desktop R’s own Wilcoxon answer, R’s method name as R wrote it (#49)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const read = (file) => readFileSync(new URL(`../../../${file}`, import.meta.url), 'utf8');
+    const expected = JSON.parse(read('site/r-check/expected.json'));
+    const rankSum = expected.results.find((result) => result.name === 'rank_sum');
+    const printed = formatStatistic(rankSum.value).text;
+    expect(printed).toMatch(/^Wilcoxon rank sum test with continuity correction: p /);
+    expect(read('README.md')).toContain(`// "${printed}"`);
+    // The comment in the source names a method as R names it.
+    expect(read('src/r/formatStatistic.js')).toContain(
+      'e.g. "Wilcoxon rank sum test with continuity correction"'
+    );
+  });
+});

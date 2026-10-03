@@ -15,7 +15,8 @@
 // gsm.bio's functions return):
 //
 //   status      "ok", "too_small" or "error"; absent is read as "ok"
-//   method      the name of the test, e.g. "Wilcoxon rank-sum test"
+//   method      the name of the test as R wrote it, printed as it is,
+//               e.g. "Wilcoxon rank sum test with continuity correction"
 //   p_value     a number from 0 to 1
 //   counts      the counts used: one number, or an object of group -> number
 //   adjustment  the name of the multiplicity adjustment applied, if any
