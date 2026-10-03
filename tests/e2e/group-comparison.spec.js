@@ -7,6 +7,7 @@ import {
   expectFailureSaid,
   expectNobodyWithOrphans,
   expectSettingsRefused,
+  expectTablesAndSettingsTogether,
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
@@ -3232,6 +3233,12 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     await expectSettingsRefused(page, 'gc');
   });
 
+  test('GC-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)', async ({
+    page
+  }) => {
+    await expectTablesAndSettingsTogether(page, 'gc');
+  });
+
   test('GC-DRAW-007: with one biomarker open at several visits, the groups’ labels under each visit’s panel do not run into one another, on a desk and on a phone (#49)', async ({
     page
   }) => {
@@ -3247,6 +3254,64 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
         const participants = data.participants.map((row, index) => ({
           ...row,
           ARM: arms[index % 3]
+        }));
+        chart.setData({ results: data.results, participants });
+        chart.setSettings({
+          start_value: 'IL-6',
+          visits: null,
+          group_by: 'ARM',
+          value_type: 'raw'
+        });
+        await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 50)));
+        return chart.charts.map((drawn) => {
+          const axis = drawn.scales.x;
+          const ctx = drawn.ctx;
+          const font = axis._resolveTickFontOptions(0);
+          ctx.save();
+          ctx.font = font.string;
+          const lines = drawn.$panel.ticks.map((tick) => [].concat(tick));
+          const widest = Math.max(
+            ...lines.flatMap((tick) => tick.map((line) => ctx.measureText(line).width))
+          );
+          ctx.restore();
+          const height = Math.max(...lines.map((tick) => tick.length)) * font.lineHeight;
+          const spacing = axis.getPixelForValue(1) - axis.getPixelForValue(0);
+          return { rotation: axis.labelRotation, widest, height, spacing };
+        });
+      });
+      expect(panels.length, `${width}px`).toBe(5);
+      for (const panel of panels) {
+        // Level labels fit side by side, or are turned so that neighbours do not touch.
+        const fits =
+          panel.rotation === 0
+            ? panel.widest <= panel.spacing
+            : panel.spacing * Math.sin((panel.rotation * Math.PI) / 180) >= panel.height;
+        expect(fits, `${width}px: ${JSON.stringify(panel)}`).toBe(true);
+      }
+    }
+  });
+
+  test('GC-DRAW-008: with five long arm names, the groups’ labels under each visit’s panel do not run into one another at 1280 pixels wide; narrower is #53 (#52)', async ({
+    page
+  }) => {
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    for (const width of [1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/tests/e2e/fixtures/group-comparison.html');
+      await page.evaluate(() => window.__gc.ready);
+      const panels = await page.evaluate(async () => {
+        const { chart, data } = window.__gc;
+        // Three arms with long names, as a study's are.
+        const arms = [
+          'Placebo',
+          'Xanomeline Low Dose',
+          'Xanomeline Medium Dose',
+          'Xanomeline High Dose',
+          'Xanomeline Highest Dose'
+        ];
+        const participants = data.participants.map((row, index) => ({
+          ...row,
+          ARM: arms[index % 5]
         }));
         chart.setData({ results: data.results, participants });
         chart.setSettings({
@@ -3311,6 +3376,36 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     expect(said.il6.offered).toEqual(['Baseline', 'Week 4', 'Week 8', 'Week 12']);
     expect(said.crp.panels).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
     expect(said.crp.offered).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
+  });
+
+  test('GC-OVW-020: in the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others (#52)', async ({
+    page
+  }) => {
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    await page.goto('/tests/e2e/fixtures/group-comparison.html');
+    await page.evaluate(() => window.__gc.ready);
+    const rows = await page.evaluate(async () => {
+      const { chart, data } = window.__gc;
+      // IL-6 has no result at Week 2; the other biomarkers do.
+      const results = data.results.filter(
+        (row) => !(row.TEST === 'IL-6' && row.VISIT === 'Week 2')
+      );
+      chart.setData({ results, participants: data.participants });
+      chart.setSettings({ start_value: null, visits: null, value_type: 'raw' });
+      await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 50)));
+      return [...document.querySelectorAll('#chart .bv-overview-row')].map((row) => ({
+        measure: row.dataset.measure,
+        visits: [...row.querySelectorAll('.bv-overview-panel')].map((cell) => cell.dataset.visit),
+        lefts: [...row.querySelectorAll('.bv-overview-panel')].map((cell) =>
+          Math.round(cell.getBoundingClientRect().left)
+        )
+      }));
+    });
+    const il6 = rows.find((row) => row.measure === 'IL-6');
+    const il8 = rows.find((row) => row.measure === 'IL-8');
+    expect(il6.visits).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
+    expect(il6.visits).toEqual(il8.visits);
+    expect(il6.lefts).toEqual(il8.lefts);
   });
 
   test('GC-FAIL-002: a failure while the controls are built, where the Levels control reads the groups, is said like any other: the chart could not be drawn, and nothing is thrown (#49)', async ({

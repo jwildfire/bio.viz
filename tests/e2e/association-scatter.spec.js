@@ -7,6 +7,7 @@ import {
   expectFailureSaid,
   expectNobodyWithOrphans,
   expectSettingsRefused,
+  expectTablesAndSettingsTogether,
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
@@ -2671,5 +2672,11 @@ test.describe('association scatter: what the v0.1.0-RC1 review found', () => {
     page
   }) => {
     await expectSettingsRefused(page, 'as');
+  });
+
+  test('AS-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)', async ({
+    page
+  }) => {
+    await expectTablesAndSettingsTogether(page, 'as');
   });
 });

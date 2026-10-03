@@ -7,6 +7,7 @@ import {
   expectFailureSaid,
   expectNobodyWithOrphans,
   expectSettingsRefused,
+  expectTablesAndSettingsTogether,
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
@@ -2159,7 +2160,13 @@ test.describe('biomarker screen: what the v0.1.0-RC1 review found', () => {
   test('BS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
     page
   }) => {
-    await expectSettingsRefused(page, 'bs');
+    await expectSettingsRefused(page, 'bs', { open: ['IL-6'], is: 'opened' });
+  });
+
+  test('BS-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)', async ({
+    page
+  }) => {
+    await expectTablesAndSettingsTogether(page, 'bs');
   });
 
   test('BS-NAME-001: a biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name (#49)', async ({
@@ -2205,31 +2212,27 @@ test.describe('biomarker screen: what the v0.1.0-RC1 review found', () => {
     expect(said.columns).toContain(' IL-6');
   });
 
-  test('BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)', async ({
+  test('BS-STAT-015: for a difference the statistics line under the rows prints R’s own note that the interval pools the variances and the p-value does not; the chart adds no words of its own about R’s method (#49, #52)', async ({
     page
   }) => {
-    const NOTE =
-      "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the " +
-      'group comparison.';
-    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
-    await page.goto('/tests/e2e/fixtures/biomarker-screen.html');
-    await page.evaluate(() => window.__bs.ready);
-    const footnote = page.locator('#chart .sv-footnote');
-    await expect(footnote).toContainText(NOTE);
-    // It is under the rows, where they are read.
+    await open(page);
+    await withStored(page, stored('difference-baseline'));
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const said = resultOf('difference-baseline').value.notes.find((note) =>
+      note.startsWith('The interval is the pooled-variance (Student) interval for Hedges')
+    );
+    expect(said, 'R says it in its answer').toBeTruthy();
+    await expect(line(page).locator('.bv-stat-remark')).toContainText([`R’s note: ${said}`]);
+    // The line is under the rows, where they are read.
     expect(
       await page.evaluate(() => {
-        const note = document.querySelector('#chart .sv-footnote');
         const rows = document.querySelector('#chart .bv-screen');
-        return Boolean(rows.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING);
+        const statistic = document.querySelector('#chart .sv-main > .bv-statistic');
+        return Boolean(rows.compareDocumentPosition(statistic) & Node.DOCUMENT_POSITION_FOLLOWING);
       })
     ).toBe(true);
-    await page.evaluate(() =>
-      window.__bs.chart.setSettings({
-        comparison: 'correlation',
-        with: { measure: 'IL-10', visit: 'Baseline' }
-      })
-    );
-    await expect(footnote).not.toContainText('Hedges');
+    // The footnote says nothing of R's methods: that is R's to say.
+    await expect(footnote(page)).not.toContainText('Hedges');
+    await expect(footnote(page)).not.toContainText('Welch');
   });
 });

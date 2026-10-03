@@ -7,6 +7,7 @@ import {
   expectFailureSaid,
   expectNobodyWithOrphans,
   expectSettingsRefused,
+  expectTablesAndSettingsTogether,
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
@@ -3478,7 +3479,13 @@ test.describe('correlation matrix: what the v0.1.0-RC1 review found', () => {
   test('CM-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
     page
   }) => {
-    await expectSettingsRefused(page, 'cm');
+    await expectSettingsRefused(page, 'cm', { open: ['CRP', 'IL-6'], is: 'scatter' });
+  });
+
+  test('CM-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)', async ({
+    page
+  }) => {
+    await expectTablesAndSettingsTogether(page, 'cm');
   });
 
   test('CM-STAT-016: the waiting note is said until R has answered once on the connection, so a pair the grid opens after R has answered says nothing more of starting R (#49)', async ({

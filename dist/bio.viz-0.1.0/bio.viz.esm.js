@@ -1275,7 +1275,7 @@ function checkTables(tables, settings) {
     );
   }
 }
-function readGiven(chart, data) {
+function readGiven(chart, data, settings = chart.settings) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
     if (!isRecordTable(tables.results)) {
@@ -1286,7 +1286,7 @@ function readGiven(chart, data) {
         "bio.viz: `participants` must be an array of records, one object per row."
       );
     }
-    checkTables(tables, chart.settings);
+    checkTables(tables, settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = "";
@@ -2285,7 +2285,7 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     };
   }
   const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
-  const atMeasure = measureVisits(results, settings, state.measure);
+  const atMeasure = options.everyVisit ? state.visits : measureVisits(results, settings, state.measure);
   const asked = state.visits.filter((visit) => atMeasure.includes(visit));
   const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
@@ -2413,7 +2413,7 @@ function buildOverview(tables, settings, state, measures, options = {}) {
     return {
       measure,
       title: yTitle(tables.results, settings, { ...row, visits: [] }),
-      model: buildPanels(tables, settings, row, options)
+      model: buildPanels(tables, settings, row, { ...options, everyVisit: true })
     };
   });
 }
@@ -2502,10 +2502,18 @@ var GroupComparison = class {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {GroupComparison} The chart, for chaining.
    */
-  setData(data) {
-    this.tables = readGiven(this, data);
+  setData(data, settings) {
+    if (settings === void 0 || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildProfileFeed();
@@ -4171,10 +4179,18 @@ var AssociationScatter = class {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {AssociationScatter} The chart, for chaining.
    */
-  setData(data) {
-    this.tables = readGiven(this, data);
+  setData(data, settings) {
+    if (settings === void 0 || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      this.tables = readGiven(this, data, syncSettings2({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildProfileFeed();
@@ -5548,11 +5564,19 @@ var CorrelationMatrix = class {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {CorrelationMatrix} The chart, for chaining.
    */
-  setData(data) {
+  setData(data, settings) {
     this.close();
-    this.tables = readGiven(this, data);
+    if (settings === void 0 || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      this.tables = readGiven(this, data, syncSettings3({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildControls();
@@ -5569,9 +5593,9 @@ var CorrelationMatrix = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.close();
     const next = syncSettings3({ ...this.settings, ...given2 });
     checkTables(this.tables, next);
+    this.close();
     this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
@@ -6811,7 +6835,6 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 var BACK2 = "Back to the biomarker screen";
 var HINT2 = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.";
-var DIFFERENCE_METHODS = "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the group comparison.";
 var COLUMN = "c:";
 var MEASURE = "m:";
 var BiomarkerScreen = class {
@@ -6871,11 +6894,19 @@ var BiomarkerScreen = class {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {BiomarkerScreen} The chart, for chaining.
    */
-  setData(data) {
+  setData(data, settings) {
     this.close();
-    this.tables = readGiven(this, data);
+    if (settings === void 0 || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      this.tables = readGiven(this, data, syncSettings4({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildControls();
@@ -6892,9 +6923,9 @@ var BiomarkerScreen = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.close();
     const next = syncSettings4({ ...this.settings, ...given2 });
     checkTables(this.tables, next);
+    this.close();
     this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
@@ -7202,7 +7233,7 @@ var BiomarkerScreen = class {
       this.footnote.textContent = "No participant has a value for any biomarker of this screen.";
       return;
     }
-    this.footnote.textContent = state.comparison === "difference" ? `${HINT2} ${DIFFERENCE_METHODS}` : HINT2;
+    this.footnote.textContent = HINT2;
     this.drawRows();
     if (!settings.statistic) return;
     const request = screenRequest({ name: settings.statistic, settings, state, model });

@@ -215,11 +215,24 @@ export async function expectNobodyWithOrphans(page, key) {
  * column the participant table does not have is refused with the same
  * sentence, before anything changes, and the chart stays as it was drawn.
  */
-export async function expectSettingsRefused(page, key) {
+export async function expectSettingsRefused(page, key, drill = null) {
   const { name } = CHARTS[key];
   const errors = errorsOf(page);
   await openChart(page, key);
-  const before = await page.locator('#chart .sv-footnote').textContent();
+  // A chart opened in place stays open when the settings are refused.
+  if (drill) {
+    await page.evaluate(({ name, open }) => window[name].chart.open(...open), {
+      name,
+      open: drill.open
+    });
+    expect(
+      await page.evaluate(({ name, is }) => Boolean(window[name].chart[is]()), {
+        name,
+        is: drill.is
+      })
+    ).toBe(true);
+  }
+  const before = await page.locator('#chart .sv-footnote').first().textContent();
   const refused = await page.evaluate((name) => {
     const { chart } = window[name];
     try {
@@ -229,12 +242,49 @@ export async function expectSettingsRefused(page, key) {
       return { error: error.message, setting: chart.settings.participant_id_col };
     }
   }, name);
+  if (drill) {
+    expect(
+      await page.evaluate(({ name, is }) => Boolean(window[name].chart[is]()), {
+        name,
+        is: drill.is
+      }),
+      'the chart opened in place is still open'
+    ).toBe(true);
+  }
   expect(refused).toEqual({
     error:
       'bio.viz: the participant table has no column `SUBJID`, which names the participant ' +
       '(`participant_id_col`, or `id_col` when that is not set).',
     setting: null
   });
-  await expect(page.locator('#chart .sv-footnote')).toHaveText(before);
+  await expect(page.locator('#chart .sv-footnote').first()).toHaveText(before);
+  expect(errors).toEqual([]);
+}
+
+/**
+ * The participant id column and the participant table change together:
+ * `setData(tables, settings)` takes the settings the new tables need, and
+ * checks the tables against them.
+ */
+export async function expectTablesAndSettingsTogether(page, key) {
+  const { name } = CHARTS[key];
+  const errors = errorsOf(page);
+  await openChart(page, key);
+  const said = await page.evaluate((name) => {
+    const { chart, data } = window[name];
+    const participants = data.participants.map(({ USUBJID, ...rest }) => ({
+      SUBJID: USUBJID,
+      ...rest
+    }));
+    chart.setData({ results: data.results, participants }, { participant_id_col: 'SUBJID' });
+    return {
+      setting: chart.settings.participant_id_col,
+      footnote: document.querySelector('#chart .sv-footnote').textContent,
+      notes: document.querySelector('#chart .sv-notes').textContent
+    };
+  }, name);
+  expect(said.setting).toBe('SUBJID');
+  expect(said.footnote).not.toMatch(/could not be drawn|No participant/);
+  expect(said.notes).not.toContain('Not in the participant table');
   expect(errors).toEqual([]);
 }
