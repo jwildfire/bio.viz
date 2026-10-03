@@ -127,7 +127,12 @@ describe('biomarker screen: how R’s answer is described', () => {
         'each row has its own counts.'
     });
     expect(shown.rows).toHaveLength(12);
-    expect(shown.remarks.map((remark) => remark.kind)).toEqual(['note', 'note', 'note']);
+    // Four notes since gsm.bio 514cbc3: the fourth says the interval pools the
+    // variances and the p-value does not (#49).
+    expect(shown.remarks.map((remark) => remark.kind)).toEqual(['note', 'note', 'note', 'note']);
+    expect(shown.remarks[3].text).toMatch(
+      /^R’s note: The interval is the pooled-variance \(Student\) interval for Hedges' g, while the p-value is Welch's/
+    );
     expect(shown.remarks[0].text).toBe(
       "R’s note: Each row's estimate: Standardised difference (Hedges' g), Placebo - Treatment."
     );
