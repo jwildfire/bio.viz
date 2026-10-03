@@ -1,7 +1,0 @@
-{
-  "made_by": {"script":"tools/r-fixtures.R","r_version":"4.3.3","survival_version":"3.5.8","platform":"aarch64-apple-darwin20"},
-  "results": [
-    {"name":"rank_sum","args":{"value":"AVAL","group":"ARM"},"dataId":"Alanine Aminotransferase at Week 8, Placebo and Xanomeline High Dose","file":"alt-week-8.csv","rows":122,"value":{"method":"Wilcoxon rank sum test with continuity correction","p_value":0.0003748751105801242,"statistic":1133.5,"counts":{"Placebo":70,"Xanomeline High Dose":52},"warnings":[]}},
-    {"name":"log_rank","args":{"time":"DAYS","event":"DISCONTINUED","group":"ARM"},"dataId":"Days on study, all participants, three arms","file":"days-on-study.csv","rows":254,"value":{"method":"Log-rank test","p_value":1.412630891109537e-08,"statistic":36.150453795869844,"df":2,"counts":{"Placebo":86,"Xanomeline High Dose":72,"Xanomeline Low Dose":96},"groups":[{"group":"Placebo","n":86,"observed":28,"expected":59.904462385871064},{"group":"Xanomeline High Dose","n":72,"observed":45,"expected":40.988199182760788},{"group":"Xanomeline Low Dose","n":96,"observed":71,"expected":43.10733843136817}],"warnings":[]}}
-  ]
-}
