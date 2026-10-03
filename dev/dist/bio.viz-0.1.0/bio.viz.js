@@ -715,15 +715,130 @@ var BioViz = (() => {
   var core_exports = {};
   __export(core_exports, {
     BASELINE_STATS: () => BASELINE_STATS,
+    CUTS: () => CUTS,
     DEFAULT_SETTINGS: () => DEFAULT_SETTINGS,
     DROPPED: () => DROPPED,
     UNUSED: () => UNUSED,
     VALUE_TYPES: () => VALUE_TYPES,
+    cutGroup: () => cutGroup,
+    cutLabels: () => cutLabels,
+    cutPoints: () => cutPoints,
+    cutWords: () => cutWords,
     frame: () => frame,
     label: () => label,
     variable: () => variable,
     visits: () => visits
   });
+
+  // src/core/cut.js
+  var CUTS = Object.freeze(["median", "tertiles", "quartiles"]);
+  var PROBS = { median: [0.5], tertiles: [1 / 3, 2 / 3], quartiles: [1 / 4, 2 / 4, 3 / 4] };
+  var isMissing = (value) => typeof value !== "number" || !Number.isFinite(value);
+  function quantile7(sorted2, p) {
+    const index = 1 + (sorted2.length - 1) * p;
+    const lo = Math.floor(index);
+    const hi = Math.ceil(index);
+    const below = sorted2[lo - 1];
+    const above = sorted2[hi - 1];
+    if (!(index > lo) || above === below) return below;
+    const h = index - lo;
+    return (1 - h) * below + h * above;
+  }
+  function roundHalfEven(value) {
+    const floor = Math.floor(value);
+    const rest = value - floor;
+    if (rest > 0.5) return floor + 1;
+    if (rest < 0.5) return floor;
+    return floor % 2 === 0 ? floor : floor + 1;
+  }
+  function powDi(x, n) {
+    let base = x;
+    let power = 1;
+    let left = Math.abs(n);
+    for (; ; ) {
+      if (left % 2 === 1) power *= base;
+      left = Math.floor(left / 2);
+      if (left === 0) break;
+      base *= base;
+    }
+    return n < 0 ? 1 / power : power;
+  }
+  var MAX10E = 308;
+  function signif(x, digits) {
+    if (x === 0 || !Number.isFinite(x)) return x;
+    const sign = x < 0 ? -1 : 1;
+    const size = Math.abs(x);
+    const l10 = Math.log10(size);
+    let e10 = digits - 1 - Math.floor(l10);
+    if (Math.abs(l10) < MAX10E - 2) {
+      let p102 = 1;
+      if (e10 > MAX10E) {
+        p102 = powDi(10, e10 - MAX10E);
+        e10 = MAX10E;
+      }
+      if (e10 > 0) {
+        const scale2 = powDi(10, e10);
+        return sign * (roundHalfEven(size * scale2 * p102) / scale2) / p102;
+      }
+      const scale = powDi(10, -e10);
+      return sign * (roundHalfEven(size / scale) * scale);
+    }
+    const e2 = digits + (e10 > 0 ? 1 : 6);
+    const p10 = powDi(10, e2);
+    const P10 = powDi(10, e10 - e2);
+    let scaled = size * p10 * P10;
+    if (MAX10E - l10 >= powDi(10, -digits)) scaled += 0.5;
+    return sign * (Math.floor(scaled) / p10) / P10;
+  }
+  function writePoint(point) {
+    let rounded = signif(point, 4);
+    if (!Number.isFinite(rounded)) rounded = point;
+    if (rounded === 0) return "0";
+    const sign = rounded < 0 ? "-" : "";
+    const size = Math.abs(rounded);
+    if (Number.isInteger(size)) return sign + BigInt(size).toString();
+    const [mantissa, exponent] = size.toExponential(3).split("e");
+    const digits = mantissa.replace(".", "").replace(/0+$/, "");
+    const place = Number(exponent) + 1;
+    if (place <= 0) return `${sign}0.${"0".repeat(-place)}${digits}`;
+    if (place >= digits.length) return sign + digits + "0".repeat(place - digits.length);
+    return `${sign}${digits.slice(0, place)}.${digits.slice(place)}`;
+  }
+  function boundLabels(points) {
+    if (!points.length) return [];
+    const bounds = points.map(writePoint);
+    return [
+      `\u2264 ${bounds[0]}`,
+      ...bounds.slice(1).map((bound, index) => `> ${bounds[index]}, \u2264 ${bound}`),
+      `> ${bounds[bounds.length - 1]}`
+    ];
+  }
+  function cutLabels(points) {
+    return [...new Set(boundLabels(points))];
+  }
+  function cutPoints(values, cut) {
+    const present3 = values.filter((value) => !isMissing(value)).sort((a, b) => a - b);
+    const typed = Array.isArray(cut);
+    let asked;
+    if (typed) asked = [...cut];
+    else asked = present3.length ? PROBS[cut].map((p) => quantile7(present3, p)) : [];
+    const points = asked.filter((point, index) => asked.indexOf(point) === index);
+    const labels = cutLabels(points);
+    return {
+      cut: typed ? [...cut] : cut,
+      n: present3.length,
+      asked,
+      points,
+      repeated: points.length < asked.length,
+      merged: points.length > 0 && labels.length < points.length + 1,
+      labels
+    };
+  }
+  function cutGroup(value, points) {
+    if (isMissing(value)) return null;
+    const labels = boundLabels(points);
+    return cutLabels(points).indexOf(labels[points.filter((point) => point < value).length]);
+  }
 
   // src/core/variable.js
   var VALUE_TYPES = Object.freeze([
@@ -749,14 +864,11 @@ var BioViz = (() => {
     const unknown = Object.keys(spec).filter((key) => key !== "kind" && !KEYS.includes(key));
     if (unknown.length) {
       refuse(
-        `the variable ${written} has a key that is not known: ${unknown.join(", ")}. A variable takes ${KEYS.filter((key) => key !== "cut").join(", ")}.`
+        `the variable ${written} has a key that is not known: ${unknown.join(", ")}. A variable takes ${KEYS.join(", ")}.`
       );
     }
-    if (given(spec.cut)) {
-      refuse(
-        `the variable ${written} asks for a cut, and the cut rule is not available yet: it arrives with cross-tabulation. Until then a group comes from a column.`
-      );
-    }
+    const cut = given(spec.cut) ? readCut(spec.cut, written) : null;
+    const done = (read2) => Object.freeze(cut === null ? read2 : { ...read2, cut });
     const hasMeasure = given(spec.measure);
     const hasColumn2 = given(spec.col);
     if (hasMeasure === hasColumn2) {
@@ -776,7 +888,12 @@ var BioViz = (() => {
           `the variable ${written}: \`type\` can only be 'number', to read the column as a number.`
         );
       }
-      return Object.freeze({ kind: "column", col: spec.col, type: spec.type ?? null });
+      if (cut !== null && spec.type !== "number") {
+        refuse(
+          `the variable ${written} cuts a column, so it must be read as a number: add \`type: 'number'\`.`
+        );
+      }
+      return done({ kind: "column", col: spec.col, type: spec.type ?? null });
     }
     if (!isText(spec.measure)) {
       refuse(`the variable ${written}: \`measure\` must be the name of a biomarker.`);
@@ -798,24 +915,66 @@ var BioViz = (() => {
           `the variable ${written} is a baseline value, which is read at the baseline visits named in settings: it takes no \`visit\`.`
         );
       }
-      return Object.freeze({ kind: "measure", measure: spec.measure, visit: null, value });
+      return done({ kind: "measure", measure: spec.measure, visit: null, value });
     }
     if (!isText(spec.visit)) {
       refuse(`the variable ${written} must name its visit: \`visit\` is missing or empty.`);
     }
-    return Object.freeze({ kind: "measure", measure: spec.measure, visit: spec.visit, value });
+    return done({ kind: "measure", measure: spec.measure, visit: spec.visit, value });
+  }
+  function readCut(cut, written) {
+    if (typeof cut === "string" && CUTS.includes(cut)) return cut;
+    if (!Array.isArray(cut)) {
+      refuse(
+        `the variable ${written}: \`cut\` must be ${CUTS.map((name) => `'${name}'`).join(", ")} or a list of cut points in ascending order, and it is ${JSON.stringify(cut)}.`
+      );
+    }
+    if (!cut.length) {
+      refuse(`the variable ${written}: \`cut\` is an empty list: give one cut point or more.`);
+    }
+    for (const point of cut) {
+      if (typeof point !== "number" || !Number.isFinite(point)) {
+        refuse(
+          `the variable ${written}: a cut point must be a finite number, and ${typeof point === "number" ? String(point) : JSON.stringify(point)} is not one.`
+        );
+      }
+    }
+    for (let index = 1; index < cut.length; index += 1) {
+      if (!(cut[index] > cut[index - 1])) {
+        refuse(
+          `the variable ${written}: the cut points must be in ascending order, each greater than the one before: ${cut[index - 1]} then ${cut[index]}.`
+        );
+      }
+    }
+    for (let index = 1; index < cut.length; index += 1) {
+      const bound = writePoint(cut[index]);
+      if (bound === writePoint(cut[index - 1])) {
+        refuse(
+          `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both written ${bound} to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits.`
+        );
+      }
+    }
+    return Object.freeze([...cut]);
   }
   var WORDS = {
     change: "change from baseline",
     fold_change: "fold change from baseline",
     percent_change: "percent change from baseline"
   };
+  var listed = (items) => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+  function cutWords(cut) {
+    return Array.isArray(cut) ? `cut at ${listed(cut.map(writePoint))}` : `cut at the ${cut}`;
+  }
   function label(spec) {
     const read2 = variable(spec);
-    if (read2.kind === "column") return read2.col;
-    if (read2.value === "baseline") return `${read2.measure} at baseline`;
-    const at = `${read2.measure} at ${read2.visit}`;
-    return read2.value === "raw" ? at : `${at}, ${WORDS[read2.value]}`;
+    let words;
+    if (read2.kind === "column") words = read2.col;
+    else if (read2.value === "baseline") words = `${read2.measure} at baseline`;
+    else {
+      const at = `${read2.measure} at ${read2.visit}`;
+      words = read2.value === "raw" ? at : `${at}, ${WORDS[read2.value]}`;
+    }
+    return read2.cut === void 0 ? words : `${words}, ${cutWords(read2.cut)}`;
   }
 
   // src/core/reasons.js
@@ -1300,7 +1459,30 @@ ${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
         `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
       );
     }
+    if (!tables.results.length) return;
+    const cuts = GROUPINGS.map((key) => [key, settings[key]]);
+    (Array.isArray(settings.cuts) ? settings.cuts : []).forEach(
+      (spec, index) => cuts.push([`cuts[${index}]`, spec])
+    );
+    for (const [key, spec] of cuts) {
+      if (!spec || typeof spec !== "object" || Array.isArray(spec)) continue;
+      if (typeof spec.measure === "string") {
+        if (!tables.results.some((row) => row[settings.measure_col] === spec.measure)) {
+          throw new TypeError(
+            `bio.viz: \`${key}\` cuts the biomarker ${spec.measure}, which the results table does not have.`
+          );
+        }
+      } else if (typeof spec.col === "string") {
+        const has = (rows) => Boolean(rows) && rows.some((row) => spec.col in row);
+        if (!has(tables.results) && !has(tables.participants)) {
+          throw new TypeError(
+            `bio.viz: \`${key}\` cuts the column ${spec.col}, which neither the results table nor the participant table has.`
+          );
+        }
+      }
+    }
   }
+  var GROUPINGS = ["group_by", "panel_by", "row_by", "col_by"];
   function readGiven(chart, data, settings = chart.settings) {
     const tables = Array.isArray(data) ? { results: data } : data || {};
     try {
@@ -1671,11 +1853,75 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       );
     }
     const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
+    if (read2.cut !== void 0) {
+      refuse4(
+        `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave \`cut\` out.`
+      );
+    }
     return read2.kind === "column" ? { col: read2.col } : {
       measure: read2.measure,
       value: read2.value,
       ...read2.visit === null ? {} : { visit: read2.visit }
     };
+  }
+
+  // src/shared/cut.js
+  function writtenCut(spec) {
+    const read2 = variable(spec);
+    const cut = Array.isArray(read2.cut) ? [...read2.cut] : read2.cut;
+    if (read2.kind === "column") return { col: read2.col, type: read2.type, cut };
+    return read2.value === "baseline" ? { measure: read2.measure, value: read2.value, cut } : { measure: read2.measure, visit: read2.visit, value: read2.value, cut };
+  }
+  function checkGrouping(settings, key) {
+    const value = settings[key];
+    if (!isPlainObject4(value)) return;
+    if (value.cut === void 0 || value.cut === null) {
+      refuse4(
+        `\`${key}\` is a variable with no cut. A biomarker or a number makes groups only when it is cut: add \`cut: 'median'\`, 'tertiles', 'quartiles' or the cut points.`
+      );
+    }
+    settings[key] = writtenCut(value);
+  }
+  var isCut = (by) => isPlainObject4(by);
+  function cutOf({ results, participants }, spec, settings) {
+    const made = frame(
+      { results, participants: participants || void 0 },
+      { v: spec },
+      { ...coreSettings(settings), required: [] }
+    );
+    return {
+      spec: writtenCut(spec),
+      ...cutPoints(
+        made.data.map((record) => record.v),
+        spec.cut
+      )
+    };
+  }
+  function groupLabel(value, cut) {
+    const index = cutGroup(value, cut.points);
+    return index === null ? null : cut.labels[index];
+  }
+  var listed2 = (items) => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+  function cutNote(spec, cut) {
+    const plain5 = writtenCut(spec);
+    delete plain5.cut;
+    const words = label(plain5);
+    if (Array.isArray(cut.cut)) return `${words} is cut at ${listed2(cut.points.map(writePoint))}.`;
+    if (!cut.n) return `${words} has no value to cut, so it makes no groups.`;
+    const asked = cut.asked.map(writePoint);
+    const sentence2 = `${words} is cut at its ${cut.cut}, ${listed2(asked)}, worked out on the ${cut.n} participant${cut.n === 1 ? "" : "s"} with a value.`;
+    const said = [sentence2];
+    if (cut.repeated) {
+      said.push(
+        `The points repeat, so they make ${cut.points.length + 1} groups, not ${cut.asked.length + 1}.`
+      );
+    }
+    if (cut.merged) {
+      said.push(
+        `The points differ only past four significant digits, so groups with the same bounds are one, as R\u2019s cut() makes them: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
+      );
+    }
+    return said.join(" ");
   }
 
   // src/shared/tables.js
@@ -1687,8 +1933,8 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
   function listMeasures(results, settings) {
     const present3 = levelsOf(results.map((row) => row[settings.measure_col]));
     if (!settings.measures) return present3;
-    const listed = settings.measures.filter((measure) => present3.includes(measure));
-    return listed.length ? listed : present3;
+    const listed3 = settings.measures.filter((measure) => present3.includes(measure));
+    return listed3.length ? listed3 : present3;
   }
   function unitOf(results, settings, measure) {
     if (!settings.unit_col) return null;
@@ -1914,14 +2160,16 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       "unit_col",
       "participant_id_col",
       "start_value",
-      "group_by",
       "color_by",
-      "panel_by",
       "studyday_col",
       "normal_col_high",
       "normal_col_low"
     ]) {
       columnOrNull(settings, key);
+    }
+    for (const key of ["group_by", "panel_by"]) {
+      if (isCut(settings[key])) checkGrouping(settings, key);
+      else columnOrNull(settings, key);
     }
     if (!VALUE_TYPES.includes(settings.value_type)) {
       refuse4(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
@@ -2079,16 +2327,20 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       ...Object.keys(filters).length ? { filters } : {},
       ...state.yScale === "log" ? { positive_only: true } : {}
     };
+    const args = {
+      strValueCol: "y",
+      strGroupCol: "x",
+      strMethod: test,
+      // Pairs exist only among more than two groups.
+      bPairwise: Boolean(pairwise) && groups.length > 2
+    };
+    if (isCut(state.groupBy)) {
+      args.chrGroups = [...new Set(panel.cells.filter((cell) => cell.n).map((cell) => cell.level))];
+    }
     return {
       name,
       data: panel.records,
-      args: {
-        strValueCol: "y",
-        strGroupCol: "x",
-        strMethod: test,
-        // Pairs exist only among more than two groups.
-        bPairwise: Boolean(pairwise) && groups.length > 2
-      },
+      args,
       dataId,
       rows: panel.records.length
     };
@@ -2144,14 +2396,15 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     return `${lead}none is drawn.`;
   }
   function scopeText({ group, n, panel, color, filters = [] }) {
+    const named = group.includes(",") ? `${group},` : group;
     const said = [
-      `This test compares the levels of ${group} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+      `This test compares the levels of ${named} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
     ];
     if (panel) {
       said.push("Each panel has a test of its own, and they are not adjusted for one another.");
     }
     if (color) {
-      said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
+      said.push(`Colour by ${color} is not part of it: each level of ${named} is tested whole.`);
     }
     if (filters.length) said.push(filtersSaid(filters));
     return said.join(" ");
@@ -2306,6 +2559,7 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
         visitsNotDrawn: [],
         extent: null,
         filtered: kept ? kept.length : null,
+        cuts: {},
         // No row to frame, as against rows that frame to no panel.
         noRows: true
       };
@@ -2316,27 +2570,44 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
     const visitList = needsVisit ? drawnVisits : [null];
     const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
+    const cuts = {};
+    for (const [field, by] of [
+      ["x", state.groupBy],
+      ["panel", state.panelBy]
+    ]) {
+      if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
+    }
+    const grouping = (by) => isCut(by) ? by : { col: by };
     const variablesFor = (visit) => ({
       y: yOf(visit),
-      ...state.groupBy ? { x: { col: state.groupBy } } : {},
+      ...state.groupBy ? { x: grouping(state.groupBy) } : {},
       ...state.colorBy ? { color: { col: state.colorBy } } : {},
-      ...state.panelBy ? { panel: { col: state.panelBy } } : {}
+      ...state.panelBy ? { panel: grouping(state.panelBy) } : {}
     });
+    const grouped = (record) => {
+      const out = { ...record };
+      for (const [field, cut] of Object.entries(cuts)) out[field] = groupLabel(record[field], cut);
+      return out;
+    };
+    const cutLevels = (cut, field, records) => cut.labels.filter((group) => records.some((record) => record[field] === group));
     const framed = visitList.map((visit) => {
       const made = frame(
         { results: rows, participants: kept || void 0 },
         variablesFor(visit),
         config
       );
-      const all = state.groupBy ? made.data : made.data.map((record) => ({ ...record, x: EVERYONE }));
+      const data = made.data.map(grouped);
+      const all = state.groupBy ? data : data.map((record) => ({ ...record, x: EVERYONE }));
       const positive = state.yScale === "log" ? all.filter((record) => record.y > 0) : all;
       return { visit, made, data: positive, nonPositive: made.data.length - positive.length };
     });
     const everyRecord = framed.flatMap((entry) => entry.data);
-    const levels = levelsOf(everyRecord.map((record) => record.x));
-    const shownLevels = state.levels ? levels.filter((level) => state.levels.includes(level)) : levels;
+    const levels = cuts.x ? cutLevels(cuts.x, "x", everyRecord) : levelsOf(everyRecord.map((record) => record.x));
+    const shownLevels = state.levels && !cuts.x ? levels.filter((level) => state.levels.includes(level)) : levels;
     const colors = state.colorBy ? levelsOf(everyRecord.map((record) => record.color)) : [null];
-    const panelLevels = state.panelBy ? levelsOf(everyRecord.map((record) => record.panel)) : [null];
+    let panelLevels = [null];
+    if (cuts.panel) panelLevels = cutLevels(cuts.panel, "panel", everyRecord);
+    else if (state.panelBy) panelLevels = levelsOf(everyRecord.map((record) => record.panel));
     const { offsets, halfWidth } = slots(colors.length);
     const logged = state.yScale === "log";
     const panels = [];
@@ -2405,7 +2676,9 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       // The baseline visit that was chosen and not drawn, when there is one.
       visitsNotDrawn: needsVisit ? asked.filter((visit) => !drawnVisits.includes(visit)) : [],
       extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
-      filtered: kept ? kept.length : null
+      filtered: kept ? kept.length : null,
+      // How each cut variable was cut, for the footnote: `x`, `panel`.
+      cuts
     };
   }
   var VALUE_WORDS = {
@@ -2446,6 +2719,7 @@ ${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
 
   // src/group-comparison.js
   var NONE = "";
+  var CUT_KEY = "bv-cut:";
   var OVERVIEW = "bv_overview";
   var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
   var STYLE_ID = "bio-viz-group-comparison-styles";
@@ -2598,6 +2872,17 @@ ${toolbarStyles(".bv-group-comparison")}
       this.measures = results.length ? listMeasures(results, this.settings) : [];
       this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
       this.categories = results.length ? categoryColumns(this.tables, this.settings) : [];
+      this.cutOptions = [];
+      for (const by of [this.settings.group_by, this.settings.panel_by]) {
+        if (!isCut(by)) continue;
+        const written = JSON.stringify(by);
+        if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
+        this.cutOptions.push({
+          key: `${CUT_KEY}${this.cutOptions.length}`,
+          spec: by,
+          label: label(by)
+        });
+      }
       this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
         (spec) => this.kit.normalizeFilterSpec(spec)
       );
@@ -2619,20 +2904,51 @@ ${toolbarStyles(".bv-group-comparison")}
       this.buildControls();
       this.render();
     }
+    // The key a cut variable is held under in the Group and Panel controls.
+    cutKey(by) {
+      const written = JSON.stringify(by);
+      return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
+    }
+    // Whether a Group or Panel control can hold a value: a column offered, or a
+    // cut variable the settings name.
+    offers(value) {
+      return this.categories.some((entry) => entry.value_col === value) || this.cutOptions.some((entry) => entry.key === value);
+    }
+    // A Group or Panel control's value as the core takes it: a column's name, or
+    // the cut variable.
+    groupingOf(value) {
+      const found = this.cutOptions.find((entry) => entry.key === value);
+      return found ? found.spec : value;
+    }
+    // The state with the group and the panel as the drawing takes them.
+    drawingState(state = this.state) {
+      return {
+        ...state,
+        groupBy: this.groupingOf(state.groupBy),
+        panelBy: this.groupingOf(state.panelBy)
+      };
+    }
     // What the chart opens on: the settings, where the tables have what they name.
     seedState() {
       const { settings, categories, measures } = this;
       const has = (column) => categories.some((entry) => entry.value_col === column);
+      let groupBy = NONE;
+      if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
+      else if (has(settings.group_by)) groupBy = settings.group_by;
+      else if (categories.length) groupBy = categories[0].value_col;
+      let panelBy = NONE;
+      if (isCut(settings.panel_by)) panelBy = this.cutKey(settings.panel_by);
+      else if (has(settings.panel_by)) panelBy = settings.panel_by;
       return {
         // No biomarker named, or one the table does not have: the overview.
         measure: measures.includes(settings.start_value) ? settings.start_value : null,
         page: 0,
         visits: [...this.visits.start],
         valueType: settings.value_type,
-        groupBy: has(settings.group_by) ? settings.group_by : categories.length ? categories[0].value_col : NONE,
+        groupBy,
         levels: settings.levels,
         colorBy: has(settings.color_by) ? settings.color_by : NONE,
-        panelBy: has(settings.panel_by) ? settings.panel_by : NONE,
+        panelBy,
         mark: settings.mark,
         yScale: settings.y_scale,
         test: settings.test,
@@ -2649,11 +2965,15 @@ ${toolbarStyles(".bv-group-comparison")}
       }
       this.state.visits = this.state.visits.filter((visit) => this.visits.all.includes(visit));
       if (!this.state.visits.length) this.state.visits = opening.visits;
-      if (this.state.groupBy && !has(this.state.groupBy)) this.state.groupBy = opening.groupBy;
+      if (this.state.groupBy && !this.offers(this.state.groupBy)) {
+        this.state.groupBy = opening.groupBy;
+      }
       if (this.state.colorBy && !has(this.state.colorBy)) this.state.colorBy = NONE;
-      if (this.state.panelBy && !has(this.state.panelBy)) this.state.panelBy = NONE;
+      if (this.state.panelBy && !this.offers(this.state.panelBy)) this.state.panelBy = NONE;
     }
     labelOf(column) {
+      const cut = this.cutOptions.find((entry) => entry.key === column);
+      if (cut) return cut.label;
       const found = this.categories.find((entry) => entry.value_col === column);
       return found ? found.label : column;
     }
@@ -2713,12 +3033,13 @@ ${toolbarStyles(".bv-group-comparison")}
         addControl("Visit", visits2, value);
       }
       const columns = this.categories.map((entry) => [entry.value_col, entry.label]);
+      const cuts = this.cutOptions.map((entry) => [entry.key, entry.label]);
       const group = addSection("Groups");
-      if (columns.length) {
+      if (columns.length || cuts.length) {
         select(
           "group-by",
           "Group by",
-          columns,
+          [...columns, ...cuts],
           state.groupBy,
           (next) => {
             state.groupBy = next;
@@ -2727,17 +3048,23 @@ ${toolbarStyles(".bv-group-comparison")}
           },
           group
         );
-        const levels = this.levelsOffered();
-        const picker = kit.multiSelect({
-          values: levels,
-          selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
-          onChange: (next) => {
-            state.levels = next;
-            redraw(false);
-          }
-        });
-        picker.dataset.control = "levels";
-        addControl("Levels", picker, group);
+        if (isCut(this.groupingOf(state.groupBy))) {
+          group.append(
+            kit.createElement("small", "bv-control-note", "Every group a cut makes is drawn.")
+          );
+        } else {
+          const levels = this.levelsOffered();
+          const picker = kit.multiSelect({
+            values: levels,
+            selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
+            onChange: (next) => {
+              state.levels = next;
+              redraw(false);
+            }
+          });
+          picker.dataset.control = "levels";
+          addControl("Levels", picker, group);
+        }
         const optional = [[NONE, "None"], ...columns];
         select(
           "color-by",
@@ -2753,7 +3080,7 @@ ${toolbarStyles(".bv-group-comparison")}
         const panelBy = select(
           "panel-by",
           "Panel by",
-          optional,
+          [...optional, ...cuts],
           state.panelBy,
           (next) => {
             state.panelBy = next;
@@ -2846,7 +3173,7 @@ ${toolbarStyles(".bv-group-comparison")}
           this.tables,
           this.settings,
           {
-            ...this.state,
+            ...this.drawingState(),
             levels: null,
             colorBy: NONE,
             panelBy: NONE,
@@ -2921,7 +3248,7 @@ ${toolbarStyles(".bv-group-comparison")}
         this.drawOverview();
         return;
       }
-      const model = buildPanels(this.tables, this.settings, this.state, {
+      const model = buildPanels(this.tables, this.settings, this.drawingState(), {
         filterMatches: this.kit.filterMatches
       });
       this.model = model;
@@ -2932,7 +3259,10 @@ ${toolbarStyles(".bv-group-comparison")}
         this.footnote.textContent = nothingDrawn(model);
         return;
       }
-      this.footnote.textContent = this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`;
+      this.footnote.textContent = [
+        this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`,
+        ...this.cutNotes(model)
+      ].join(" ");
       const title = yTitle(results, this.settings, this.state);
       const domain = this.domain(model);
       if (model.panels.length === 1) {
@@ -2977,7 +3307,7 @@ ${toolbarStyles(".bv-group-comparison")}
       const { kit, state, settings } = this;
       const page = overviewPage(this.measures, settings.overview_limit, state.page);
       state.page = page.page;
-      const rows = buildOverview(this.tables, settings, state, page.measures, {
+      const rows = buildOverview(this.tables, settings, this.drawingState(), page.measures, {
         filterMatches: kit.filterMatches
       });
       this.overview = { ...page, rows };
@@ -2991,7 +3321,10 @@ ${toolbarStyles(".bv-group-comparison")}
         this.footnote.textContent = rows.length ? nothingDrawn(rows[0].model, rows) : NOTHING_AFTER_BASELINE;
         return;
       }
-      this.footnote.textContent = "Click a biomarker to view it alone, with a test under each visit.";
+      this.footnote.textContent = [
+        "Click a biomarker to view it alone, with a test under each visit.",
+        ...this.cutNotes(drawn[0].model)
+      ].join(" ");
       const colors = drawn[0].model.colors;
       if (colors.length > 1 || colors[0] !== null) {
         const legend = kit.createElement("p", "bv-legend");
@@ -3129,7 +3462,7 @@ ${toolbarStyles(".bv-group-comparison")}
     // what is clicked.
     drawPanel(canvas, panel, model, { title, domain, compact = false }) {
       const { state } = this;
-      const groupLabel = state.groupBy ? this.labelOf(state.groupBy) : "";
+      const groupLabel2 = state.groupBy ? this.labelOf(state.groupBy) : "";
       const coloured = model.colors.length > 1 || model.colors[0] !== null;
       const datasets = model.colors.map((color, colorIndex) => {
         const hex = this.colorOf(colorIndex);
@@ -3146,7 +3479,7 @@ ${toolbarStyles(".bv-group-comparison")}
           cells.map((cell) => ({ x: cell.x, y: cell.stats.median, cell }))
         );
         return {
-          label: color === null ? groupLabel || "All participants" : color,
+          label: color === null ? groupLabel2 || "All participants" : color,
           data,
           showLine: false,
           backgroundColor: hexToRgba(hex, 0.55),
@@ -3185,7 +3518,7 @@ ${toolbarStyles(".bv-group-comparison")}
               min: -0.5,
               max: model.shownLevels.length - 0.5,
               grid: { display: false },
-              title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
+              title: { display: Boolean(groupLabel2) && !compact, text: groupLabel2 },
               ticks: {
                 autoSkip: false,
                 // A panel turns its labels when they would run together, as a
@@ -3364,7 +3697,7 @@ ${toolbarStyles(".bv-group-comparison")}
         test,
         pairwise: this.state.pairwise,
         settings: this.settings,
-        state: this.state,
+        state: this.drawingState(),
         panel
       });
       const asked = {
@@ -3454,6 +3787,10 @@ ${toolbarStyles(".bv-group-comparison")}
       if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
       columns.push({ value_col: "y", label: "Value" });
       return columns;
+    }
+    // How each cut variable on the chart was cut, a sentence each.
+    cutNotes(model) {
+      return ["x", "panel"].filter((field) => model.cuts && model.cuts[field]).map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
     }
     showListing(panel, cell, records) {
       this.clearSelection();

@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#a-cut-biomarker-as-the-groups">A cut biomarker as the groups</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -100,10 +100,10 @@
 <tr><td data-label="Setting"><code>start_value</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The biomarker the chart opens on. Null means none: the chart opens on <a href="#the-overview">the overview</a> of every biomarker, as it does for a name the table lacks.</td></tr>
 <tr><td data-label="Setting"><code>visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The visit, or visits, the chart opens on. Null means every visit.</td></tr>
 <tr><td data-label="Setting"><code>value_type</code></td><td data-label="Default"><code>&#39;raw&#39;</code></td><td data-label="Meaning">The value type the chart opens on: <code>raw</code>, <code>baseline</code>, <code>change</code>, <code>fold_change</code> or <code>percent_change</code>, as the <a href="../core/api.html#value_types">core defines them</a>.</td></tr>
-<tr><td data-label="Setting"><code>group_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column on the axis the chart opens on. Null means the first column offered.</td></tr>
+<tr><td data-label="Setting"><code>group_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column on the axis the chart opens on, or a biomarker or number <a href="#a-cut-biomarker-as-the-groups">cut into groups</a>: <code>{ measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;median&#39; }</code>. Null means the first column offered.</td></tr>
 <tr><td data-label="Setting"><code>levels</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The levels of the group the chart opens on. Null means all of them.</td></tr>
 <tr><td data-label="Setting"><code>color_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column of the second grouping, by colour. Null means none.</td></tr>
-<tr><td data-label="Setting"><code>panel_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column the panels are made by. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>panel_by</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The column the panels are made by, or a cut variable, as <code>group_by</code> takes one. Null means none.</td></tr>
 <tr><td data-label="Setting"><code>mark</code></td><td data-label="Default"><code>&#39;box&#39;</code></td><td data-label="Meaning">What a group is drawn as: <code>box</code>, <code>violin</code> or <code>points</code>.</td></tr>
 <tr><td data-label="Setting"><code>y_scale</code></td><td data-label="Default"><code>&#39;linear&#39;</code></td><td data-label="Meaning">The scale of the value axis: <code>linear</code> or <code>log</code>.</td></tr>
 <tr><td data-label="Setting"><code>measures</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.</td></tr>
@@ -150,6 +150,16 @@
 <h3 id="more-biomarkers-than-fit">More biomarkers than fit</h3>
 <p>The overview draws at most <code>overview_limit</code> biomarkers at a time, twelve by default, and says how many it is showing of how many: <code>All 12 biomarkers are shown.</code>, or <code>12 of 36 biomarkers shown: 1 to 12, in the Biomarker control’s order.</code> When there are more than the limit, Previous and Next above and below the rows reach the rest a page at a time, and the Biomarker control lists every one of them whatever the page. Pages, and not a button that adds more rows, because a page keeps the number of charts alive at once bounded however many biomarkers a study has.</p>
 <p>Each panel is a Chart.js chart of its own, as safety.viz&#39;s small multiples are, and nothing in a panel answers the pointer: the row does. A page is therefore the limit times the visits in charts: sixty for the synthetic study&#39;s twelve biomarkers at five visits. Measured in headless Chromium on a laptop (Apple M3 Pro), that first draw takes about 90 milliseconds from the tables to the last chart, at a desk&#39;s width and at a phone&#39;s alike, and about 65 to draw again after a control changes; the browser test named <code>GC-OVW-017</code> times it on every run and prints what it found. Twelve is the default because it is a page a reader can scan and the synthetic study&#39;s biomarkers fit on it; a study with many more visits can set it lower.</p>
+<h2 id="a-cut-biomarker-as-the-groups">A cut biomarker as the groups</h2>
+<p>A biomarker, or a participant-level number, can make the groups or the panels when it is cut, by the core&#39;s shared <a href="../core/api.html#the-cut-rule">cut rule</a>: at its median, its tertiles, its quartiles or typed points.</p>
+<pre><code class="language-js">BioViz.groupComparison(&#39;#chart&#39;, {
+  start_value: &#39;IL-6&#39;,
+  visits: [&#39;Week 4&#39;],
+  value_type: &#39;change&#39;,
+  group_by: { measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;tertiles&#39; },
+  panel_by: { col: &#39;AGE&#39;, type: &#39;number&#39;, cut: [40, 60] }
+}).init({ results, participants });</code></pre>
+<ul><li>The cut points are worked out on every participant the filters keep who has a value of the cut variable, whether or not they have a value to draw, so each visit&#39;s panel has the same groups. They move when the filters do.</li><li>The groups are ordered low to high and labelled with their bounds (<code>≤ 2.167</code>, <code>&gt; 2.167, ≤ 3.467</code>, <code>&gt; 3.467</code>), with the number in each beneath, as for a column. A group nobody is in is not drawn.</li><li>The footnote says how the variable was cut: <code>CRP at Baseline is cut at its tertiles, 2.167 and 3.467, worked out on the 200 participants with a value.</code> When repeated points collapse, or points written alike merge groups, it says so and how many groups they make.</li><li>A participant with no value of the cut variable is left out and counted, as for a column.</li><li>The Group and Panel controls offer the cut variable after the columns, named in words (<code>CRP at Baseline, cut at the tertiles</code>). A cut has no Levels control: every group it makes is drawn.</li><li>The colour is a column only.</li><li>R is asked for the test of the cut groups as for a column&#39;s, with the cut variable in the identity of the rows and the groups named low to high (see <a href="#what-r-is-asked">What R is asked</a>).</li><li>A cut of a biomarker the results table does not have, or of a column neither table has, is refused when the tables are read, with a message that names the setting and what it cuts.</li><li>When distinct points are written alike to four significant digits, the groups with the same bounds are one, and the footnote says so. Typed points written alike are refused.</li></ul>
 <h2 id="the-controls">The controls</h2>
 <p>In safety.viz&#39;s sidebar, in five sections.</p>
 <table class="doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
@@ -166,7 +176,7 @@
 <tr><td data-label="Section">Statistics</td><td data-label="Control">Pairwise comparisons</td><td data-label="What it sets">Whether every pair of groups is compared as well. Shown with more than two groups.</td></tr>
 <tr><td data-label="Section">Filters</td><td data-label="Control">one per filter</td><td data-label="What it sets">The participants drawn. Only with a participant table.</td></tr>
 <tr><td data-label="Section"></td><td data-label="Control">Reset chart</td><td data-label="What it sets">Returns every control to what the chart opened on.</td></tr></tbody></table>
-<p>The Statistics section is there when the setting <code>statistic</code> names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level, a minimum group size or a cut: those are R&#39;s.</p>
+<p>The Statistics section is there when the setting <code>statistic</code> names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level or a minimum group size: those are R&#39;s. A cut is chosen in the settings, as part of the variable that makes the groups.</p>
 <h2 id="listing-and-participant-profile">Listing and participant profile</h2>
 <p>Clicking a box or a violin lists its participants under the chart, in safety.viz&#39;s record listing, with its search, its sorting, its paging and a CSV export. Clicking a point lists that participant and opens their profile. A change to a control or a filter empties the list, so it never lists a box that is no longer drawn.</p>
 <p>Clicking a row selects that participant. The chart then raises the event safety.viz&#39;s charts raise, <code>participantsSelected</code>, on its own root element, and the event bubbles: <code>event.detail.data</code> is a list holding the participant&#39;s id, or an empty list when the selection is cleared. safety.viz&#39;s participant profile opens on that event, in a rail beside the chart, and any other chart on the page can listen for it.</p>
@@ -207,8 +217,9 @@
 <tbody><tr><td data-label="Argument"><code>strValueCol</code></td><td data-label="Value">Always <code>&#39;y&#39;</code>.</td></tr>
 <tr><td data-label="Argument"><code>strGroupCol</code></td><td data-label="Value">Always <code>&#39;x&#39;</code>.</td></tr>
 <tr><td data-label="Argument"><code>strMethod</code></td><td data-label="Value">The test asked for: <code>&#39;t&#39;</code>, <code>&#39;wilcoxon&#39;</code>, <code>&#39;anova&#39;</code> or <code>&#39;kruskal&#39;</code>.</td></tr>
-<tr><td data-label="Argument"><code>bPairwise</code></td><td data-label="Value"><code>true</code> when the pairwise switch is on and the panel&#39;s rows hold more than two groups; otherwise <code>false</code>.</td></tr></tbody></table>
-<p>Nothing else is sent. The groups are the ones in the rows, in the order R sorts them; the adjustment, the confidence level and the minimum group size are gsm.bio&#39;s defaults, and each is printed from what R returns.</p>
+<tr><td data-label="Argument"><code>bPairwise</code></td><td data-label="Value"><code>true</code> when the pairwise switch is on and the panel&#39;s rows hold more than two groups; otherwise <code>false</code>.</td></tr>
+<tr><td data-label="Argument"><code>chrGroups</code></td><td data-label="Value">Only when the groups are a cut variable&#39;s: the groups in the panel&#39;s rows, low to high.</td></tr></tbody></table>
+<p>Nothing else is sent. A column&#39;s groups are the ones in the rows, in the order R sorts them; a cut&#39;s are named, low to high, so R&#39;s result lists them in the order they are drawn and a difference in means is of the lower group minus the higher; the adjustment, the confidence level and the minimum group size are gsm.bio&#39;s defaults, and each is printed from what R returns.</p>
 <p><code>dataId</code> states what the rows are. A <a href="../r-connection/api.html#stored-results">stored result</a> is found by the function&#39;s name, these arguments and this identity together, so the identity is built only from what the settings and the controls say, by the settings&#39; own names, and from the group names in the rows:</p>
 <table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Value</th><th scope="col">Left out when</th></tr></thead>
 <tbody><tr><td data-label="Member"><code>chart</code></td><td data-label="Value"><code>&#39;group-comparison&#39;</code>.</td><td data-label="Left out when">never</td></tr>
@@ -217,11 +228,11 @@
 <tr><td data-label="Member"><code>visit</code></td><td data-label="Value">The panel&#39;s visit.</td><td data-label="Left out when">the value type is <code>baseline</code></td></tr>
 <tr><td data-label="Member"><code>baseline_visits</code></td><td data-label="Value">The setting, as a list.</td><td data-label="Left out when">the setting is null</td></tr>
 <tr><td data-label="Member"><code>baseline_stat</code></td><td data-label="Value">The setting.</td><td data-label="Left out when">never</td></tr>
-<tr><td data-label="Member"><code>group_by</code></td><td data-label="Value">The column on the axis.</td><td data-label="Left out when">never, for a panel that has a test</td></tr>
+<tr><td data-label="Member"><code>group_by</code></td><td data-label="Value">The column on the axis, or the cut variable as the settings write it: <code>{ measure, visit, value, cut }</code>, the visit left out for a baseline value, or <code>{ col, type, cut }</code>.</td><td data-label="Left out when">never, for a panel that has a test</td></tr>
 <tr><td data-label="Member"><code>groups</code></td><td data-label="Value">The distinct values of <code>x</code> in the rows, as text, sorted by code point.</td><td data-label="Left out when">never</td></tr>
 <tr><td data-label="Member"><code>color_by</code></td><td data-label="Value">The colour column.</td><td data-label="Left out when">there is no colour</td></tr>
-<tr><td data-label="Member"><code>panel_by</code></td><td data-label="Value">The panel column.</td><td data-label="Left out when">there are no panels by a variable</td></tr>
-<tr><td data-label="Member"><code>panel</code></td><td data-label="Value">The panel&#39;s level of that column.</td><td data-label="Left out when">there are no panels by a variable</td></tr>
+<tr><td data-label="Member"><code>panel_by</code></td><td data-label="Value">The panel column, or the cut variable, written as <code>group_by</code> writes one.</td><td data-label="Left out when">there are no panels by a variable</td></tr>
+<tr><td data-label="Member"><code>panel</code></td><td data-label="Value">The panel&#39;s level of that column, or the label of its group of the cut.</td><td data-label="Left out when">there are no panels by a variable</td></tr>
 <tr><td data-label="Member"><code>filters</code></td><td data-label="Value">An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point.</td><td data-label="Left out when">no filter is in force</td></tr>
 <tr><td data-label="Member"><code>positive_only</code></td><td data-label="Value"><code>true</code> on a logarithmic scale, where a value of zero or less is left out.</td><td data-label="Left out when">the scale is linear</td></tr></tbody></table>
 <p>A member that is not set is left out, never written as null. A list is a list whatever its length. Sorting by code point is what R&#39;s <code>sort(x, method = &quot;radix&quot;)</code> does, so both sides write the same list without a locale.</p>
@@ -277,7 +288,9 @@ chart_number &lt;- function(value) {
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = &quot;radix&quot;`), which
-# is the order the chart sorts in.
+# is the order the chart sorts in. A cut&#39;s groups are handed to R low to high,
+# the order of the levels cut() made, so R names them in that order; a column&#39;s
+# are left to R, which sorts them by code point.
 group_comparison_key &lt;- function(dfRows, lView) {
   chrGroups &lt;- sort(unique(chart_text(dfRows$x)), method = &quot;radix&quot;)
   lDataId &lt;- list(chart = &quot;group-comparison&quot;, measure = chart_text(lView$measure), value_type = lView$value_type)
@@ -297,23 +310,23 @@ group_comparison_key &lt;- function(dfRows, lView) {
     })
   }
   if (identical(lView$y_scale, &quot;log&quot;)) lDataId$positive_only &lt;- TRUE
-  list(
-    name = lView$statistic,
-    args = list(
-      strValueCol = &quot;y&quot;,
-      strGroupCol = &quot;x&quot;,
-      strMethod = lView$test,
-      # Pairs exist only among more than two groups.
-      bPairwise = isTRUE(lView$pairwise) &amp;&amp; length(chrGroups) &gt; 2
-    ),
-    dataId = lDataId,
-    rows = nrow(dfRows)
+  lArgs &lt;- list(
+    strValueCol = &quot;y&quot;,
+    strGroupCol = &quot;x&quot;,
+    strMethod = lView$test,
+    # Pairs exist only among more than two groups.
+    bPairwise = isTRUE(lView$pairwise) &amp;&amp; length(chrGroups) &gt; 2
   )
+  if (is.list(lView$group_by)) {
+    if (!is.factor(dfRows$x)) stop(&quot;the groups of a cut variable must be the factor cut() made&quot;)
+    lArgs$chrGroups &lt;- as.list(levels(droplevels(dfRows$x)))
+  }
+  list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
 }
 
 lKey &lt;- group_comparison_key(dfRows, lView)
 lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args))))</code></pre>
-<p><code>lView$test</code> is the test asked for, which is the setting <code>test</code> where it fits the number of groups on the axis and its counterpart where it does not. <code>lView$filters</code> is a named list of column to the values the filter lets through. Written to JSON, a single value is a single value and an unnamed list is an array (<code>jsonlite::toJSON(auto_unbox = TRUE)</code>), and the value is in <a href="../r-connection/api.html#stored-results">the shape the browser form gives</a>.</p>
+<p>When the groups are a cut variable&#39;s, <code>lView$group_by</code> is the cut variable as a named list, typed points as a list (<code>list(measure = &quot;CRP&quot;, visit = &quot;Baseline&quot;, value = &quot;raw&quot;, cut = list(10))</code>), and <code>dfRows$x</code> is the factor the <a href="../core/api.html#the-cut-rule">cut rule</a>&#39;s <code>cut()</code> made, whose levels are the groups low to high. <code>lView$test</code> is the test asked for, which is the setting <code>test</code> where it fits the number of groups on the axis and its counterpart where it does not. <code>lView$filters</code> is a named list of column to the values the filter lets through. Written to JSON, a single value is a single value and an unnamed list is an array (<code>jsonlite::toJSON(auto_unbox = TRUE)</code>), and the value is in <a href="../r-connection/api.html#stored-results">the shape the browser form gives</a>.</p>
 <p>This is the function <code>tools/r-group-statistics.R</code> writes the chart&#39;s expected results with. The unit tests named <code>GC-STAT-023</code> hold the key it writes, for eighteen panels of the gallery&#39;s demo, to the key the chart asks with, and hand its results to a connection as stored results to see each one found.</p>
 <h3 id="in-the-browser">In the browser</h3>
 <p>R in the browser is given one file, gsm.bio&#39;s <code>inst/statistics/statistics.R</code>, as the connection&#39;s <code>browser.sourceUrl</code>. This repository keeps a copy at <code>site/vendor/gsm.bio/statistics.R</code>, with a record of the gsm.bio commit it was copied from, and the site publishes it at <code>vendor/gsm.bio/statistics.R</code>. The file is sourced with base R alone. It names the survival package only inside its survival functions, which this chart never calls, so a page that draws only this chart installs no package: <code>browser: { sourceUrl, packages: [] }</code>.</p>
@@ -323,7 +336,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
 <p>Below 900 pixels of width safety.viz&#39;s shell stacks: the controls above the chart, the participant profile below it. Below 600 pixels the controls start folded away, so the chart is on the first screen, and one tap on Controls opens them. Panels drop to one column. The listing wraps its cells instead of running off the page.</p>
 <p>In the overview a biomarker&#39;s row is a card as wide as the page. Its visits sit two to a line when there are two groups, each panel wide enough for its groups&#39; names and counts to be read level, and wrap onto as many lines as the visits need; with more groups, fewer to a line. A tap anywhere on the card opens the biomarker, and the page is brought back to the chart&#39;s top. The Biomarker control, one tap away under Controls, lists every biomarker and leads back to all of them.</p>
 <h2 id="what-is-not-here">What is not here</h2>
-<p>No statistical test, estimate, interval, p-value or adjustment is computed here: the chart chooses which of R&#39;s to ask for and prints R&#39;s answer. And no rule that cuts a continuous variable into groups: a group comes from a column.</p>
+<p>No statistical test, estimate, interval, p-value or adjustment is computed here: the chart chooses which of R&#39;s to ask for and prints R&#39;s answer. A cut point describes the values, as a box&#39;s median does, and is the core&#39;s shared <a href="../core/api.html#the-cut-rule">cut rule</a>.</p>
 </article>
 
 <p class="sub" id="api-source">
@@ -335,7 +348,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/9b9b6d0a0497d46f367bd89d29eebbc5845e2ad8"><code>9b9b6d0</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/b01f990c30279a923fa9d1b4f854243393837777"><code>b01f990</code></a>.
       </p>
       <p>
         Built in the open — follow the
