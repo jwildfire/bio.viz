@@ -138,6 +138,8 @@ On a logarithmic scale a value of zero or less cannot be shown. It is left out, 
 
 The note above the chart says how many participants were drawn, of how many, and why any was left out, in the [core's words](core.md#dropped).
 
+The groups' labels under a panel stay level when they fit, and turn when they would run into one another, as narrow visit panels' long group names would.
+
 ## The overview
 
 With no biomarker chosen the chart draws every biomarker: the view it opens on when `start_value` is null, and the entry All Biomarkers at the head of the Biomarker control. It is the way in, as the all-measures view of safety.viz's histogram is.
@@ -170,21 +172,21 @@ Each panel is a Chart.js chart of its own, as safety.viz's small multiples are, 
 
 In safety.viz's sidebar, in five sections.
 
-| Section    | Control              | What it sets                                                                           |
-| ---------- | -------------------- | -------------------------------------------------------------------------------------- |
-| Value      | Biomarker            | All Biomarkers, which is the overview, or one biomarker.                               |
-| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline. |
-| Value      | Visit                | The visit, or visits. Not shown for a baseline value, which has no visit.              |
-| Groups     | Group by             | The column on the axis.                                                                |
-| Groups     | Levels               | Which of its levels are drawn.                                                         |
-| Groups     | Colour by            | The second grouping, or none.                                                          |
-| Groups     | Panel by             | The variable the panels are made by, or none. Switched off in the overview.            |
-| Display    | Draw as              | Box, violin or points.                                                                 |
-| Display    | Scale                | Linear or logarithmic.                                                                 |
-| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.   |
-| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with more than two groups.     |
-| Filters    | one per filter       | The participants drawn. Only with a participant table.                                 |
-|            | Reset chart          | Returns every control to what the chart opened on.                                     |
+| Section    | Control              | What it sets                                                                                                                                                                                   |
+| ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Value      | Biomarker            | All Biomarkers, which is the overview, or one biomarker.                                                                                                                                       |
+| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline.                                                                                                         |
+| Value      | Visit                | The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; in the overview, every visit. Not shown for a baseline value, which has no visit. |
+| Groups     | Group by             | The column on the axis.                                                                                                                                                                        |
+| Groups     | Levels               | Which of its levels are drawn.                                                                                                                                                                 |
+| Groups     | Colour by            | The second grouping, or none.                                                                                                                                                                  |
+| Groups     | Panel by             | The variable the panels are made by, or none. Switched off in the overview.                                                                                                                    |
+| Display    | Draw as              | Box, violin or points.                                                                                                                                                                         |
+| Display    | Scale                | Linear or logarithmic.                                                                                                                                                                         |
+| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.                                                                                                           |
+| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with more than two groups.                                                                                                             |
+| Filters    | one per filter       | The participants drawn. Only with a participant table.                                                                                                                                         |
+|            | Reset chart          | Returns every control to what the chart opened on.                                                                                                                                             |
 
 The Statistics section is there when the setting `statistic` names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level, a minimum group size or a cut: those are R's.
 

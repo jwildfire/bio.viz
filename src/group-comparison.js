@@ -71,6 +71,7 @@ import {
   jitter,
   listMeasures,
   listVisits,
+  measureVisits,
   overviewCount,
   overviewPage,
   yTitle
@@ -367,12 +368,19 @@ class GroupComparison {
       value
     );
     if (state.valueType !== 'baseline') {
+      // With one biomarker open, the visits it has values at; in the overview,
+      // every visit.
+      const offered = this.visitsOffered();
+      const shown = state.visits.filter((visit) => offered.includes(visit));
       const visits = kit.multiSelect({
-        values: this.visits.all,
-        selected: state.visits.length === this.visits.all.length ? null : state.visits,
+        values: offered,
+        selected: shown.length === offered.length ? null : shown,
         onChange: (next) => {
-          const chosen = next === null ? this.visits.all : next;
-          state.visits = this.visits.all.filter((visit) => chosen.includes(visit));
+          const chosen = next === null ? offered : next;
+          // A visit the biomarker lacks keeps its place for another biomarker.
+          state.visits = this.visits.all.filter(
+            (visit) => chosen.includes(visit) || !offered.includes(visit)
+          );
           redraw(false);
         }
       });
@@ -513,6 +521,13 @@ class GroupComparison {
     });
   }
 
+  // The visits the Visit control offers: the open biomarker's, or every visit
+  // in the overview.
+  visitsOffered() {
+    if (this.isOverview()) return this.visits.all;
+    return measureVisits(this.tables.results, this.settings, this.state.measure);
+  }
+
   // Every level of the group column in the tables, whatever the filters are set to.
   levelsOffered() {
     if (!this.state.groupBy) return [];
@@ -597,7 +612,8 @@ class GroupComparison {
       this.footnote.textContent = 'No results to draw.';
       return;
     }
-    if (needsVisit && !this.state.visits.length) {
+    const offered = this.visitsOffered();
+    if (needsVisit && !this.state.visits.some((visit) => offered.includes(visit))) {
       this.footnote.textContent = 'Choose a visit to draw.';
       return;
     }
@@ -914,8 +930,10 @@ class GroupComparison {
             title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
             ticks: {
               autoSkip: false,
-              // A small panel turns its labels when they would run together.
-              maxRotation: compact ? 50 : 0,
+              // A panel turns its labels when they would run together, as a
+              // narrow visit panel's long group names would; labels that fit
+              // stay level.
+              maxRotation: compact ? 50 : 90,
               ...(compact ? { font: { size: 10 }, padding: 2 } : {}),
               callback: (value) => (Number.isInteger(value) ? (panel.ticks[value] ?? '') : '')
             },
