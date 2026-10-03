@@ -144,6 +144,14 @@ export function variableSetting(value, setting) {
     );
   }
   const read = variable('col' in value && value.col != null ? { ...value, type: 'number' } : value);
+  // A number taken as a number is not cut: a cut makes groups, and only a
+  // setting that makes groups takes one.
+  if (read.cut !== undefined) {
+    refuse(
+      `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave ` +
+        '`cut` out.'
+    );
+  }
   return read.kind === 'column'
     ? { col: read.col }
     : {

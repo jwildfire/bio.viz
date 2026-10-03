@@ -105,8 +105,9 @@ describe('association scatter: settings', () => {
     );
     expect(refused({ x: { measure: 'IL-6', col: 'AGE' } })).toMatch(/names both/);
     expect(refused({ x: { col: 'AGE', visit: 'Week 4' } })).toMatch(/a column takes no `visit`/);
-    expect(refused({ x: { measure: 'CRP', visit: 'Baseline', cut: 'median' } })).toMatch(
-      /the cut rule is not available yet/
+    // An axis is a number, so it is not cut: a cut makes groups (#43).
+    expect(refused({ x: { measure: 'CRP', visit: 'Baseline', cut: 'median' } })).toBe(
+      'bio.viz: `x` is read as a number, so it takes no `cut`: a cut makes groups. Leave `cut` out.'
     );
   });
 

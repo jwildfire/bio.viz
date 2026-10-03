@@ -441,8 +441,10 @@ describe('core: settings', () => {
     expect(refused(() => frame({ results }, { y: { measure: 'IL-6' } }))).toMatch(
       /must name its visit/
     );
-    expect(refused(() => frame({ results }, { y: { ...IL6_CHANGE, cut: 'median' } }))).toMatch(
-      /the cut rule is not available yet/
+    // A cut is checked where the variable is (CUT-SPEC-002); the frame resolves
+    // a well-formed one to its number.
+    expect(refused(() => frame({ results }, { y: { ...IL6_CHANGE, cut: 'deciles' } }))).toMatch(
+      /`cut` must be 'median', 'tertiles', 'quartiles'/
     );
     expect(refused(() => frame({ results }, y, { subject_col: 'ID' }))).toMatch(
       /`subject_col` is not a setting\. The settings are id_col, measure_col/
@@ -530,10 +532,15 @@ describe('core: what leaves the frame, and what the module is made of', () => {
     const esm = await import(/* @vite-ignore */ dist('bio.viz.esm.js').href);
     const names = [
       'BASELINE_STATS',
+      'CUTS',
       'DEFAULT_SETTINGS',
       'DROPPED',
       'UNUSED',
       'VALUE_TYPES',
+      'cutGroup',
+      'cutLabels',
+      'cutPoints',
+      'cutWords',
       'frame',
       'label',
       'variable',
