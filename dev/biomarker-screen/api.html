@@ -73,7 +73,7 @@
 <table class="doc-table"><thead><tr><th scope="col">Comparison</th><th scope="col">Each row</th><th scope="col">Its p-value</th></tr></thead>
 <tbody><tr><td data-label="Comparison"><code>difference</code></td><td data-label="Each row">The standardised difference between two groups, Hedges&#39; g: the first group&#39;s mean less the second&#39;s, in pooled standard deviations, with its noncentral-t interval. gsm.bio computes it, and holds it to <code>effectsize::hedges_g()</code>.</td><td data-label="Its p-value">Welch&#39;s t-test, the one the group comparison prints for that biomarker.</td></tr>
 <tr><td data-label="Comparison"><code>correlation</code></td><td data-label="Each row">Pearson&#39;s or Spearman&#39;s coefficient with one fixed variable, with its interval where R gives one; Spearman&#39;s has none in R, and none is made up.</td><td data-label="Its p-value"><code>cor.test</code>&#39;s, the one the association scatter prints for that pair.</td></tr></tbody></table>
-<p>For a difference, the interval and the p-value come from two methods: the interval is Hedges&#39; g&#39;s, on a pooled standard deviation, and the p-value is Welch&#39;s t-test, which does not pool. They can disagree about whether a difference is distinguishable from nought. The footnote under the rows says so: <code>Interval: Hedges&#39; g with a pooled standard deviation; p-value: Welch&#39;s t-test, as in the group comparison.</code></p>
+<p>For a difference, the interval and the p-value come from two methods: the interval is Hedges&#39; g&#39;s, on a pooled standard deviation, and the p-value is Welch&#39;s t-test, which does not pool. They can disagree about whether a difference is distinguishable from nought. R says so in its answer, and the statistics line under the rows prints it among R&#39;s notes: <code>The interval is the pooled-variance (Student) interval for Hedges&#39; g, while the p-value is Welch&#39;s, which does not pool the variances: …</code></p>
 <p>The fixed variable of a correlation is a participant-level number, such as age, or a biomarker at a visit. A biomarker that is the fixed variable itself, at the same visit with the same value type, is not a row of its own: its coefficient with itself is one, and the note above the screen says so.</p>
 <p>Every p-value is adjusted across the rows that have one, by Benjamini-Hochberg, which keeps down the share of false leads among the rows picked out and is the usual aim of a screen, or by Holm, which guards against any false lead at all and is stricter. A row R could not compute, a group too small among them, shows R&#39;s reason and no number, and is left out of the adjustment, as R says.</p>
 <h3 id="the-order-and-how-many-are-shown">The order, and how many are shown</h3>
@@ -105,7 +105,7 @@
 <p>The lifecycle is safety.viz&#39;s, so a page drives the libraries the same way. <code>init</code>, <code>setData</code>, <code>setSettings</code> and <code>close</code> return the chart, so calls can be chained.</p>
 <table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
 <tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
-<tr><td data-label="Method"><code>chart.setData(data)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data, settings)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. <code>settings</code>, when given, are laid over the chart&#39;s with the tables, for tables that need them: a participant table whose id column has another name comes with <code>{ participant_id_col }</code>. The tables are checked against those settings, so the two change together.</td></tr>
 <tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
 <tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls, and asks R again.</td></tr>
 <tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits a chart a row opened to its container.</td></tr>
@@ -221,9 +221,10 @@
 # number is written in the fewest digits that read back as the same number,
 # whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
 # (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
-# written &quot;2&quot;. The text is JavaScript&#39;s for every number that needs 16
-# significant digits or fewer; of two 17-digit texts that read back the same,
-# JavaScript may choose the other.
+# written &quot;2&quot;, and NaN &quot;NaN&quot;. The text is JavaScript&#39;s for every number that
+# needs 13 significant digits or fewer. Beyond that R&#39;s reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript&#39;s.
 chart_text &lt;- function(x) {
   if (is.null(x)) return(NULL)
   if (is.logical(x)) return(ifelse(x, &quot;true&quot;, &quot;false&quot;))
@@ -232,6 +233,7 @@ chart_text &lt;- function(x) {
 }
 
 chart_number &lt;- function(value) {
+  if (is.nan(value)) return(&quot;NaN&quot;)
   if (is.na(value)) return(NA_character_)
   if (value == 0) return(&quot;0&quot;)
   if (is.infinite(value)) return(if (value &gt; 0) &quot;Infinity&quot; else &quot;-Infinity&quot;)
@@ -305,7 +307,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/67710caf3898a81d5f8dfb797044f75037bbedc4"><code>67710ca</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/8054114d9a8166b1418e8a1be2dcd3480a037669"><code>8054114</code></a>.
       </p>
       <p>
         Built in the open — follow the
