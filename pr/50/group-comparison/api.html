@@ -230,29 +230,51 @@
 <p>In R, the key of one panel&#39;s stored result, from the panel&#39;s rows and what the view is set to:</p>
 <pre><code class="language-r"># dfRows: the panel&#39;s rows, one per participant: the id, y, x (and color, panel when set).
 # lView:  the view, by the chart&#39;s names; a member that is not set is NULL.
-# ---- The recipe: the key of one panel&#39;s stored result ------------------------
-#
-# dfRows   the panel&#39;s rows, one per participant: the id, `y`, `x`, and `color`
-#          and `panel` when the view has them
-# lView    the view, by the chart&#39;s names: statistic, test, pairwise, measure,
-#          value_type, visit, baseline_visits, baseline_stat, group_by, color_by,
-#          panel_by, panel, filters (a named list of column to values), y_scale
-#
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript&#39;s String() writes it. TRUE and FALSE are &quot;true&quot; and &quot;false&quot;. A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written &quot;2&quot;. The text is JavaScript&#39;s for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text &lt;- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, &quot;true&quot;, &quot;false&quot;))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number &lt;- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return(&quot;0&quot;)
+  if (is.infinite(value)) return(if (value &gt; 0) &quot;Infinity&quot; else &quot;-Infinity&quot;)
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written &lt;- sprintf(&quot;%.*e&quot;, precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits &lt;- sub(&quot;0+{{content}}quot;, &quot;&quot;, gsub(&quot;.&quot;, &quot;&quot;, sub(&quot;e.*{{content}}quot;, &quot;&quot;, written), fixed = TRUE))
+  k &lt;- nchar(digits)
+  n &lt;- as.integer(sub(&quot;^.*e&quot;, &quot;&quot;, written)) + 1L
+  text &lt;- if (k &lt;= n &amp;&amp; n &lt;= 21) {
+    paste0(digits, strrep(&quot;0&quot;, n - k))
+  } else if (n &gt; 0 &amp;&amp; n &lt;= 21) {
+    paste0(substr(digits, 1, n), &quot;.&quot;, substr(digits, n + 1, k))
+  } else if (n &gt; -6 &amp;&amp; n &lt;= 0) {
+    paste0(&quot;0.&quot;, strrep(&quot;0&quot;, -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k &gt; 1) paste0(&quot;.&quot;, substr(digits, 2, k)) else &quot;&quot;,
+           &quot;e&quot;, if (n - 1 &gt;= 0) &quot;+&quot; else &quot;-&quot;, abs(n - 1))
+  }
+  if (value &lt; 0) paste0(&quot;-&quot;, text) else text
+}
+
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = &quot;radix&quot;`), which
 # is the order the chart sorts in.
-# A value as the chart writes it into the identity: as text. A number is
-# written as the chart writes one, in full and with no exponent, one value at a
-# time, so a panel column holding the number 2 is written &quot;2&quot;.
-chart_text &lt;- function(x) {
-  if (is.null(x)) return(NULL)
-  if (is.numeric(x)) {
-    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
-                  character(1)))
-  }
-  as.character(x)
-}
 group_comparison_key &lt;- function(dfRows, lView) {
   chrGroups &lt;- sort(unique(chart_text(dfRows$x)), method = &quot;radix&quot;)
   lDataId &lt;- list(chart = &quot;group-comparison&quot;, measure = chart_text(lView$measure), value_type = lView$value_type)
@@ -310,7 +332,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/dd9a85e526f54de174ea9f177679eb2c39ddbe32"><code>dd9a85e</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/1699d05fc54e074e46509f6e1052715e1bf1083d"><code>1699d05</code></a>.
       </p>
       <p>
         Built in the open — follow the
