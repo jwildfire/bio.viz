@@ -54,6 +54,11 @@ describe('the vendored safety.viz bundle', () => {
       expect(record.note).toMatch(/unmerged branch/);
       expect(record.note).toMatch(/make this copy again from dev/);
     }
+    // The kit has merged (#37): the copy is safety.viz's dev at a recorded
+    // commit, and the record carries no note of an unmerged branch.
+    expect(record).toMatchObject({ ref: 'dev', merged_to_dev: true });
+    expect(record.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(record).not.toHaveProperty('note');
   });
 });
 

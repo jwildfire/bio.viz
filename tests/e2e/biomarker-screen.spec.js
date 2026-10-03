@@ -6,6 +6,7 @@ import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
 import { captureEvidence } from './evidence.js';
+import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The biomarker screen in a real page (#36): safety.viz's vendored bundle and
@@ -2104,5 +2105,17 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     );
     expect(overflowing).toEqual([]);
     await captureEvidence(page.locator('#demo'), 'BS-LIVE-007', 'r-in-the-browser-on-a-phone');
+  });
+});
+
+test.describe('biomarker screen: the filter rules safety.viz’s charts follow', () => {
+  test('BS-FILTER-002: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)', async ({
+    page
+  }) => {
+    const warnings = warningsOf(page);
+    await open(page, {
+      settings: { visit: 'Week 4', value_type: 'change', group_by: 'SEX', filters: RULED_FILTERS }
+    });
+    await expectFilterRules(page, warnings, () => ({ ...window.__bs.chart.state.filters }));
   });
 });

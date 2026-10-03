@@ -4,6 +4,7 @@ import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
+import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The group comparison chart in a real page (#9, #16): safety.viz's vendored
@@ -133,6 +134,7 @@ test.describe('group comparison: the page and the two bundles', () => {
 
     const found = await page.evaluate(() => ({
       kitMembers: Object.keys(window.SafetyViz.kit).length,
+      reconciles: typeof window.SafetyViz.kit.reconcileFilters,
       kitFrozen: Object.isFrozen(window.SafetyViz.kit),
       chartVersion: window.SafetyViz.kit.Chart.version,
       drawsWithKit: window.__gc.chart.charts.every(
@@ -143,7 +145,9 @@ test.describe('group comparison: the page and the two bundles', () => {
       globalChart: typeof window.Chart,
       root: document.querySelector('#chart > .sv-root').className
     }));
-    expect(found.kitMembers).toBe(35);
+    // 36 since bio.viz#37: the kit from safety.viz dev adds reconcileFilters.
+    expect(found.kitMembers).toBe(36);
+    expect(found.reconciles).toBe('function');
     expect(found.kitFrozen).toBe(true);
     expect(found.chartVersion).toBe('4.5.1');
     expect(found.charts).toBe(1);
@@ -3167,5 +3171,23 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
     }
     await page.waitForTimeout(500);
     expect(forR().length).toBe(before);
+  });
+});
+
+test.describe('group comparison: the filter rules safety.viz’s charts follow', () => {
+  test('GC-FILTER-007: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)', async ({
+    page
+  }) => {
+    const warnings = warningsOf(page);
+    await open(page, {
+      settings: {
+        start_value: 'IL-6',
+        visits: ['Week 4'],
+        value_type: 'change',
+        group_by: 'SEX',
+        filters: RULED_FILTERS
+      }
+    });
+    await expectFilterRules(page, warnings, () => ({ ...window.__gc.chart.state.filters }));
   });
 });
