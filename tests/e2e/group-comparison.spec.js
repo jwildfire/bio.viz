@@ -4,6 +4,7 @@ import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
+import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The group comparison chart in a real page (#9, #16): safety.viz's vendored
 // bundle and bio.viz's committed bundle, loaded as two script tags, drawing the
@@ -2006,6 +2007,38 @@ test.describe('group comparison: the overview on a phone', () => {
 });
 
 test.describe('group comparison: on the site', () => {
+  test('GC-FILTER-006: on the demo, filters with nobody in common leave the overview and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)', async ({
+    page
+  }) => {
+    const errors = await openDemo(page, 'group-comparison', 'groupComparison');
+    const charts = () => window.BioVizDemo.chart.charts.length;
+    // The overview, which asks R for nothing in any case.
+    expect(await page.evaluate(charts)).toBeGreaterThan(0);
+    expect(await letNobodyThrough(page)).toBe(0);
+    await expectNobody(page, errors, { drawn: charts });
+    await expect(page.locator('#chart .bv-overview-row')).toHaveCount(0);
+    expect(await asked(page)).toBe(0);
+    // One biomarker, opened from the controls with nobody through: nothing
+    // drawn and nothing asked.
+    await page.locator('#chart select[data-control="measure"]').selectOption('IL-6');
+    await expectNobody(page, errors, { drawn: charts });
+    expect(await asked(page)).toBe(0);
+    // Loosened: the four aged 35 are drawn, and R is asked for their test.
+    await page.locator('#chart select[data-filter="RESPONSE"]').selectOption('__all__');
+    await expect(page.locator('#chart .sv-notes')).toContainText(
+      '4 of 200 participants pass the filters.'
+    );
+    expect(await page.evaluate(charts)).toBeGreaterThan(0);
+    await expect.poll(() => asked(page)).toBeGreaterThan(0);
+    await expect(page.locator('#chart .sv-footnote')).not.toHaveText(NOBODY_PASSES);
+    // And back to the overview, which draws its rows again.
+    await page.locator('#chart select[data-control="measure"]').selectOption({ index: 0 });
+    await expect(page.locator('#chart .bv-overview-row').first()).toBeVisible();
+    expect(
+      errors.filter((message) => !/webr|r-wasm|Failed to load resource/.test(message))
+    ).toEqual([]);
+  });
+
   test('GC-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#9)', async ({
     page
   }) => {

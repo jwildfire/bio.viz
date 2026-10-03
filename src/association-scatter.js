@@ -67,7 +67,13 @@ import {
   syncHost,
   writeStatistic
 } from './shared/chartHost.js';
-import { categoryColumns, filterColumns, listMeasures, listVisits } from './shared/tables.js';
+import {
+  NOBODY_PASSES,
+  categoryColumns,
+  filterColumns,
+  listMeasures,
+  listVisits
+} from './shared/tables.js';
 
 const NONE = '';
 const MODULE_CLASS = 'bv-association-scatter';
@@ -541,7 +547,7 @@ class AssociationScatter {
     if (!model.drawn) {
       this.footnote.textContent =
         model.filtered === 0
-          ? 'No participant passes the filters.'
+          ? NOBODY_PASSES
           : 'No participant has a value on both axes for this choice.';
       return;
     }

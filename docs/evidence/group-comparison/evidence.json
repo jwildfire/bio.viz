@@ -1,16 +1,13 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-02T23:03:28.143Z",
+  "generatedAt": "2026-10-02T23:50:46.979Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37075634503",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37075634503"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -218,6 +215,14 @@
       "status": "pass",
       "requirementIds": ["GC-FILTER-004"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FILTER-006: on the demo, filters with nobody in common leave the overview and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-006"],
+      "issueRefs": [29],
       "screenshots": []
     },
     {
@@ -946,6 +951,22 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no kit on the page an empty selection lets everyone through, as it is not a filter in force (#29)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-005"],
+      "issueRefs": [29],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel, one biomarker or the overview, and the core still refuses a results table with no rows (#29)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-FILTER-005"],
+      "issueRefs": [29],
       "screenshots": []
     },
     {

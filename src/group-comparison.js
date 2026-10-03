@@ -43,6 +43,7 @@ import {
   writeStatistic
 } from './shared/chartHost.js';
 import { VALUE_TYPES } from './core/variable.js';
+import { NOBODY_PASSES } from './shared/tables.js';
 import { MARKS, Y_SCALES, syncSettings } from './group-comparison/configure.js';
 import {
   NO_TEST_CHOSEN,
@@ -108,6 +109,16 @@ const STYLES = `${lineStyles('.bv-group-comparison')}
 const NOTHING_AFTER_BASELINE =
   'The only visit chosen is the baseline visit, where this value is the same for everyone. ' +
   'Choose a later visit to draw.';
+
+// Why nothing is drawn: nobody passes the filters; or nobody that does has a
+// value for this choice; or the only visit chosen is the baseline visit of a
+// change. `rows` are the overview's, when it is the overview.
+function nothingDrawn(model, rows = [{ model }]) {
+  if (model.filtered === 0) return NOBODY_PASSES;
+  return model.noRows || rows.some((row) => row.model.panels.length)
+    ? 'No participant has a value to draw for this choice.'
+    : NOTHING_AFTER_BASELINE;
+}
 
 /**
  * The live chart. Made by `groupComparison()`, not directly.
@@ -571,9 +582,7 @@ class GroupComparison {
     this.updateNotes(model);
     const drawn = model.panels.filter((panel) => panel.records.length);
     if (!drawn.length) {
-      this.footnote.textContent = model.panels.length
-        ? 'No participant has a value to draw for this choice.'
-        : NOTHING_AFTER_BASELINE;
+      this.footnote.textContent = nothingDrawn(model);
       return;
     }
     this.footnote.textContent =
@@ -642,8 +651,9 @@ class GroupComparison {
     this.multiplesWrap.append(pager());
     const drawn = rows.filter((row) => row.model.panels.some((panel) => panel.records.length));
     if (!drawn.length) {
-      this.footnote.textContent = rows.some((row) => row.model.panels.length)
-        ? 'No participant has a value to draw for this choice.'
+      // Every row of the overview is framed on the same participants.
+      this.footnote.textContent = rows.length
+        ? nothingDrawn(rows[0].model, rows)
         : NOTHING_AFTER_BASELINE;
       return;
     }

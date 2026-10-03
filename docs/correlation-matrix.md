@@ -40,7 +40,7 @@ A setting that is not known, or a value a setting cannot take, is refused: `corr
 
 ## The tables
 
-`init` and `setData` take `{ results, participants }`, each an array of records, one object per row: the tables the [core](core.md) reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame.
+`init` and `setData` take `{ results, participants }`, each an array of records, one object per row: the tables the [core](core.md) reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
 ## The grid's variables
 
