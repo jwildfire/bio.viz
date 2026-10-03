@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-03T01:13:02.304Z",
+  "generatedAt": "2026-10-03T01:20:06.386Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37085191476",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37085191476"
+    "id": "37085649881",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37085649881"
   },
   "records": [
     {
