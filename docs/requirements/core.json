@@ -61,6 +61,7 @@
     "CORE-MAN-005": "Each entry's settings are exactly its chart's column-name settings (the keys of its `DEFAULT_SETTINGS` ending in `_col` or carrying `_col_`), each with the chart's default and required exactly where the chart refuses `null` for it; `participant_id_col`, whose default `null` means `id_col`'s name, reads `id_col`'s standard column from the subject-level domain; and an unmapped setting is left out (`unmappedSettings: \"omit\"`).",
     "CORE-MAN-006": "An export a module lists in `api.data` is documented under one heading of its own, and its fields are not held to the reference one by one; the core lists `portfolio` there.",
     "CORE-MAN-007": "The site publishes the chart list at `portfolio.json`, the same list a page that loads the bundle reads as `BioViz.portfolio`, and the format it names at `schema/portfolio.json`.",
-    "CORE-FRAME-017": "Visit order is one total order, whatever order the rows come in: with a visit-order column, the visits that have a number first, by their least number, then the visits with no number; ties, unnumbered visits and a table with no order column by name, with numbers in a name counted as numbers."
+    "CORE-FRAME-017": "Visit order is one total order, whatever order the rows come in: with a visit-order column, the visits that have a number first, by their least number, then the visits with no number; ties, unnumbered visits and a table with no order column by name, with numbers in a name counted as numbers.",
+    "CORE-NEWS-001": "The release log holds its shape: only the first section may be `(Upcoming)`, a released section links nothing on the dev site, and the newest released section is the package version."
   }
 }

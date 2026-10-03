@@ -12,8 +12,8 @@
 # branch is written but nothing is served. The site build uses relative URLs
 # throughout, so the same output works at every path depth.
 #
-# The branch root holds the released site, so it has no index page until the
-# first push to main carries a site build.
+# The branch root holds the released site, built from main: since v0.1.0
+# it serves the last release.
 #
 # Deploys are serialized by the shared concurrency group; the push loop below
 # additionally re-fetches and re-applies on rejection, so a racing writer can

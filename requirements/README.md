@@ -6,7 +6,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 
 | Matrix                                           | Module              | Rows |
 | ------------------------------------------------ | ------------------- | ---: |
-| [core.md](core.md)                               | core                |   60 |
+| [core.md](core.md)                               | core                |   61 |
 | [r-connection.md](r-connection.md)               | r-connection        |   78 |
 | [group-comparison.md](group-comparison.md)       | group-comparison    |  138 |
 | [association-scatter.md](association-scatter.md) | association-scatter |   87 |
