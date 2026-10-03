@@ -1,16 +1,13 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-03T05:20:07.349Z",
+  "generatedAt": "2026-10-03T06:15:39.596Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37099463794",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37099463794"
-  },
+  "run": null,
   "records": [
     {
       "test": "CM-CTRL-001: the sidebar offers the mode, the value, the visit and the biomarkers or the biomarker and the visits, how the pairs are drawn, the method, the minimum pairs, a filter per category column, and Reset chart (#27)",
@@ -145,6 +142,22 @@
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["CM-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-003"],
       "issueRefs": [49],
       "screenshots": []
     },
@@ -1330,6 +1343,14 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-012"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-017: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-017"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]

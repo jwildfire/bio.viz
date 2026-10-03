@@ -1,16 +1,13 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-03T05:20:07.349Z",
+  "generatedAt": "2026-10-03T06:15:39.596Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37099463794",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37099463794"
-  },
+  "run": null,
   "records": [
     {
       "test": "BS-CTRL-001: the sidebar offers the comparison, the value and visit, the groups or the variable and method, the adjustment, the order, a filter per category column, and Reset chart (#36)",
@@ -145,6 +142,22 @@
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["BS-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-003"],
       "issueRefs": [49],
       "screenshots": []
     },
@@ -369,6 +382,14 @@
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["BS-STAT-013"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-015"],
       "issueRefs": [49],
       "screenshots": []
     },
@@ -1290,6 +1311,14 @@
       "status": "pass",
       "requirementIds": ["BS-STAT-012"],
       "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote BS-STAT-014: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-014"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]
