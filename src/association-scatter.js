@@ -65,6 +65,8 @@ import {
   showListing,
   shown,
   syncHost,
+  mountToolbar,
+  toolbarStyles,
   writeStatistic
 } from './shared/chartHost.js';
 import {
@@ -82,11 +84,7 @@ const STYLES = `${lineStyles(`.${MODULE_CLASS}`)}
 .${MODULE_CLASS} .sv-chart-wrap canvas,.${MODULE_CLASS} .bv-panel-canvas canvas{cursor:crosshair}
 .${MODULE_CLASS} canvas.bv-region-on{touch-action:none}
 .${MODULE_CLASS} .bv-stat-remark[data-kind=scale]{color:#1f2933}
-.${MODULE_CLASS} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
-.${MODULE_CLASS} .bv-toolbar:empty{display:none}
-.${MODULE_CLASS} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-.${MODULE_CLASS} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
-.${MODULE_CLASS} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${toolbarStyles(`.${MODULE_CLASS}`)}
 .${MODULE_CLASS} .bv-fit{margin:.5rem 0 0}
 .${MODULE_CLASS} .bv-stat-pairs{max-width:46rem}
 .${MODULE_CLASS} .bv-stat-pairs th[scope=row]{overflow-wrap:normal}
@@ -164,8 +162,6 @@ class AssociationScatter {
     });
     // Above the chart: the way back to a chart that opened this one, and, where
     // a finger is the pointer, the switch that makes a drag select a region.
-    this.toolbar = kit.createElement('div', 'bv-toolbar');
-    this.notes.before(this.toolbar);
     // Whether a finger can be the pointer here: a drag with one scrolls the
     // page, so a region is selected only once it has been asked for.
     this.touch =
@@ -175,14 +171,9 @@ class AssociationScatter {
   }
 
   buildToolbar() {
-    const { kit, settings } = this;
-    this.toolbar.innerHTML = '';
-    if (settings.back) {
-      const back = kit.createElement('button', 'bv-back', settings.back.label);
-      back.type = 'button';
-      back.onclick = () => settings.back.action(this);
-      this.toolbar.append(back);
-    }
+    const { kit } = this;
+    // The way back, when another chart opened this one, is every chart's.
+    mountToolbar(this);
     this.regionButton = null;
     if (this.touch) {
       const region = kit.createElement('button', 'bv-region', 'Select a region');

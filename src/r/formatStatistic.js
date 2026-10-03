@@ -24,7 +24,8 @@
 // `formatEstimate` formats one row of a result's `estimates`,
 // `formatComparison` one row of its `rows` that compares two groups,
 // `formatGroup` one row of its `rows` that is one group's own result, and
-// `formatPair` one row that is one pair of variables in a correlation matrix.
+// `formatPair` one row that is one pair of variables in a correlation matrix,
+// and `formatScreenRow` one row of a biomarker screen.
 
 const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
 const isCount = (value) => Number.isInteger(value) && value >= 0;
@@ -390,5 +391,123 @@ export function formatPair(row) {
     interval,
     bounds: ends,
     level
+  };
+}
+
+/**
+ * Formats one row of a biomarker screen's `rows`: one biomarker's estimate, a
+ * standardised difference or a coefficient, with its interval, the counts it
+ * used, and its p-value twice: as R computed it, unadjusted, and as R adjusted
+ * it across the rows that have one, with the adjustment by name. Both are held
+ * to the rules a whole result is held to: never without the method, the counts
+ * and the label.
+ *
+ * @param {{biomarker?: string, counts?: number, n_1?: number, n_2?: number,
+ *   estimate?: number, lower?: number, upper?: number, level?: number,
+ *   method?: string, p_unadjusted?: number, p_value?: number,
+ *   adjustment?: string, adjusted_over?: number, status?: string,
+ *   reason?: string}} row One row of `rows`.
+ * @param {string[]} [groups] For a difference, the two groups, first and
+ *   second, so the counts can say whose they are.
+ * @returns {{status: 'shown'|'withheld'|'error'|'refused', text: string,
+ *   result: string, biomarker: ?string, n: ?string, estimate: ?string,
+ *   interval: ?string, bounds: ?string, level: ?string, method: ?string,
+ *   p: ?string, adjusted: ?string, adjustment: ?string, over: ?number,
+ *   label: ?string}} `text` is the whole sentence, and `result` the same
+ *   without the biomarker's name. The parts are for a table, given only when
+ *   `status` is `shown`: `n` the counts in words; `estimate` as printed;
+ *   `interval` in words with its level, `bounds` its two ends and `level` the
+ *   level alone; `method`; `p` the unadjusted p-value and `adjusted` the
+ *   adjusted one, as printed; `adjustment` the adjustment's name; `over` how
+ *   many rows it was adjusted across; `label` the label both are under.
+ */
+export function formatScreenRow(row, groups = null) {
+  const given = row && typeof row === 'object' ? row : {};
+  const biomarker = text(given.biomarker);
+  const named = Array.isArray(groups) && groups.length === 2 && groups.every(text);
+  const twoCounts = named && isCount(given.n_1) && isCount(given.n_2);
+  const counts = twoCounts
+    ? { [groups[0]]: given.n_1, [groups[1]]: given.n_2 }
+    : isCount(given.counts)
+      ? given.counts
+      : undefined;
+  const n = formatCounts(counts);
+  const none = {
+    estimate: null,
+    interval: null,
+    bounds: null,
+    level: null,
+    method: null,
+    p: null,
+    adjusted: null,
+    adjustment: null,
+    over: null,
+    label: null
+  };
+  const whole = (status, result) => ({
+    status,
+    text: biomarker ? `${biomarker}: ${result}` : result,
+    result,
+    biomarker,
+    n,
+    ...none
+  });
+  if (!biomarker) return whole('refused', refused('the row does not name its biomarker').text);
+  // The p-value as R computed it, by the rules of a whole result: R's reason
+  // where it computed none, R's error, or a refusal where something is missing.
+  const raw = read({
+    status: given.status,
+    method: given.method,
+    p_value: given.p_unadjusted,
+    reason: given.reason,
+    counts
+  });
+  if (raw.status !== 'shown') return whole(raw.status, raw.text);
+  const refuse = (what) => whole('refused', `Row not shown: ${what}.`);
+  const adjustment = adjustmentName(given.adjustment);
+  if (!adjustment) return refuse('the row does not name the adjustment of its p-value');
+  if (!isCount(given.adjusted_over) || given.adjusted_over < 1) {
+    return refuse('the row does not say how many rows its p-value was adjusted across');
+  }
+  const p = given.p_value;
+  if (typeof p !== 'number' || !(p >= 0 && p <= 1)) {
+    return refuse('the adjusted p-value is not a number between 0 and 1');
+  }
+  if (!isNumber(given.estimate)) return refuse('the estimate is not a number');
+  const bounds = [given.lower, given.upper, given.level];
+  const absent = (value) => value === undefined || value === null;
+  let ends = null;
+  let level = null;
+  if (!bounds.every(absent)) {
+    if (!bounds.every(isNumber) || !(given.level > 0 && given.level < 1)) {
+      return refuse('the interval of the estimate is incomplete');
+    }
+    level = `${Number((given.level * 100).toPrecision(12))}%`;
+    ends = `${figure(given.lower)} to ${figure(given.upper)}`;
+  }
+  const interval = ends ? `${level} confidence interval ${ends}` : null;
+  const estimate = figure(given.estimate);
+  const adjusted = formatP(p);
+  const label = formatLabel(adjustment);
+  const over = given.adjusted_over;
+  const result =
+    `${estimate}${interval ? `, ${interval}` : ''}. ${raw.method}: ${raw.p} unadjusted, ` +
+    `${adjusted} adjusted across ${over} biomarker${over === 1 ? '' : 's'} (${n}). ${label}`;
+  return {
+    status: 'shown',
+    text: `${biomarker}: ${result}`,
+    result,
+    biomarker,
+    n,
+    estimate,
+    interval,
+    bounds: ends,
+    level,
+    method: raw.method,
+    p: raw.p,
+    adjusted,
+    adjustment,
+    over,
+    label
   };
 }

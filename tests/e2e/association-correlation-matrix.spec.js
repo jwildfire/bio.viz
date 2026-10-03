@@ -2369,12 +2369,17 @@ test.describe('correlation matrix: on the site', () => {
     );
     await expect(card).toContainText('It prints no p-value.');
     // Every chart is listed, in the order they were built.
-    await expect(page.locator('#charts [data-module]')).toHaveCount(3);
+    await expect(page.locator('#charts [data-module]')).toHaveCount(4);
     expect(
       await page
         .locator('#charts [data-module]')
         .evaluateAll((cards) => cards.map((found) => found.dataset.module))
-    ).toEqual(['group-comparison', 'association-scatter', 'correlation-matrix']);
+    ).toEqual([
+      'group-comparison',
+      'association-scatter',
+      'correlation-matrix',
+      'biomarker-screen'
+    ]);
 
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/evidence\.html$/);

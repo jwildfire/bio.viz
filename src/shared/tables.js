@@ -205,3 +205,84 @@ export function keepFiltered({ results, participants }, settings, filters, filte
     results: results.filter((row) => ids.has(String(row[idCol])))
   };
 }
+
+// ---- Participant-level numbers ------------------------------------------------
+
+// A value written as a number.
+const isNumeric = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value);
+  return typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
+};
+
+/**
+ * The participant-level numbers a chart can take as a variable: columns in which every value
+ * that is written is a number, and that hold more than one different value.
+ *
+ * With a participant table: its columns, other than the id. Without one: the
+ * columns carried on the results rows, other than the ones the settings map,
+ * that hold one value for each participant. With both, the participant table's
+ * columns come first and a column of the same name on the results rows is not
+ * offered twice.
+ *
+ * The setting `numbers`, when given, is the list, and nothing is worked out.
+ * @returns {Array<{value_col: string, label: string, table: string}>}
+ */
+export function numberColumns({ results, participants }, settings) {
+  if (settings.numbers) return settings.numbers.map((spec) => ({ ...spec, table: 'given' }));
+  const columns = [];
+  const taken = new Set();
+  const numbers = (values) => {
+    const distinct = new Set();
+    for (const value of values) {
+      if (isBlank(value)) continue;
+      if (!isNumeric(value)) return false;
+      distinct.add(Number(value));
+    }
+    return distinct.size > 1;
+  };
+
+  if (participants && participants.length) {
+    const idCol = settings.participant_id_col || settings.id_col;
+    for (const name of Object.keys(participants[0])) {
+      if (name === idCol) continue;
+      taken.add(name);
+      if (numbers(participants.map((row) => row[name]))) {
+        columns.push({ value_col: name, label: name, table: 'participants' });
+      }
+    }
+  }
+
+  const mapped = new Set(
+    [
+      settings.id_col,
+      settings.measure_col,
+      settings.value_col,
+      settings.visit_col,
+      settings.visit_order_col,
+      settings.unit_col,
+      settings.studyday_col,
+      settings.normal_col_high,
+      settings.normal_col_low
+    ].filter(Boolean)
+  );
+  for (const name of results.length ? Object.keys(results[0]) : []) {
+    if (mapped.has(name) || taken.has(name)) continue;
+    // One value for each participant, or it is not a participant-level column.
+    const byParticipant = new Map();
+    let constant = true;
+    for (const row of results) {
+      if (isBlank(row[name])) continue;
+      const id = String(row[settings.id_col]);
+      const value = String(row[name]);
+      if (!byParticipant.has(id)) byParticipant.set(id, value);
+      else if (byParticipant.get(id) !== value) {
+        constant = false;
+        break;
+      }
+    }
+    if (constant && numbers(byParticipant.values())) {
+      columns.push({ value_col: name, label: name, table: 'results' });
+    }
+  }
+  return columns;
+}

@@ -5,8 +5,9 @@
 // the same thing.
 
 import { BASELINE_STATS } from '../core/settings.js';
-import { variable } from '../core/variable.js';
 import {
+  variableSetting,
+  checkBack,
   checkShared,
   columnOrNull,
   fieldList,
@@ -77,26 +78,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   normal_col_low: null
 });
 
-// An axis: null, or a variable as the core takes one. A column on an axis is a
-// number, so `type` need not be written.
-function axis(value, setting) {
-  if (value === null || value === undefined) return null;
-  if (!isPlainObject(value)) {
-    refuse(
-      `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, ` +
-        'or { col } for a participant-level number; or null.'
-    );
-  }
-  const read = variable('col' in value && value.col != null ? { ...value, type: 'number' } : value);
-  return read.kind === 'column'
-    ? { col: read.col }
-    : {
-        measure: read.measure,
-        value: read.value,
-        ...(read.visit === null ? {} : { visit: read.visit })
-      };
-}
-
 /**
  * The settings in full: the caller's over the defaults, checked. A setting that
  * is not known, or a value a setting cannot take, is refused with a message
@@ -142,17 +123,10 @@ export function syncSettings(overrides) {
       '`fit_statistic` must be the name of an R function, or null for no linear or smooth line.'
     );
   }
-  if (
-    settings.back !== null &&
-    (!isPlainObject(settings.back) ||
-      !isText(settings.back.label) ||
-      typeof settings.back.action !== 'function')
-  ) {
-    refuse('`back` must be { label, action }, a sentence and a function, or null for none.');
-  }
+  checkBack(settings);
 
-  settings.x = axis(settings.x, 'x');
-  settings.y = axis(settings.y, 'y');
+  settings.x = variableSetting(settings.x, 'x');
+  settings.y = variableSetting(settings.y, 'y');
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
   settings.measures = textList(settings.measures, 'measures');
   settings.numbers = fieldList(settings.numbers, 'numbers');

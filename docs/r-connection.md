@@ -274,6 +274,32 @@ It returns the sentence, and its parts for a cell and for a table:
 
 No interval is made up: where R returned none, none is printed. A pair R could not compute for, one with too few complete pairs, gives R's reason and its count and no number: `Not computed: 178 complete pairs. The minimum is 183. Counts: n = 178.`
 
+## `formatScreenRow(row, groups)`
+
+Formats one row of a biomarker screen's `rows`: one biomarker's estimate, a standardised difference or a coefficient, with its interval, the counts it used, and its p-value twice, as R computed it, unadjusted, and as R adjusted it across the rows that have one. Both are held to the rules a whole result is held to: never without the method and the counts, labelled exploratory, the adjustment named, no star and no verdict. It reads `biomarker`, `counts`, `n_1`, `n_2`, `estimate`, `lower`, `upper`, `level`, `method`, `p_unadjusted`, `p_value`, `adjustment`, `adjusted_over`, `status` and `reason`. `groups`, for a difference, names the two groups so the counts say whose they are.
+
+It returns the sentence, and its parts for a table:
+
+| Member       | Meaning                                                                                                                                                                                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`     | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row with no biomarker, no method, no counts, no estimate, half an interval, no adjustment, no number of rows adjusted across or an adjusted p-value that is not one is `refused`. |
+| `text`       | The whole sentence: `IL-6: 0.9133, 95% confidence interval 0.6111 to 1.213. Welch Two Sample t-test: p < 0.001 unadjusted, p < 0.001 adjusted across 12 biomarkers (Placebo n = 95, Treatment n = 91). Exploratory, adjusted (Benjamini-Hochberg).`             |
+| `result`     | The same without the biomarker's name.                                                                                                                                                                                                                          |
+| `biomarker`  | The biomarker's name, or null.                                                                                                                                                                                                                                  |
+| `n`          | The counts in words, `Placebo n = 95, Treatment n = 91` or `n = 200`, or null.                                                                                                                                                                                  |
+| `estimate`   | The estimate as printed, to four significant figures. Null unless `status` is `shown`.                                                                                                                                                                          |
+| `interval`   | Its interval in words with its level. Null where R gave none, as for Spearman's rho, and unless `status` is `shown`.                                                                                                                                            |
+| `bounds`     | The two ends alone. Null where `interval` is.                                                                                                                                                                                                                   |
+| `level`      | The level alone, `95%`. Null where `interval` is.                                                                                                                                                                                                               |
+| `method`     | The method's name. Null unless `status` is `shown`.                                                                                                                                                                                                             |
+| `p`          | The unadjusted p-value as printed, `p = 0.031`. Null unless `status` is `shown`.                                                                                                                                                                                |
+| `adjusted`   | The adjusted p-value as printed. Null unless `status` is `shown`.                                                                                                                                                                                               |
+| `adjustment` | The adjustment by its usual name, `Benjamini-Hochberg` or `Holm`. Null unless `status` is `shown`.                                                                                                                                                              |
+| `over`       | How many rows R adjusted across. Null unless `status` is `shown`.                                                                                                                                                                                               |
+| `label`      | `Exploratory, adjusted (Benjamini-Hochberg).` Null unless `status` is `shown`.                                                                                                                                                                                  |
+
+A row R could not compute gives R's reason and its counts and no number: `CRP: Not computed: Placebo has 2; Treatment has 2. The minimum group size is 5. Counts: Placebo n = 2, Treatment n = 2.`
+
 ## Checked against real R
 
 The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.

@@ -476,3 +476,69 @@ export function buildProfileFeed(chart, settingsOf) {
   });
   kit.mountProfileRail(host, settingsOf);
 }
+
+// ---- Pages -------------------------------------------------------------------
+
+/**
+ * How many items a page shows of how many and, when there is more than one
+ * page, the way to the others: Previous, which page of how many, and Next.
+ * @param {object} kit safety.viz's kit.
+ * @param {{page: number, pages: number}} page A page, as `pageOf` gives it.
+ * @param {string} count The sentence of how many are shown (`pageCount`).
+ * @param {Function} go Called with the page asked for, counted from zero.
+ * @returns {HTMLElement} The pager.
+ */
+export function renderPager(kit, page, count, go) {
+  const pager = kit.createElement('div', 'bv-overview-pager');
+  pager.append(kit.createElement('span', 'bv-overview-count', count));
+  if (page.pages === 1) return pager;
+  const button = (label, to, name) => {
+    const made = kit.createElement('button', null, label);
+    made.type = 'button';
+    made.dataset.go = name;
+    made.disabled = to < 0 || to >= page.pages;
+    made.onclick = () => go(to);
+    return made;
+  };
+  pager.append(
+    button('Previous', page.page - 1, 'previous'),
+    kit.createElement('span', 'bv-overview-page', `Page ${page.page + 1} of ${page.pages}`),
+    button('Next', page.page + 1, 'next')
+  );
+  return pager;
+}
+
+// ---- The way back ------------------------------------------------------------
+
+/**
+ * Above a chart that another chart opened in its place: a button back, which
+ * calls the caller's function with the chart. Nothing when the setting `back`
+ * is null.
+ * @param {object} chart The chart, with its `kit`, `settings` and `notes`.
+ * @returns {HTMLElement} The toolbar the button is in, before the notes; other
+ *   buttons of the chart's own may be added to it.
+ */
+export function mountToolbar(chart) {
+  const { kit, settings } = chart;
+  if (!chart.toolbar) {
+    chart.toolbar = kit.createElement('div', 'bv-toolbar');
+    chart.notes.before(chart.toolbar);
+  }
+  chart.toolbar.innerHTML = '';
+  if (settings.back) {
+    const back = kit.createElement('button', 'bv-back', settings.back.label);
+    back.type = 'button';
+    back.onclick = () => settings.back.action(chart);
+    chart.toolbar.append(back);
+  }
+  return chart.toolbar;
+}
+
+/** The toolbar's look, for a chart's style sheet. */
+export const toolbarStyles = (
+  C
+) => `${C} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
+${C} .bv-toolbar:empty{display:none}
+${C} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${C} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
+${C} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;

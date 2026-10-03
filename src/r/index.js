@@ -8,6 +8,7 @@ export {
   formatEstimate,
   formatComparison,
   formatGroup,
-  formatPair
+  formatPair,
+  formatScreenRow
 } from './formatStatistic.js';
 export { WEBR_VERSION, WEBR_BASE_URL } from './webREngine.js';

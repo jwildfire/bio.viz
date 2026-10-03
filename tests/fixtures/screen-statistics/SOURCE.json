@@ -1,0 +1,111 @@
+{
+  "fixture": "tests/fixtures/screen-statistics",
+  "derived_by": "tools/derive-screen-statistics.mjs",
+  "rule": "Each case is the gallery's biomarker screen demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id, one column per biomarker of the screen at its visit with its value type, and the column of groups or the variable correlated with, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the biomarkers is kept, with an empty cell for each value they do not have.",
+  "derived_from": [
+    {
+      "file": "site/data/synthetic-study/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5"
+    },
+    {
+      "file": "site/data/synthetic-study/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
+    },
+    {
+      "file": "site/demo/synthetic-study.js",
+      "sha256": "fca703f516a464cdc2a3b70cc96c76d3f5e62e5f26af27f08286c49e9d095839"
+    },
+    {
+      "file": "site/demo/biomarker-screen.js",
+      "sha256": "88ee8641c572ebec8bf5b59cc422bee57347d74c982a9a79ab9389d05893f387"
+    }
+  ],
+  "cases": [
+    {
+      "case": "difference-week-4-change",
+      "says": "Every biomarker’s change from Baseline to Week 4, Placebo against Treatment, Benjamini-Hochberg: the view the demo opens on, with the planted difference"
+    },
+    {
+      "case": "difference-week-4-change-holm",
+      "says": "The same, adjusted by Holm"
+    },
+    {
+      "case": "difference-baseline",
+      "says": "Every biomarker at Baseline, as its result, Placebo against Treatment: before treatment, no planted difference"
+    },
+    {
+      "case": "difference-week-4-change-women",
+      "says": "The opening view, with the filter Sex set to F"
+    },
+    {
+      "case": "difference-sex",
+      "says": "Every biomarker’s change to Week 4, F against M"
+    },
+    {
+      "case": "difference-age-35",
+      "says": "The opening view among the four participants aged 35: every row has a group too small"
+    },
+    {
+      "case": "correlation-il-10",
+      "says": "Every biomarker at Baseline against IL-10 at Baseline, Pearson, Benjamini-Hochberg: the planted correlation is TNF-alpha’s; IL-10 is not a row"
+    },
+    {
+      "case": "correlation-il-10-holm",
+      "says": "The same, adjusted by Holm"
+    },
+    {
+      "case": "correlation-il-10-spearman",
+      "says": "The same with Spearman’s coefficient: no interval in any row"
+    },
+    {
+      "case": "correlation-age",
+      "says": "Every biomarker’s change to Week 4 against age, a participant-level number"
+    }
+  ],
+  "files": [
+    {
+      "file": "difference-week-4-change.csv",
+      "sha256": "a91e130374f635ef79ece29d1653cebb06b81496c0ab436149b3dd2473dd17dc"
+    },
+    {
+      "file": "difference-week-4-change-holm.csv",
+      "sha256": "a91e130374f635ef79ece29d1653cebb06b81496c0ab436149b3dd2473dd17dc"
+    },
+    {
+      "file": "difference-baseline.csv",
+      "sha256": "58dbd6530a529d30b3b6742026035530b976efc0c5824329aaac64d38f223f42"
+    },
+    {
+      "file": "difference-week-4-change-women.csv",
+      "sha256": "ae1871e14e66a4e654642dd74030a14e10a20e612aa58f057805462911e85535"
+    },
+    {
+      "file": "difference-sex.csv",
+      "sha256": "6140e9224d3d95f0d9b97f6a2af7b44c3a0725891d916b32a223fe4844d4ead3"
+    },
+    {
+      "file": "difference-age-35.csv",
+      "sha256": "1b02b0e57cb167df38706f5df8d85bfae5f8e151c7d3251fb1f0e9e7445a29ef"
+    },
+    {
+      "file": "correlation-il-10.csv",
+      "sha256": "cbbe3732b1ada6c7ded5ea05ca9ddb7b1b047c670fc9977e0447150942cd459a"
+    },
+    {
+      "file": "correlation-il-10-holm.csv",
+      "sha256": "cbbe3732b1ada6c7ded5ea05ca9ddb7b1b047c670fc9977e0447150942cd459a"
+    },
+    {
+      "file": "correlation-il-10-spearman.csv",
+      "sha256": "cbbe3732b1ada6c7ded5ea05ca9ddb7b1b047c670fc9977e0447150942cd459a"
+    },
+    {
+      "file": "correlation-age.csv",
+      "sha256": "e93c79d16033134f4febf034e7663af6401bedc4d88fd45df48ea985f7e0aa78"
+    },
+    {
+      "file": "cases.csv",
+      "sha256": "52970287d2d66fab1003cc5fffd0e9e8321f73f85f5743c593a0b427ee939062"
+    }
+  ]
+}
