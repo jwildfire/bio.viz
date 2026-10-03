@@ -29,4 +29,4 @@ bio.viz is a chart library beside safety.viz for comparing groups and relating v
 
 ## Tests and provenance
 
-368 unit and 217 browser tests pass, and each of the 467 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.
+371 unit and 231 browser tests pass, and each of the 484 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.

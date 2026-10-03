@@ -1,16 +1,13 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T05:16:47.923Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
-  },
+  "run": null,
   "records": [
     {
       "test": "CM-CTRL-001: the sidebar offers the mode, the value, the visit and the biomarkers or the biomarker and the visits, how the pairs are drawn, the method, the minimum pairs, a filter per category column, and Reset chart (#27)",
@@ -138,6 +135,22 @@
       "status": "pass",
       "requirementIds": ["CM-DRILL-005"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-FAIL-001"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
@@ -370,6 +383,22 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-014"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-015: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-015"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-016: the waiting note is said until R has answered once on the connection, so a pair the grid opens after R has answered says nothing more of starting R (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-016"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
