@@ -250,4 +250,16 @@ describe('what desktop R answered, and the key it wrote', () => {
     expect([tnf.lower, tnf.upper]).toEqual([pair.estimates[0].lower, pair.estimates[0].upper]);
     expect(tnf.p_unadjusted).toBe(pair.p_value);
   });
+
+  it('BS-STAT-014: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)', () => {
+    const recipe = (fromR.recipes || []).find((entry) => entry.case === 'numeric-visit');
+    expect(recipe, 'the recipe case is in the fixture').toBeTruthy();
+    // The first case's key is held to the chart's own request above; the recipe
+    // case differs from it only in the member that held a number.
+    const first = fromR.results[0];
+    const expected = { ...first.dataId, visit: '4' };
+    expect(recipe.dataId).toEqual(expected);
+    expect(recipe.args).toEqual(first.args);
+    expect(recipe.name).toBe(first.name);
+  });
 });

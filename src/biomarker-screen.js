@@ -58,7 +58,9 @@ import {
   mountShell,
   readGiven,
   renderPager,
-  writeStatistic
+  writeStatistic,
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import { pageCount, pageOf } from './shared/paging.js';
 import { coreSettings } from './shared/settings.js';
@@ -146,6 +148,9 @@ class BiomarkerScreen {
   // The connection the screen asks: the one given in settings, or one with no R
   // attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -183,11 +188,21 @@ class BiomarkerScreen {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {BiomarkerScreen} The chart, for chaining.
    */
-  setData(data) {
+  setData(data, settings) {
     this.close();
-    this.tables = readGiven(this, data);
+    if (settings === undefined || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      // The tables and the settings that read them change together: the
+      // tables are checked against the new settings, which are then laid over.
+      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildControls();
@@ -205,8 +220,12 @@ class BiomarkerScreen {
    */
   setSettings(settings) {
     const given = settings || {};
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes, a chart opened in place included.
+    checkTables(this.tables, next);
     this.close();
-    this.settings = syncSettings({ ...this.settings, ...given });
+    this.settings = next;
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -514,6 +533,11 @@ class BiomarkerScreen {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     this.close();
     const round = this.desk.begin();
     this.asked = [];
@@ -549,6 +573,8 @@ class BiomarkerScreen {
       this.footnote.textContent = 'No participant has a value for any biomarker of this screen.';
       return;
     }
+    // What R's methods are, and where they differ, R says in its own notes on
+    // the statistics line.
     this.footnote.textContent = HINT;
     this.drawRows();
     if (!settings.statistic) return;
@@ -588,6 +614,7 @@ class BiomarkerScreen {
       if (model.empty)
         add(`${model.empty} left out: no value for any biomarker of the screen.`, true);
     }
+    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
     model.unused
       .filter((entry) => entry.reason !== UNUSED.MISSING_RESULT)
       .forEach((entry) =>

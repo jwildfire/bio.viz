@@ -78,6 +78,7 @@
     "PVAL-PAIR-001": "One pair's result from a correlation matrix's rows is formatted without a p-value: its estimate to four significant figures, its interval at the level R gave, or none where R gave none, and the number of complete pairs; all are handed over in parts for a cell and a table. A p-value on the row is neither read nor printed.",
     "PVAL-PAIR-002": "A pair's result that does not name its two variables, or has no count, no estimate or half an interval, is refused, and one R could not compute shows R's words with its count and no number.",
     "PVAL-SCREEN-001": "One row of a biomarker screen is formatted by the rules a whole result is held to: its estimate with its interval at the level R gave, or none where R gave none, its unadjusted p-value with its method and counts, each group's for a difference, and its adjusted p-value with the adjustment by name and how many rows it was adjusted across; all are handed over in parts for a table.",
-    "PVAL-SCREEN-002": "A row with no biomarker, no method, no counts, no estimate, half an interval, no adjustment or no number of rows adjusted across is refused, and one R could not compute shows R's words with its counts and no number."
+    "PVAL-SCREEN-002": "A row with no biomarker, no method, no counts, no estimate, half an interval, no adjustment or no number of rows adjusted across is refused, and one R could not compute shows R's words with its counts and no number.",
+    "PVAL-FMT-005": "The README's example prints what `formatStatistic` prints for desktop R's own Wilcoxon answer, R's method name as R wrote it."
   }
 }

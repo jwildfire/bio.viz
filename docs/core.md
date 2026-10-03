@@ -168,7 +168,7 @@ The terms, exactly:
 
 - A usable result is a finite number, or text that reads as one (a table read from a CSV file holds its numbers as text, and `' 7 '` is 7). An empty cell, `NA`, `<0.5` and anything else is not a result.
 - The result at a visit is the first usable result, in the table's order, among the participant's rows for that biomarker and visit. A later one is not used, and is [counted](#unused).
-- The baseline visits are the ones named in the setting `baseline_visits`. When none is named, the baseline visit is the first visit in visit order: by the visit-order column when the table has one, and otherwise by name, with numbers inside a name counted as numbers. Only visits with a usable result are considered.
+- The baseline visits are the ones named in the setting `baseline_visits`. When none is named, the baseline visit is the first visit in [visit order](#visitsresults-settings). Only visits with a usable result are considered.
 - With one baseline visit, the baseline is the result there. With several, one result is taken per baseline visit that has one, and they are brought to one value by the setting `baseline_stat`: their mean by default. A participant with a result at only some of the baseline visits has a baseline from those.
 - A fold change of 1 is no change and a percent change of 0 is no change; a fold change of 1.5 is a percent change of 50. A result of zero at the visit over a positive baseline is a fold change of 0 and a percent change of −100.
 - A baseline of zero has no ratio. A negative baseline has one by arithmetic, and it is not computed: a fold or a percent change from below zero does not mean what its name says. A participant with either is dropped and counted, under its own reason. `change` is a difference and is computed whatever the sign.
@@ -246,7 +246,15 @@ It changes nothing it is given.
 
 ## `visits(results, settings)`
 
-The visits of a results table, in visit order, as a list of names. The order is the visit-order column's when the table has one, and otherwise the names', with numbers inside a name counted as numbers, so `Week 2` comes before `Week 12`. Only visits with at least one usable result are listed. A chart offers these in its visit control, and the first of them is the baseline visit when `baseline_visits` names none.
+The visits of a results table, in visit order, as a list of names. Only visits with at least one usable result are listed. A chart offers these in its visit control, and the first of them is the baseline visit when `baseline_visits` names none.
+
+Visit order is one order, whatever order the rows come in:
+
+- With a visit-order column, the visits that have a number in it come first, by number. A visit numbered on several rows takes its least number.
+- Then come the visits with no number in that column.
+- Visits with the same number, the visits with no number, and every visit when the table has no visit-order column are ordered by name, with numbers inside a name counted as numbers, so `Week 2` comes before `Week 12`.
+
+So visits Screening (−1), Baseline (0), Day 1 (no number) and Week 4 (4) are in the order Screening, Baseline, Week 4, Day 1.
 
 ```js
 BioViz.core.visits(results); // ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']
@@ -258,17 +266,17 @@ BioViz.core.visits(results); // ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week
 
 The settings and their defaults. The names are safety.viz's, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.
 
-| Setting              | Default      | Meaning                                                                                                          |
-| -------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `id_col`             | `'USUBJID'`  | The participant's id, in the results table. Also the name of the id field in the frame.                          |
-| `measure_col`        | `'TEST'`     | The biomarker's name.                                                                                            |
-| `value_col`          | `'STRESN'`   | The result.                                                                                                      |
-| `visit_col`          | `'VISIT'`    | The visit's name.                                                                                                |
-| `visit_order_col`    | `'VISITNUM'` | A number that orders the visits. Used only to find the first visit when no baseline visit is named. May be null. |
-| `participant_id_col` | `null`       | The participant's id in the participant table, when it is not named as `id_col` is.                              |
-| `baseline_visits`    | `null`       | The baseline visit, or a list of them. Null means the first visit in visit order.                                |
-| `baseline_stat`      | `'mean'`     | How several baseline visits are brought to one value: one of [`BASELINE_STATS`](#baseline_stats).                |
-| `required`           | `null`       | The names of the variables a participant must have to be in the frame. Null means all of them.                   |
+| Setting              | Default      | Meaning                                                                                                                                              |
+| -------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`             | `'USUBJID'`  | The participant's id, in the results table. Also the name of the id field in the frame.                                                              |
+| `measure_col`        | `'TEST'`     | The biomarker's name.                                                                                                                                |
+| `value_col`          | `'STRESN'`   | The result.                                                                                                                                          |
+| `visit_col`          | `'VISIT'`    | The visit's name.                                                                                                                                    |
+| `visit_order_col`    | `'VISITNUM'` | A number that orders the visits ([visit order](#visitsresults-settings)), and so finds the first visit when no baseline visit is named. May be null. |
+| `participant_id_col` | `null`       | The participant's id in the participant table, when it is not named as `id_col` is.                                                                  |
+| `baseline_visits`    | `null`       | The baseline visit, or a list of them. Null means the first visit in visit order.                                                                    |
+| `baseline_stat`      | `'mean'`     | How several baseline visits are brought to one value: one of [`BASELINE_STATS`](#baseline_stats).                                                    |
+| `required`           | `null`       | The names of the variables a participant must have to be in the frame. Null means all of them.                                                       |
 
 ## `BASELINE_STATS`
 

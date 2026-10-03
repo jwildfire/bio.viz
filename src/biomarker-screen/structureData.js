@@ -162,6 +162,7 @@ export function buildScreen({ results, participants }, settings, state, offered,
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
+    dropped: [],
     unused: [],
     baselineVisits: null,
     filtered: kept ? kept.length : null
@@ -179,24 +180,39 @@ export function buildScreen({ results, participants }, settings, state, offered,
     };
   }
 
+  // The frame names its fields internally, so a biomarker named any way at all,
+  // a space at either end included, is framed; each field is then named by its
+  // biomarker as written, which is how R is handed it.
+  const fields = drawn.rows.map((row, index) => ({ key: `v${index + 1}`, name: row.name }));
+  const extraKey = 'v0';
   const made = frame(
     { results: rows, participants: kept || undefined },
     {
-      ...Object.fromEntries(drawn.rows.map((row) => [row.name, variableOf(row.axis)])),
-      [extra.name]: extra.variable
+      ...Object.fromEntries(
+        fields.map((field, index) => [field.key, variableOf(drawn.rows[index].axis)])
+      ),
+      [extraKey]: extra.variable
     },
     // None is required: a participant with some of the biomarkers is in the
     // frame, and R counts who each row has.
     { ...coreSettings(settings), required: [] }
   );
+  const named = made.data.map((record) => ({
+    [settings.id_col]: record[settings.id_col],
+    ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]])),
+    [extra.name]: record[extraKey]
+  }));
   // A participant with none of the biomarkers gives no row anything: they are
   // left out of the frame, and counted.
-  const records = made.data.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+  const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
   return {
     ...model,
     records,
     participants: made.participants,
-    empty: made.data.length - records.length,
+    empty: named.length - records.length,
+    // With no biomarker required, who is left out is who the participant table
+    // does not have.
+    dropped: made.dropped,
     unused: made.unused,
     baselineVisits: made.baseline_visits
   };

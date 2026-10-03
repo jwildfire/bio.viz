@@ -50,6 +50,8 @@ Only the results table is required. With it alone the chart has no filters, and 
 
 With a participant table the chart shows a filter for each of its category columns, offers those columns to colour and panel by, and offers its numeric columns on either axis. A category column is one with at most `max_levels` different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## A variable on an axis
 
 An axis is a variable, written as the [core writes one](core.md#variablespec):
@@ -71,18 +73,18 @@ A change, a fold change or a percent change read at the one baseline visit is th
 
 The lifecycle is safety.viz's, so a page drives both libraries the same way. `init`, `setData`, `setSettings`, `brush` and `clearBrush` return the chart, so calls can be chained.
 
-| Method                        | What it does                                                                                                                                         |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chart.init(data)`            | Loads the tables and draws. The same as `setData`.                                                                                                   |
-| `chart.setData(data)`         | Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.   |
-| `chart.setSettings(settings)` | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                  |
-| `chart.render()`              | Draws everything again from the tables, the settings and the controls.                                                                               |
-| `chart.resize()`              | Fits the chart to its container, for a page that changes the container's size without resizing the window.                                           |
-| `chart.destroy()`             | Takes the chart down and empties its element. A destroyed chart cannot be used again.                                                                |
-| `chart.statistics()`          | What the chart has asked R for the panels now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                 |
-| `chart.brush(region)`         | Selects a region, as a drag does: `{ x: [from, to], y: [from, to] }` in the values' own units, with `panel`, a panel's title, when there are panels. |
-| `chart.clearBrush()`          | Lets go of the region and empties the listing.                                                                                                       |
-| `chart.view()`                | What the controls are set to, as settings: `x`, `y`, `color_by`, `panel_by`, `x_scale`, `y_scale`, `fit` and `method`.                               |
+| Method                          | What it does                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chart.init(data)`              | Loads the tables and draws. The same as `setData`.                                                                                                                                                                                                                                                                                                                                                                    |
+| `chart.setData(data, settings)` | Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. `settings`, when given, are laid over the chart's with the tables, for tables that need them: a participant table whose id column has another name comes with `{ participant_id_col }`. The tables are checked against those settings, so the two change together. |
+| `chart.setSettings(settings)`   | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                                                                                                                                                                                                                                                                                   |
+| `chart.render()`                | Draws everything again from the tables, the settings and the controls.                                                                                                                                                                                                                                                                                                                                                |
+| `chart.resize()`                | Fits the chart to its container, for a page that changes the container's size without resizing the window.                                                                                                                                                                                                                                                                                                            |
+| `chart.destroy()`               | Takes the chart down and empties its element. A destroyed chart cannot be used again.                                                                                                                                                                                                                                                                                                                                 |
+| `chart.statistics()`            | What the chart has asked R for the panels now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                                                                                                                                                                                                                                                                                  |
+| `chart.brush(region)`           | Selects a region, as a drag does: `{ x: [from, to], y: [from, to] }` in the values' own units, with `panel`, a panel's title, when there are panels.                                                                                                                                                                                                                                                                  |
+| `chart.clearBrush()`            | Lets go of the region and empties the listing.                                                                                                                                                                                                                                                                                                                                                                        |
+| `chart.view()`                  | What the controls are set to, as settings: `x`, `y`, `color_by`, `panel_by`, `x_scale`, `y_scale`, `fit` and `method`.                                                                                                                                                                                                                                                                                                |
 
 Tables the chart cannot read (not arrays of records, or a results table without one of its mapped columns) are refused: `setData` throws a `TypeError`, and the message is shown in the chart's element.
 
@@ -315,21 +317,68 @@ In R, the keys of one panel's stored results, from the panel's rows and what the
 # lView:  the view, by the chart's names; a member that is not set is NULL. x and y
 #         are each a variable as the settings write one: list(measure =, value =,
 #         visit =), without visit for a baseline value, or list(col =).
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2", and NaN "NaN". The text is JavaScript's for every number that
+# needs 13 significant digits or fewer. Beyond that R's reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript's.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.nan(value)) return("NaN")
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list of values is an unnamed list, so it is written as a
+# JSON array whatever its length. Text is sorted by code point
+# (`method = "radix"`), which is the order the chart sorts in.
 association_scatter_id <- function(dfRows, lView) {
-  lDataId <- list(chart = "association-scatter", x = lView$x, y = lView$y)
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  lDataId <- list(chart = "association-scatter", x = lapply(lView$x, chart_text), y = lapply(lView$y, chart_text))
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (!is.null(lView$color_by)) {
     lDataId$color_by <- lView$color_by
-    lDataId$groups <- as.list(sort(unique(as.character(dfRows$color)), method = "radix"))
+    lDataId$groups <- as.list(sort(unique(chart_text(dfRows$color)), method = "radix"))
   }
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by <- lView$panel_by
-    lDataId$panel <- lView$panel
+    lDataId$panel <- chart_text(lView$panel)
   }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   if (identical(lView$x_scale, "log")) lDataId$x_scale <- "log"
@@ -342,8 +391,10 @@ association_scatter_key <- function(dfRows, lView) {
   lArgs <- list(strXCol = "x", strYCol = "y", strMethod = lView$method)
   if (!is.null(lView$color_by)) lArgs$strGroupCol <- "color"
   list(
-    name = lView$statistic, args = lArgs,
-    dataId = association_scatter_id(dfRows, lView), rows = nrow(dfRows)
+    name = lView$statistic,
+    args = lArgs,
+    dataId = association_scatter_id(dfRows, lView),
+    rows = nrow(dfRows)
   )
 }
 
@@ -352,8 +403,10 @@ association_scatter_fit_key <- function(dfRows, lView) {
   lArgs <- list(strXCol = "x", strYCol = "y", strMethod = lView$fit)
   if (!is.null(lView$color_by)) lArgs$strGroupCol <- "color"
   list(
-    name = lView$fit_statistic, args = lArgs,
-    dataId = association_scatter_id(dfRows, lView), rows = nrow(dfRows)
+    name = lView$fit_statistic,
+    args = lArgs,
+    dataId = association_scatter_id(dfRows, lView),
+    rows = nrow(dfRows)
   )
 }
 

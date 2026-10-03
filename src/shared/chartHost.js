@@ -90,7 +90,8 @@ ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+${root} .sv-rail{max-width:100%;overflow-x:auto}
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -162,15 +163,47 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
 }
 
 /**
+ * Checks that the tables have the columns the settings name: the results
+ * table's id, biomarker, result and visit, and the participant table's id. A
+ * column that is missing is refused with a `TypeError` that names it. A
+ * chart checks this when it is given tables, and when its settings change.
+ * @param {{results: object[], participants: ?object[]}} tables The tables.
+ * @param {object} settings The settings.
+ */
+export function checkTables(tables, settings) {
+  for (const key of ['id_col', 'measure_col', 'value_col', 'visit_col']) {
+    const column = settings[key];
+    if (tables.results.length && !tables.results.some((row) => column in row)) {
+      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+  // A participant table is read by its participant id. Without that column no
+  // participant in it could be matched to a result.
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  if (
+    tables.participants != null &&
+    tables.participants.length &&
+    !tables.participants.some((row) => participantIdCol in row)
+  ) {
+    throw new TypeError(
+      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the ` +
+        'participant (`participant_id_col`, or `id_col` when that is not set).'
+    );
+  }
+}
+
+/**
  * The tables a chart was given, checked: `{ results, participants }`, or a
  * bare array taken as the results table. Tables the chart cannot read are
  * refused with a `TypeError`, and its message is shown in the chart's element.
  *
  * @param {object} chart The chart.
  * @param {object|object[]} data What `init` or `setData` was given.
+ * @param {object} [settings] The settings the tables are read with: the
+ *   chart's, or the ones `setData` was given with them.
  * @returns {{results: object[], participants: ?object[]}} The tables.
  */
-export function readGiven(chart, data) {
+export function readGiven(chart, data, settings = chart.settings) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
     if (!isRecordTable(tables.results)) {
@@ -181,12 +214,7 @@ export function readGiven(chart, data) {
         'bio.viz: `participants` must be an array of records, one object per row.'
       );
     }
-    for (const key of ['id_col', 'measure_col', 'value_col', 'visit_col']) {
-      const column = chart.settings[key];
-      if (tables.results.length && !tables.results.some((row) => column in row)) {
-        throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
-      }
-    }
+    checkTables(tables, settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = '';
@@ -197,6 +225,48 @@ export function readGiven(chart, data) {
     results: tables.results,
     participants: tables.participants && tables.participants.length ? tables.participants : null
   };
+}
+
+/**
+ * Draws the chart, and when drawing fails says so in the chart's element
+ * instead of leaving a page half drawn. Whatever was drawn is taken away, the
+ * statistics round is ended so no answer lands on it, the footnote says why the
+ * chart could not be drawn, and the controls stay, so the reader can change
+ * what is asked. The error is logged for a developer.
+ *
+ * @param {object} chart The chart.
+ * @param {Function} draw Draws everything the chart shows.
+ */
+export function drawSafely(chart, draw) {
+  chart.footnote.classList.remove('bv-failure');
+  try {
+    draw();
+  } catch (error) {
+    if (chart.desk) chart.desk.begin();
+    chart.asked = [];
+    chart.model = null;
+    // R's last answer, a listing and the participant rail describe what was
+    // drawn before, so none of them stays.
+    if ('answer' in chart) chart.answer = null;
+    chart.destroyCharts();
+    clearListing(chart);
+    for (const wrap of [
+      chart.notes,
+      chart.multiplesWrap,
+      chart.listingWrap,
+      chart.gridWrap,
+      chart.screenWrap
+    ]) {
+      if (wrap) wrap.innerHTML = '';
+    }
+    if (chart.chartWrap) chart.chartWrap.classList.add('sv-hidden');
+    chart.statLine.textContent = '';
+    chart.statLine.dataset.state = 'empty';
+    const message = String((error && error.message) || error).replace(/^bio\.viz: /, '');
+    chart.footnote.textContent = `This chart could not be drawn: ${message}`;
+    chart.footnote.classList.add('bv-failure');
+    console.error(error);
+  }
 }
 
 /** The settings the kit's listing and rail read, after the chart's settings change. */

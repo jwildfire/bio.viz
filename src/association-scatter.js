@@ -67,7 +67,9 @@ import {
   syncHost,
   mountToolbar,
   toolbarStyles,
-  writeStatistic
+  writeStatistic,
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -145,6 +147,9 @@ class AssociationScatter {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -213,10 +218,20 @@ class AssociationScatter {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {AssociationScatter} The chart, for chaining.
    */
-  setData(data) {
-    this.tables = readGiven(this, data);
+  setData(data, settings) {
+    if (settings === undefined || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      // The tables and the settings that read them change together: the
+      // tables are checked against the new settings, which are then laid over.
+      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildProfileFeed();
@@ -235,7 +250,11 @@ class AssociationScatter {
    */
   setSettings(settings) {
     const given = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes.
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
@@ -508,6 +527,11 @@ class AssociationScatter {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();

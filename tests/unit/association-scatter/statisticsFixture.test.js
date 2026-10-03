@@ -278,4 +278,16 @@ describe('what desktop R answered, and the key it wrote', () => {
       resultOf('pearson-skewed').value.estimates[0].estimate
     );
   });
+
+  it('AS-STAT-022: the recipe run on a data frame with a panel column that holds numbers writes the identity as text, as the chart asks with (#49)', () => {
+    const recipe = (fromR.recipes || []).find((entry) => entry.case === 'numeric-panel');
+    expect(recipe, 'the recipe case is in the fixture').toBeTruthy();
+    // The first case's key is held to the chart's own request above; the recipe
+    // case differs from it only in the member that held a number.
+    const first = fromR.results[0];
+    const expected = { ...first.dataId, panel_by: 'COHORT', panel: '2' };
+    expect(recipe.dataId).toEqual(expected);
+    expect(recipe.args).toEqual(first.args);
+    expect(recipe.name).toBe(first.name);
+  });
 });

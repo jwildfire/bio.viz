@@ -48,26 +48,69 @@ source(file.path(vendored, "statistics.R"))
 #          value_type, visit, baseline_visits, baseline_stat, group_by, color_by,
 #          panel_by, panel, filters (a named list of column to values), y_scale
 #
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2", and NaN "NaN". The text is JavaScript's for every number that
+# needs 13 significant digits or fewer. Beyond that R's reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript's.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.nan(value)) return("NaN")
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = "radix"`), which
 # is the order the chart sorts in.
 group_comparison_key <- function(dfRows, lView) {
-  chrGroups <- sort(unique(as.character(dfRows$x)), method = "radix")
-  lDataId <- list(chart = "group-comparison", measure = lView$measure, value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
   lDataId$groups <- as.list(chrGroups)
   if (!is.null(lView$color_by)) lDataId$color_by <- lView$color_by
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by <- lView$panel_by
-    lDataId$panel <- lView$panel
+    lDataId$panel <- chart_text(lView$panel)
   }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
@@ -138,6 +181,40 @@ results <- lapply(seq_len(nrow(cases)), function(i) {
   )
 })
 
+# The recipe on a data frame as R holds one: the rows of the panel for F, with
+# the panel column a number, 2, as a cohort number is in a data frame. The chart
+# names the panel as text, so the key the recipe writes must too.
+recipes <- local({
+  case <- as.list(cases[cases$case == "welch-panel-women", ])
+  rows <- read_rows(case$file)
+  rows$panel <- 2
+  view <- read_view(case)
+  view$panel_by <- "COHORT"
+  view$panel <- unique(rows$panel)
+  key <- group_comparison_key(rows, view)
+  # And chart_text() itself, on values a data frame may hold, each beside the
+  # text it writes, which the unit tests hold to the chart's String().
+  values <- list(2, 4, 100, -0.5, 0.1 + 0.2, 1 / 3, 1e-6, 1.5e-6, 0.000001234, 1e-7, 1e20,
+                 1e21, 2^53 + 2, TRUE, FALSE)
+  list(
+    c(
+      list(case = "numeric-panel", file = case$file),
+      key,
+      list(value = do.call(key$name, c(list(rows), key$args)))
+    ),
+    list(case = "chart-text", values = values, text = lapply(values, chart_text)),
+    # The edge of the claim: numbers of 13 significant digits, the most for
+    # which R's reading of a number is exact enough to find the fewest digits;
+    # and NaN, which JSON cannot hold as a value but the chart writes "NaN".
+    local({
+      digits13 <- list(0.1234567890123, 9876543.210987, 1.000000000001, -45.67890123456,
+                       3.141592653590, 2.718281828459e-5, 6.022140760000e23)
+      list(case = "chart-text-edge", values = digits13, text = lapply(digits13, chart_text),
+           nan = chart_text(NaN))
+    })
+  )
+})
+
 # Which statistics file answered: the commit and the checksum its record gives.
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
 recorded <- function(member) {
@@ -160,6 +237,9 @@ lines <- c(
   paste0("  \"made_by\": ", to_json(made_by), ","),
   "  \"results\": [",
   paste0("    ", vapply(results, to_json, character(1)), c(rep(",", length(results) - 1), "")),
+  "  ],",
+  "  \"recipes\": [",
+  paste0("    ", vapply(recipes, to_json, character(1)), c(rep(",", length(recipes) - 1), "")),
   "  ]",
   "}"
 )

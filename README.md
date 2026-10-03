@@ -1,6 +1,6 @@
 # bio.viz
 
-Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz).
+Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz), and needs safety.viz v1.9.0 or later (until that is released, safety.viz `dev`): the charts are built from safety.viz's kit, which first ships in v1.9.0.
 
 - Site: <https://jwildfire.github.io/bio.viz/> (released) and <https://jwildfire.github.io/bio.viz/dev/> (the `dev` branch)
 - Gallery: <https://jwildfire.github.io/bio.viz/dev/gallery/> — each chart and shared part with its evidence page (requirements, the tests that prove each, screenshots) and its API reference
@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. The others follow: cross-tabulation and stratified survival.
+Version 0.1.0 is the first release ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)). It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. The others follow: cross-tabulation, with a shared rule for cutting a biomarker into groups, and stratified survival.
 
 ## How it fits together
 
@@ -51,7 +51,7 @@ const result = await connection.run('rank_sum', {
 
 if (result.status === 'ok') {
   console.log(BioViz.r.formatStatistic(result.value).text);
-  // "Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted."
+  // "Wilcoxon rank sum test with continuity correction: p < 0.001 (Placebo n = 70, Xanomeline High Dose n = 52). Exploratory, unadjusted."
 }
 ```
 

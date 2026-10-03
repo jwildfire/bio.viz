@@ -62,22 +62,23 @@ const FIXTURES = [
   {
     script: 'tools/r-group-statistics.R',
     committed: 'tests/fixtures/group-statistics-r.json',
-    body: 'results'
+    // The results, and the recipe run on a data frame as R holds one (#49).
+    body: ['results', 'recipes']
   },
   {
     script: 'tools/r-association-statistics.R',
     committed: 'tests/fixtures/association-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   },
   {
     script: 'tools/r-matrix-statistics.R',
     committed: 'tests/fixtures/matrix-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   },
   {
     script: 'tools/r-screen-statistics.R',
     committed: 'tests/fixtures/screen-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   },
   { script: 'tools/r-cut.R', committed: 'tests/fixtures/cut-r.json', body: 'cases' }
 ];
@@ -173,7 +174,7 @@ for (const fixture of FIXTURES) {
   };
 
   // The versions and the platform are provenance: reported, not compared.
-  compare(committed[fixture.body], fresh[fixture.body], fixture.body);
+  for (const body of [].concat(fixture.body)) compare(committed[body], fresh[body], body);
   if (committed.made_by.script !== fresh.made_by.script) {
     differences.push('made_by.script differs');
   }
@@ -207,7 +208,11 @@ for (const fixture of FIXTURES) {
   }
   console.log(
     `✓ ${fixture.committed} is what ${fixture.script} produces: ` +
-      `${committed[fixture.body].length} ${fixture.body}, ${numbers} numbers agree to 1 part in ` +
+      `${[]
+        .concat(fixture.body)
+        .map((body) => `${committed[body].length} ${body}`)
+        .join(', ')}, ` +
+      `${numbers} numbers agree to 1 part in ` +
       `10^${sameVersions ? 12 : 8}.`
   );
 }

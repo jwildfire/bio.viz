@@ -104,6 +104,12 @@ export function failureOf(result) {
   return { state: 'error', text: `R reported an error: ${message}` };
 }
 
+// The connections R has answered on, started in the browser or ahead of time
+// but not from stored results: one that has needs no note about starting R.
+const ANSWERED = new WeakSet();
+const hasAnswered = (connection) =>
+  connection !== null && typeof connection === 'object' && ANSWERED.has(connection);
+
 /**
  * @param {object} parts
  * @param {{run: Function}} parts.connection The connection to R.
@@ -112,12 +118,14 @@ export function failureOf(result) {
  * @param {Function} parts.describe `(result, context)`: what one answer from
  *   the connection reads as on the chart's line.
  * @param {Function} [parts.waiting] `(text, context)`: the line while it waits.
- * @returns {{begin: Function, idle: Function}} `begin()` starts a round and
- *   ends every earlier one; the round's `ask(request, show, context)` asks R
- *   and calls `show(description)` at once with the waiting state, and again
- *   with the answer if the round is still the current one. It resolves to
- *   whether the answer was shown. `idle(text)` is `text` with the note, for a
- *   line that is not asking.
+ * @returns {{begin: Function, idle: Function, retire: Function}} `begin()`
+ *   starts a round and ends every earlier one; the round's `ask(request, show,
+ *   context)` asks R and calls `show(description)` at once with the waiting
+ *   state, and again with the answer if the round is still the current one and
+ *   the desk has not been retired. It resolves to whether the answer was shown.
+ *   `idle(text)` is `text` with the note, for a line that is not asking.
+ *   `retire()` ends every round for good: a chart calls it when it replaces the
+ *   desk, so no answer to a question asked through it is ever shown.
  */
 export function createDesk({
   connection,
@@ -126,11 +134,16 @@ export function createDesk({
   waiting = (said) => sentence('waiting', said)
 }) {
   let current = 0;
-  // Whether R has answered: after that, starting it costs nothing more.
-  let answered = false;
-  const withNote = (said) => (note && !answered ? `${said} ${note}` : said);
+  let retired = false;
+  // Whether R has answered on this connection: after that, starting it costs
+  // nothing more. It is the connection's, not the desk's, so a chart opened in
+  // place with the same connection does not say it again.
+  const withNote = (said) => (note && !hasAnswered(connection) ? `${said} ${note}` : said);
   return {
     idle: withNote,
+    retire() {
+      retired = true;
+    },
     begin() {
       current += 1;
       const round = current;
@@ -141,8 +154,11 @@ export function createDesk({
           show(waiting(noted ? WAITING : withNote(WAITING), context));
           noted = true;
           return connection.run(name, { data, args, dataId }).then((result) => {
-            if (result && result.status === 'ok' && result.form !== 'precomputed') answered = true;
-            if (round !== current) return false;
+            const ran = result && result.status === 'ok' && result.form !== 'precomputed';
+            if (ran && connection !== null && typeof connection === 'object') {
+              ANSWERED.add(connection);
+            }
+            if (retired || round !== current) return false;
             show(describe(result, context), result);
             return true;
           });

@@ -180,8 +180,11 @@ const matches = (value, selection) =>
 /**
  * The tables the filters leave. A filter chooses participants: the ones
  * filtered out are set aside with their results before a frame is made, so
- * they are not counted as missing from it. With no participant table there is
- * nothing to filter, and the tables come back as they are.
+ * they are not counted as missing from it. Nothing else is set aside: a row of
+ * results with no participant id, or for a participant the participant table
+ * does not have, reaches the frame, which counts it by reason. With no
+ * participant table there is nothing to filter, and the tables come back as
+ * they are.
  *
  * @param {{results: object[], participants: ?object[]}} tables The tables.
  * @param {object} settings The chart's settings.
@@ -199,10 +202,19 @@ export function keepFiltered({ results, participants }, settings, filters, filte
   const kept = participants.filter((row) =>
     Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
   );
-  const ids = new Set(kept.map((row) => String(row[participantIdCol])));
+  const idOf = (row, column) => (isBlank(row[column]) ? null : String(row[column]));
+  const keptIds = new Set(kept.map((row) => idOf(row, participantIdCol)));
+  // The participants the filters set aside: in the table, and not kept.
+  const filteredOut = new Set(
+    participants
+      .map((row) => idOf(row, participantIdCol))
+      .filter((id) => id !== null && !keptIds.has(id))
+  );
   return {
     participants: kept,
-    results: results.filter((row) => ids.has(String(row[idCol])))
+    // When the filters keep nobody, nobody passes: no results are framed, so a
+    // row for someone the table does not have cannot make a frame of no one.
+    results: kept.length ? results.filter((row) => !filteredOut.has(idOf(row, idCol))) : []
   };
 }
 
