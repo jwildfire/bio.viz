@@ -65,6 +65,12 @@ jobs:
       - name: Vendored statistics file equals gsm.bio at the recorded commit
         run: npm run statistics:check-source
 
+      # And for safety.viz's portfolio manifest format, the schema the chart
+      # list (BioViz.portfolio) is validated against: fetched from safety.viz at
+      # the recorded commit and compared.
+      - name: Vendored portfolio schema equals safety.viz at the recorded commit
+        run: npm run portfolio:check-source
+
       # Desktop R, at the version that made site/r-check/expected.json, so the
       # step after it re-derives the committed expected results instead of
       # trusting them: the R check page's, the numbers the group comparison

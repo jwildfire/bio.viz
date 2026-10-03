@@ -56,6 +56,20 @@ export const STATISTICS = {
   files: [{ file: 'statistics.R', source: 'inst/statistics/statistics.R' }]
 };
 
+// safety.viz's portfolio manifest format: the JSON Schema of a chart list.
+// bio.viz publishes its chart list in that format (src/data/portfolio.json,
+// `BioViz.portfolio`) so safety.viz's demo app can list its charts, and a unit
+// test validates the list against this copy. The format is safety.viz's; it is
+// copied, never redefined here. It sits beside the list it describes, so the
+// list's `$schema`, `./schema/portfolio.json`, names it.
+export const PORTFOLIO_SCHEMA = {
+  name: 'safety.viz portfolio manifest format',
+  label: 'schema',
+  repository: 'https://github.com/jwildfire/safety.viz',
+  directory: 'src/data/schema',
+  files: [{ file: 'portfolio.json', source: 'src/data/schema/portfolio.json' }]
+};
+
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 // The column names and the number of data rows of a CSV file, counted without
