@@ -44,7 +44,8 @@ import {
   mountToolbar,
   renderPager,
   toolbarStyles,
-  drawSafely
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import { VALUE_TYPES } from './core/variable.js';
 import { NOBODY_PASSES } from './shared/tables.js';
@@ -210,7 +211,11 @@ class GroupComparison {
    */
   setSettings(settings) {
     const given = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes.
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ('back' in given) mountToolbar(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
@@ -514,13 +519,26 @@ class GroupComparison {
     // In the overview no one biomarker says which levels have a value: the
     // levels are the column's own.
     if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
-    const model = buildPanels(
-      this.tables,
-      this.settings,
-      { ...this.state, levels: null, colorBy: NONE, panelBy: NONE, filters: {}, yScale: 'linear' },
-      { filterMatches: this.kit.filterMatches }
-    );
-    return model.levels;
+    // A failure here is the drawing's to say: the chart is drawn next, through
+    // drawSafely, which says it in the footnote. The control offers nothing.
+    try {
+      const model = buildPanels(
+        this.tables,
+        this.settings,
+        {
+          ...this.state,
+          levels: null,
+          colorBy: NONE,
+          panelBy: NONE,
+          filters: {},
+          yScale: 'linear'
+        },
+        { filterMatches: this.kit.filterMatches }
+      );
+      return model.levels;
+    } catch {
+      return [];
+    }
   }
 
   // The Test control offers the tests that fit the number of groups drawn, and

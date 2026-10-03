@@ -2,7 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
-import { expectDropsCounted, expectFailureSaid, expectReplacedConnectionDead } from './review.js';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
@@ -2653,5 +2659,17 @@ test.describe('association scatter: what the v0.1.0-RC1 review found', () => {
     page
   }) => {
     await expectDropsCounted(page, 'as');
+  });
+
+  test('AS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'as');
+  });
+
+  test('AS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'as');
   });
 });

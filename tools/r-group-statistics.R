@@ -48,22 +48,51 @@ source(file.path(vendored, "statistics.R"))
 #          value_type, visit, baseline_visits, baseline_stat, group_by, color_by,
 #          panel_by, panel, filters (a named list of column to values), y_scale
 #
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = "radix"`), which
 # is the order the chart sorts in.
-# A value as the chart writes it into the identity: as text. A number is
-# written as the chart writes one, in full and with no exponent, one value at a
-# time, so a panel column holding the number 2 is written "2".
-chart_text <- function(x) {
-  if (is.null(x)) return(NULL)
-  if (is.numeric(x)) {
-    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
-                  character(1)))
-  }
-  as.character(x)
-}
-
 group_comparison_key <- function(dfRows, lView) {
   chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
   lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
@@ -161,11 +190,18 @@ recipes <- local({
   view$panel_by <- "COHORT"
   view$panel <- unique(rows$panel)
   key <- group_comparison_key(rows, view)
-  list(c(
-    list(case = "numeric-panel", file = case$file),
-    key,
-    list(value = do.call(key$name, c(list(rows), key$args)))
-  ))
+  # And chart_text() itself, on values a data frame may hold, each beside the
+  # text it writes, which the unit tests hold to the chart's String().
+  values <- list(2, 4, 100, -0.5, 0.1 + 0.2, 1 / 3, 1e-6, 1.5e-6, 0.000001234, 1e-7, 1e20,
+                 1e21, 2^53 + 2, TRUE, FALSE)
+  list(
+    c(
+      list(case = "numeric-panel", file = case$file),
+      key,
+      list(value = do.call(key$name, c(list(rows), key$args)))
+    ),
+    list(case = "chart-text", values = values, text = lapply(values, chart_text))
+  )
 })
 
 # Which statistics file answered: the commit and the checksum its record gives.

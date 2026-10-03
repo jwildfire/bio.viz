@@ -2,7 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
-import { expectDropsCounted, expectFailureSaid, expectReplacedConnectionDead } from './review.js';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
@@ -3212,5 +3218,53 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     page
   }) => {
     await expectDropsCounted(page, 'gc');
+  });
+
+  test('GC-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'gc');
+  });
+
+  test('GC-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'gc');
+  });
+
+  test('GC-FAIL-002: a failure while the controls are built, where the Levels control reads the groups, is said like any other: the chart could not be drawn, and nothing is thrown (#49)', async ({
+    page
+  }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/tests/e2e/fixtures/group-comparison.html');
+    await page.evaluate(() => window.__gc.ready);
+    const threw = await page.evaluate(() => {
+      const { chart, data } = window.__gc;
+      // Tables the frame refuses, put in place past the checks.
+      chart.tables = {
+        results: data.results,
+        participants: data.participants.map(({ USUBJID, ...rest }) => ({
+          SUBJID: USUBJID,
+          ...rest
+        }))
+      };
+      const log = console.error;
+      console.error = () => {};
+      try {
+        chart.buildControls();
+        chart.render();
+        return null;
+      } catch (error) {
+        return error.message;
+      } finally {
+        console.error = log;
+      }
+    });
+    expect(threw).toBe(null);
+    await expect(page.locator('#chart .sv-footnote')).toContainText(
+      'This chart could not be drawn:'
+    );
+    expect(errors).toEqual([]);
   });
 });

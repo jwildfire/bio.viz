@@ -127,8 +127,12 @@
     "GC-SITE-003": "The live demo holds at a 390-pixel-wide viewport with no horizontal scroll.",
     "GC-SITE-004": "The API reference has a table row for every setting the chart has; the site build fails when one is missing.",
     "GC-STAT-043": "When the connection is replaced (`setSettings({ connection })`), an answer that arrives late from the connection it replaced is never shown: it changes neither the statistics line nor what `chart.statistics()` reports.",
-    "GC-FAIL-001": "When drawing fails, the group comparison says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the panels, ends the statistics round and keeps its controls; once drawing works again it draws.",
+    "GC-FAIL-001": "When drawing fails, the group comparison says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the panels, ends the statistics round, empties the listing and the participant rail, says it in the danger colour and keeps its controls; once drawing works again it draws.",
     "GC-DROP-001": "With a participant table, a participant the results have and the table does not is left out and counted (`Not in the participant table`), and a row of results with no participant id is counted (`Row has no participant id`); a participant table without the participant id column is refused with a sentence that names the column.",
-    "GC-STAT-044": "A stored result written by the R recipe from a data frame whose panel column holds numbers is found by the chart: the recipe writes the panel, the measure, the visits, the groups and the filters as text, as the chart does (`chart_text`)."
+    "GC-STAT-044": "A stored result written by the R recipe from a data frame whose panel column holds numbers is found by the chart: the recipe writes the panel, the measure, the visits, the groups and the filters as text, as the chart does (`chart_text`).",
+    "GC-DROP-002": "With results for participants the participant table does not have and filters that let nobody through, the chart says `No participant passes the filters.`, as it does with no such rows.",
+    "GC-DROP-003": "A setting that names a participant id column the participant table does not have (`setSettings({ participant_id_col })`) is refused with the same sentence as the tables are, before anything changes, and the chart stays as it was drawn.",
+    "GC-STAT-045": "The recipes' `chart_text` writes each value as the chart's `String()` does: logicals as `true` and `false`, numbers in the fewest digits that read back the same, in full from 1e-6 to below 1e21 and with an exponent outside that.",
+    "GC-FAIL-002": "A failure while the controls are built, where the Levels control reads the groups, is said like any other: the footnote says the chart could not be drawn, and nothing is thrown."
   }
 }

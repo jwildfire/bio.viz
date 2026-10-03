@@ -90,7 +90,8 @@ ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+${root} .sv-rail{max-width:100%;overflow-x:auto}
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -162,6 +163,36 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
 }
 
 /**
+ * Checks that the tables have the columns the settings name: the results
+ * table's id, biomarker, result and visit, and the participant table's id. A
+ * column that is missing is refused with a `TypeError` that names it. A
+ * chart checks this when it is given tables, and when its settings change.
+ * @param {{results: object[], participants: ?object[]}} tables The tables.
+ * @param {object} settings The settings.
+ */
+export function checkTables(tables, settings) {
+  for (const key of ['id_col', 'measure_col', 'value_col', 'visit_col']) {
+    const column = settings[key];
+    if (tables.results.length && !tables.results.some((row) => column in row)) {
+      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+  // A participant table is read by its participant id. Without that column no
+  // participant in it could be matched to a result.
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  if (
+    tables.participants != null &&
+    tables.participants.length &&
+    !tables.participants.some((row) => participantIdCol in row)
+  ) {
+    throw new TypeError(
+      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the ` +
+        'participant (`participant_id_col`, or `id_col` when that is not set).'
+    );
+  }
+}
+
+/**
  * The tables a chart was given, checked: `{ results, participants }`, or a
  * bare array taken as the results table. Tables the chart cannot read are
  * refused with a `TypeError`, and its message is shown in the chart's element.
@@ -181,25 +212,7 @@ export function readGiven(chart, data) {
         'bio.viz: `participants` must be an array of records, one object per row.'
       );
     }
-    for (const key of ['id_col', 'measure_col', 'value_col', 'visit_col']) {
-      const column = chart.settings[key];
-      if (tables.results.length && !tables.results.some((row) => column in row)) {
-        throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
-      }
-    }
-    // A participant table is read by its participant id. Without that column no
-    // participant in it could be matched to a result.
-    const participantIdCol = chart.settings.participant_id_col || chart.settings.id_col;
-    if (
-      tables.participants != null &&
-      tables.participants.length &&
-      !tables.participants.some((row) => participantIdCol in row)
-    ) {
-      throw new TypeError(
-        `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the ` +
-          'participant (`participant_id_col`, or `id_col` when that is not set).'
-      );
-    }
+    checkTables(tables, chart.settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = '';
@@ -230,7 +243,11 @@ export function drawSafely(chart, draw) {
     if (chart.desk) chart.desk.begin();
     chart.asked = [];
     chart.model = null;
+    // R's last answer, a listing and the participant rail describe what was
+    // drawn before, so none of them stays.
+    if ('answer' in chart) chart.answer = null;
     chart.destroyCharts();
+    clearListing(chart);
     for (const wrap of [
       chart.notes,
       chart.multiplesWrap,

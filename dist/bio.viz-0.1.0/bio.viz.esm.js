@@ -1213,7 +1213,8 @@ ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+${root} .sv-rail{max-width:100%;overflow-x:auto}
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
 function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   const { kit } = chart;
   Object.assign(
@@ -1260,6 +1261,20 @@ function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
     chart.sidebarToggle.click();
   }
 }
+function checkTables(tables, settings) {
+  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+    const column = settings[key];
+    if (tables.results.length && !tables.results.some((row) => column in row)) {
+      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  if (tables.participants != null && tables.participants.length && !tables.participants.some((row) => participantIdCol in row)) {
+    throw new TypeError(
+      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
+    );
+  }
+}
 function readGiven(chart, data) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
@@ -1271,18 +1286,7 @@ function readGiven(chart, data) {
         "bio.viz: `participants` must be an array of records, one object per row."
       );
     }
-    for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-      const column = chart.settings[key];
-      if (tables.results.length && !tables.results.some((row) => column in row)) {
-        throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
-      }
-    }
-    const participantIdCol = chart.settings.participant_id_col || chart.settings.id_col;
-    if (tables.participants != null && tables.participants.length && !tables.participants.some((row) => participantIdCol in row)) {
-      throw new TypeError(
-        `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
-      );
-    }
+    checkTables(tables, chart.settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = "";
@@ -1302,7 +1306,9 @@ function drawSafely(chart, draw) {
     if (chart.desk) chart.desk.begin();
     chart.asked = [];
     chart.model = null;
+    if ("answer" in chart) chart.answer = null;
     chart.destroyCharts();
+    clearListing(chart);
     for (const wrap of [
       chart.notes,
       chart.multiplesWrap,
@@ -1756,7 +1762,9 @@ function keepFiltered({ results, participants }, settings, filters, filterMatche
   );
   return {
     participants: kept,
-    results: results.filter((row) => !filteredOut.has(idOf(row, idCol)))
+    // When the filters keep nobody, nobody passes: no results are framed, so a
+    // row for someone the table does not have cannot make a frame of no one.
+    results: kept.length ? results.filter((row) => !filteredOut.has(idOf(row, idCol))) : []
   };
 }
 var isNumeric = (value) => {
@@ -2509,7 +2517,9 @@ var GroupComparison = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given2 });
+    const next = syncSettings({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ("back" in given2) mountToolbar(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
@@ -2780,13 +2790,24 @@ var GroupComparison = class {
   levelsOffered() {
     if (!this.state.groupBy) return [];
     if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
-    const model = buildPanels(
-      this.tables,
-      this.settings,
-      { ...this.state, levels: null, colorBy: NONE, panelBy: NONE, filters: {}, yScale: "linear" },
-      { filterMatches: this.kit.filterMatches }
-    );
-    return model.levels;
+    try {
+      const model = buildPanels(
+        this.tables,
+        this.settings,
+        {
+          ...this.state,
+          levels: null,
+          colorBy: NONE,
+          panelBy: NONE,
+          filters: {},
+          yScale: "linear"
+        },
+        { filterMatches: this.kit.filterMatches }
+      );
+      return model.levels;
+    } catch {
+      return [];
+    }
   }
   // The Test control offers the tests that fit the number of groups drawn, and
   // nothing else: a test that does not fit is never asked of R. The pairwise
@@ -4151,7 +4172,9 @@ var AssociationScatter = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.settings = syncSettings2({ ...this.settings, ...given2 });
+    const next = syncSettings2({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
@@ -5527,7 +5550,9 @@ var CorrelationMatrix = class {
   setSettings(settings) {
     const given2 = settings || {};
     this.close();
-    this.settings = syncSettings3({ ...this.settings, ...given2 });
+    const next = syncSettings3({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -6766,6 +6791,7 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 var BACK2 = "Back to the biomarker screen";
 var HINT2 = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.";
+var DIFFERENCE_METHODS = "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the group comparison.";
 var COLUMN = "c:";
 var MEASURE = "m:";
 var BiomarkerScreen = class {
@@ -6847,7 +6873,9 @@ var BiomarkerScreen = class {
   setSettings(settings) {
     const given2 = settings || {};
     this.close();
-    this.settings = syncSettings4({ ...this.settings, ...given2 });
+    const next = syncSettings4({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -7154,7 +7182,7 @@ var BiomarkerScreen = class {
       this.footnote.textContent = "No participant has a value for any biomarker of this screen.";
       return;
     }
-    this.footnote.textContent = HINT2;
+    this.footnote.textContent = state.comparison === "difference" ? `${HINT2} ${DIFFERENCE_METHODS}` : HINT2;
     this.drawRows();
     if (!settings.statistic) return;
     const request = screenRequest({ name: settings.statistic, settings, state, model });

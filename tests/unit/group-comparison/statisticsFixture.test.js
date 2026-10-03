@@ -255,4 +255,16 @@ describe('what desktop R answered, and the key it wrote', () => {
       form: 'precomputed'
     });
   });
+
+  it('GC-STAT-045: the recipe’s chart_text writes each value as the chart writes it, with String(): logicals in lower case, numbers in the fewest digits, with an exponent below 1e-6 and from 1e21 (#49)', () => {
+    const recipe = (fromR.recipes || []).find((entry) => entry.case === 'chart-text');
+    expect(recipe, 'the chart_text case is in the fixture').toBeTruthy();
+    expect(recipe.values.length).toBeGreaterThanOrEqual(15);
+    expect(recipe.values).toContain(true);
+    expect(recipe.values).toContain(1e-7);
+    expect(recipe.values).toContain(1e21);
+    recipe.values.forEach((value, index) => {
+      expect(recipe.text[index], `R's text for ${value}`).toBe(String(value));
+    });
+  });
 });

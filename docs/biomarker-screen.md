@@ -56,6 +56,8 @@ One row per biomarker the Biomarker list has, in the setting `measures` or every
 | `difference`  | The standardised difference between two groups, Hedges' g: the first group's mean less the second's, in pooled standard deviations, with its noncentral-t interval. gsm.bio computes it, and holds it to `effectsize::hedges_g()`. | Welch's t-test, the one the group comparison prints for that biomarker. |
 | `correlation` | Pearson's or Spearman's coefficient with one fixed variable, with its interval where R gives one; Spearman's has none in R, and none is made up.                                                                                   | `cor.test`'s, the one the association scatter prints for that pair.     |
 
+For a difference, the interval and the p-value come from two methods: the interval is Hedges' g's, on a pooled standard deviation, and the p-value is Welch's t-test, which does not pool. They can disagree about whether a difference is distinguishable from nought. The footnote under the rows says so: `Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the group comparison.`
+
 The fixed variable of a correlation is a participant-level number, such as age, or a biomarker at a visit. A biomarker that is the fixed variable itself, at the same visit with the same value type, is not a row of its own: its coefficient with itself is one, and the note above the screen says so.
 
 Every p-value is adjusted across the rows that have one, by Benjamini-Hochberg, which keeps down the share of false leads among the rows picked out and is the usual aim of a screen, or by Holm, which guards against any false lead at all and is stricter. A row R could not compute, a group too small among them, shows R's reason and no number, and is left out of the adjustment, as R says.
@@ -261,36 +263,51 @@ In R, the key of one screen's stored result, from the frame and what the view is
 #          participant has no value; and the column of groups, or the fixed
 #          variable under with_name.
 # lView:   the view, by the chart's names; a member that is not set is NULL.
-# ---- The recipe: the key of one screen's stored result ------------------------
-#
-# dfFrame  the frame, one row per participant: the id, one numeric column per
-#          biomarker of the screen, named by the biomarker, NA where the
-#          participant has no value; and the column of groups, named by its
-#          column, or the variable correlated with, named by with_name
-# lView    the view, by the chart's names: statistic, comparison
-#          ("difference" or "correlation"), value_type, visit (NULL for a
-#          baseline value), biomarkers (the rows, in order), group_by and groups
-#          (the two, first and second) for a difference, with (the variable as
-#          the settings write one: list(measure =, value =, visit =) or
-#          list(col =)) and with_name (its column in the frame) and method for a
-#          correlation, adjustment ("BH" or "holm"), baseline_visits,
-#          baseline_stat, filters (a named list of column to values)
-#
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list of values is an unnamed list, so it is written as a
 # JSON array whatever its length. Text is sorted by code point
 # (`method = "radix"`), which is the order the chart sorts in.
-# A value as the chart writes it into the identity: as text. A number is
-# written as the chart writes one, in full and with no exponent, one value at a
-# time, so a visit column holding the number 4 is written "4".
-chart_text <- function(x) {
-  if (is.null(x)) return(NULL)
-  if (is.numeric(x)) {
-    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
-                  character(1)))
-  }
-  as.character(x)
-}
 biomarker_screen_key <- function(dfFrame, lView) {
   lDataId <- list(chart = "biomarker-screen", value_type = lView$value_type)
   if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)

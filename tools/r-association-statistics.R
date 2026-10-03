@@ -55,22 +55,51 @@ source("tools/r-json.R")
 #          baseline_stat, color_by, panel_by, panel, filters (a named list of
 #          column to values), x_scale, y_scale
 #
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list of values is an unnamed list, so it is written as a
 # JSON array whatever its length. Text is sorted by code point
 # (`method = "radix"`), which is the order the chart sorts in.
-# A value as the chart writes it into the identity: as text. A number is
-# written as the chart writes one, in full and with no exponent, one value at a
-# time, so a panel column holding the number 2 is written "2".
-chart_text <- function(x) {
-  if (is.null(x)) return(NULL)
-  if (is.numeric(x)) {
-    return(vapply(x, function(value) format(value, scientific = FALSE, trim = TRUE, digits = 15),
-                  character(1)))
-  }
-  as.character(x)
-}
-
 association_scatter_id <- function(dfRows, lView) {
   lDataId <- list(chart = "association-scatter", x = lapply(lView$x, chart_text), y = lapply(lView$y, chart_text))
   if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
@@ -188,6 +217,19 @@ results <- lapply(seq_len(nrow(cases)), function(i) {
 })
 
 # Which statistics file answered: the commit and the checksum its record gives.
+# The recipe on a data frame as R holds one: the first case's rows in a panel
+# of a column of numbers, 2, as a cohort number is in a data frame. The chart
+# names the panel as text, so the key the recipe writes must too.
+recipes <- local({
+  case <- as.list(cases[1, ])
+  view <- read_view(case)
+  rows <- read_rows(case$file, view)
+  rows$panel <- 2
+  view$panel_by <- "COHORT"
+  view$panel <- unique(rows$panel)
+  list(c(list(case = "numeric-panel", file = case$file), association_scatter_key(rows, view)))
+})
+
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
 recorded <- function(member) {
   sub(sprintf('.*"%s": "([^"]*)".*', member), "\\1", record)
@@ -209,6 +251,9 @@ lines <- c(
   paste0("  \"made_by\": ", to_json(made_by), ","),
   "  \"results\": [",
   paste0("    ", vapply(results, to_json, character(1)), c(rep(",", length(results) - 1), "")),
+  "  ],",
+  "  \"recipes\": [",
+  paste0("    ", vapply(recipes, to_json, character(1)), c(rep(",", length(recipes) - 1), "")),
   "  ]",
   "}"
 )

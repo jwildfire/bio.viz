@@ -59,7 +59,8 @@ import {
   mountShell,
   readGiven,
   writeStatistic,
-  drawSafely
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -224,7 +225,11 @@ class CorrelationMatrix {
   setSettings(settings) {
     const given = settings || {};
     this.close();
-    this.settings = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes.
+    checkTables(this.tables, next);
+    this.settings = next;
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
     const opening = this.seedState();

@@ -69,8 +69,11 @@
     "CM-LIVE-007": "The megabytes and seconds of the demo's first grid, and the seconds R takes for a grid of each size once started, are measured, printed in the run's log and written to a file with both versions' answers, and the megabytes are what the page tells its reader in the waiting text.",
     "CM-LIVE-008": "On a phone the demo fills its grid from R, with marks on both sides of the diagonal, lists every pair with its count and coefficient, and the page does not scroll sideways.",
     "CM-STAT-015": "When the connection is replaced (`setSettings({ connection })`), an answer that arrives late from the connection it replaced is never shown: it changes neither the statistics line nor what `chart.statistics()` reports, nor the grid's cells.",
-    "CM-FAIL-001": "When drawing fails, the correlation matrix says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the grid, ends the statistics round and keeps its controls; once drawing works again it draws.",
+    "CM-FAIL-001": "When drawing fails, the correlation matrix says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the grid, ends the statistics round, empties the listing and the participant rail, says it in the danger colour and keeps its controls; once drawing works again it draws.",
     "CM-DROP-001": "With a participant table, a participant the results have and the table does not is left out and counted (`Not in the participant table`), and a row of results with no participant id is counted (`Row has no participant id`); a participant table without the participant id column is refused with a sentence that names the column.",
-    "CM-STAT-016": "The waiting note (what starting R costs) is said until R has answered once on the connection, so a pair the grid opens in the scatter after R has answered does not say it again."
+    "CM-STAT-016": "The waiting note (what starting R costs) is said until R has answered once on the connection, so a pair the grid opens in the scatter after R has answered does not say it again.",
+    "CM-DROP-002": "With results for participants the participant table does not have and filters that let nobody through, the chart says `No participant passes the filters.`, as it does with no such rows.",
+    "CM-DROP-003": "A setting that names a participant id column the participant table does not have (`setSettings({ participant_id_col })`) is refused with the same sentence as the tables are, before anything changes, and the chart stays as it was drawn.",
+    "CM-STAT-017": "The R recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with, so a stored result written that way is found."
   }
 }

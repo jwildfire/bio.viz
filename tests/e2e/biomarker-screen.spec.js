@@ -2,7 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
-import { expectDropsCounted, expectFailureSaid, expectReplacedConnectionDead } from './review.js';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
@@ -2142,6 +2148,18 @@ test.describe('biomarker screen: what the v0.1.0-RC1 review found', () => {
     await expectDropsCounted(page, 'bs');
   });
 
+  test('BS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'bs');
+  });
+
+  test('BS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'bs');
+  });
+
   test('BS-NAME-001: a biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name (#49)', async ({
     page
   }) => {
@@ -2183,5 +2201,33 @@ test.describe('biomarker screen: what the v0.1.0-RC1 review found', () => {
     expect(said.biomarkers).toContain(' IL-6');
     expect(said.columns).toContain('CRP ');
     expect(said.columns).toContain(' IL-6');
+  });
+
+  test('BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)', async ({
+    page
+  }) => {
+    const NOTE =
+      "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the " +
+      'group comparison.';
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    await page.goto('/tests/e2e/fixtures/biomarker-screen.html');
+    await page.evaluate(() => window.__bs.ready);
+    const footnote = page.locator('#chart .sv-footnote');
+    await expect(footnote).toContainText(NOTE);
+    // It is under the rows, where they are read.
+    expect(
+      await page.evaluate(() => {
+        const note = document.querySelector('#chart .sv-footnote');
+        const rows = document.querySelector('#chart .bv-screen');
+        return Boolean(rows.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING);
+      })
+    ).toBe(true);
+    await page.evaluate(() =>
+      window.__bs.chart.setSettings({
+        comparison: 'correlation',
+        with: { measure: 'IL-10', visit: 'Baseline' }
+      })
+    );
+    await expect(footnote).not.toContainText('Hedges');
   });
 });

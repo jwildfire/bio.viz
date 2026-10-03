@@ -64,17 +64,17 @@ const FIXTURES = [
   {
     script: 'tools/r-association-statistics.R',
     committed: 'tests/fixtures/association-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   },
   {
     script: 'tools/r-matrix-statistics.R',
     committed: 'tests/fixtures/matrix-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   },
   {
     script: 'tools/r-screen-statistics.R',
     committed: 'tests/fixtures/screen-statistics-r.json',
-    body: 'results'
+    body: ['results', 'recipes']
   }
 ];
 const requireR = process.argv.includes('--require-r');

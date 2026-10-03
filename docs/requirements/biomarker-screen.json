@@ -64,8 +64,12 @@
     "BS-LIVE-006": "The megabytes and seconds of the demo's first screen, and the seconds R takes for a screen once started, are measured, printed in the run's log and written to a file with both versions' answers, and the megabytes are what the page tells its reader in the waiting text.",
     "BS-LIVE-007": "On a phone the demo draws its rows from R, stacked, and the page does not scroll sideways.",
     "BS-STAT-013": "When the connection is replaced (`setSettings({ connection })`), an answer that arrives late from the connection it replaced is never shown: it changes neither the statistics line nor what `chart.statistics()` reports.",
-    "BS-FAIL-001": "When drawing fails, the biomarker screen says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the rows, ends the statistics round and keeps its controls; once drawing works again it draws.",
+    "BS-FAIL-001": "When drawing fails, the biomarker screen says so in its footnote (`This chart could not be drawn:` and why), takes away what was drawn of the rows, ends the statistics round, empties the listing and the participant rail, says it in the danger colour and keeps its controls; once drawing works again it draws.",
     "BS-DROP-001": "With a participant table, a participant the results have and the table does not is left out and counted (`Not in the participant table`), and a row of results with no participant id is counted (`Row has no participant id`); a participant table without the participant id column is refused with a sentence that names the column.",
-    "BS-NAME-001": "A biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name."
+    "BS-NAME-001": "A biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name.",
+    "BS-DROP-002": "With results for participants the participant table does not have and filters that let nobody through, the chart says `No participant passes the filters.`, as it does with no such rows.",
+    "BS-DROP-003": "A setting that names a participant id column the participant table does not have (`setSettings({ participant_id_col })`) is refused with the same sentence as the tables are, before anything changes, and the chart stays as it was drawn.",
+    "BS-STAT-014": "The R recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with, so a stored result written that way is found.",
+    "BS-STAT-015": "For a difference, the footnote under the rows says that the interval is Hedges' g with a pooled standard deviation and the p-value Welch's t-test, as in the group comparison; for a correlation it does not."
   }
 }
