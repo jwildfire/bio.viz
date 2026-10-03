@@ -11,22 +11,23 @@ npx playwright install chromium
 
 ## Commands
 
-| Command                                      | Purpose                                                                                     |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `npm run build`                              | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`     |
-| `npm run build:check-dist`                   | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`        |
-| `npm test`                                   | Vitest unit tests (`tests/unit/`)                                                           |
-| `npm run test:e2e`                           | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site     |
-| `npm run format` / `npm run format:check`    | Prettier write / check                                                                      |
-| `npm run evidence` / `evidence:check`        | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard      |
-| `npm run evidence:update`                    | Rewrite the screenshot baselines; Linux only, run by the baseline workflow                  |
-| `npm run requirements` / `:check`            | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard  |
-| `npm run fixtures` / `fixtures:check`        | Write the R fixtures in desktop R / check the committed ones against R                      |
-| `npm run r-check:measure`                    | Run the live browser tests and record their megabytes and seconds for the R check page      |
-| `npm run data:check` / `data:check-source`   | Hold the vendored synthetic study to its record / to gsm.bio at the recorded commit         |
-| `npm run kit:check` / `kit:check-source`     | Hold the vendored safety.viz bundle to its record / to safety.viz at the recorded commit    |
-| `npm run statistics:check` / `:check-source` | Hold the vendored gsm.bio statistics file to its record / to gsm.bio at the recorded commit |
-| `npm run site`                               | Build the site into `_site/` (gitignored); fails on a broken internal link                  |
+| Command                                      | Purpose                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `npm run build`                              | esbuild `src/main.js` into versioned IIFE + ESM bundles under `dist/bio.viz-{version}/`          |
+| `npm run build:check-dist`                   | Rebuild to a scratch directory and fail if committed `dist/` has drifted from `src/`             |
+| `npm test`                                   | Vitest unit tests (`tests/unit/`)                                                                |
+| `npm run test:e2e`                           | Playwright browser tests (`tests/e2e/`) against the committed bundle and the built site          |
+| `npm run format` / `npm run format:check`    | Prettier write / check                                                                           |
+| `npm run evidence` / `evidence:check`        | (Re)build `docs/evidence/<module>/evidence.json` from a fresh run / CI freshness guard           |
+| `npm run evidence:update`                    | Rewrite the screenshot baselines; Linux only, run by the baseline workflow                       |
+| `npm run requirements` / `:check`            | (Re)build `docs/requirements/<module>.json` requirement-text extracts / CI freshness guard       |
+| `npm run fixtures` / `fixtures:check`        | Write the R fixtures in desktop R / check the committed ones against R                           |
+| `npm run r-check:measure`                    | Run the live browser tests and record their megabytes and seconds for the R check page           |
+| `npm run data:check` / `data:check-source`   | Hold the vendored synthetic study to its record / to gsm.bio at the recorded commit              |
+| `npm run kit:check` / `kit:check-source`     | Hold the vendored safety.viz bundle to its record / to safety.viz at the recorded commit         |
+| `npm run statistics:check` / `:check-source` | Hold the vendored gsm.bio statistics file to its record / to gsm.bio at the recorded commit      |
+| `npm run portfolio:check` / `:check-source`  | Hold the vendored portfolio manifest schema to its record / to safety.viz at the recorded commit |
+| `npm run site`                               | Build the site into `_site/` (gitignored); fails on a broken internal link                       |
 
 `dist/` is committed — after any change under `src/`, run `npm run build` and commit the regenerated bundle alongside it. CI's drift check fails the build otherwise. The browser fixtures load the bundle by its versioned path, and the same check fails if a fixture names a version other than the one in `package.json`.
 
@@ -114,6 +115,14 @@ A chart is built from safety.viz's kit, and safety.viz is loaded beside bio.viz 
 - Never edit that folder. `npm test` and the site build fail when the file and its record disagree (`npm run kit:check`), and `npm run kit:check-source`, which continuous integration runs, compares the file with safety.viz at the recorded commit.
 - Nothing under `src/` imports safety.viz or Chart.js. A chart finds the kit on the page, as `SafetyViz.kit`, when it is made. `tests/unit/group-comparison/bundle.test.js` fails if either library gets into bio.viz's bundle.
 
+## The chart list
+
+`src/data/portfolio.json` lists every available chart in safety.viz's portfolio manifest format, version 2, so safety.viz's demo app can list bio.viz's charts and draw them beside its own. The bundle exports it as `BioViz.portfolio` and the site publishes it as `portfolio.json`. Each entry says the chart's export and title, that its library is `bio.viz`, the group it is listed under (`biomarkers`, declared in the list's `groups`), the tables its `init` takes (`results` from the labs and vitals domain, required, and `participants` from the subject-level domain, optional), and for each column setting the domain and default column it reads and whether the chart needs it. Unmapped settings are left out (`unmappedSettings: "omit"`), because a chart refuses `null` for the columns it needs.
+
+- The format is safety.viz's and is never redefined here. `node tools/vendor-portfolio-schema.mjs` copies safety.viz's `src/data/schema/portfolio.json` byte for byte from the head of its `dev` branch to `src/data/schema/portfolio.json` and writes `SOURCE.json` beside it. Never edit that folder: `npm test` fails when the file and its record disagree, and `npm run portfolio:check-source`, which continuous integration runs, compares it with safety.viz at the recorded commit.
+- `tests/unit/core/portfolio.test.js` validates the list against the copy and holds it to the charts: one entry for each available chart in `site/config.json` and no other, and in each entry exactly the chart's column settings (the keys of its `DEFAULT_SETTINGS` ending in `_col` or carrying `_col_`), each with the chart's default, required where the chart refuses `null` for it.
+- The participant is read from each file by its own setting. `id_col` reads the results and `participant_id_col` the participant table, whose standard column is `USUBJID` in the subject-level domain. The chart's default for it is `null`, meaning `id_col`'s name. So when the two files call the participant differently the app maps each file's own name, and no setting reads a column from two domains.
+
 ## gsm.bio's statistics file, and the chart's expected results
 
 R in the browser is given one file, gsm.bio's `inst/statistics/statistics.R`, and this repository keeps a copy of it at `site/vendor/gsm.bio/statistics.R`. The site publishes it at `vendor/gsm.bio/statistics.R`, where a demo page hands it to its connection as `sourceUrl`.
@@ -160,6 +169,7 @@ What a chart does work out is held to desktop R. `tools/r-group-comparison.R` wr
 | `<module>/api.html`      | the module's reference file in `docs/`                                                                                 |
 | `<module>/index.html`    | a chart's live demo: `site/demo/<demo>` on the synthetic study, with safety.viz's bundle and gsm.bio's statistics file |
 | `r-check/index.html`     | `site/r-check/`                                                                                                        |
+| `portfolio.json`         | the chart list, `src/data/portfolio.json`, with the format it names at `schema/portfolio.json`                         |
 
 ### Registering a module
 
@@ -187,7 +197,8 @@ A module is one entry in `site/config.json`, and that entry is all the site, the
 - A chart also names `demo`, its demo script in `site/demo/`, and may name `hero`, one of its evidence screenshots, shown on its gallery card once that screenshot is committed. Its `api.settings` is the source file that exports its `DEFAULT_SETTINGS`: the build fails when the reference file has no table row for one of them.
 - `kind` is `chart` or `shared`. A chart whose `status` is `available` is listed in the gallery under Charts; a shared part (the core, the connection to R) under Shared parts. The build refuses an entry without it.
 - `matrix` is the module's requirement matrix in `requirements/`. Its unit tests go in `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js` (or `<group>-<module>.spec.js`); its evidence page then lists every row with the tests named for it.
-- `api.doc` is the module's reference file in `docs/`. `api.surface` lists the top-level exports of the bundle the file documents; one that is a namespace (`r`) stands for every member of it. `api.source` lists the files or folders those exports are written in.
+- `api.doc` is the module's reference file in `docs/`. `api.surface` lists the top-level exports of the bundle the file documents; one that is a namespace (`r`) stands for every member of it. `api.data` lists exports that are data rather than namespaces (the core's `portfolio`): each is documented under one heading of its own, and its fields are not held to the file one by one. `api.source` lists the files or folders those exports are written in.
+- A chart whose `status` is `available` also gets an entry in the chart list, `src/data/portfolio.json` (see [The chart list](#the-chart-list)), with its `module` as the key and its `title`. `npm test` fails until it has one, and fails when an entry names a chart that is not available.
 
 ### The API reference
 
@@ -195,7 +206,7 @@ A module's API reference page is its reference file, rendered. The file is the o
 
 The site build, and `npm test`, hold the file to the code and fail when:
 
-- the bundle exports something no module lists in `api.surface`, or a listed export has no heading in the reference file;
+- the bundle exports something no module lists in `api.surface` or `api.data`, or a listed export has no heading in the reference file;
 - the file documents a call, `name(…)`, in a heading, and the bundle exports no `name`;
 - a `@param` in the JSDoc comment above an export is not named in that export's section (a nested one, `options.browser.baseUrl`, by its path after the first name: `browser.baseUrl`);
 - an exported constant's value is not given in its section.

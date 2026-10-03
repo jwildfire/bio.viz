@@ -34,3 +34,7 @@ site/data/
 # by its vendoring tool (tools/vendor-safety-viz.mjs, tools/vendor-statistics.mjs),
 # with its record.
 site/vendor/
+
+# safety.viz's portfolio manifest format, copied byte for byte by
+# tools/vendor-portfolio-schema.mjs, with its record.
+src/data/schema/

@@ -49,7 +49,14 @@ import {
   validateRegistry,
   validateSiteLinks
 } from './site-lib.mjs';
-import { SAFETY_VIZ, STATISTICS, STUDY, readRecord, verifyVendored } from './vendor-lib.mjs';
+import {
+  PORTFOLIO_SCHEMA,
+  SAFETY_VIZ,
+  STATISTICS,
+  STUDY,
+  readRecord,
+  verifyVendored
+} from './vendor-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const siteDir = path.join(rootDir, '_site');
@@ -188,6 +195,25 @@ if (!statisticsProblems.length) {
   mkdirSync(statisticsDir, { recursive: true });
   for (const file of [...statistics.files.map((entry) => entry.file), 'SOURCE.json']) {
     copyFileSync(path.join(statisticsSource, file), path.join(statisticsDir, file));
+  }
+}
+
+// The chart list (BioViz.portfolio, src/data/portfolio.json), published as
+// portfolio.json at the site's root for safety.viz's demo app and anyone else
+// to read, with the format it is written in at the path its `$schema` names,
+// schema/portfolio.json. The format is held to its record like the other
+// copies.
+const schemaSource = path.join(rootDir, PORTFOLIO_SCHEMA.directory);
+const schemaProblems = verifyVendored(schemaSource);
+errors.push(...schemaProblems.map((problem) => `${PORTFOLIO_SCHEMA.directory}: ${problem}`));
+copyFileSync(path.join(rootDir, 'src/data/portfolio.json'), path.join(siteDir, 'portfolio.json'));
+if (!schemaProblems.length) {
+  mkdirSync(path.join(siteDir, 'schema'), { recursive: true });
+  for (const file of [
+    ...readRecord(schemaSource).files.map((entry) => entry.file),
+    'SOURCE.json'
+  ]) {
+    copyFileSync(path.join(schemaSource, file), path.join(siteDir, 'schema', file));
   }
 }
 
@@ -338,7 +364,7 @@ for (const entry of modules) {
         module,
         doc: `docs/${entry.api.doc}`,
         markdown,
-        names: surfaceNames(bundle, entry.api.surface),
+        names: surfaceNames(bundle, entry.api.surface, entry.api.data),
         params: jsdocParams(readSources(rootDir, entry.api.source)),
         // A chart's settings, from the source that defines them.
         settings: entry.api.settings

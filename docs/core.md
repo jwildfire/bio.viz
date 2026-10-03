@@ -251,6 +251,29 @@ const result = await connection.run('Analyze_GroupDifference', {
 
 A field's name is the name the caller gave its variable, so it is stable whatever the biomarker is called, and two variables on the same biomarker are told apart by their names: `{ week4: { measure: 'IL-6', visit: 'Week 4' }, change: { measure: 'IL-6', visit: 'Week 4', value: 'change' } }`. R takes any name as a column name here; a short plain one (`y`, `x`, `v1`) is easiest to read in R's messages.
 
+## `portfolio`
+
+The chart list: an object naming every chart the library offers, in [safety.viz's portfolio manifest format](https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json), version 2, so safety.viz's demo app can list bio.viz's charts and draw them beside its own on the files a study already has. It is `src/data/portfolio.json`, and the site publishes the same list at `portfolio.json`, with the format beside it at `schema/portfolio.json`.
+
+```js
+BioViz.portfolio.version; // 2
+Object.keys(BioViz.portfolio.modules);
+// ['group-comparison', 'association-scatter', 'correlation-matrix', 'biomarker-screen']
+```
+
+| Field                        | What it says                                                                                                                                                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                    | `2`, the format's version.                                                                                                                                                                                                                                                    |
+| `groups`                     | One group, `biomarkers`, labelled Biomarkers: the app lists the charts under it, on a tab of their own.                                                                                                                                                                       |
+| `modules`                    | One entry per chart, keyed by its name: `export`, the factory's name on `BioViz`; `title`; `library`, `bio.viz`; and `group`, `biomarkers`.                                                                                                                                   |
+| `modules.*.tables`           | The tables `init` takes: `results`, from the labs and vitals domain (`bds`), required; and `participants`, from the subject-level domain (`subject`), optional. They are also the entry's `domains` and `optionalDomains`.                                                    |
+| `modules.*.settings`         | Each column setting of the chart, keyed as in its settings: the domain it reads, the standard column it defaults to (`null` where the chart has no default) and whether the chart cannot be made without it. `participant_id_col` reads the subject-level domain's `USUBJID`. |
+| `modules.*.unmappedSettings` | `omit`: a setting with no column mapped is left out, so the chart keeps its default, because a chart refuses `null` for the columns it needs.                                                                                                                                 |
+
+The participant is named once in each file. `id_col` reads it from the results and `participant_id_col` from the participant table, so when the two files call it differently the app maps each file's own name and the charts join the two on them. Left out, `participant_id_col` is `id_col`'s name, as in every chart.
+
+The list adds nothing to the format, and the format is safety.viz's: it is copied to `src/data/schema/portfolio.json` by `node tools/vendor-portfolio-schema.mjs`, with a record of the commit, and a test validates the list against the copy and holds each entry to its chart's own settings.
+
 ## What is not here
 
 No statistics. Deriving a change from baseline is arithmetic on one participant's own results. Nothing in the core tests, estimates or summarises across participants: a median and the quartiles of a box belong to the chart that draws them, and every test to R. And no cut rule: see `variable` above.

@@ -25,11 +25,14 @@
     "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source",
     "kit:check": "node tools/vendor-safety-viz.mjs --check",
     "kit:check-source": "node tools/vendor-safety-viz.mjs --check-source",
+    "portfolio:check": "node tools/vendor-portfolio-schema.mjs --check",
+    "portfolio:check-source": "node tools/vendor-portfolio-schema.mjs --check-source",
     "statistics:check": "node tools/vendor-statistics.mjs --check",
     "statistics:check-source": "node tools/vendor-statistics.mjs --check-source"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "ajv": "^8.20.0",
     "esbuild": "^0.28.1",
     "prettier": "^3.9.4",
     "vitest": "^4.1.9"
