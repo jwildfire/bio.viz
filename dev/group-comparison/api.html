@@ -72,7 +72,7 @@
 <tbody><tr><td data-label="Table"><code>results</code></td><td data-label="Required">yes</td><td data-label="One row per">participant, biomarker, visit</td><td data-label="What it adds">Everything the chart draws.</td></tr>
 <tr><td data-label="Table"><code>participants</code></td><td data-label="Required">no</td><td data-label="One row per">participant</td><td data-label="What it adds">Filters, and participant-level columns to group by, colour by and panel by.</td></tr></tbody></table>
 <p>Only the results table is required. With it alone the chart has no filters, and a group comes from a column carried on the results rows: one that is not the id, the biomarker, the result, the visit, the visit order or the unit, and that holds one value for each participant. When the results rows carry no such column there is nothing to group by; the chart says so in its controls and draws everyone as one group.</p>
-<p>With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most <code>max_levels</code> different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result.</p>
+<p>With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most <code>max_levels</code> different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads <code>No participant passes the filters.</code>, the words every chart uses; loosen a filter and it draws again.</p>
 <h2 id="the-charts-methods">The chart&#39;s methods</h2>
 <p>The lifecycle is safety.viz&#39;s, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.</p>
 <table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
@@ -282,7 +282,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/ac9ea6f21ab965db7a8b4e41442d96ada373c49d"><code>ac9ea6f</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
       </p>
       <p>
         Built in the open — follow the

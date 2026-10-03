@@ -63,7 +63,7 @@
 <p>Makes a chart in an element and returns it. <code>element</code> is the element, or a CSS selector for it. <code>settings</code> is laid over the <a href="#settings">defaults</a> and may be left out. The controls are drawn at once; nothing else is drawn until the chart is given its tables.</p>
 <p>A setting that is not known, or a value a setting cannot take, is refused: <code>correlationMatrix</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> and names the setting.</p>
 <h2 id="the-tables">The tables</h2>
-<p><code>init</code> and <code>setData</code> take <code>{ results, participants }</code>, each an array of records, one object per row: the tables the <a href="../core/api.html">core</a> reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame.</p>
+<p><code>init</code> and <code>setData</code> take <code>{ results, participants }</code>, each an array of records, one object per row: the tables the <a href="../core/api.html">core</a> reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads <code>No participant passes the filters.</code>, the words every chart uses; loosen a filter and it draws again.</p>
 <h2 id="the-grids-variables">The grid&#39;s variables</h2>
 <table class="doc-table"><thead><tr><th scope="col">Mode</th><th scope="col">The variables</th><th scope="col">Set by</th></tr></thead>
 <tbody><tr><td data-label="Mode"><code>&#39;biomarkers&#39;</code></td><td data-label="The variables">Several biomarkers, each at one visit.</td><td data-label="Set by"><code>visit</code>, and <code>biomarkers</code> for which are in the grid.</td></tr>
@@ -245,7 +245,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/6f8e62a2697e44016bfe58b76dc78104116cc13c"><code>6f8e62a</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c5d52e7de8da74f7d1e393f9f204a48ef71e8b35"><code>c5d52e7</code></a>.
       </p>
       <p>
         Built in the open — follow the
