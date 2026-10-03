@@ -1,13 +1,16 @@
 {
   "module": "cross-tab",
-  "generatedAt": "2026-10-03T21:44:19.975Z",
+  "generatedAt": "2026-10-03T21:49:35.814Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37156346535",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37156346535"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -119,7 +122,7 @@
       "status": "pass",
       "requirementIds": ["CT-DRAW-001"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-DRAW-001-arm-by-response.png"]
     },
     {
       "test": "CT-DRAW-002: column percentages are each count of its column’s total, and the bars then stack each column by the rows; with none there are no percentages (#44)",
@@ -135,7 +138,7 @@
       "status": "pass",
       "requirementIds": ["CT-DRAW-003"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-DRAW-003-response-by-crp-median.png"]
     },
     {
       "test": "CT-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence; filters that let nobody through say so; the id column and the table change together (#44)",
@@ -167,7 +170,7 @@
       "status": "pass",
       "requirementIds": ["CT-LIST-001"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-LIST-001-participants-of-a-cell.png"]
     },
     {
       "test": "CT-LIVE-001: arm by response, by chi-square and by Fisher’s exact test, with R started in this browser: every count, statistic and p-value is desktop R’s (#44)",
@@ -175,7 +178,7 @@
       "status": "pass",
       "requirementIds": ["CT-LIVE-001"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-LIVE-001-r-in-the-browser.png"]
     },
     {
       "test": "CT-LIVE-002: response by CRP at Baseline cut at its median, by both tests, and cut at 8, where R warns of small expected counts, are desktop R’s (#44)",
@@ -199,7 +202,7 @@
       "status": "pass",
       "requirementIds": ["CT-MOBILE-001"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-MOBILE-001-the-table-on-a-phone.png"]
     },
     {
       "test": "CT-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#44)",
@@ -207,7 +210,7 @@
       "status": "pass",
       "requirementIds": ["CT-SITE-001"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-SITE-001-demo-on-a-phone.png"]
     },
     {
       "test": "CT-SITE-002: the gallery lists the chart with links to its live demo, its evidence page and its API reference, and the demo opens on arm by response (#44)",
@@ -223,7 +226,7 @@
       "status": "pass",
       "requirementIds": ["CT-STAT-005"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-STAT-005-fisher-with-odds-ratio.png"]
     },
     {
       "test": "CT-STAT-006: R’s small-expected-count warning is printed with the result for a table with an expected count below 5, and not for one without (#44)",
@@ -231,7 +234,7 @@
       "status": "pass",
       "requirementIds": ["CT-STAT-006"],
       "issueRefs": [44],
-      "screenshots": []
+      "screenshots": ["CT-STAT-006-small-expected-counts.png"]
     },
     {
       "test": "CT-STAT-007: with no R attached the line says statistics are unavailable, the table and the bars are still drawn, and nothing is fetched (#44)",
