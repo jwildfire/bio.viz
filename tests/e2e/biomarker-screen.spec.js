@@ -412,7 +412,9 @@ test.describe('biomarker screen: what is drawn', () => {
     await expect(line(page).locator('.bv-stat-remark')).toHaveText([
       "R’s note: Each row's estimate: Standardised difference (Hedges' g), Placebo - Treatment.",
       "R’s note: p_value is adjusted across the 12 rows that have a p-value by p.adjust(method = 'BH'); 0 of the 12 rows have none and are left out of the adjustment.",
-      "R’s note: The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function."
+      "R’s note: The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function.",
+      // Since gsm.bio 514cbc3 R says that the interval pools the variances and the p-value does not (#49).
+      "R’s note: The interval is the pooled-variance (Student) interval for Hedges' g, while the p-value is Welch's, which does not pool the variances: when the two groups' spreads differ, a row's interval can include zero while its p-value is below 0.05, or exclude zero while it is above."
     ]);
     await expect(line(page).locator('.bv-stat-scope')).toHaveText(
       '187 participants are in the frame. A row is of the ones who have its biomarker, so each row has its own counts.'
