@@ -1,13 +1,16 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-03T01:05:28.367Z",
+  "generatedAt": "2026-10-03T01:13:02.304Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37085191476",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37085191476"
+  },
   "records": [
     {
       "test": "BS-CTRL-001: the sidebar offers the comparison, the value and visit, the groups or the variable and method, the adjustment, the order, a filter per category column, and Reset chart (#36)",
@@ -47,7 +50,7 @@
       "status": "pass",
       "requirementIds": ["BS-DRAW-001"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-DRAW-001-the-planted-difference.png"]
     },
     {
       "test": "BS-DRAW-002: every row is a button named by the shared formatter’s sentence; the caption and the line say what the estimate is, which test, and by what adjustment across how many biomarkers, once (#36)",
@@ -71,7 +74,7 @@
       "status": "pass",
       "requirementIds": ["BS-DRAW-004"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-DRAW-004-rows-r-could-not-compute.png"]
     },
     {
       "test": "BS-DRAW-005: the correlation against IL-10 at Baseline draws every other biomarker on an axis from −1 to 1 with TNF-alpha at the top; Spearman draws and prints no interval (#36)",
@@ -79,7 +82,7 @@
       "status": "pass",
       "requirementIds": ["BS-DRAW-005"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-DRAW-005-correlation-with-il-10.png"]
     },
     {
       "test": "BS-DRAW-006: the chart says how many are in the frame of how many and who was left out, and that each row has its own counts, as R counted them (#36)",
@@ -95,7 +98,7 @@
       "status": "pass",
       "requirementIds": ["BS-DRILL-001"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-DRILL-001-a-row-opened-in-the-group-comparison.png"]
     },
     {
       "test": "BS-DRILL-002: a click on a row of a correlation opens the association scatter for that biomarker against the fixed variable, with the same method (#36)",
@@ -175,7 +178,7 @@
       "status": "pass",
       "requirementIds": ["BS-LIMIT-002"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-LIMIT-002-a-page-of-rows.png"]
     },
     {
       "test": "BS-LIST-001: the rows download as a CSV file under this chart’s name, in the order shown (#36)",
@@ -191,7 +194,7 @@
       "status": "pass",
       "requirementIds": ["BS-LIVE-001"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-LIVE-001-r-in-the-browser.png"]
     },
     {
       "test": "BS-LIVE-002: with Holm’s adjustment every row equals desktop R’s (#36)",
@@ -223,7 +226,7 @@
       "status": "pass",
       "requirementIds": ["BS-LIVE-005"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-LIVE-005-a-row-opened-with-r.png"]
     },
     {
       "test": "BS-LIVE-006: the megabytes and seconds of the first screen, and of a screen once R has started, are measured, recorded, and are what the page tells its reader (#36)",
@@ -239,7 +242,7 @@
       "status": "pass",
       "requirementIds": ["BS-LIVE-007"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-LIVE-007-r-in-the-browser-on-a-phone.png"]
     },
     {
       "test": "BS-MOBILE-001: at 390px the controls are folded away; each row stacks its name, its interval on the full width and its numbers, each named, and the page does not scroll sideways (#36)",
@@ -247,7 +250,7 @@
       "status": "pass",
       "requirementIds": ["BS-MOBILE-001"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-MOBILE-001-the-screen-on-a-phone.png"]
     },
     {
       "test": "BS-MOBILE-002: at 390px a tap on a row opens its chart and its button returns, and the page never scrolls sideways (#36)",
@@ -279,7 +282,7 @@
       "status": "pass",
       "requirementIds": ["BS-SITE-003"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-SITE-003-demo-on-a-phone.png"]
     },
     {
       "test": "BS-SITE-005: the demos point at one another: the screen’s page says a row opens the group comparison or the scatter, and their pages point to the screen as the way in (#36)",
@@ -295,7 +298,7 @@
       "status": "pass",
       "requirementIds": ["BS-STAT-004"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-STAT-004-waiting-for-r.png"]
     },
     {
       "test": "BS-STAT-005: a change that asks R again clears the rows and the line, and an answer to the question before is never shown (#36)",
@@ -311,7 +314,7 @@
       "status": "pass",
       "requirementIds": ["BS-STAT-006"],
       "issueRefs": [36],
-      "screenshots": []
+      "screenshots": ["BS-STAT-006-with-no-r.png"]
     },
     {
       "test": "BS-STAT-007: with R’s answers stored in the page the rows are drawn from them with no R and no request; a view not stored says so and draws no rows (#36)",
