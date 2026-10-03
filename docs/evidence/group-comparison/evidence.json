@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-03T04:06:32.668Z",
+  "generatedAt": "2026-10-03T04:10:04.204Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37095601869",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37095601869"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -143,7 +146,7 @@
       "status": "pass",
       "requirementIds": ["GC-CUT-001"],
       "issueRefs": [43],
-      "screenshots": []
+      "screenshots": ["GC-CUT-001-il-6-by-crp-tertiles.png"]
     },
     {
       "test": "GC-CUT-002: the footnote states the cut and its points, worked out on the participants with a value (#43)",
@@ -159,7 +162,7 @@
       "status": "pass",
       "requirementIds": ["GC-CUT-003"],
       "issueRefs": [43],
-      "screenshots": []
+      "screenshots": ["GC-CUT-003-panels-by-crp-median.png"]
     },
     {
       "test": "GC-CUT-006: the cut points are worked out on the participants the filters keep, and move with the filters (#43)",
@@ -1023,7 +1026,7 @@
       "status": "pass",
       "requirementIds": ["GC-CUT-001"],
       "issueRefs": [43],
-      "screenshots": []
+      "screenshots": ["GC-CUT-001-il-6-by-crp-tertiles.png"]
     },
     {
       "test": "group comparison: a cut biomarker GC-CUT-004: the footnote says the points, how many values they were worked out on, and when repeated points collapsed (#43)",
