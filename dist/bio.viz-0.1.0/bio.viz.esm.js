@@ -7179,7 +7179,6 @@ var BiomarkerScreen = class {
     );
     wrap.append(head);
     const list = kit.createElement("div", "bv-screen-rows");
-    list.setAttribute("role", "list");
     page.items.forEach((row) => list.append(this.rowOf(row, range)));
     wrap.append(list);
     const tools = kit.createElement("div", "bv-screen-tools");
@@ -7198,7 +7197,6 @@ var BiomarkerScreen = class {
     button.type = "button";
     button.dataset.biomarker = row.biomarker;
     button.dataset.status = formatted.status;
-    button.setAttribute("role", "listitem");
     const opens = this.state.comparison === "difference" ? "the group comparison" : "the association scatter";
     const outside = row.inAdjustment ? "" : " Not in the adjustment.";
     button.setAttribute("aria-label", `${formatted.text}${outside} Open in ${opens}.`);
@@ -7274,13 +7272,14 @@ var BiomarkerScreen = class {
         n: this.countsOf(row),
         reason: row.formatted.status === "shown" ? "" : row.reason || row.formatted.result
       })),
+      // The headings hold no comma: the kit writes a heading as it is.
       [
         { value_col: "biomarker", label: "Biomarker" },
-        { value_col: "estimate", label: this.estimateName() },
+        { value_col: "estimate", label: "Estimate" },
         { value_col: "interval", label: "Confidence interval" },
-        { value_col: "p", label: "p, unadjusted" },
-        { value_col: "adjusted", label: `p, ${this.answer.adjustment || "adjusted"}` },
-        { value_col: "n", label: this.countsHeading() },
+        { value_col: "p", label: "p unadjusted" },
+        { value_col: "adjusted", label: `p adjusted (${this.answer.adjustment || "none"})` },
+        { value_col: "n", label: this.countsHeading().replace(", ", " ") },
         { value_col: "reason", label: "Not computed" }
       ],
       "bio.viz-biomarker-screen-rows.csv"
@@ -7396,6 +7395,9 @@ var BiomarkerScreen = class {
     return this.drilled ? this.drilled.chart : null;
   }
   // ---- Lifecycle --------------------------------------------------------------
+  // The screen draws no Chart.js chart of its own: its rows are elements.
+  destroyCharts() {
+  }
   /**
    * Fit the chart to its container, for a page that changes the container's
    * size without resizing the window.

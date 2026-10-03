@@ -1879,6 +1879,74 @@ test.describe('group comparison: lifecycle', () => {
   });
 });
 
+test.describe('group comparison: opened by another chart', () => {
+  test('GC-LIFE-003: the chart can be mounted inside another chart’s element on one biomarker, with a way back that calls the caller, by a click or from the keyboard (#36)', async ({
+    page
+  }) => {
+    await open(page, { make: false });
+    await page.evaluate(() => {
+      const host = document.querySelector('#chart');
+      host.innerHTML = '<div class="rows">The rows</div><div class="drill"></div>';
+      window.__back = [];
+      window.__open = (measure) => {
+        host.querySelector('.rows').hidden = true;
+        window.__drill = window.BioViz.groupComparison(host.querySelector('.drill'), {
+          start_value: measure,
+          visits: ['Week 4'],
+          value_type: 'change',
+          baseline_visits: 'Baseline',
+          group_by: 'ARM',
+          back: {
+            label: 'Back to the rows',
+            action: (chart) => {
+              window.__back.push(chart === window.__drill);
+              chart.destroy();
+              host.querySelector('.rows').hidden = false;
+            }
+          }
+        }).init(window.__gc.data);
+      };
+      window.__open('IL-6');
+    });
+    const back = page.locator('.bv-group-comparison .bv-back');
+    await expect(back).toHaveText('Back to the rows');
+    await expect(page.locator('.rows')).toBeHidden();
+    // The button is above the chart, before its notes.
+    expect(
+      await page.evaluate(() => {
+        const button = document.querySelector('.bv-group-comparison .bv-back');
+        const notes = document.querySelector('.bv-group-comparison .sv-notes');
+        return Boolean(button.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING);
+      })
+    ).toBe(true);
+    expect(await page.evaluate(() => window.__drill.charts.length)).toBe(1);
+    await back.click();
+    await expect(page.locator('.rows')).toBeVisible();
+    await expect(page.locator('.drill')).toBeEmpty();
+    await page.evaluate(() => window.__open('CRP'));
+    await back.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.rows')).toBeVisible();
+    expect(await page.evaluate(() => window.__back)).toEqual([true, true]);
+    // Without the setting there is no button; a way back that is not one is refused.
+    await page.evaluate(() => {
+      window.__plain = window.BioViz.groupComparison('.drill', {}).init(window.__gc.data);
+    });
+    await expect(page.locator('.bv-back')).toHaveCount(0);
+    const refused = await page.evaluate(() => {
+      try {
+        window.BioViz.groupComparison('.drill', { back: { label: 'Back' } });
+        return null;
+      } catch (error) {
+        return error.message;
+      }
+    });
+    expect(refused).toBe(
+      'bio.viz: `back` must be { label, action }, a sentence and a function, or null for none.'
+    );
+  });
+});
+
 test.describe('group comparison: on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

@@ -1786,7 +1786,7 @@ test.describe('association scatter: on the site', () => {
     await expect(card.locator('h3')).toHaveText('Association scatter');
     await expect(card).toContainText('Do these two variables move together?');
     // Every chart is listed, the first one first.
-    await expect(page.locator('#charts [data-module]')).toHaveCount(3);
+    await expect(page.locator('#charts [data-module]')).toHaveCount(4);
 
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/evidence\.html$/);

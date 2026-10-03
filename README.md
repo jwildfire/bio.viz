@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first three charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, and [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter. The others follow: cross-tabulation, stratified survival and a biomarker screen.
+Version 0.1.0 is in progress. It sets the repository up, measures what running R in the browser costs, and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. The others follow: cross-tabulation and stratified survival.
 
 ## How it fits together
 
@@ -118,6 +118,26 @@ Which of these biomarkers, or which visits of one biomarker, are related? A grid
 ```
 
 With nothing else named it opens on every biomarker at the first visit, twelve at a time. The settings, the limit and what was measured for it, what R is asked and what a phone shows are in [docs/correlation-matrix.md](docs/correlation-matrix.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/) runs on the synthetic study, where one pair of the twelve biomarkers was planted with a correlation.
+
+## The biomarker screen
+
+Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups or a correlation with one variable: R's estimate and its interval on one axis without units, and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. A click on a row opens that biomarker in the group comparison or the association scatter, in place, with a way back.
+
+```html
+<script>
+  BioViz.biomarkerScreen('#chart', {
+    baseline_visits: 'Baseline',
+    visit: 'Week 4',
+    value_type: 'change',
+    group_by: 'ARM',
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+    })
+  }).init({ results, participants });
+</script>
+```
+
+The settings, the order of the rows, what R is asked and what a row opens are in [docs/biomarker-screen.md](docs/biomarker-screen.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/) opens on the difference the synthetic study was planted with.
 
 ## Naming a variable and getting one row per participant
 
