@@ -8034,8 +8034,10 @@ var TEST_LABELS2 = Object.freeze({
 });
 var NO_TEST_CHOSEN2 = "Statistics: no test chosen.";
 var NOT_TWO_WAY = "Statistics: no test. A test of a two-way table needs two or more categories each way.";
+var readsBaseline = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
 function contingencyRequest({ name, test, settings, state, model }) {
   const filters = filtersInForce(state.filters);
+  const baseline = [state.rowBy, state.colBy].some(readsBaseline);
   return {
     name,
     data: model.records,
@@ -8052,8 +8054,8 @@ function contingencyRequest({ name, test, settings, state, model }) {
       chart: "cross-tab",
       row_by: state.rowBy,
       col_by: state.colBy,
-      ...settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
-      baseline_stat: settings.baseline_stat,
+      ...baseline && settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
+      ...baseline ? { baseline_stat: settings.baseline_stat } : {},
       ...Object.keys(filters).length ? { filters } : {}
     },
     rows: model.records.length

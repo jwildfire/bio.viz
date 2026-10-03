@@ -21,7 +21,8 @@ const fromR = JSON.parse(
   readFileSync(new URL('../../fixtures/cross-tab-r.json', import.meta.url), 'utf8')
 );
 const caseOf = (name) => fromR.cases.find((entry) => entry.case === name);
-const settings = syncSettings({});
+// The baseline visit named, as the demo and the R recipe name it.
+const settings = syncSettings({ baseline_visits: 'Baseline' });
 
 const refused = (overrides) => {
   try {
@@ -135,6 +136,14 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
       expect(request.data).toHaveLength(entry.rows);
       expect(Object.keys(request.data[0])).toEqual([settings.id_col, 'row', 'col']);
     }
+    // The baseline settings are named only where a cut biomarker reads a
+    // baseline, so a table of columns, or of a result itself, is keyed without
+    // them.
+    const named = (entry) => 'baseline_visits' in entry.dataId || 'baseline_stat' in entry.dataId;
+    expect(fromR.cases.filter(named).map((entry) => entry.case)).toEqual([
+      'arm-by-crp-change-median-chisq'
+    ]);
+    expect(caseOf('arm-by-crp-change-median-chisq').dataId.baseline_visits).toEqual(['Baseline']);
   });
 
   it('CT-STAT-002: R’s chi-square and Fisher results are printed with their method and counts, labelled exploratory and unadjusted, and Fisher’s odds ratio with its interval (#44)', () => {

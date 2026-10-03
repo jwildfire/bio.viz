@@ -12,6 +12,7 @@
 // Pure functions: no page and no chart.
 
 import { formatEstimate, formatStatistic } from '../r/formatStatistic.js';
+import { isCut } from '../shared/cut.js';
 import {
   createDesk,
   failureOf,
@@ -37,6 +38,10 @@ export const NO_TEST_CHOSEN = 'Statistics: no test chosen.';
 export const NOT_TWO_WAY =
   'Statistics: no test. A test of a two-way table needs two or more categories each way.';
 
+// Whether a variable of the table is a cut biomarker that reads a baseline.
+const readsBaseline = (by) =>
+  isCut(by) && typeof by.measure === 'string' && by.value !== undefined && by.value !== 'raw';
+
 /**
  * What the chart asks R for the table drawn: the function, the rows, the
  * arguments and the identity of the rows. A member of the identity that is not
@@ -53,6 +58,9 @@ export const NOT_TWO_WAY =
  */
 export function contingencyRequest({ name, test, settings, state, model }) {
   const filters = filtersInForce(state.filters);
+  // The baseline settings say what the rows are only when a cut biomarker
+  // reads a baseline: its value is a baseline, or a change from one.
+  const baseline = [state.rowBy, state.colBy].some(readsBaseline);
   return {
     name,
     data: model.records,
@@ -69,8 +77,10 @@ export function contingencyRequest({ name, test, settings, state, model }) {
       chart: 'cross-tab',
       row_by: state.rowBy,
       col_by: state.colBy,
-      ...(settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {}),
-      baseline_stat: settings.baseline_stat,
+      ...(baseline && settings.baseline_visits
+        ? { baseline_visits: [...settings.baseline_visits] }
+        : {}),
+      ...(baseline ? { baseline_stat: settings.baseline_stat } : {}),
       ...(Object.keys(filters).length ? { filters } : {})
     },
     rows: model.records.length

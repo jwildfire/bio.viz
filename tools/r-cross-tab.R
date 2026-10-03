@@ -114,11 +114,19 @@ chart_variable <- function(variable) {
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list of values is an unnamed list, so it is written as a
 # JSON array whatever its length. Text is sorted by code point
-# (`method = "radix"`), which is the order the chart sorts in.
+# (`method = "radix"`), which is the order the chart sorts in. The baseline
+# settings are named only when a cut biomarker reads a baseline: its value is a
+# baseline, or a change from one.
+reads_baseline <- function(variable) {
+  is.list(variable) && !is.null(variable$measure) && !identical(variable$value, "raw")
+}
+
 cross_tab_key <- function(dfFrame, lView) {
   lDataId <- list(chart = "cross-tab", row_by = chart_variable(lView$row_by), col_by = chart_variable(lView$col_by))
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
-  lDataId$baseline_stat <- lView$baseline_stat
+  if (reads_baseline(lView$row_by) || reads_baseline(lView$col_by)) {
+    if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
+    lDataId$baseline_stat <- lView$baseline_stat
+  }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
       as.list(sort(unique(chart_text(xValues)), method = "radix"))
@@ -147,7 +155,12 @@ category_of <- function(variable, keep) {
     value[value == ""] <- NA
     return(list(values = value, levels = NULL))
   }
-  x <- result_at(variable$measure, variable$visit)
+  # The baseline is the result at Baseline, the one baseline visit the cases
+  # name; the study has one row per participant there.
+  x <- switch(variable$value,
+    raw = result_at(variable$measure, variable$visit),
+    change = result_at(variable$measure, variable$visit) - result_at(variable$measure, "Baseline")
+  )
   x[!keep] <- NA
   points <- cut_points(x[keep], variable$cut)$points
   list(values = cut_groups(x, points), levels = cut_labels(points))
@@ -173,8 +186,8 @@ case <- function(name, row_by, col_by, test, filters = list()) {
   dimnames(counts) <- NULL
   view <- list(
     statistic = "Analyze_Contingency", test = test, row_by = row_by, col_by = col_by,
-    row_levels = row_levels, col_levels = col_levels, baseline_stat = "mean",
-    filters = filters
+    row_levels = row_levels, col_levels = col_levels, baseline_visits = "Baseline",
+    baseline_stat = "mean", filters = filters
   )
   key <- cross_tab_key(frame, view)
   value <- do.call(key$name, c(list(frame), key$args))
@@ -201,7 +214,11 @@ cases <- list(
   case("response-by-crp-median-chisq", "RESPONSE", crp("median"), "chisq"),
   case("response-by-crp-median-fisher", "RESPONSE", crp("median"), "fisher"),
   case("response-by-crp-typed-chisq", "RESPONSE", crp(8), "chisq"),
-  case("arm-by-response-women-chisq", "ARM", "RESPONSE", "chisq", list(SEX = "F"))
+  case("arm-by-response-women-chisq", "ARM", "RESPONSE", "chisq", list(SEX = "F")),
+  case(
+    "arm-by-crp-change-median-chisq", "ARM",
+    list(measure = "CRP", visit = "Week 4", value = "change", cut = "median"), "chisq"
+  )
 )
 
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")

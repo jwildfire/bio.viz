@@ -103,16 +103,16 @@ connection.run('Analyze_Contingency', {
 
 `dataId` states what the rows are, so a [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together:
 
-| Member            | What it is                                                                                                            | Left out when         |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `chart`           | `'cross-tab'`.                                                                                                        | never                 |
-| `row_by`          | The rows: the column's name, or the cut variable as the settings write it, typed points as a list.                    | never                 |
-| `col_by`          | The columns, written as `row_by` is.                                                                                  | never                 |
-| `baseline_visits` | The setting, as a list.                                                                                               | the setting is null   |
-| `baseline_stat`   | The setting.                                                                                                          | never                 |
-| `filters`         | An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point. | no filter is in force |
+| Member            | What it is                                                                                                            | Left out when                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `chart`           | `'cross-tab'`.                                                                                                        | never                                                     |
+| `row_by`          | The rows: the column's name, or the cut variable as the settings write it, typed points as a list.                    | never                                                     |
+| `col_by`          | The columns, written as `row_by` is.                                                                                  | never                                                     |
+| `baseline_visits` | The setting, as a list.                                                                                               | the setting is null, or no cut biomarker reads a baseline |
+| `baseline_stat`   | The setting.                                                                                                          | no cut biomarker reads a baseline                         |
+| `filters`         | An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point. | no filter is in force                                     |
 
-The R recipe that writes the same key is `cross_tab_key` in `tools/r-cross-tab.R`, which writes the expected results the tests hold this chart to.
+A cut biomarker reads a baseline when its value is the baseline or a change from it (`value` other than `raw`); a table of columns, or of a biomarker's result itself, does not depend on the baseline settings, so they are not part of its key. The R recipe that writes the same key is `cross_tab_key` in `tools/r-cross-tab.R`, which writes the expected results the tests hold this chart to.
 
 ## On a phone
 

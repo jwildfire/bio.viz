@@ -389,6 +389,9 @@ test.describe('cross-tabulation: on a phone and on the site', () => {
     await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
     await card.getByRole('link', { name: 'Live demo' }).click();
     await expect(page).toHaveURL(/\/_site\/cross-tab\/index\.html$/);
+    await expect(page.locator('h1')).toHaveText('Cross-tabulation');
+    // The URL is the demo's before its scripts have run: wait for them.
+    await page.waitForFunction(() => Boolean(window.BioVizDemo && window.BioVizDemo.ready));
     await page.evaluate(() => window.BioVizDemo.ready);
     const drawn = await tableOf(page);
     expect(drawn.rows).toEqual(['Placebo', 'Treatment']);
