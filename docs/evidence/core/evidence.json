@@ -1,16 +1,13 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T04:06:32.668Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
@@ -325,11 +322,11 @@
       "screenshots": []
     },
     {
-      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)",
+      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is no longer refused: it is returned with its cut, for the shared cut rule (#8, #43)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CORE-VAR-003"],
-      "issueRefs": [8],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -362,6 +359,70 @@
       "status": "pass",
       "requirementIds": ["CORE-FRAME-016"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-DOC-001: the R recipe in the core’s reference is, line for line, the one tools/r-cut.R runs to make the expected results (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-DOC-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-GRP-001: each participant is in the group R’s cut(right = TRUE) puts them in: a value equal to a cut point falls in the lower group, and a missing value in none (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-GRP-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-LBL-001: groups are ordered low to high and labelled with their bounds, each written to four significant digits as R’s signif() writes it (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-LBL-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-PTS-001: the cut points are R’s quantile(type = 7) on the values, missing ones left out, and typed points are used as written (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-PTS-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-PTS-002: a repeated cut point collapses, and the result says the points repeated (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-PTS-002"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-SPEC-001: a biomarker or a number column may carry a cut: the median, the tertiles, the quartiles, or typed points in ascending order (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-SPEC-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-SPEC-002: a malformed cut is refused with a sentence that names it (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-SPEC-002"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-STUDY-001: on the synthetic study, the frame’s values of the cut variable, for the participants the filters keep, are R’s, and so are the points and the groups (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-STUDY-001"],
+      "issueRefs": [43],
       "screenshots": []
     },
     {
