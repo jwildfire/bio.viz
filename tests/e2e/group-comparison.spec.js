@@ -3325,6 +3325,52 @@ test.describe('group comparison: a cut biomarker makes the groups', () => {
     await choose(page, 'group-by', 'ARM');
     await expect(page.locator('[data-control="levels"]')).toHaveCount(1);
   });
+
+  test('GC-CUT-010: with R’s stored answers for cut groups R made itself, the result names the groups low to high, and a group below R’s minimum size prints R’s reason and counts (#43, #46)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    const recipes = ['cut-median', 'cut-too-small'].map((name) => {
+      const { args, dataId, rows, value } = statistics.recipes.find((entry) => entry.case === name);
+      return { name: 'Analyze_GroupDifference', args, dataId, rows, value };
+    });
+    const line = page.locator('.sv-main > .bv-statistic');
+    // R's counts, in the order R named them.
+    const countsOf = (value) =>
+      Object.entries(value.counts)
+        .map(([group, n]) => `${group} n = ${n}`)
+        .join(', ');
+    const withStored = async (cut) => {
+      await open(page, {
+        settings: { ...IL6_WEEK_4, baseline_visits: 'Baseline', group_by: crpCut(cut) }
+      });
+      await page.evaluate((results) => {
+        window.__gc.chart.setSettings({
+          connection: window.BioViz.r.createConnection({ results })
+        });
+      }, recipes);
+    };
+
+    await withStored('median');
+    await expect(line.locator('.bv-stat-result')).toContainText('Welch Two Sample t-test');
+    expect(Object.keys(recipes[0].value.counts)).toEqual(['≤ 2.783', '> 2.783']);
+    await expect(line.locator('.bv-stat-result')).toContainText(`(${countsOf(recipes[0].value)})`);
+    await expect(line.locator('.bv-stat-estimate')).toContainText(
+      'Difference in means (≤ 2.783 - > 2.783)'
+    );
+
+    await withStored([10]);
+    const tooSmall = recipes[1].value;
+    expect(tooSmall.status).toBe('too_small');
+    await expect(line).toHaveAttribute('data-state', 'withheld');
+    await expect(line).toContainText(tooSmall.reason);
+    await expect(line).toContainText(`Counts: ${countsOf(tooSmall)}.`);
+    await expect(line).not.toContainText('p =');
+    const [asked] = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.answer.form).toBe('precomputed');
+    await captureEvidence(page.locator('.sv-main'), 'GC-CUT-010', 'cut-group-too-small');
+    expect(errors).toEqual([]);
+  });
 });
 
 // ---- What the v0.1.0-RC1 review found (#49) ---------------------------------------

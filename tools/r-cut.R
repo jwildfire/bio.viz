@@ -58,13 +58,15 @@ CUT_PROBS <- list(median = 0.5, tertiles = c(1, 2) / 3, quartiles = c(1, 2, 3) /
 
 cut_bound <- function(p) format(signif(p, 4), scientific = FALSE, trim = TRUE)
 
-cut_labels <- function(points) {
+bound_labels <- function(points) {
   k <- length(points)
   if (k == 0) return(character(0))
   bounds <- vapply(points, cut_bound, character(1))
   middle <- if (k > 1) paste0("> ", bounds[-k], ", ≤ ", bounds[-1]) else character(0)
   c(paste0("≤ ", bounds[1]), middle, paste0("> ", bounds[k]))
 }
+
+cut_labels <- function(points) unique(bound_labels(points))
 
 cut_points <- function(x, cut) {
   asked <- if (is.character(cut)) {
@@ -76,7 +78,7 @@ cut_points <- function(x, cut) {
 }
 
 cut_groups <- function(x, points) {
-  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = cut_labels(points)))
+  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = bound_labels(points)))
 }
 
 # ---- The study's values ---------------------------------------------------------
@@ -154,6 +156,7 @@ case <- function(name, ids, x, cut, variable = NULL, filters = NULL, drawn = NUL
     paste0("\"asked\":", nums(made$asked)),
     paste0("\"points\":", nums(made$points)),
     paste0("\"repeated\":", lgl(length(made$points) < length(made$asked))),
+    paste0("\"merged\":", lgl(length(labels) < length(made$points) + 1)),
     paste0("\"labels\":", strs(labels)),
     paste0("\"groups\":", strs(groups)),
     paste0("\"counts\":", counts_json(groups, labels))
@@ -223,6 +226,20 @@ cases <- c(
   case(
     "Bounds written to four significant digits, a tie rounded to even",
     sprintf("E-%02d", 1:4), c(2.0625, 2.0625, 123456.7, 0.000012345), c(0.000012345, 2.0625, 123456.7)
+  ),
+  case(
+    "A point that is rounding noise next to zero is written in full, with no trailing zero",
+    sprintf("E-%02d", 1:10), c(-3, -2, -0.99, 2.97, 3, 3.1, 3.2, 3.3, 3.4, 3.5), "quartiles"
+  ),
+  case(
+    "Very small and very large typed points are written in full, as R writes them",
+    sprintf("E-%02d", 1:9),
+    c(-1, -1.2e-7, 0, 1e-150, 1e-20, 1.2e-7, 1, 3.382e21, 1e22),
+    c(-0.000123449, 1e-150, 1.11e-16, 1e-7, 1.2e-7, 1.23456e20, 3.382e21)
+  ),
+  case(
+    "Distinct quantile points written alike make groups with the same label, which merge",
+    sprintf("E-%02d", 1:5), c(2.7926, 2.7928, 2.793, 2.7932, 2.7934), "quartiles"
   )
 )
 

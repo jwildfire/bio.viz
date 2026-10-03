@@ -152,7 +152,8 @@ function readCut(cut, written) {
     if (typeof point !== 'number' || !Number.isFinite(point)) {
       refuse(
         `the variable ${written}: a cut point must be a finite number, and ` +
-          `${JSON.stringify(point)} is not one.`
+          // JSON writes NaN and the infinities as null: name them as they are.
+          `${typeof point === 'number' ? String(point) : JSON.stringify(point)} is not one.`
       );
     }
   }
@@ -161,6 +162,18 @@ function readCut(cut, written) {
       refuse(
         `the variable ${written}: the cut points must be in ascending order, each greater than ` +
           `the one before: ${cut[index - 1]} then ${cut[index]}.`
+      );
+    }
+  }
+  // Two points written alike would make groups with the same label, which no
+  // reader could tell apart.
+  for (let index = 1; index < cut.length; index += 1) {
+    const bound = writePoint(cut[index]);
+    if (bound === writePoint(cut[index - 1])) {
+      refuse(
+        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both ` +
+          `written ${bound} to four significant digits, so the groups they make could not be ` +
+          'told apart: give points that differ in their first four significant digits.'
       );
     }
   }

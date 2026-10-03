@@ -6,9 +6,9 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 
 | Matrix                                           | Module              | Rows |
 | ------------------------------------------------ | ------------------- | ---: |
-| [core.md](core.md)                               | core                |   69 |
+| [core.md](core.md)                               | core                |   71 |
 | [r-connection.md](r-connection.md)               | r-connection        |   78 |
-| [group-comparison.md](group-comparison.md)       | group-comparison    |  146 |
+| [group-comparison.md](group-comparison.md)       | group-comparison    |  148 |
 | [association-scatter.md](association-scatter.md) | association-scatter |   87 |
 | [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   74 |
 | [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   70 |

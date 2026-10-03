@@ -90,8 +90,8 @@ const listed = (items) =>
 
 /**
  * How a variable was cut, in a sentence for the chart's footnote: the points,
- * how many values they were worked out on, and whether repeated points
- * collapsed into fewer groups.
+ * how many values they were worked out on, whether repeated points collapsed
+ * into fewer groups, and whether points written alike merged groups.
  * @param {object} spec The cut variable.
  * @param {object} cut The cut, as `cutPoints` or `cutOf` gives it.
  * @returns {string} The sentence.
@@ -107,9 +107,19 @@ export function cutNote(spec, cut) {
   const sentence =
     `${words} is cut at its ${cut.cut}, ${listed(asked)}, worked out on the ${cut.n} ` +
     `participant${cut.n === 1 ? '' : 's'} with a value.`;
-  if (!cut.repeated) return sentence;
-  return (
-    `${sentence} The points repeat, so they make ${cut.labels.length} groups, not ` +
-    `${cut.asked.length + 1}.`
-  );
+  const said = [sentence];
+  if (cut.repeated) {
+    said.push(
+      `The points repeat, so they make ${cut.points.length + 1} groups, not ` +
+        `${cut.asked.length + 1}.`
+    );
+  }
+  if (cut.merged) {
+    said.push(
+      'The points differ only past four significant digits, so groups with the same bounds ' +
+        `are one, as R’s cut() makes them: ${cut.labels.length} groups, not ` +
+        `${cut.points.length + 1}.`
+    );
+  }
+  return said.join(' ');
 }

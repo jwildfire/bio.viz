@@ -164,8 +164,10 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
 
 /**
  * Checks that the tables have the columns the settings name: the results
- * table's id, biomarker, result and visit, and the participant table's id. A
- * column that is missing is refused with a `TypeError` that names it. A
+ * table's id, biomarker, result and visit, and the participant table's id; and
+ * that a cut variable in the settings cuts a biomarker the results table has, or
+ * a column one of the tables has. What is missing is refused with a `TypeError`
+ * that names it. A
  * chart checks this when it is given tables, and when its settings change.
  * @param {{results: object[], participants: ?object[]}} tables The tables.
  * @param {object} settings The settings.
@@ -190,7 +192,36 @@ export function checkTables(tables, settings) {
         'participant (`participant_id_col`, or `id_col` when that is not set).'
     );
   }
+  // A cut variable cuts a biomarker the results table has, or a column one of
+  // the tables has: otherwise it could make no group.
+  if (!tables.results.length) return;
+  const cuts = GROUPINGS.map((key) => [key, settings[key]]);
+  (Array.isArray(settings.cuts) ? settings.cuts : []).forEach((spec, index) =>
+    cuts.push([`cuts[${index}]`, spec])
+  );
+  for (const [key, spec] of cuts) {
+    if (!spec || typeof spec !== 'object' || Array.isArray(spec)) continue;
+    if (typeof spec.measure === 'string') {
+      if (!tables.results.some((row) => row[settings.measure_col] === spec.measure)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the biomarker ${spec.measure}, which the results table does ` +
+            'not have.'
+        );
+      }
+    } else if (typeof spec.col === 'string') {
+      const has = (rows) => Boolean(rows) && rows.some((row) => spec.col in row);
+      if (!has(tables.results) && !has(tables.participants)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the column ${spec.col}, which neither the results table nor ` +
+            'the participant table has.'
+        );
+      }
+    }
+  }
 }
+
+// The settings that may hold a cut variable, in any chart.
+const GROUPINGS = ['group_by', 'panel_by', 'row_by', 'col_by'];
 
 /**
  * The tables a chart was given, checked: `{ results, participants }`, or a

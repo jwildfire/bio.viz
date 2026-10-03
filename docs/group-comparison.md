@@ -184,11 +184,13 @@ BioViz.groupComparison('#chart', {
 
 - The cut points are worked out on every participant the filters keep who has a value of the cut variable, whether or not they have a value to draw, so each visit's panel has the same groups. They move when the filters do.
 - The groups are ordered low to high and labelled with their bounds (`≤ 2.167`, `> 2.167, ≤ 3.467`, `> 3.467`), with the number in each beneath, as for a column. A group nobody is in is not drawn.
-- The footnote says how the variable was cut: `CRP at Baseline is cut at its tertiles, 2.167 and 3.467, worked out on the 200 participants with a value.` When repeated points collapse, it says so and how many groups they make.
+- The footnote says how the variable was cut: `CRP at Baseline is cut at its tertiles, 2.167 and 3.467, worked out on the 200 participants with a value.` When repeated points collapse, or points written alike merge groups, it says so and how many groups they make.
 - A participant with no value of the cut variable is left out and counted, as for a column.
 - The Group and Panel controls offer the cut variable after the columns, named in words (`CRP at Baseline, cut at the tertiles`). A cut has no Levels control: every group it makes is drawn.
 - The colour is a column only.
-- R is asked for the test of the cut groups as for a column's, with the cut variable in the identity of the rows (see [What R is asked](#what-r-is-asked)).
+- R is asked for the test of the cut groups as for a column's, with the cut variable in the identity of the rows and the groups named low to high (see [What R is asked](#what-r-is-asked)).
+- A cut of a biomarker the results table does not have, or of a column neither table has, is refused when the tables are read, with a message that names the setting and what it cuts.
+- When distinct points are written alike to four significant digits, the groups with the same bounds are one, and the footnote says so. Typed points written alike are refused.
 
 ## The controls
 
@@ -283,8 +285,9 @@ connection.run('Analyze_GroupDifference', {
 | `strGroupCol` | Always `'x'`.                                                                                            |
 | `strMethod`   | The test asked for: `'t'`, `'wilcoxon'`, `'anova'` or `'kruskal'`.                                       |
 | `bPairwise`   | `true` when the pairwise switch is on and the panel's rows hold more than two groups; otherwise `false`. |
+| `chrGroups`   | Only when the groups are a cut variable's: the groups in the panel's rows, low to high.                  |
 
-Nothing else is sent. The groups are the ones in the rows, in the order R sorts them; the adjustment, the confidence level and the minimum group size are gsm.bio's defaults, and each is printed from what R returns.
+Nothing else is sent. A column's groups are the ones in the rows, in the order R sorts them; a cut's are named, low to high, so R's result lists them in the order they are drawn and a difference in means is of the lower group minus the higher; the adjustment, the confidence level and the minimum group size are gsm.bio's defaults, and each is printed from what R returns.
 
 `dataId` states what the rows are. A [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together, so the identity is built only from what the settings and the controls say, by the settings' own names, and from the group names in the rows:
 
@@ -363,7 +366,9 @@ chart_number <- function(value) {
 # A member of the identity that is not set is left out, never written as null.
 # A member that is a list is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = "radix"`), which
-# is the order the chart sorts in.
+# is the order the chart sorts in. A cut's groups are handed to R low to high,
+# the order of the levels cut() made, so R names them in that order; a column's
+# are left to R, which sorts them by code point.
 group_comparison_key <- function(dfRows, lView) {
   chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
   lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
@@ -383,25 +388,25 @@ group_comparison_key <- function(dfRows, lView) {
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
-  list(
-    name = lView$statistic,
-    args = list(
-      strValueCol = "y",
-      strGroupCol = "x",
-      strMethod = lView$test,
-      # Pairs exist only among more than two groups.
-      bPairwise = isTRUE(lView$pairwise) && length(chrGroups) > 2
-    ),
-    dataId = lDataId,
-    rows = nrow(dfRows)
+  lArgs <- list(
+    strValueCol = "y",
+    strGroupCol = "x",
+    strMethod = lView$test,
+    # Pairs exist only among more than two groups.
+    bPairwise = isTRUE(lView$pairwise) && length(chrGroups) > 2
   )
+  if (is.list(lView$group_by)) {
+    if (!is.factor(dfRows$x)) stop("the groups of a cut variable must be the factor cut() made")
+    lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
+  }
+  list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
 }
 
 lKey <- group_comparison_key(dfRows, lView)
 lStored <- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args))))
 ```
 
-`lView$test` is the test asked for, which is the setting `test` where it fits the number of groups on the axis and its counterpart where it does not. `lView$filters` is a named list of column to the values the filter lets through. Written to JSON, a single value is a single value and an unnamed list is an array (`jsonlite::toJSON(auto_unbox = TRUE)`), and the value is in [the shape the browser form gives](r-connection.md#stored-results).
+When the groups are a cut variable's, `lView$group_by` is the cut variable as a named list, typed points as a list (`list(measure = "CRP", visit = "Baseline", value = "raw", cut = list(10))`), and `dfRows$x` is the factor the [cut rule](core.md#the-cut-rule)'s `cut()` made, whose levels are the groups low to high. `lView$test` is the test asked for, which is the setting `test` where it fits the number of groups on the axis and its counterpart where it does not. `lView$filters` is a named list of column to the values the filter lets through. Written to JSON, a single value is a single value and an unnamed list is an array (`jsonlite::toJSON(auto_unbox = TRUE)`), and the value is in [the shape the browser form gives](r-connection.md#stored-results).
 
 This is the function `tools/r-group-statistics.R` writes the chart's expected results with. The unit tests named `GC-STAT-023` hold the key it writes, for eighteen panels of the gallery's demo, to the key the chart asks with, and hand its results to a connection as stored results to see each one found.
 

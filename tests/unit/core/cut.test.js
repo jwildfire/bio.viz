@@ -110,6 +110,21 @@ describe('core: the cut rule', () => {
     );
     expect(refused({ ...crp, cut: [1, Infinity] })).toMatch(/a cut point must be a finite number/);
     expect(refused({ ...crp, cut: 2 })).toMatch(/`cut` must be 'median', 'tertiles', 'quartiles'/);
+    // A point that is not a number is named as it is, not as JSON writes it.
+    expect(refused({ ...crp, cut: [1, NaN] })).toMatch(
+      /a cut point must be a finite number, and NaN is not one\.$/
+    );
+    expect(refused({ ...crp, cut: [1, Infinity] })).toMatch(/and Infinity is not one\.$/);
+    expect(refused({ ...crp, cut: [-Infinity, 1] })).toMatch(/and -Infinity is not one\.$/);
+    // Typed points that write the same bound ask for groups no label could tell
+    // apart.
+    expect(refused({ ...crp, cut: [2.7928, 2.793, 2.7932] })).toMatch(
+      /the cut points 2\.7928 and 2\.793 are both written 2\.793 to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits\.$/
+    );
+    expect(refused({ ...crp, cut: [1, 1.00001] })).toMatch(
+      /the cut points 1 and 1\.00001 are both written 1 to four/
+    );
+    expect(variable({ ...crp, cut: [2.792, 2.793] }).cut).toEqual([2.792, 2.793]);
     expect(refused({ col: 'AGE', cut: 'median' })).toBe(
       'bio.viz: the variable {"col":"AGE","cut":"median"} cuts a column, so it must be read as a ' +
         "number: add `type: 'number'`."
@@ -146,6 +161,7 @@ describe('core: the cut rule', () => {
       asked: [],
       points: [],
       repeated: false,
+      merged: false,
       labels: []
     });
   });
@@ -184,6 +200,50 @@ describe('core: the cut rule', () => {
     // R rounds a tie to even: 2.0625 to four digits is 2.062.
     expect(cutLabels([2.0625])).toEqual(['≤ 2.062', '> 2.062']);
     expect(cutLabels([])).toEqual([]);
+  });
+
+  it('CUT-LBL-002: a bound however small or large is written in full with no trailing zero, as R’s format(scientific = FALSE) writes it (#43, #46)', () => {
+    const far = [
+      'A point that is rounding noise next to zero is written in full, with no trailing zero',
+      'Very small and very large typed points are written in full, as R writes them'
+    ];
+    for (const name of far) {
+      const entry = cases.find((found) => found.name === name);
+      expect(entry, name).toBeDefined();
+      expect(cutLabels(entry.points), name).toEqual(entry.labels);
+    }
+    // R's own words for them, as tools/r-cut.R recorded them.
+    const noise = cases.find((found) => found.name === far[0]);
+    expect(noise.points[0]).toBe(1.1102230246251565e-16);
+    expect(noise.labels[0]).toBe('≤ 0.000000000000000111');
+    expect(cases.find((found) => found.name === far[1]).labels.at(-1)).toBe(
+      '> 3382000000000000000000'
+    );
+    expect(cutLabels([1e-7])).toEqual(['≤ 0.0000001', '> 0.0000001']);
+    expect(cutLabels([-1.2e-7, 0])).toEqual(['≤ -0.00000012', '> -0.00000012, ≤ 0', '> 0']);
+    expect(cutLabels([0.5, 12.5])).toEqual(['≤ 0.5', '> 0.5, ≤ 12.5', '> 12.5']);
+    // Nothing a double holds is refused for its size.
+    for (const point of [1e-150, 1e-300, Number.MIN_VALUE, 1e300, Number.MAX_VALUE]) {
+      expect(() => cutLabels([point]), String(point)).not.toThrow();
+    }
+  });
+
+  it('CUT-GRP-002: distinct points written alike make groups with the same label, which are one group, as R’s cut() merges levels with the same label, and the result says they merged (#43, #46)', () => {
+    const merged = cases.filter((entry) => entry.merged);
+    expect(merged.map((entry) => entry.name)).toEqual([
+      'Distinct quantile points written alike make groups with the same label, which merge'
+    ]);
+    for (const entry of cases) {
+      expect(cutPoints(entry.values, entry.cut).merged, entry.name).toBe(entry.merged);
+    }
+    const [entry] = merged;
+    const made = cutPoints(entry.values, entry.cut);
+    expect(made.points).toEqual([2.7928000000000002, 2.7930000000000001, 2.7932000000000001]);
+    expect(made.labels).toEqual(['≤ 2.793', '> 2.793, ≤ 2.793', '> 2.793']);
+    expect(entry.labels).toEqual(made.labels);
+    expect(entry.counts).toEqual([2, 2, 1]);
+    // The two groups between the three points are one: the second.
+    expect(made.points.map((point) => cutGroup(point + 1e-9, made.points))).toEqual([1, 1, 2]);
   });
 
   it('CUT-STUDY-001: on the synthetic study, the frame’s values of the cut variable, for the participants the filters keep, are R’s, and so are the points and the groups (#43)', () => {

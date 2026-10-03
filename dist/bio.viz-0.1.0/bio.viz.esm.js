@@ -725,26 +725,60 @@ function roundHalfEven(value) {
   if (rest < 0.5) return floor;
   return floor % 2 === 0 ? floor : floor + 1;
 }
+function powDi(x, n) {
+  let base = x;
+  let power = 1;
+  let left = Math.abs(n);
+  for (; ; ) {
+    if (left % 2 === 1) power *= base;
+    left = Math.floor(left / 2);
+    if (left === 0) break;
+    base *= base;
+  }
+  return n < 0 ? 1 / power : power;
+}
+var MAX10E = 308;
 function signif(x, digits) {
   if (x === 0 || !Number.isFinite(x)) return x;
   const sign = x < 0 ? -1 : 1;
   const size = Math.abs(x);
-  const e10 = digits - 1 - Math.floor(Math.log10(size));
-  if (e10 > 0) {
-    const scale2 = 10 ** e10;
-    return sign * roundHalfEven(size * scale2) / scale2;
+  const l10 = Math.log10(size);
+  let e10 = digits - 1 - Math.floor(l10);
+  if (Math.abs(l10) < MAX10E - 2) {
+    let p102 = 1;
+    if (e10 > MAX10E) {
+      p102 = powDi(10, e10 - MAX10E);
+      e10 = MAX10E;
+    }
+    if (e10 > 0) {
+      const scale2 = powDi(10, e10);
+      return sign * (roundHalfEven(size * scale2 * p102) / scale2) / p102;
+    }
+    const scale = powDi(10, -e10);
+    return sign * (roundHalfEven(size / scale) * scale);
   }
-  const scale = 10 ** -e10;
-  return sign * roundHalfEven(size / scale) * scale;
+  const e2 = digits + (e10 > 0 ? 1 : 6);
+  const p10 = powDi(10, e2);
+  const P10 = powDi(10, e10 - e2);
+  let scaled = size * p10 * P10;
+  if (MAX10E - l10 >= powDi(10, -digits)) scaled += 0.5;
+  return sign * (Math.floor(scaled) / p10) / P10;
 }
 function writePoint(point) {
-  const rounded = signif(point, 4);
-  const text2 = String(rounded === 0 ? 0 : rounded);
-  if (!text2.includes("e")) return text2;
-  const e10 = 3 - Math.floor(Math.log10(Math.abs(rounded)));
-  return e10 > 0 ? rounded.toFixed(e10) : rounded.toFixed(0);
+  let rounded = signif(point, 4);
+  if (!Number.isFinite(rounded)) rounded = point;
+  if (rounded === 0) return "0";
+  const sign = rounded < 0 ? "-" : "";
+  const size = Math.abs(rounded);
+  if (Number.isInteger(size)) return sign + BigInt(size).toString();
+  const [mantissa, exponent] = size.toExponential(3).split("e");
+  const digits = mantissa.replace(".", "").replace(/0+$/, "");
+  const place = Number(exponent) + 1;
+  if (place <= 0) return `${sign}0.${"0".repeat(-place)}${digits}`;
+  if (place >= digits.length) return sign + digits + "0".repeat(place - digits.length);
+  return `${sign}${digits.slice(0, place)}.${digits.slice(place)}`;
 }
-function cutLabels(points) {
+function boundLabels(points) {
   if (!points.length) return [];
   const bounds = points.map(writePoint);
   return [
@@ -753,6 +787,9 @@ function cutLabels(points) {
     `> ${bounds[bounds.length - 1]}`
   ];
 }
+function cutLabels(points) {
+  return [...new Set(boundLabels(points))];
+}
 function cutPoints(values, cut) {
   const present3 = values.filter((value) => !isMissing(value)).sort((a, b) => a - b);
   const typed = Array.isArray(cut);
@@ -760,18 +797,21 @@ function cutPoints(values, cut) {
   if (typed) asked = [...cut];
   else asked = present3.length ? PROBS[cut].map((p) => quantile7(present3, p)) : [];
   const points = asked.filter((point, index) => asked.indexOf(point) === index);
+  const labels = cutLabels(points);
   return {
     cut: typed ? [...cut] : cut,
     n: present3.length,
     asked,
     points,
     repeated: points.length < asked.length,
-    labels: cutLabels(points)
+    merged: points.length > 0 && labels.length < points.length + 1,
+    labels
   };
 }
 function cutGroup(value, points) {
   if (isMissing(value)) return null;
-  return points.filter((point) => point < value).length;
+  const labels = boundLabels(points);
+  return cutLabels(points).indexOf(labels[points.filter((point) => point < value).length]);
 }
 
 // src/core/variable.js
@@ -869,7 +909,7 @@ function readCut(cut, written) {
   for (const point of cut) {
     if (typeof point !== "number" || !Number.isFinite(point)) {
       refuse(
-        `the variable ${written}: a cut point must be a finite number, and ${JSON.stringify(point)} is not one.`
+        `the variable ${written}: a cut point must be a finite number, and ${typeof point === "number" ? String(point) : JSON.stringify(point)} is not one.`
       );
     }
   }
@@ -877,6 +917,14 @@ function readCut(cut, written) {
     if (!(cut[index] > cut[index - 1])) {
       refuse(
         `the variable ${written}: the cut points must be in ascending order, each greater than the one before: ${cut[index - 1]} then ${cut[index]}.`
+      );
+    }
+  }
+  for (let index = 1; index < cut.length; index += 1) {
+    const bound = writePoint(cut[index]);
+    if (bound === writePoint(cut[index - 1])) {
+      refuse(
+        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both written ${bound} to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits.`
       );
     }
   }
@@ -1385,7 +1433,30 @@ function checkTables(tables, settings) {
       `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
     );
   }
+  if (!tables.results.length) return;
+  const cuts = GROUPINGS.map((key) => [key, settings[key]]);
+  (Array.isArray(settings.cuts) ? settings.cuts : []).forEach(
+    (spec, index) => cuts.push([`cuts[${index}]`, spec])
+  );
+  for (const [key, spec] of cuts) {
+    if (!spec || typeof spec !== "object" || Array.isArray(spec)) continue;
+    if (typeof spec.measure === "string") {
+      if (!tables.results.some((row) => row[settings.measure_col] === spec.measure)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the biomarker ${spec.measure}, which the results table does not have.`
+        );
+      }
+    } else if (typeof spec.col === "string") {
+      const has = (rows) => Boolean(rows) && rows.some((row) => spec.col in row);
+      if (!has(tables.results) && !has(tables.participants)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the column ${spec.col}, which neither the results table nor the participant table has.`
+        );
+      }
+    }
+  }
 }
+var GROUPINGS = ["group_by", "panel_by", "row_by", "col_by"];
 function readGiven(chart, data, settings = chart.settings) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
@@ -1813,8 +1884,18 @@ function cutNote(spec, cut) {
   if (!cut.n) return `${words} has no value to cut, so it makes no groups.`;
   const asked = cut.asked.map(writePoint);
   const sentence2 = `${words} is cut at its ${cut.cut}, ${listed2(asked)}, worked out on the ${cut.n} participant${cut.n === 1 ? "" : "s"} with a value.`;
-  if (!cut.repeated) return sentence2;
-  return `${sentence2} The points repeat, so they make ${cut.labels.length} groups, not ${cut.asked.length + 1}.`;
+  const said = [sentence2];
+  if (cut.repeated) {
+    said.push(
+      `The points repeat, so they make ${cut.points.length + 1} groups, not ${cut.asked.length + 1}.`
+    );
+  }
+  if (cut.merged) {
+    said.push(
+      `The points differ only past four significant digits, so groups with the same bounds are one, as R\u2019s cut() makes them: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
+    );
+  }
+  return said.join(" ");
 }
 
 // src/shared/tables.js
@@ -2220,16 +2301,20 @@ function statisticRequest({ name, test, pairwise, settings, state, panel }) {
     ...Object.keys(filters).length ? { filters } : {},
     ...state.yScale === "log" ? { positive_only: true } : {}
   };
+  const args = {
+    strValueCol: "y",
+    strGroupCol: "x",
+    strMethod: test,
+    // Pairs exist only among more than two groups.
+    bPairwise: Boolean(pairwise) && groups.length > 2
+  };
+  if (isCut(state.groupBy)) {
+    args.chrGroups = [...new Set(panel.cells.filter((cell) => cell.n).map((cell) => cell.level))];
+  }
   return {
     name,
     data: panel.records,
-    args: {
-      strValueCol: "y",
-      strGroupCol: "x",
-      strMethod: test,
-      // Pairs exist only among more than two groups.
-      bPairwise: Boolean(pairwise) && groups.length > 2
-    },
+    args,
     dataId,
     rows: panel.records.length
   };
@@ -2285,14 +2370,15 @@ function noTestText(groups, several) {
   return `${lead}none is drawn.`;
 }
 function scopeText({ group, n, panel, color, filters = [] }) {
+  const named = group.includes(",") ? `${group},` : group;
   const said = [
-    `This test compares the levels of ${group} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+    `This test compares the levels of ${named} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
     said.push("Each panel has a test of its own, and they are not adjusted for one another.");
   }
   if (color) {
-    said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
+    said.push(`Colour by ${color} is not part of it: each level of ${named} is tested whole.`);
   }
   if (filters.length) said.push(filtersSaid(filters));
   return said.join(" ");
