@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-03T18:44:14.425Z",
+  "generatedAt": "2026-10-03T18:58:10.861Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -1199,6 +1199,14 @@
       "status": "pass",
       "requirementIds": ["CORE-MAN-005"],
       "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the release log CORE-NEWS-001: only the first section may be upcoming; a released section links nothing on the dev site; the newest released section is the package version (#56)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-NEWS-001"],
+      "issueRefs": [56],
       "screenshots": []
     },
     {

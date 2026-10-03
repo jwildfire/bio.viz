@@ -7,7 +7,9 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 # bio.viz v0.2.0 (Upcoming)
 
-_Nothing merged yet._
+## What's new
+
+- **Cut a biomarker into groups.** A biomarker, or any participant-level number, can make the group comparison's groups or its panels when it is cut at its median, tertiles, quartiles or typed points. The points are R's `quantile()` default and each participant's group is R's `cut()`, worked out on the participants the filters keep; the groups are labelled with their bounds, and the footnote states the cut. One rule in the core, written so R can reproduce it. [API reference](https://jwildfire.github.io/bio.viz/dev/core/api.html#the-cut-rule), [obot.roadmap#359](https://github.com/jwildfire/obot.roadmap/issues/359), [#46](https://github.com/jwildfire/bio.viz/pull/46)
 
 # bio.viz v0.1.0
 
