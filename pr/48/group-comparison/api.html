@@ -78,7 +78,7 @@
 <p>The lifecycle is safety.viz&#39;s, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.</p>
 <table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
 <tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
-<tr><td data-label="Method"><code>chart.setData(data)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data, settings)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. <code>settings</code>, when given, are laid over the chart&#39;s with the tables, for tables that need them: a participant table whose id column has another name comes with <code>{ participant_id_col }</code>. The tables are checked against those settings, so the two change together.</td></tr>
 <tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
 <tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls.</td></tr>
 <tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the chart to its container, for a page that changes the container&#39;s size without resizing the window.</td></tr>
@@ -237,9 +237,10 @@
 # number is written in the fewest digits that read back as the same number,
 # whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
 # (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
-# written &quot;2&quot;. The text is JavaScript&#39;s for every number that needs 16
-# significant digits or fewer; of two 17-digit texts that read back the same,
-# JavaScript may choose the other.
+# written &quot;2&quot;, and NaN &quot;NaN&quot;. The text is JavaScript&#39;s for every number that
+# needs 13 significant digits or fewer. Beyond that R&#39;s reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript&#39;s.
 chart_text &lt;- function(x) {
   if (is.null(x)) return(NULL)
   if (is.logical(x)) return(ifelse(x, &quot;true&quot;, &quot;false&quot;))
@@ -248,6 +249,7 @@ chart_text &lt;- function(x) {
 }
 
 chart_number &lt;- function(value) {
+  if (is.nan(value)) return(&quot;NaN&quot;)
   if (is.na(value)) return(NA_character_)
   if (value == 0) return(&quot;0&quot;)
   if (is.infinite(value)) return(if (value &gt; 0) &quot;Infinity&quot; else &quot;-Infinity&quot;)
@@ -333,7 +335,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/67710caf3898a81d5f8dfb797044f75037bbedc4"><code>67710ca</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/8054114d9a8166b1418e8a1be2dcd3480a037669"><code>8054114</code></a>.
       </p>
       <p>
         Built in the open — follow the
