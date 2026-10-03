@@ -93,6 +93,11 @@ export async function expectFailureSaid(page, key, drawn) {
     const logged = [];
     const log = console.error;
     console.error = (...args) => logged.push(String(args[0] && args[0].message));
+    // A listing, a selected participant and, on the screen, R's last answer:
+    // none of it may outlive a failed drawing.
+    chart.host.currentTableData = [{ USUBJID: 'BIO-001' }];
+    chart.host.listingSelectedId = 'BIO-001';
+    chart.answer = { status: 'ok', value: {} };
     chart.updateNotes = () => {
       throw new TypeError('bio.viz: a test made the drawing fail.');
     };
@@ -101,10 +106,19 @@ export async function expectFailureSaid(page, key, drawn) {
     } finally {
       console.error = log;
     }
-    return { logged };
+    return {
+      logged,
+      listing: chart.host.currentTableData.length,
+      selected: chart.host.listingSelectedId,
+      answer: chart.answer === undefined ? null : chart.answer,
+      colour: getComputedStyle(document.querySelector('#chart .sv-footnote')).color
+    };
   }, name);
   expect(errors).toEqual([]);
   expect(said.logged).toEqual(['bio.viz: a test made the drawing fail.']);
+  expect(said).toMatchObject({ listing: 0, selected: null, answer: null });
+  // The failure is said in the danger colour, where the footnote is otherwise grey.
+  expect(said.colour).toBe('rgb(155, 28, 28)');
   await expect(page.locator('#chart .sv-footnote')).toHaveText(
     'This chart could not be drawn: a test made the drawing fail.'
   );
@@ -160,4 +174,67 @@ export async function expectDropsCounted(page, key) {
     'bio.viz: the participant table has no column `USUBJID`, which names the participant ' +
     '(`participant_id_col`, or `id_col` when that is not set).';
   expect(refused).toEqual({ error: sentence, shown: sentence });
+}
+
+/**
+ * Finding 3, with filters: when the participant table lacks some of the
+ * results' participants and the filters let nobody through, the chart says
+ * nobody passes the filters, as it does with no such rows.
+ */
+export async function expectNobodyWithOrphans(page, key) {
+  const { name } = CHARTS[key];
+  const errors = errorsOf(page);
+  await openChart(page, key);
+  await page.evaluate((name) => {
+    const { chart, data } = window[name];
+    chart.setSettings({
+      filters: [
+        { value_col: 'AGE', label: 'Age' },
+        { value_col: 'RESPONSE', label: 'Response' }
+      ]
+    });
+    const missing = new Set(data.participants.slice(0, 5).map((row) => row.USUBJID));
+    // Results for five participants the table does not have, and a row with no id.
+    const results = data.results.map((row, index) => (index === 0 ? { ...row, USUBJID: '' } : row));
+    chart.setData({
+      results,
+      participants: data.participants.filter((row) => !missing.has(row.USUBJID))
+    });
+  }, name);
+  // No participant of 35 is a responder.
+  await page.locator('#chart select[data-filter="AGE"]').selectOption('35');
+  await page.locator('#chart select[data-filter="RESPONSE"]').selectOption('Responder');
+  await expect(page.locator('#chart .sv-footnote').first()).toHaveText(
+    'No participant passes the filters.'
+  );
+  expect(errors).toEqual([]);
+}
+
+/**
+ * Finding 3, through the settings: a setting that names a participant id
+ * column the participant table does not have is refused with the same
+ * sentence, before anything changes, and the chart stays as it was drawn.
+ */
+export async function expectSettingsRefused(page, key) {
+  const { name } = CHARTS[key];
+  const errors = errorsOf(page);
+  await openChart(page, key);
+  const before = await page.locator('#chart .sv-footnote').textContent();
+  const refused = await page.evaluate((name) => {
+    const { chart } = window[name];
+    try {
+      chart.setSettings({ participant_id_col: 'SUBJID' });
+      return null;
+    } catch (error) {
+      return { error: error.message, setting: chart.settings.participant_id_col };
+    }
+  }, name);
+  expect(refused).toEqual({
+    error:
+      'bio.viz: the participant table has no column `SUBJID`, which names the participant ' +
+      '(`participant_id_col`, or `id_col` when that is not set).',
+    setting: null
+  });
+  await expect(page.locator('#chart .sv-footnote')).toHaveText(before);
+  expect(errors).toEqual([]);
 }

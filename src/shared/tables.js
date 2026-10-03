@@ -212,7 +212,9 @@ export function keepFiltered({ results, participants }, settings, filters, filte
   );
   return {
     participants: kept,
-    results: results.filter((row) => !filteredOut.has(idOf(row, idCol)))
+    // When the filters keep nobody, nobody passes: no results are framed, so a
+    // row for someone the table does not have cannot make a frame of no one.
+    results: kept.length ? results.filter((row) => !filteredOut.has(idOf(row, idCol))) : []
   };
 }
 
