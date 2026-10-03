@@ -69,6 +69,7 @@
     "CUT-GRP-001": "Each participant is in the group R's `cut(x, breaks = c(-Inf, points, Inf), right = TRUE)` puts them in: a value equal to a cut point falls in the lower group, and a missing value is in no group.",
     "CUT-LBL-001": "The groups are ordered low to high and labelled with their bounds (`≤ a`, `> a, ≤ b`, `> z`), each bound written to four significant digits as R's `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes it, a tie rounded to even.",
     "CUT-STUDY-001": "On the synthetic study, the core's frame gives the cut variable's values that desktop R reads, for the participants a filter keeps, and the points and groups made from them are R's.",
-    "CUT-DOC-001": "The R recipe in the core's reference is, line for line, the one `tools/r-cut.R` runs to write the expected results."
+    "CUT-DOC-001": "The R recipe in the core's reference is, line for line, the one `tools/r-cut.R` runs to write the expected results.",
+    "CORE-NEWS-001": "The release log holds its shape: only the first section may be `(Upcoming)`, a released section links nothing on the dev site, and the newest released section is the package version."
   }
 }
