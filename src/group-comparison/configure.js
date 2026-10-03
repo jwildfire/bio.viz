@@ -15,6 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { checkGrouping, isCut } from '../shared/cut.js';
 
 // What every chart's settings share is in src/shared/settings.js; the two this
 // file has always exported are still reached from here.
@@ -100,14 +101,18 @@ export function syncSettings(overrides) {
     'unit_col',
     'participant_id_col',
     'start_value',
-    'group_by',
     'color_by',
-    'panel_by',
     'studyday_col',
     'normal_col_high',
     'normal_col_low'
   ]) {
     columnOrNull(settings, key);
+  }
+  // The group and the panels: a column, or a biomarker or a number cut into
+  // groups by the shared cut rule.
+  for (const key of ['group_by', 'panel_by']) {
+    if (isCut(settings[key])) checkGrouping(settings, key);
+    else columnOrNull(settings, key);
   }
   if (!VALUE_TYPES.includes(settings.value_type)) {
     refuse(`\`value_type\` must be one of ${VALUE_TYPES.join(', ')}.`);

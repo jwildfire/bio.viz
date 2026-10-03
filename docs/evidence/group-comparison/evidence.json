@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-03T18:26:48.975Z",
+  "generatedAt": "2026-10-03T21:12:10.943Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37154241334",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37154241334"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -144,6 +147,54 @@
       "requirementIds": ["GC-CTRL-008"],
       "issueRefs": [49],
       "screenshots": []
+    },
+    {
+      "test": "GC-CUT-001: IL-6’s change to Week 4 by CRP at Baseline cut at the median, the tertiles, the quartiles and typed points: the groups low to high, each with R’s count beneath (#43)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-001"],
+      "issueRefs": [43],
+      "screenshots": ["GC-CUT-001-il-6-by-crp-tertiles.png"]
+    },
+    {
+      "test": "GC-CUT-002: the footnote states the cut and its points, worked out on the participants with a value (#43)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-002"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "GC-CUT-003: a cut biomarker makes the panels, in its order, each with R’s counts (#43)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-003"],
+      "issueRefs": [43],
+      "screenshots": ["GC-CUT-003-panels-by-crp-median.png"]
+    },
+    {
+      "test": "GC-CUT-006: the cut points are worked out on the participants the filters keep, and move with the filters (#43)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-006"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "GC-CUT-008: a cut has no Levels control: every group it makes is drawn (#43)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-008"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "GC-CUT-010: with R’s stored answers for cut groups R made itself, the result names the groups low to high, and a group below R’s minimum size prints R’s reason and counts (#43, #46)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-010"],
+      "issueRefs": [],
+      "screenshots": ["GC-CUT-010-cut-group-too-small.png"]
     },
     {
       "test": "GC-DRAW-001: a box per group, with the number in each group beneath, and the quartiles R gives (#9)",
@@ -1063,6 +1114,46 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: a cut biomarker GC-CUT-001: the panels’ groups are the cut’s, low to high, each participant in the group R puts them in (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-001"],
+      "issueRefs": [43],
+      "screenshots": ["GC-CUT-001-il-6-by-crp-tertiles.png"]
+    },
+    {
+      "test": "group comparison: a cut biomarker GC-CUT-004: the footnote says the points, how many values they were worked out on, and when repeated points collapsed or points written alike merged groups (#43, #46)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-004"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: a cut biomarker GC-CUT-005: `group_by` and `panel_by` take a column or a cut variable, written as the core writes one; a variable with no cut, a malformed cut, or a cut of what the tables do not have, is refused with a sentence (#43, #46)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-005"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: a cut biomarker GC-CUT-007: R is asked with the cut variable as written in the identity of the rows, and the groups by their labels (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-007"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: a cut biomarker GC-CUT-009: R is handed a cut’s groups low to high, so its result names them in that order, while the identity of the rows keeps them sorted by code point; a column’s groups are left to R (#43, #46)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-CUT-009"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

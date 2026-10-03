@@ -18,6 +18,7 @@
 // by R, as a stored result.
 
 import { formatComparison, formatEstimate, formatStatistic } from '../r/formatStatistic.js';
+import { isCut } from '../shared/cut.js';
 import {
   createDesk,
   failureOf,
@@ -94,7 +95,8 @@ export const groupsOf = (records) => sorted(records.map((record) => record.x));
  * @param {boolean} parts.pairwise Whether pairwise comparisons are switched on.
  * @param {object} parts.settings The chart's settings.
  * @param {object} parts.state What the controls are set to.
- * @param {object} parts.panel The panel: its rows, its visit and its panel level.
+ * @param {object} parts.panel The panel: its rows, its visit and its panel level, and,
+ *   when the groups are a cut's, its cells, which hold them low to high.
  * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
  */
 export function statisticRequest({ name, test, pairwise, settings, state, panel }) {
@@ -114,16 +116,23 @@ export function statisticRequest({ name, test, pairwise, settings, state, panel 
     ...(Object.keys(filters).length ? { filters } : {}),
     ...(state.yScale === 'log' ? { positive_only: true } : {})
   };
+  const args = {
+    strValueCol: 'y',
+    strGroupCol: 'x',
+    strMethod: test,
+    // Pairs exist only among more than two groups.
+    bPairwise: Boolean(pairwise) && groups.length > 2
+  };
+  // A cut's groups are handed to R low to high, the order they are drawn in, so
+  // R names them in that order. A column's are left to R, which sorts them as
+  // the identity does.
+  if (isCut(state.groupBy)) {
+    args.chrGroups = [...new Set(panel.cells.filter((cell) => cell.n).map((cell) => cell.level))];
+  }
   return {
     name,
     data: panel.records,
-    args: {
-      strValueCol: 'y',
-      strGroupCol: 'x',
-      strMethod: test,
-      // Pairs exist only among more than two groups.
-      bPairwise: Boolean(pairwise) && groups.length > 2
-    },
+    args,
     dataId,
     rows: panel.records.length
   };
@@ -235,15 +244,17 @@ export function noTestText(groups, several) {
  * @returns {string} One or more sentences.
  */
 export function scopeText({ group, n, panel, color, filters = [] }) {
+  // A name that holds a comma, as a cut variable's does, is closed by one.
+  const named = group.includes(',') ? `${group},` : group;
   const said = [
-    `This test compares the levels of ${group} on the ${n} participant${n === 1 ? '' : 's'} ` +
+    `This test compares the levels of ${named} on the ${n} participant${n === 1 ? '' : 's'} ` +
       (panel ? `drawn in this panel (${panel}).` : 'drawn.')
   ];
   if (panel) {
     said.push('Each panel has a test of its own, and they are not adjusted for one another.');
   }
   if (color) {
-    said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
+    said.push(`Colour by ${color} is not part of it: each level of ${named} is tested whole.`);
   }
   if (filters.length) said.push(filtersSaid(filters));
   return said.join(' ');

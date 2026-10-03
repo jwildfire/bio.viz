@@ -103,17 +103,14 @@ describe('core: a variable', () => {
     );
   });
 
-  it('CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)', () => {
-    for (const spec of [
-      { measure: 'CRP', visit: 'Baseline', cut: 'median' },
-      { measure: 'CRP', visit: 'Baseline', value: 'change', cut: [2, 5] },
-      { col: 'AGE', cut: 'tertiles' }
-    ]) {
-      expect(() => variable(spec)).toThrow(TypeError);
-      expect(() => variable(spec)).toThrow(
-        /asks for a cut, and the cut rule is not available yet: it arrives with cross-tabulation/
-      );
-    }
+  it('CORE-VAR-003: a variable that asks for a cut is no longer refused: it is returned with its cut, for the shared cut rule (#8, #43)', () => {
+    expect(variable({ measure: 'CRP', visit: 'Baseline', cut: 'median' }).cut).toBe('median');
+    expect(
+      variable({ measure: 'CRP', visit: 'Baseline', value: 'change', cut: [2, 5] }).cut
+    ).toEqual([2, 5]);
+    expect(variable({ col: 'AGE', type: 'number', cut: 'tertiles' }).cut).toBe('tertiles');
+    // A column cut must be read as a number (CUT-SPEC-002).
+    expect(() => variable({ col: 'AGE', cut: 'tertiles' })).toThrow(/must be read as a number/);
   });
 
   it('CORE-VAR-009: a variable is named in words for an axis or a legend (#8)', () => {

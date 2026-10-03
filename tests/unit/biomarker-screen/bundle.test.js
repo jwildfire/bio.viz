@@ -74,7 +74,11 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
   it('BS-KIT-003: the chart is built from the shared parts and writes none of them again; of other charts it imports only their public functions, and no chart imports anything of this one (#36)', () => {
     const shared = sourceFiles('src/shared');
     const fromScreen = reached(screen);
-    for (const file of shared) expect(fromScreen.has(file), file).toBe(true);
+    // Every shared part but the cut that makes groups (#43): the screen's groups
+    // are a column's.
+    for (const file of shared.filter((name) => name !== 'src/shared/cut.js')) {
+      expect(fromScreen.has(file), file).toBe(true);
+    }
     const ofOthers = [...fromScreen].filter((file) =>
       /group-comparison|association-scatter|correlation-matrix/.test(file)
     );

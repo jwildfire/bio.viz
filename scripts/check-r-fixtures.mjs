@@ -1,6 +1,6 @@
 // `npm run fixtures:check`: reruns each R script that writes a committed
 // fixture, in desktop R, and compares what it writes with the committed file, so
-// a fixture can only be what its script produces. Six fixtures:
+// a fixture can only be what its script produces. Seven fixtures:
 //
 //   tools/r-fixtures.R           site/r-check/expected.json, the expected
 //                                results on the R check page
@@ -20,6 +20,10 @@
 //   tools/r-screen-statistics.R  tests/fixtures/screen-statistics-r.json, the
 //                                same for the frames the biomarker screen
 //                                hands R
+//   tools/r-cut.R                tests/fixtures/cut-r.json, the cut points
+//                                stats::quantile() gives and the groups
+//                                base::cut() makes, which the core's cut rule
+//                                is held to
 //
 //   node scripts/check-r-fixtures.mjs               compare when R is installed;
 //                                                   say so loudly and exit 0
@@ -75,7 +79,8 @@ const FIXTURES = [
     script: 'tools/r-screen-statistics.R',
     committed: 'tests/fixtures/screen-statistics-r.json',
     body: ['results', 'recipes']
-  }
+  },
+  { script: 'tools/r-cut.R', committed: 'tests/fixtures/cut-r.json', body: 'cases' }
 ];
 const requireR = process.argv.includes('--require-r');
 
