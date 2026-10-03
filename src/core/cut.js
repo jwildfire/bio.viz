@@ -39,7 +39,7 @@ function quantile7(sorted, p) {
   return (1 - h) * below + h * above;
 }
 
-// R's round-half-to-even, which signif() rounds with.
+// R's round-half-to-even, which signif() rounds with (C's nearbyint).
 function roundHalfEven(value) {
   const floor = Math.floor(value);
   const rest = value - floor;
@@ -48,47 +48,89 @@ function roundHalfEven(value) {
   return floor % 2 === 0 ? floor : floor + 1;
 }
 
-// R's signif(x, digits), worked out as R works it out (src/nmath/fprec.c):
-// scaled by a power of ten to `digits` whole digits, rounded half to even, and
-// scaled back.
+// R's R_pow_di(x, n): x to a whole power by repeated squaring, as R works it
+// out, so a power of ten past 1e22, which no double holds exactly, is R's to
+// the last binary place.
+function powDi(x, n) {
+  let base = x;
+  let power = 1;
+  let left = Math.abs(n);
+  for (;;) {
+    if (left % 2 === 1) power *= base;
+    left = Math.floor(left / 2);
+    if (left === 0) break;
+    base *= base;
+  }
+  return n < 0 ? 1 / power : power;
+}
+
+// The largest power of ten a double holds (DBL_MAX_10_EXP).
+const MAX10E = 308;
+
+// R's signif(x, digits), worked out as R works it out (fprec() in
+// src/nmath/fprec.c): scaled by a power of ten to `digits` whole digits,
+// rounded half to even, and scaled back.
 function signif(x, digits) {
   if (x === 0 || !Number.isFinite(x)) return x;
   const sign = x < 0 ? -1 : 1;
   const size = Math.abs(x);
-  const e10 = digits - 1 - Math.floor(Math.log10(size));
-  if (e10 > 0) {
-    const scale = 10 ** e10;
-    return (sign * roundHalfEven(size * scale)) / scale;
+  const l10 = Math.log10(size);
+  let e10 = digits - 1 - Math.floor(l10);
+  if (Math.abs(l10) < MAX10E - 2) {
+    let p10 = 1;
+    if (e10 > MAX10E) {
+      p10 = powDi(10, e10 - MAX10E);
+      e10 = MAX10E;
+    }
+    if (e10 > 0) {
+      const scale = powDi(10, e10);
+      return (sign * (roundHalfEven(size * scale * p10) / scale)) / p10;
+    }
+    const scale = powDi(10, -e10);
+    return sign * (roundHalfEven(size / scale) * scale);
   }
-  const scale = 10 ** -e10;
-  return sign * roundHalfEven(size / scale) * scale;
+  // Next to the largest and the smallest doubles.
+  const e2 = digits + (e10 > 0 ? 1 : 6);
+  const p10 = powDi(10, e2);
+  const P10 = powDi(10, e10 - e2);
+  let scaled = size * p10 * P10;
+  if (MAX10E - l10 >= powDi(10, -digits)) scaled += 0.5;
+  return (sign * (Math.floor(scaled) / p10)) / P10;
 }
 
 /**
  * A cut point as a label writes it: four significant digits, as R's
- * `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes them.
+ * `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes them, in
+ * full however small or large, with no trailing zero.
  * @param {number} point A cut point.
- * @returns {string} The point in words: `2.783`, `0.00001234`, `123500`.
+ * @returns {string} The point in words: `2.783`, `0.00001234`, `123500`,
+ *   `0.000000000000000111`, `3382000000000000000000`.
  * @private
  */
 export function writePoint(point) {
-  const rounded = signif(point, 4);
+  let rounded = signif(point, 4);
+  // Past the doubles R's rounding works on, the point as it is.
+  if (!Number.isFinite(rounded)) rounded = point;
   // Zero has no sign in a label.
-  const text = String(rounded === 0 ? 0 : rounded);
-  if (!text.includes('e')) return text;
-  // Very small or very large: written out in full, as R does.
-  const e10 = 3 - Math.floor(Math.log10(Math.abs(rounded)));
-  return e10 > 0 ? rounded.toFixed(e10) : rounded.toFixed(0);
+  if (rounded === 0) return '0';
+  const sign = rounded < 0 ? '-' : '';
+  const size = Math.abs(rounded);
+  // A whole number is written to its last digit, as R's sprintf("%.0f") does:
+  // past 2^53 those are the double's own digits, not the four asked for.
+  if (Number.isInteger(size)) return sign + BigInt(size).toString();
+  // Otherwise its four significant digits, the trailing zeros dropped, written
+  // out with the decimal point in its place.
+  const [mantissa, exponent] = size.toExponential(3).split('e');
+  const digits = mantissa.replace('.', '').replace(/0+$/, '');
+  const place = Number(exponent) + 1;
+  if (place <= 0) return `${sign}0.${'0'.repeat(-place)}${digits}`;
+  if (place >= digits.length) return sign + digits + '0'.repeat(place - digits.length);
+  return `${sign}${digits.slice(0, place)}.${digits.slice(place)}`;
 }
 
-/**
- * The labels of the groups a set of cut points makes, low to high, each with
- * its bounds: `≤ a`, then `> a, ≤ b` for each pair of points, then `> z`.
- * @param {number[]} points The cut points, ascending, each once.
- * @returns {string[]} One label per group: one more than there are points, or
- *   none when there is no point.
- */
-export function cutLabels(points) {
+// The label of each group the points make, low to high: one more than there
+// are points. Distinct points written alike give two groups the same label.
+function boundLabels(points) {
   if (!points.length) return [];
   const bounds = points.map(writePoint);
   return [
@@ -99,6 +141,20 @@ export function cutLabels(points) {
 }
 
 /**
+ * The labels of the groups a set of cut points makes, low to high, each with
+ * its bounds: `≤ a`, then `> a, ≤ b` for each pair of points, then `> z`. Two
+ * points that are written alike to four significant digits make groups with the
+ * same label, and those groups are one, as R's `cut()` merges levels with the
+ * same label.
+ * @param {number[]} points The cut points, ascending, each once.
+ * @returns {string[]} One label per group: one more than there are points,
+ *   fewer where groups merge, or none when there is no point.
+ */
+export function cutLabels(points) {
+  return [...new Set(boundLabels(points))];
+}
+
+/**
  * The cut points of a variable's values, and the groups they make.
  *
  * @param {Array<?number>} values One value per participant; a value that is not
@@ -106,10 +162,11 @@ export function cutLabels(points) {
  * @param {string|number[]} cut `median`, `tertiles` or `quartiles`, or the cut
  *   points as typed, in ascending order.
  * @returns {{cut: (string|number[]), n: number, asked: number[], points: number[],
- *   repeated: boolean, labels: string[]}} The cut; how many values it was worked
- *   out on; the points asked for, as R's quantile() gives them or as typed; the
- *   points used, each once, ascending; whether a point repeated and collapsed;
- *   and the label of each group, low to high. With no value there are no points
+ *   repeated: boolean, merged: boolean, labels: string[]}} The cut; how many
+ *   values it was worked out on; the points asked for, as R's quantile() gives
+ *   them or as typed; the points used, each once, ascending; whether a point
+ *   repeated and collapsed; whether points written alike merged groups; and the
+ *   label of each group, low to high. With no value there are no points
  *   and no groups.
  */
 export function cutPoints(values, cut) {
@@ -119,13 +176,15 @@ export function cutPoints(values, cut) {
   if (typed) asked = [...cut];
   else asked = present.length ? PROBS[cut].map((p) => quantile7(present, p)) : [];
   const points = asked.filter((point, index) => asked.indexOf(point) === index);
+  const labels = cutLabels(points);
   return {
     cut: typed ? [...cut] : cut,
     n: present.length,
     asked,
     points,
     repeated: points.length < asked.length,
-    labels: cutLabels(points)
+    merged: points.length > 0 && labels.length < points.length + 1,
+    labels
   };
 }
 
@@ -135,10 +194,12 @@ export function cutPoints(values, cut) {
  * to a cut point is in the group below it.
  * @param {?number} value A participant's value.
  * @param {number[]} points The cut points, ascending, each once.
- * @returns {?number} The group's place among the labels, or null for a missing
- *   value.
+ * @returns {?number} The group's place among the labels `cutLabels` gives, or
+ *   null for a missing value.
  */
 export function cutGroup(value, points) {
   if (isMissing(value)) return null;
-  return points.filter((point) => point < value).length;
+  const labels = boundLabels(points);
+  // Groups with the same label are one: the place among the labels kept.
+  return cutLabels(points).indexOf(labels[points.filter((point) => point < value).length]);
 }

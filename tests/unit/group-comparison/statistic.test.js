@@ -648,6 +648,12 @@ describe('group comparison: how R’s answer is printed', () => {
         'Colour by Response is not part of it: each level of Arm is tested whole. ' +
         'Filters: Sex is F; Age is 35 or 57.'
     );
+    // A cut variable's name holds a comma, so a comma closes it.
+    expect(scopeText({ group: 'CRP at Baseline, cut at the median', n: 186, color: 'Sex' })).toBe(
+      'This test compares the levels of CRP at Baseline, cut at the median, on the 186 ' +
+        'participants drawn. Colour by Sex is not part of it: each level of CRP at Baseline, cut ' +
+        'at the median, is tested whole.'
+    );
     // It is printed with an answer from R, and with nothing else.
     expect(describeAnswer(ok(answerOf('welch')), { scope: 'This test.' }).scope).toBe('This test.');
     expect(describeAnswer(ok(answerOf('welch-age-57')), { scope: 'This test.' }).scope).toBe(

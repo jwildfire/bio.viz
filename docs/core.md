@@ -87,7 +87,8 @@ One rule cuts a number into groups, the same in every chart that makes groups fr
 - The cut points are R's `quantile()` with its default, type 7, at 1/2 (the median), 1/3 and 2/3 (the tertiles) or 1/4, 2/4 and 3/4 (the quartiles). Typed points are used as written.
 - A participant is in the group R's `cut(x, breaks = c(-Inf, points, Inf), right = TRUE)` puts them in: a value equal to a cut point falls in the lower group.
 - A point that repeats, as one does when many values are tied, collapses: the median of a cut always makes two groups, but quartiles of tied values may make fewer than four. The chart says so.
-- The groups are ordered low to high and labelled with their bounds: `≤ a` for the first, `> a, ≤ b` for each between, `> z` for the last. A bound is written to four significant digits, as R's `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes it: 2.783, 0.5833, 123500, and 2.0625 as 2.062, because R rounds a tie to even.
+- The groups are ordered low to high and labelled with their bounds: `≤ a` for the first, `> a, ≤ b` for each between, `> z` for the last. A bound is written to four significant digits, as R's `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes it: 2.783, 0.5833, 123500, and 2.0625 as 2.062, because R rounds a tie to even. However small or large, a bound is written in full with no trailing zero: 0.000000000000000111, 0.0000001, and 3382000000000000000000; a whole number past 2^53 is written to the last digit of the double that holds it, as R writes one.
+- Two points that differ only past four significant digits write the same bounds, so the groups between them have the same label. Those groups are one, as R's `cut()` merges levels with the same label, and the chart says so. Typed points written alike are refused, because the groups they ask for could not be told apart.
 - A cut point describes the values, as the median line of a box does. Nothing here tests, estimates or compares.
 
 The same groups in R, for gsm.bio or anyone checking a chart (`tools/r-cut.R` writes the expected results the unit tests hold this library to, with exactly these lines):
@@ -97,13 +98,15 @@ CUT_PROBS <- list(median = 0.5, tertiles = c(1, 2) / 3, quartiles = c(1, 2, 3) /
 
 cut_bound <- function(p) format(signif(p, 4), scientific = FALSE, trim = TRUE)
 
-cut_labels <- function(points) {
+bound_labels <- function(points) {
   k <- length(points)
   if (k == 0) return(character(0))
   bounds <- vapply(points, cut_bound, character(1))
   middle <- if (k > 1) paste0("> ", bounds[-k], ", ≤ ", bounds[-1]) else character(0)
   c(paste0("≤ ", bounds[1]), middle, paste0("> ", bounds[k]))
 }
+
+cut_labels <- function(points) unique(bound_labels(points))
 
 cut_points <- function(x, cut) {
   asked <- if (is.character(cut)) {
@@ -115,11 +118,11 @@ cut_points <- function(x, cut) {
 }
 
 cut_groups <- function(x, points) {
-  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = cut_labels(points)))
+  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = bound_labels(points)))
 }
 ```
 
-A label holds the sign ≤ (U+2264), so R must run in a UTF-8 locale. Where a chart writes a cut variable into the identity of the rows it hands R, it writes it as the settings do, `{ measure, visit, value, cut }` with the visit left out for a baseline value, or `{ col, type: 'number', cut }`; typed points are always a list, so in R write them as one (`I(c(2, 5))` or `list(2, 5)` for jsonlite), even a single point.
+A label holds the sign ≤ (U+2264), so R must run in a UTF-8 locale. Where a chart writes a cut variable into the identity of the rows it hands R, it writes it as the settings do, `{ measure, visit, value, cut }` with the visit left out for a baseline value, or `{ col, type: 'number', cut }`; typed points are always a list, so in R write them as one (`I(c(2, 5))` or `list(2, 5)` for jsonlite), even a single point. jsonlite writes a number to four decimal places unless told otherwise, so write the identity with `digits = NA` too, which writes 15 significant digits, enough for a point typed with 15 or fewer: with the default, a typed point of 0.000012345 is written 0, and the key does not match.
 
 ## `CUTS`
 
@@ -129,24 +132,25 @@ The cuts a variable may name, as a list: `median`, `tertiles`, `quartiles`. Type
 
 The cut points of a variable's values, and the groups they make. `values` holds one value per participant; one that is not a finite number is missing and is left out. `cut` is one of `CUTS` or the typed points. It returns:
 
-| Field      | What it is                                                                 |
-| ---------- | -------------------------------------------------------------------------- |
-| `cut`      | The cut, as given.                                                         |
-| `n`        | How many values it was worked out on.                                      |
-| `asked`    | The points asked for: R's `quantile()` of the values, or the typed points. |
-| `points`   | The points used: `asked` with a repeated point once.                       |
-| `repeated` | Whether a point repeated and collapsed.                                    |
-| `labels`   | The label of each group, low to high: one more than there are points.      |
+| Field      | What it is                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| `cut`      | The cut, as given.                                                                               |
+| `n`        | How many values it was worked out on.                                                            |
+| `asked`    | The points asked for: R's `quantile()` of the values, or the typed points.                       |
+| `points`   | The points used: `asked` with a repeated point once.                                             |
+| `repeated` | Whether a point repeated and collapsed.                                                          |
+| `merged`   | Whether points written alike gave groups the same label, which merged.                           |
+| `labels`   | The label of each group, low to high: one more than there are points, fewer where groups merged. |
 
 With no value there is nothing to cut at: no points and no groups.
 
 ## `cutGroup(value, points)`
 
-The group a value falls in, counted from 0, low to high, as R's `cut(right = TRUE)` places it, so a value equal to a cut point is in the group below it. Null for a missing value. `points` are a cut's `points`.
+The group a value falls in, counted from 0, low to high, as R's `cut(right = TRUE)` places it, so a value equal to a cut point is in the group below it, and its place among the `labels` of the cut, so groups that merged are one. Null for a missing value. `points` are a cut's `points`.
 
 ## `cutLabels(points)`
 
-The labels of the groups a cut's `points` make, low to high, as above: `cutLabels([2, 5])` is `['≤ 2', '> 2, ≤ 5', '> 5']`.
+The labels of the groups a cut's `points` make, low to high, as above: `cutLabels([2, 5])` is `['≤ 2', '> 2, ≤ 5', '> 5']`. A label that repeats is given once: `cutLabels([2.7928, 2.793, 2.7932])` is `['≤ 2.793', '> 2.793, ≤ 2.793', '> 2.793']`.
 
 ## `cutWords(cut)`
 
