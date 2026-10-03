@@ -1,16 +1,13 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-03T02:25:20.918Z",
+  "generatedAt": "2026-10-03T02:43:07.723Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37089720894",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37089720894"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
@@ -18,6 +15,14 @@
       "status": "pass",
       "requirementIds": ["CORE-API-001"],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-MAN-007: the site publishes the chart list as portfolio.json, the same list a page reads as BioViz.portfolio, and the format it names at schema/portfolio.json (#32)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-007"],
+      "issueRefs": [32],
       "screenshots": []
     },
     {
@@ -147,6 +152,14 @@
       "requirementIds": ["CORE-SITE-009"],
       "issueRefs": [7],
       "screenshots": ["CORE-SITE-009-sections-of-the-reference.png"]
+    },
+    {
+      "test": "API reference: held to the code CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-006"],
+      "issueRefs": [32],
+      "screenshots": []
     },
     {
       "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
@@ -1058,6 +1071,62 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-001: BioViz.portfolio is the chart list, the same object in the source and in both committed bundles (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-001"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-002: the chart list validates against safety.viz’s manifest schema at the recorded commit (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-002"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-003: the copied schema matches its record, which names safety.viz’s dev branch and a commit on it (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-003"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-004: every entry names bio.viz, is listed in the declared biomarker group, and takes the results table from labs and vitals and the participant table, optional, from the subject-level file (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-004"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-004: there is one entry for each available chart in site/config.json, under its title and its export, and no other (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-004"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-005: a chart that refuses a null column is passed nothing for an unmapped one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-005"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-005"],
+      "issueRefs": [32],
       "screenshots": []
     },
     {
