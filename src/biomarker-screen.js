@@ -106,10 +106,8 @@ ${C} .bv-screen{padding:.5rem}
 ${C} .bv-screen-head{grid-template-columns:1fr;padding:0 .2rem .3rem}
 ${C} .bv-screen-head > :not(.bv-ticks){display:none}
 ${C} .bv-screen-row{grid-template-columns:1fr;gap:.15rem .6rem;padding:.45rem .2rem}
-${C} .bv-screen-row .bv-track{grid-column:1 / -1;grid-row:2}
-${C} .bv-screen-row .bv-screen-value{grid-column:1 / -1}
+${C} .bv-screen-row[data-status] .bv-screen-value{grid-column:auto}
 ${C} .bv-screen-row .bv-screen-p,${C} .bv-screen-row .bv-screen-n{font-size:.8rem}
-${C} .bv-screen-row[data-status=withheld] .bv-screen-value{grid-column:1 / -1}
 ${C}.sv-collapsed .sv-sidebar-title{display:inline}
 ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;

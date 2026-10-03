@@ -745,6 +745,19 @@ test.describe('biomarker screen: pages, controls and the download', () => {
     await choose(page, 'visit', 'Week 4');
     expect(await called(page)).toBe(0);
     expect(await page.evaluate(() => window.__bs.chart.statistics())).toEqual([]);
+    // Switched off on a screen with R's rows on it, nothing of them is left.
+    await withStored(page, stored('difference-week-4-change'), {
+      ...WEEK_4,
+      statistic: 'Analyze_Screen'
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expect((await screen(page)).rows).toHaveLength(12);
+    await page.evaluate(() => {
+      window.__bs.chart.setSettings({ statistic: null });
+    });
+    expect((await screen(page)).rows).toEqual([]);
+    await expect(line(page)).toHaveText('');
+    expect(await said(page)).not.toMatch(/\d\.\d/);
   });
 
   test('BS-LIST-001: the rows download as a CSV file under this chart’s name, in the order shown (#36)', async ({

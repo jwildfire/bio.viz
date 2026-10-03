@@ -6698,10 +6698,8 @@ ${C2} .bv-screen{padding:.5rem}
 ${C2} .bv-screen-head{grid-template-columns:1fr;padding:0 .2rem .3rem}
 ${C2} .bv-screen-head > :not(.bv-ticks){display:none}
 ${C2} .bv-screen-row{grid-template-columns:1fr;gap:.15rem .6rem;padding:.45rem .2rem}
-${C2} .bv-screen-row .bv-track{grid-column:1 / -1;grid-row:2}
-${C2} .bv-screen-row .bv-screen-value{grid-column:1 / -1}
+${C2} .bv-screen-row[data-status] .bv-screen-value{grid-column:auto}
 ${C2} .bv-screen-row .bv-screen-p,${C2} .bv-screen-row .bv-screen-n{font-size:.8rem}
-${C2} .bv-screen-row[data-status=withheld] .bv-screen-value{grid-column:1 / -1}
 ${C2}.sv-collapsed .sv-sidebar-title{display:inline}
 ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
