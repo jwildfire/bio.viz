@@ -167,7 +167,8 @@ describe('module registry', () => {
       ['r-connection', 'shared'],
       ['group-comparison', 'chart'],
       ['association-scatter', 'chart'],
-      ['correlation-matrix', 'chart']
+      ['correlation-matrix', 'chart'],
+      ['biomarker-screen', 'chart']
     ]);
   });
 
