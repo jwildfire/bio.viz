@@ -63,15 +63,20 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     // src/shared/variables.js (#27), is how a variable is written in settings
     // and in a request: this chart and the correlation matrix use it, and the
     // group comparison chart, which names no variable that way, does not.
+    // src/shared/paging.js (#36) is how a long list is paged: the group
+    // comparison chart's overview and the biomarker screen use it.
     const everything = sourceFiles('src/shared');
     expect(everything).toEqual([
       'src/shared/chartHost.js',
+      'src/shared/paging.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
       'src/shared/variables.js'
     ]);
-    const shared = everything.filter((file) => file !== 'src/shared/variables.js');
+    const shared = everything.filter(
+      (file) => !['src/shared/variables.js', 'src/shared/paging.js'].includes(file)
+    );
     const reached = (files) => new Set(files.flatMap(importsOf));
     const fromScatter = reached(scatter);
     const fromComparison = reached(comparison);

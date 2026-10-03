@@ -6,6 +6,7 @@
 import { VALUE_TYPES } from '../core/variable.js';
 import { BASELINE_STATS } from '../core/settings.js';
 import {
+  checkBack,
   checkShared,
   columnOrNull,
   fieldList,
@@ -72,6 +73,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   test: 't',
   pairwise: false,
   waiting_note: null,
+  // A way back, when another chart opened this one in its place.
+  back: null,
   // safety.viz's participant profile.
   profile: true,
   profile_details: null,
@@ -90,6 +93,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
 export function syncSettings(overrides) {
   const settings = layOver(DEFAULT_SETTINGS, overrides, 'the group comparison chart');
   checkShared(settings, BASELINE_STATS);
+  checkBack(settings);
 
   for (const key of [
     'visit_order_col',

@@ -40,7 +40,10 @@ import {
   showListing,
   shown,
   syncHost,
-  writeStatistic
+  writeStatistic,
+  mountToolbar,
+  renderPager,
+  toolbarStyles
 } from './shared/chartHost.js';
 import { VALUE_TYPES } from './core/variable.js';
 import { NOBODY_PASSES } from './shared/tables.js';
@@ -84,6 +87,7 @@ const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's
 // are; the rest is this chart's own.
 const STYLES = `${lineStyles('.bv-group-comparison')}
+${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
 .bv-group-comparison .sv-multiples.bv-overview{display:block}
 .bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
@@ -160,6 +164,8 @@ class GroupComparison {
       styles: STYLES,
       listingFile: 'bio.viz-group-comparison-listing.csv'
     });
+    // The way back, when another chart opened this one in its place.
+    mountToolbar(this);
   }
 
   /**
@@ -202,6 +208,7 @@ class GroupComparison {
     const given = settings || {};
     this.settings = syncSettings({ ...this.settings, ...given });
     syncHost(this);
+    if ('back' in given) mountToolbar(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -733,29 +740,12 @@ class GroupComparison {
   // How many biomarkers are shown of how many, and, when there are more than
   // one page of them, the way to the rest.
   overviewPager(page) {
-    const { kit } = this;
-    const pager = kit.createElement('div', 'bv-overview-pager');
-    pager.append(kit.createElement('span', 'bv-overview-count', overviewCount(page)));
-    if (page.pages === 1) return pager;
-    const go = (label, to, name) => {
-      const button = kit.createElement('button', null, label);
-      button.type = 'button';
-      button.dataset.go = name;
-      button.disabled = to < 0 || to >= page.pages;
-      button.onclick = () => {
-        this.state.page = to;
-        this.render();
-        // The next page starts at its top.
-        if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-      };
-      return button;
-    };
-    pager.append(
-      go('Previous', page.page - 1, 'previous'),
-      kit.createElement('span', 'bv-overview-page', `Page ${page.page + 1} of ${page.pages}`),
-      go('Next', page.page + 1, 'next')
-    );
-    return pager;
+    return renderPager(this.kit, page, overviewCount(page), (to) => {
+      this.state.page = to;
+      this.render();
+      // The next page starts at its top.
+      if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+    });
   }
 
   // Opens a biomarker from its row. The single view replaces the overview, so

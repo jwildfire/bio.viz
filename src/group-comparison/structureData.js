@@ -13,6 +13,7 @@
 import { frame, visits as visitsInOrder } from '../core/frame.js';
 import { label as variableLabel } from '../core/variable.js';
 import { coreSettings } from '../shared/settings.js';
+import { pageCount, pageOf } from '../shared/paging.js';
 import { keepFiltered, levelsOf, unitOf } from '../shared/tables.js';
 
 // What the controls offer is read from the tables the same way by every chart,
@@ -407,18 +408,8 @@ export function yTitle(results, settings, state) {
  *   many, and the first and last of them counted from one.
  */
 export function overviewPage(measures, limit, page = 0) {
-  const total = measures.length;
-  const pages = Math.max(1, Math.ceil(total / limit));
-  const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
-  const shown = measures.slice(at * limit, (at + 1) * limit);
-  return {
-    measures: shown,
-    page: at,
-    pages,
-    from: total ? at * limit + 1 : 0,
-    to: at * limit + shown.length,
-    total
-  };
+  const { items, ...rest } = pageOf(measures, limit, page);
+  return { measures: items, ...rest };
 }
 
 /**
@@ -426,20 +417,7 @@ export function overviewPage(measures, limit, page = 0) {
  * @param {{from: number, to: number, total: number, pages: number}} page A page, as `overviewPage` gives it.
  * @returns {string} A sentence.
  */
-export function overviewCount({ from, to, total, pages }) {
-  if (!total) return 'No biomarker to show.';
-  if (pages === 1) {
-    return total === 1 ? 'The one biomarker is shown.' : `All ${total} biomarkers are shown.`;
-  }
-  const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
-  return `${to - from + 1} of ${total} biomarkers shown: ${which}, in the Biomarker control’s order.`;
-}
-
-const ordinal = (n) => {
-  const tens = n % 100;
-  const suffix = tens >= 11 && tens <= 13 ? 'th' : { 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th';
-  return `${n}${suffix}`;
-};
+export const overviewCount = (page) => pageCount(page, 'in the Biomarker control’s order');
 
 /**
  * The overview: one row per biomarker of the page, each row one panel per visit

@@ -3,6 +3,8 @@
 // `configure.js`) holds its defaults and decides what each setting may be; the
 // words a refusal is written in are the same everywhere, and are these.
 
+import { variable } from '../core/variable.js';
+
 export const isText = (value) => typeof value === 'string' && value.trim() !== '';
 export const isPlainObject = (value) =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -107,4 +109,46 @@ export function checkShared(settings, baselineStats) {
   ) {
     refuse('`connection` must be a connection to R (BioViz.r.createConnection), or null.');
   }
+}
+
+/**
+ * Checks the setting `back`: a way back to a chart that opened this one in its
+ * place, `{ label, action }`, or null for none.
+ * @param {object} settings The settings, laid over the defaults.
+ */
+export function checkBack(settings) {
+  if (
+    settings.back !== null &&
+    (!isPlainObject(settings.back) ||
+      !isText(settings.back.label) ||
+      typeof settings.back.action !== 'function')
+  ) {
+    refuse('`back` must be { label, action }, a sentence and a function, or null for none.');
+  }
+}
+
+/**
+ * A variable as a setting writes one: `{ measure, visit, value }` for a biomarker
+ * at a visit, or `{ col }` for a participant-level number, checked by the core
+ * and written back in full; null stays null.
+ * @param {?object} value What the caller wrote.
+ * @param {string} setting The setting's name, for the message.
+ * @returns {?object} The variable, as the settings write one.
+ */
+export function variableSetting(value, setting) {
+  if (value === null || value === undefined) return null;
+  if (!isPlainObject(value)) {
+    refuse(
+      `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, ` +
+        'or { col } for a participant-level number; or null.'
+    );
+  }
+  const read = variable('col' in value && value.col != null ? { ...value, type: 'number' } : value);
+  return read.kind === 'column'
+    ? { col: read.col }
+    : {
+        measure: read.measure,
+        value: read.value,
+        ...(read.visit === null ? {} : { visit: read.visit })
+      };
 }

@@ -1378,6 +1378,45 @@ function buildProfileFeed(chart, settingsOf) {
   });
   kit.mountProfileRail(host, settingsOf);
 }
+function renderPager(kit, page, count, go) {
+  const pager = kit.createElement("div", "bv-overview-pager");
+  pager.append(kit.createElement("span", "bv-overview-count", count));
+  if (page.pages === 1) return pager;
+  const button = (label2, to, name) => {
+    const made = kit.createElement("button", null, label2);
+    made.type = "button";
+    made.dataset.go = name;
+    made.disabled = to < 0 || to >= page.pages;
+    made.onclick = () => go(to);
+    return made;
+  };
+  pager.append(
+    button("Previous", page.page - 1, "previous"),
+    kit.createElement("span", "bv-overview-page", `Page ${page.page + 1} of ${page.pages}`),
+    button("Next", page.page + 1, "next")
+  );
+  return pager;
+}
+function mountToolbar(chart) {
+  const { kit, settings } = chart;
+  if (!chart.toolbar) {
+    chart.toolbar = kit.createElement("div", "bv-toolbar");
+    chart.notes.before(chart.toolbar);
+  }
+  chart.toolbar.innerHTML = "";
+  if (settings.back) {
+    const back = kit.createElement("button", "bv-back", settings.back.label);
+    back.type = "button";
+    back.onclick = () => settings.back.action(chart);
+    chart.toolbar.append(back);
+  }
+  return chart.toolbar;
+}
+var toolbarStyles = (C2) => `${C2} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
+${C2} .bv-toolbar:empty{display:none}
+${C2} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${C2} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
+${C2} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
 
 // src/shared/settings.js
 var isText3 = (value) => typeof value === "string" && value.trim() !== "";
@@ -1462,6 +1501,25 @@ function checkShared(settings, baselineStats) {
   if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
     refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
   }
+}
+function checkBack(settings) {
+  if (settings.back !== null && (!isPlainObject4(settings.back) || !isText3(settings.back.label) || typeof settings.back.action !== "function")) {
+    refuse4("`back` must be { label, action }, a sentence and a function, or null for none.");
+  }
+}
+function variableSetting(value, setting) {
+  if (value === null || value === void 0) return null;
+  if (!isPlainObject4(value)) {
+    refuse4(
+      `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
+    );
+  }
+  const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
+  return read2.kind === "column" ? { col: read2.col } : {
+    measure: read2.measure,
+    value: read2.value,
+    ...read2.visit === null ? {} : { visit: read2.visit }
+  };
 }
 
 // src/shared/tables.js
@@ -1573,6 +1631,66 @@ function keepFiltered({ results, participants }, settings, filters, filterMatche
     results: results.filter((row) => ids.has(String(row[idCol])))
   };
 }
+var isNumeric = (value) => {
+  if (typeof value === "number") return Number.isFinite(value);
+  return typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value));
+};
+function numberColumns({ results, participants }, settings) {
+  if (settings.numbers) return settings.numbers.map((spec) => ({ ...spec, table: "given" }));
+  const columns = [];
+  const taken = /* @__PURE__ */ new Set();
+  const numbers = (values) => {
+    const distinct = /* @__PURE__ */ new Set();
+    for (const value of values) {
+      if (isBlank2(value)) continue;
+      if (!isNumeric(value)) return false;
+      distinct.add(Number(value));
+    }
+    return distinct.size > 1;
+  };
+  if (participants && participants.length) {
+    const idCol = settings.participant_id_col || settings.id_col;
+    for (const name of Object.keys(participants[0])) {
+      if (name === idCol) continue;
+      taken.add(name);
+      if (numbers(participants.map((row) => row[name]))) {
+        columns.push({ value_col: name, label: name, table: "participants" });
+      }
+    }
+  }
+  const mapped = new Set(
+    [
+      settings.id_col,
+      settings.measure_col,
+      settings.value_col,
+      settings.visit_col,
+      settings.visit_order_col,
+      settings.unit_col,
+      settings.studyday_col,
+      settings.normal_col_high,
+      settings.normal_col_low
+    ].filter(Boolean)
+  );
+  for (const name of results.length ? Object.keys(results[0]) : []) {
+    if (mapped.has(name) || taken.has(name)) continue;
+    const byParticipant = /* @__PURE__ */ new Map();
+    let constant = true;
+    for (const row of results) {
+      if (isBlank2(row[name])) continue;
+      const id = String(row[settings.id_col]);
+      const value = String(row[name]);
+      if (!byParticipant.has(id)) byParticipant.set(id, value);
+      else if (byParticipant.get(id) !== value) {
+        constant = false;
+        break;
+      }
+    }
+    if (constant && numbers(byParticipant.values())) {
+      columns.push({ value_col: name, label: name, table: "results" });
+    }
+  }
+  return columns;
+}
 
 // src/group-comparison/configure.js
 var MARKS = Object.freeze(["box", "violin", "points"]);
@@ -1616,6 +1734,8 @@ var DEFAULT_SETTINGS2 = Object.freeze({
   test: "t",
   pairwise: false,
   waiting_note: null,
+  // A way back, when another chart opened this one in its place.
+  back: null,
   // safety.viz's participant profile.
   profile: true,
   profile_details: null,
@@ -1626,6 +1746,7 @@ var DEFAULT_SETTINGS2 = Object.freeze({
 function syncSettings(overrides) {
   const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
   checkShared(settings, BASELINE_STATS);
+  checkBack(settings);
   for (const key of [
     "visit_order_col",
     "unit_col",
@@ -1874,6 +1995,35 @@ function createStatisticDesk({ connection, note = null }) {
   });
 }
 
+// src/shared/paging.js
+function pageOf(items, limit, page = 0) {
+  const total = items.length;
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
+  const shown2 = items.slice(at * limit, (at + 1) * limit);
+  return {
+    items: shown2,
+    page: at,
+    pages,
+    from: total ? at * limit + 1 : 0,
+    to: at * limit + shown2.length,
+    total
+  };
+}
+var ordinal = (n) => {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+  return `${n}${suffix}`;
+};
+function pageCount({ from, to, total, pages }, order2) {
+  if (!total) return "No biomarker to show.";
+  if (pages === 1) {
+    return total === 1 ? "The one biomarker is shown." : `All ${total} biomarkers are shown.`;
+  }
+  const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
+  return `${to - from + 1} of ${total} biomarkers shown: ${which}, ${order2}.`;
+}
+
 // src/group-comparison/structureData.js
 function quantile(sorted2, p) {
   if (!sorted2.length) return NaN;
@@ -2102,32 +2252,10 @@ function yTitle(results, settings, state) {
   return unit ? `${words} (${unit})` : words;
 }
 function overviewPage(measures, limit, page = 0) {
-  const total = measures.length;
-  const pages = Math.max(1, Math.ceil(total / limit));
-  const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
-  const shown2 = measures.slice(at * limit, (at + 1) * limit);
-  return {
-    measures: shown2,
-    page: at,
-    pages,
-    from: total ? at * limit + 1 : 0,
-    to: at * limit + shown2.length,
-    total
-  };
+  const { items, ...rest } = pageOf(measures, limit, page);
+  return { measures: items, ...rest };
 }
-function overviewCount({ from, to, total, pages }) {
-  if (!total) return "No biomarker to show.";
-  if (pages === 1) {
-    return total === 1 ? "The one biomarker is shown." : `All ${total} biomarkers are shown.`;
-  }
-  const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
-  return `${to - from + 1} of ${total} biomarkers shown: ${which}, in the Biomarker control\u2019s order.`;
-}
-var ordinal = (n) => {
-  const tens = n % 100;
-  const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
-  return `${n}${suffix}`;
-};
+var overviewCount = (page) => pageCount(page, "in the Biomarker control\u2019s order");
 function buildOverview(tables, settings, state, measures, options = {}) {
   return measures.map((measure) => {
     const row = { ...state, measure, panelBy: "" };
@@ -2145,6 +2273,7 @@ var OVERVIEW = "bv_overview";
 var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
 var STYLE_ID = "bio-viz-group-comparison-styles";
 var STYLES = `${lineStyles(".bv-group-comparison")}
+${toolbarStyles(".bv-group-comparison")}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
 .bv-group-comparison .sv-multiples.bv-overview{display:block}
 .bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
@@ -2205,6 +2334,7 @@ var GroupComparison = class {
       styles: STYLES,
       listingFile: "bio.viz-group-comparison-listing.csv"
     });
+    mountToolbar(this);
   }
   /**
    * Load the tables and draw: the same as `setData`.
@@ -2244,6 +2374,7 @@ var GroupComparison = class {
     const given2 = settings || {};
     this.settings = syncSettings({ ...this.settings, ...given2 });
     syncHost(this);
+    if ("back" in given2) mountToolbar(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -2711,28 +2842,11 @@ var GroupComparison = class {
   // How many biomarkers are shown of how many, and, when there are more than
   // one page of them, the way to the rest.
   overviewPager(page) {
-    const { kit } = this;
-    const pager = kit.createElement("div", "bv-overview-pager");
-    pager.append(kit.createElement("span", "bv-overview-count", overviewCount(page)));
-    if (page.pages === 1) return pager;
-    const go = (label2, to, name) => {
-      const button = kit.createElement("button", null, label2);
-      button.type = "button";
-      button.dataset.go = name;
-      button.disabled = to < 0 || to >= page.pages;
-      button.onclick = () => {
-        this.state.page = to;
-        this.render();
-        if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-      };
-      return button;
-    };
-    pager.append(
-      go("Previous", page.page - 1, "previous"),
-      kit.createElement("span", "bv-overview-page", `Page ${page.page + 1} of ${page.pages}`),
-      go("Next", page.page + 1, "next")
-    );
-    return pager;
+    return renderPager(this.kit, page, overviewCount(page), (to) => {
+      this.state.page = to;
+      this.render();
+      if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+    });
   }
   // Opens a biomarker from its row. The single view replaces the overview, so
   // the page is brought back to the chart's top, and the keyboard's place is
@@ -2865,8 +2979,8 @@ var GroupComparison = class {
               ...compact ? { font: { size: 10 }, padding: 2 } : {},
               callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
             },
-            afterBuildTicks: (axis2) => {
-              axis2.ticks = model.shownLevels.map((_, index) => ({ value: index }));
+            afterBuildTicks: (axis) => {
+              axis.ticks = model.shownLevels.map((_, index) => ({ value: index }));
             }
           },
           y: {
@@ -3233,20 +3347,6 @@ var DEFAULT_SETTINGS3 = Object.freeze({
   normal_col_high: null,
   normal_col_low: null
 });
-function axis(value, setting) {
-  if (value === null || value === void 0) return null;
-  if (!isPlainObject4(value)) {
-    refuse4(
-      `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
-    );
-  }
-  const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
-  return read2.kind === "column" ? { col: read2.col } : {
-    measure: read2.measure,
-    value: read2.value,
-    ...read2.visit === null ? {} : { visit: read2.visit }
-  };
-}
 function syncSettings2(overrides) {
   const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
   checkShared(settings, BASELINE_STATS);
@@ -3284,11 +3384,9 @@ function syncSettings2(overrides) {
       "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
     );
   }
-  if (settings.back !== null && (!isPlainObject4(settings.back) || !isText3(settings.back.label) || typeof settings.back.action !== "function")) {
-    refuse4("`back` must be { label, action }, a sentence and a function, or null for none.");
-  }
-  settings.x = axis(settings.x, "x");
-  settings.y = axis(settings.y, "y");
+  checkBack(settings);
+  settings.x = variableSetting(settings.x, "x");
+  settings.y = variableSetting(settings.y, "y");
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.measures = textList2(settings.measures, "measures");
   settings.numbers = fieldList(settings.numbers, "numbers");
@@ -3310,94 +3408,34 @@ function axisOf(spec) {
     visit: value === "baseline" ? null : spec.visit ?? null
   };
 }
-function variableOf(axis2) {
-  if (axis2.kind === "column") return { col: axis2.col, type: "number" };
-  return axis2.value === "baseline" ? { measure: axis2.measure, value: "baseline" } : { measure: axis2.measure, visit: axis2.visit, value: axis2.value };
+function variableOf(axis) {
+  if (axis.kind === "column") return { col: axis.col, type: "number" };
+  return axis.value === "baseline" ? { measure: axis.measure, value: "baseline" } : { measure: axis.measure, visit: axis.visit, value: axis.value };
 }
-function settingOf(axis2) {
-  if (axis2.kind === "column") return { col: axis2.col };
+function settingOf(axis) {
+  if (axis.kind === "column") return { col: axis.col };
   return {
-    measure: axis2.measure,
-    value: axis2.value,
-    ...axis2.value === "baseline" ? {} : { visit: axis2.visit }
+    measure: axis.measure,
+    value: axis.value,
+    ...axis.value === "baseline" ? {} : { visit: axis.visit }
   };
 }
 
 // src/association-scatter/structureData.js
 var RELATIVE2 = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
-var isNumeric = (value) => {
-  if (typeof value === "number") return Number.isFinite(value);
-  return typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value));
-};
-function numberColumns({ results, participants }, settings) {
-  if (settings.numbers) return settings.numbers.map((spec) => ({ ...spec, table: "given" }));
-  const columns = [];
-  const taken = /* @__PURE__ */ new Set();
-  const numbers = (values) => {
-    const distinct = /* @__PURE__ */ new Set();
-    for (const value of values) {
-      if (isBlank2(value)) continue;
-      if (!isNumeric(value)) return false;
-      distinct.add(Number(value));
-    }
-    return distinct.size > 1;
-  };
-  if (participants && participants.length) {
-    const idCol = settings.participant_id_col || settings.id_col;
-    for (const name of Object.keys(participants[0])) {
-      if (name === idCol) continue;
-      taken.add(name);
-      if (numbers(participants.map((row) => row[name]))) {
-        columns.push({ value_col: name, label: name, table: "participants" });
-      }
-    }
-  }
-  const mapped = new Set(
-    [
-      settings.id_col,
-      settings.measure_col,
-      settings.value_col,
-      settings.visit_col,
-      settings.visit_order_col,
-      settings.unit_col,
-      settings.studyday_col,
-      settings.normal_col_high,
-      settings.normal_col_low
-    ].filter(Boolean)
-  );
-  for (const name of results.length ? Object.keys(results[0]) : []) {
-    if (mapped.has(name) || taken.has(name)) continue;
-    const byParticipant = /* @__PURE__ */ new Map();
-    let constant = true;
-    for (const row of results) {
-      if (isBlank2(row[name])) continue;
-      const id = String(row[settings.id_col]);
-      const value = String(row[name]);
-      if (!byParticipant.has(id)) byParticipant.set(id, value);
-      else if (byParticipant.get(id) !== value) {
-        constant = false;
-        break;
-      }
-    }
-    if (constant && numbers(byParticipant.values())) {
-      columns.push({ value_col: name, label: name, table: "results" });
-    }
-  }
-  return columns;
-}
-function axisOffered(axis2, { measures, visits: visits2, numbers }) {
-  if (!axis2) return false;
-  if (axis2.kind === "column") return numbers.some((entry) => entry.value_col === axis2.col);
-  if (!measures.includes(axis2.measure)) return false;
-  return axis2.value === "baseline" || visits2.includes(axis2.visit);
+function axisOffered(axis, { measures, visits: visits2, numbers }) {
+  if (!axis) return false;
+  if (axis.kind === "column") return numbers.some((entry) => entry.value_col === axis.col);
+  if (!measures.includes(axis.measure)) return false;
+  return axis.value === "baseline" || visits2.includes(axis.visit);
 }
 function openingAxes(settings, offered) {
   const { measures, visits: visits2, numbers } = offered;
   const missing = [];
   const named = (key) => {
     if (!settings[key]) return null;
-    const axis2 = axisOf(settings[key]);
-    if (axisOffered(axis2, offered)) return axis2;
+    const axis = axisOf(settings[key]);
+    if (axisOffered(axis, offered)) return axis;
     missing.push(key);
     return null;
   };
@@ -3413,22 +3451,22 @@ function openingAxes(settings, offered) {
   }
   return { x, y, missing };
 }
-function axisTitle(results, settings, axis2, numbers = []) {
-  if (axis2.kind === "column") {
-    const found = numbers.find((entry) => entry.value_col === axis2.col);
-    return found ? found.label : axis2.col;
+function axisTitle(results, settings, axis, numbers = []) {
+  if (axis.kind === "column") {
+    const found = numbers.find((entry) => entry.value_col === axis.col);
+    return found ? found.label : axis.col;
   }
-  const words = label(variableOf(axis2));
-  if (axis2.value === "fold_change") return words;
-  if (axis2.value === "percent_change") return `${words} (%)`;
-  const unit = unitOf(results, settings, axis2.measure);
+  const words = label(variableOf(axis));
+  if (axis.value === "fold_change") return words;
+  if (axis.value === "percent_change") return `${words} (%)`;
+  const unit = unitOf(results, settings, axis.measure);
   return unit ? `${words} (${unit})` : words;
 }
-function flatAtBaseline(axis2, results, settings) {
-  if (axis2.kind !== "measure" || !RELATIVE2.has(axis2.value)) return false;
+function flatAtBaseline(axis, results, settings) {
+  if (axis.kind !== "measure" || !RELATIVE2.has(axis.value)) return false;
   const config = coreSettings(settings);
   const baseline = config.baseline_visits || visits(results, config).slice(0, 1);
-  return baseline.length === 1 && baseline[0] === axis2.visit;
+  return baseline.length === 1 && baseline[0] === axis.visit;
 }
 var VARIABLE_WORDS = Object.freeze({
   x: "x axis",
@@ -3853,11 +3891,7 @@ var STYLES2 = `${lineStyles(`.${MODULE_CLASS}`)}
 .${MODULE_CLASS} .sv-chart-wrap canvas,.${MODULE_CLASS} .bv-panel-canvas canvas{cursor:crosshair}
 .${MODULE_CLASS} canvas.bv-region-on{touch-action:none}
 .${MODULE_CLASS} .bv-stat-remark[data-kind=scale]{color:#1f2933}
-.${MODULE_CLASS} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
-.${MODULE_CLASS} .bv-toolbar:empty{display:none}
-.${MODULE_CLASS} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-.${MODULE_CLASS} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
-.${MODULE_CLASS} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${toolbarStyles(`.${MODULE_CLASS}`)}
 .${MODULE_CLASS} .bv-fit{margin:.5rem 0 0}
 .${MODULE_CLASS} .bv-stat-pairs{max-width:46rem}
 .${MODULE_CLASS} .bv-stat-pairs th[scope=row]{overflow-wrap:normal}
@@ -3912,20 +3946,12 @@ var AssociationScatter = class {
       styles: STYLES2,
       listingFile: "bio.viz-association-scatter-listing.csv"
     });
-    this.toolbar = kit.createElement("div", "bv-toolbar");
-    this.notes.before(this.toolbar);
     this.touch = Boolean(globalThis.matchMedia && globalThis.matchMedia("(pointer: coarse)").matches) || (globalThis.navigator ? globalThis.navigator.maxTouchPoints > 0 : false);
     this.buildToolbar();
   }
   buildToolbar() {
-    const { kit, settings } = this;
-    this.toolbar.innerHTML = "";
-    if (settings.back) {
-      const back = kit.createElement("button", "bv-back", settings.back.label);
-      back.type = "button";
-      back.onclick = () => settings.back.action(this);
-      this.toolbar.append(back);
-    }
+    const { kit } = this;
+    mountToolbar(this);
     this.regionButton = null;
     if (this.touch) {
       const region = kit.createElement("button", "bv-region", "Select a region");
@@ -4062,8 +4088,8 @@ var AssociationScatter = class {
     const found = this.categories.find((entry) => entry.value_col === column);
     return found ? found.label : column;
   }
-  titleOf(axis2) {
-    return axisTitle(this.tables.results, this.settings, axis2, this.numbers);
+  titleOf(axis) {
+    return axisTitle(this.tables.results, this.settings, axis, this.numbers);
   }
   // ---- Controls ---------------------------------------------------------------
   buildControls() {
@@ -4083,8 +4109,8 @@ var AssociationScatter = class {
       return addControl(labelText.replace(/^[XY] axis: /, ""), input, parent);
     };
     const axisControls = (key, title) => {
-      const axis2 = state[key];
-      if (!axis2) return;
+      const axis = state[key];
+      if (!axis) return;
       const section = addSection(title);
       const named = (text2) => `${title}: ${text2}`;
       const variables = [
@@ -4095,40 +4121,40 @@ var AssociationScatter = class {
         `${key}-variable`,
         named("Variable"),
         variables,
-        axis2.kind === "column" ? `c:${axis2.col}` : `m:${axis2.measure}`,
+        axis.kind === "column" ? `c:${axis.col}` : `m:${axis.measure}`,
         (next) => {
           const name = next.slice(2);
           state[key] = next.startsWith("c:") ? { kind: "column", col: name } : {
             kind: "measure",
             measure: name,
-            value: axis2.kind === "measure" ? axis2.value : "raw",
-            visit: axis2.kind === "measure" ? axis2.visit : this.visits[0] ?? null
+            value: axis.kind === "measure" ? axis.value : "raw",
+            visit: axis.kind === "measure" ? axis.visit : this.visits[0] ?? null
           };
           redraw(true);
         },
         section
       );
-      if (axis2.kind === "measure") {
+      if (axis.kind === "measure") {
         select(
           `${key}-value`,
           named("Value"),
           VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
-          axis2.value,
+          axis.value,
           (next) => {
-            axis2.value = next;
-            axis2.visit = next === "baseline" ? null : axis2.visit ?? this.visits[0] ?? null;
+            axis.value = next;
+            axis.visit = next === "baseline" ? null : axis.visit ?? this.visits[0] ?? null;
             redraw(true);
           },
           section
         );
-        if (axis2.value !== "baseline") {
+        if (axis.value !== "baseline") {
           select(
             `${key}-visit`,
             named("Visit"),
             this.visits.map((visit) => [visit, visit]),
-            axis2.visit,
+            axis.visit,
             (next) => {
-              axis2.visit = next;
+              axis.visit = next;
               redraw(false);
             },
             section
@@ -4243,7 +4269,7 @@ var AssociationScatter = class {
       this.footnote.textContent = "No results to draw.";
       return;
     }
-    if ([state.x, state.y].some((axis2) => flatAtBaseline(axis2, results, this.settings))) {
+    if ([state.x, state.y].some((axis) => flatAtBaseline(axis, results, this.settings))) {
       this.footnote.textContent = NOTHING_AT_BASELINE;
       return;
     }
@@ -4486,7 +4512,7 @@ var AssociationScatter = class {
     if (model.filtered !== null && model.filtered < this.tables.participants.length) {
       add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
     }
-    if (model.baselineVisits && [state.x, state.y].some((axis2) => axis2.value !== "raw")) {
+    if (model.baselineVisits && [state.x, state.y].some((axis) => axis.value !== "raw")) {
       add(`Baseline visit: ${model.baselineVisits.join(", ")}.`);
     }
   }
@@ -5034,9 +5060,9 @@ function shownCount({ variables, chosen, of }, limit) {
 }
 function unitOfGrid(results, settings, variables) {
   if (!variables.length) return null;
-  const [{ axis: axis2 }] = variables;
-  if (axis2.value === "fold_change") return null;
-  if (axis2.value === "percent_change") return "%";
+  const [{ axis }] = variables;
+  if (axis.value === "fold_change") return null;
+  if (axis.value === "percent_change") return "%";
   const units = new Set(variables.map((entry) => unitOf(results, settings, entry.axis.measure)));
   return units.size === 1 ? [...units][0] : null;
 }
