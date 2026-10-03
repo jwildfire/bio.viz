@@ -8,10 +8,10 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 | ------------------------------------------------ | ------------------- | ---: |
 | [core.md](core.md)                               | core                |   52 |
 | [r-connection.md](r-connection.md)               | r-connection        |   77 |
-| [group-comparison.md](group-comparison.md)       | group-comparison    |  123 |
-| [association-scatter.md](association-scatter.md) | association-scatter |   79 |
-| [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   65 |
-| [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   60 |
+| [group-comparison.md](group-comparison.md)       | group-comparison    |  124 |
+| [association-scatter.md](association-scatter.md) | association-scatter |   80 |
+| [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   66 |
+| [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   61 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
 

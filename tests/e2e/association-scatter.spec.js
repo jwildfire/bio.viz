@@ -4,6 +4,7 @@ import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
+import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The association scatter in a real page (#26): safety.viz's vendored bundle and
@@ -2619,5 +2620,15 @@ test.describe('association scatter: the demo, with R in the browser, live', () =
     expect(overflowing).toEqual([]);
     await line(page).scrollIntoViewIfNeeded();
     await captureEvidence(page.locator('#demo'), 'AS-LIVE-008', 'r-in-the-browser-on-a-phone');
+  });
+});
+
+test.describe('association scatter: the filter rules safety.viz’s charts follow', () => {
+  test('AS-FILTER-004: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)', async ({
+    page
+  }) => {
+    const warnings = warningsOf(page);
+    await open(page, { settings: { filters: RULED_FILTERS } });
+    await expectFilterRules(page, warnings, () => ({ ...window.__as.chart.state.filters }));
   });
 });

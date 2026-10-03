@@ -5,6 +5,7 @@ import { test, expect, chromium } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js';
 import { captureEvidence } from './evidence.js';
+import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
 // The correlation matrix in a real page (#27): safety.viz's vendored bundle and
@@ -3427,5 +3428,15 @@ test.describe('correlation matrix: the demo, with R in the browser, live', () =>
     );
     expect(overflowing).toEqual([]);
     await captureEvidence(page.locator('#demo'), 'CM-LIVE-008', 'r-in-the-browser-on-a-phone');
+  });
+});
+
+test.describe('correlation matrix: the filter rules safety.viz’s charts follow', () => {
+  test('CM-FILTER-002: a filter reads its spec by safety.viz’s rule: `start` opens it with All still offered, only `all: false` removes All and its first value is then in force, a value the data lacks falls back to All with a warning, and the chart filters by what the controls show (#37)', async ({
+    page
+  }) => {
+    const warnings = warningsOf(page);
+    await open(page, { settings: { filters: RULED_FILTERS } });
+    await expectFilterRules(page, warnings, () => ({ ...window.__cm.chart.state.filters }));
   });
 });

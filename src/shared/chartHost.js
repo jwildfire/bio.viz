@@ -220,28 +220,36 @@ export function addFilterControls(chart, { addSection, addControl }, onChange) {
   if (!chart.filterSpecs.length) return;
   const filters = addSection('Filters');
   const idCol = chart.settings.participant_id_col || chart.settings.id_col;
-  chart.filterSpecs.forEach((spec) => {
-    const values = [
-      ...new Set(
-        chart.tables.participants
-          .map((row) => row[spec.value_col])
-          .filter((entry) => entry !== undefined && entry !== null && entry !== '')
-          .map(String)
-      )
-    ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    if (spec.value_col === idCol) return;
-    const control = kit.renderFilterControl({
-      spec,
-      values,
-      selected: state.filters[spec.value_col],
-      onChange: (next) => {
-        state.filters[spec.value_col] = next;
-        onChange();
-      }
+  // The participant's id is no filter: it gets no control, and so no restriction.
+  const drawn = chart.filterSpecs.filter((spec) => spec.value_col !== idCol);
+  // safety.viz's own reconciliation of what each spec asks for with what the
+  // data has, as every safety.viz chart calls it: a start the data lacks falls
+  // back to All with a warning, `all: false` puts its first value in force, and
+  // the state the chart filters by is the selection each control shows.
+  kit
+    .reconcileFilters(state.filters, drawn, (spec) =>
+      [
+        ...new Set(
+          chart.tables.participants
+            .map((row) => row[spec.value_col])
+            .filter((entry) => entry !== undefined && entry !== null && entry !== '')
+            .map(String)
+        )
+      ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    )
+    .forEach(({ spec, values, selected }) => {
+      const control = kit.renderFilterControl({
+        spec,
+        values,
+        selected,
+        onChange: (next) => {
+          state.filters[spec.value_col] = next;
+          onChange();
+        }
+      });
+      control.dataset.filter = spec.value_col;
+      addControl(spec.label, control, filters);
     });
-    control.dataset.filter = spec.value_col;
-    addControl(spec.label, control, filters);
-  });
 }
 
 /** The filters in force, each with its label and the values it lets through, for a sentence. */

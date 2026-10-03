@@ -1293,17 +1293,20 @@ function addFilterControls(chart, { addSection, addControl }, onChange) {
   if (!chart.filterSpecs.length) return;
   const filters = addSection("Filters");
   const idCol = chart.settings.participant_id_col || chart.settings.id_col;
-  chart.filterSpecs.forEach((spec) => {
-    const values = [
+  const drawn = chart.filterSpecs.filter((spec) => spec.value_col !== idCol);
+  kit.reconcileFilters(
+    state.filters,
+    drawn,
+    (spec) => [
       ...new Set(
         chart.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
       )
-    ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
-    if (spec.value_col === idCol) return;
+    ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }))
+  ).forEach(({ spec, values, selected }) => {
     const control = kit.renderFilterControl({
       spec,
       values,
-      selected: state.filters[spec.value_col],
+      selected,
       onChange: (next) => {
         state.filters[spec.value_col] = next;
         onChange();
