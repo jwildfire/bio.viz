@@ -1,16 +1,13 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-03T07:25:53.623Z",
+  "generatedAt": "2026-10-03T08:32:43.501Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37106291780",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -205,6 +202,14 @@
       "screenshots": []
     },
     {
+      "test": "GC-DRAW-008: with five long arm names, the groups’ labels under each visit’s panel do not run into one another at 1280 pixels wide; narrower is #53 (#52)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-008"],
+      "issueRefs": [52],
+      "screenshots": []
+    },
+    {
       "test": "GC-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
       "suite": "browser",
       "status": "pass",
@@ -226,6 +231,14 @@
       "status": "pass",
       "requirementIds": ["GC-DROP-003"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DROP-004"],
+      "issueRefs": [52],
       "screenshots": []
     },
     {
@@ -450,6 +463,14 @@
       "status": "pass",
       "requirementIds": ["GC-OVW-019"],
       "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "GC-OVW-020: in the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others (#52)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-020"],
+      "issueRefs": [52],
       "screenshots": []
     },
     {
@@ -1938,6 +1959,14 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-045"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-046: chart_text writes NaN as the chart does, and holds to String() for numbers of 13 significant digits, the most its claim covers (#52)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-046"],
+      "issueRefs": [52],
       "screenshots": []
     }
   ]
