@@ -2,6 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
@@ -405,7 +412,9 @@ test.describe('biomarker screen: what is drawn', () => {
     await expect(line(page).locator('.bv-stat-remark')).toHaveText([
       "R’s note: Each row's estimate: Standardised difference (Hedges' g), Placebo - Treatment.",
       "R’s note: p_value is adjusted across the 12 rows that have a p-value by p.adjust(method = 'BH'); 0 of the 12 rows have none and are left out of the adjustment.",
-      "R’s note: The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function."
+      "R’s note: The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function.",
+      // Since gsm.bio 514cbc3 R says that the interval pools the variances and the p-value does not (#49).
+      "R’s note: The interval is the pooled-variance (Student) interval for Hedges' g, while the p-value is Welch's, which does not pool the variances: when the two groups' spreads differ, a row's interval can include zero while its p-value is below 0.05, or exclude zero while it is above."
     ]);
     await expect(line(page).locator('.bv-stat-scope')).toHaveText(
       '187 participants are in the frame. A row is of the ones who have its biomarker, so each row has its own counts.'
@@ -2117,5 +2126,110 @@ test.describe('biomarker screen: the filter rules safety.viz’s charts follow',
       settings: { visit: 'Week 4', value_type: 'change', group_by: 'SEX', filters: RULED_FILTERS }
     });
     await expectFilterRules(page, warnings, () => ({ ...window.__bs.chart.state.filters }));
+  });
+});
+
+// ---- What the v0.1.0-RC1 review found (#49) ---------------------------------------
+
+test.describe('biomarker screen: what the v0.1.0-RC1 review found', () => {
+  test('BS-STAT-013: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)', async ({
+    page
+  }) => {
+    await expectReplacedConnectionDead(page, 'bs');
+  });
+
+  test('BS-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)', async ({
+    page
+  }) => {
+    await expectFailureSaid(page, 'bs', (name) => window[name].chart.asked.length);
+  });
+
+  test('BS-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)', async ({
+    page
+  }) => {
+    await expectDropsCounted(page, 'bs');
+  });
+
+  test('BS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'bs');
+  });
+
+  test('BS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'bs');
+  });
+
+  test('BS-NAME-001: a biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name (#49)', async ({
+    page
+  }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    await page.addInitScript(() => {
+      window.__pending = [];
+      window.__deferred = {
+        run(name, request) {
+          return new Promise((resolve) => window.__pending.push({ name, request, resolve }));
+        }
+      };
+    });
+    await page.goto('/tests/e2e/fixtures/biomarker-screen.html?make=no');
+    await page.evaluate(() => window.__bs.ready);
+    const said = await page.evaluate(() => {
+      const { data } = window.__bs;
+      // As a SAS export pads a name: 'CRP ' and ' IL-6'.
+      const padded = { CRP: 'CRP ', 'IL-6': ' IL-6' };
+      const results = data.results.map((row) =>
+        row.TEST in padded ? { ...row, TEST: padded[row.TEST] } : row
+      );
+      const chart = BioViz.biomarkerScreen('#chart', {
+        baseline_visits: 'Baseline',
+        connection: window.__deferred
+      });
+      chart.init({ results, participants: data.participants });
+      const [asked] = window.__pending;
+      return {
+        footnote: document.querySelector('#chart .sv-footnote').textContent,
+        biomarkers: asked.request.args.chrCols,
+        columns: Object.keys(asked.request.data[0])
+      };
+    });
+    expect(errors).toEqual([]);
+    expect(said.footnote).not.toMatch(/could not be drawn/);
+    expect(said.biomarkers).toContain('CRP ');
+    expect(said.biomarkers).toContain(' IL-6');
+    expect(said.columns).toContain('CRP ');
+    expect(said.columns).toContain(' IL-6');
+  });
+
+  test('BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)', async ({
+    page
+  }) => {
+    const NOTE =
+      "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the " +
+      'group comparison.';
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    await page.goto('/tests/e2e/fixtures/biomarker-screen.html');
+    await page.evaluate(() => window.__bs.ready);
+    const footnote = page.locator('#chart .sv-footnote');
+    await expect(footnote).toContainText(NOTE);
+    // It is under the rows, where they are read.
+    expect(
+      await page.evaluate(() => {
+        const note = document.querySelector('#chart .sv-footnote');
+        const rows = document.querySelector('#chart .bv-screen');
+        return Boolean(rows.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING);
+      })
+    ).toBe(true);
+    await page.evaluate(() =>
+      window.__bs.chart.setSettings({
+        comparison: 'correlation',
+        with: { measure: 'IL-10', visit: 'Baseline' }
+      })
+    );
+    await expect(footnote).not.toContainText('Hedges');
   });
 });

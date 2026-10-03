@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T07:25:53.623Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
+    "id": "37106291780",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
   },
   "records": [
     {
@@ -141,6 +141,14 @@
       "screenshots": []
     },
     {
+      "test": "GC-CTRL-008: with one biomarker open the Visit control offers, and the chart draws, only the visits that biomarker has values at, in visit order (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-CTRL-008"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
       "test": "GC-DRAW-001: a box per group, with the number in each group beneath, and the quartiles R gives (#9)",
       "suite": "browser",
       "status": "pass",
@@ -186,6 +194,54 @@
       "status": "pass",
       "requirementIds": ["GC-DRAW-006"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DRAW-007: with one biomarker open at several visits, the groups’ labels under each visit’s panel do not run into one another, on a desk and on a phone (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DRAW-007"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-DROP-003"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FAIL-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-FAIL-002: a failure while the controls are built, where the Levels control reads the groups, is said like any other: the chart could not be drawn, and nothing is thrown (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-FAIL-002"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
@@ -587,6 +643,14 @@
       "requirementIds": ["GC-STAT-042"],
       "issueRefs": [16],
       "screenshots": ["GC-STAT-042-r-in-the-browser-on-a-phone.png"]
+    },
+    {
+      "test": "GC-STAT-043: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-043"],
+      "issueRefs": [49],
+      "screenshots": []
     },
     {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
@@ -1858,6 +1922,22 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-023"],
       "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-044: a stored result written by the recipe from a data frame whose panel column holds numbers is found by the chart, which names the panel as text (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-044"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote GC-STAT-045: the recipe’s chart_text writes each value as the chart writes it, with String(): logicals in lower case, numbers in the fewest digits, with an exponent below 1e-6 and from 1e21 (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-045"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]

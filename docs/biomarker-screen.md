@@ -45,6 +45,8 @@ A setting that is not known, or a value a setting cannot take, is refused: `biom
 
 `init` and `setData` take `{ results, participants }`, each an array of records, one object per row: the tables the [core](core.md) reads, as the other charts take them. Only the results table is required. A difference needs a column of groups, which is a category column of the participant table, or one carried on the results rows. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## The rows
 
 One row per biomarker the Biomarker list has, in the setting `measures` or every biomarker in the table, each at the one visit with the one value type: the result, the baseline value, or the change, fold change or percent change from baseline, as the [core defines them](core.md#value_types). A baseline value has no visit. For a change, a fold change or a percent change at the one baseline visit there is nothing to compare, and the chart asks for a later visit.
@@ -53,6 +55,8 @@ One row per biomarker the Biomarker list has, in the setting `measures` or every
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `difference`  | The standardised difference between two groups, Hedges' g: the first group's mean less the second's, in pooled standard deviations, with its noncentral-t interval. gsm.bio computes it, and holds it to `effectsize::hedges_g()`. | Welch's t-test, the one the group comparison prints for that biomarker. |
 | `correlation` | Pearson's or Spearman's coefficient with one fixed variable, with its interval where R gives one; Spearman's has none in R, and none is made up.                                                                                   | `cor.test`'s, the one the association scatter prints for that pair.     |
+
+For a difference, the interval and the p-value come from two methods: the interval is Hedges' g's, on a pooled standard deviation, and the p-value is Welch's t-test, which does not pool. They can disagree about whether a difference is distinguishable from nought. The footnote under the rows says so: `Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the group comparison.`
 
 The fixed variable of a correlation is a participant-level number, such as age, or a biomarker at a visit. A biomarker that is the fixed variable itself, at the same visit with the same value type, is not a row of its own: its coefficient with itself is one, and the note above the screen says so.
 
@@ -259,21 +263,66 @@ In R, the key of one screen's stored result, from the frame and what the view is
 #          participant has no value; and the column of groups, or the fixed
 #          variable under with_name.
 # lView:   the view, by the chart's names; a member that is not set is NULL.
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list of values is an unnamed list, so it is written as a
+# JSON array whatever its length. Text is sorted by code point
+# (`method = "radix"`), which is the order the chart sorts in.
 biomarker_screen_key <- function(dfFrame, lView) {
   lDataId <- list(chart = "biomarker-screen", value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
-  if (identical(lView$comparison, "correlation")) lDataId$with <- lView$with
+  if (identical(lView$comparison, "correlation")) lDataId$with <- lapply(lView$with, chart_text)
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
-  lArgs <- list(chrCols = as.list(lView$biomarkers), strComparison = lView$comparison)
+  lArgs <- list(chrCols = as.list(chart_text(lView$biomarkers)), strComparison = lView$comparison)
   if (identical(lView$comparison, "difference")) {
     lArgs$strGroupCol <- lView$group_by
-    lArgs$chrGroups <- as.list(lView$groups)
+    lArgs$chrGroups <- as.list(chart_text(lView$groups))
   } else {
     lArgs$strWithCol <- lView$with_name
     lArgs$strCorMethod <- lView$method

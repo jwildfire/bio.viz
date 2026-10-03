@@ -903,17 +903,22 @@ function needColumn(rows, column, setting, table) {
 function visitsInOrder(results, settings) {
   const byName = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
   const ordered = settings.visit_order_col !== null && hasColumn(results, settings.visit_order_col);
-  const order2 = /* @__PURE__ */ new Map();
+  const usable = /* @__PURE__ */ new Set();
+  const number = /* @__PURE__ */ new Map();
   for (const row of results) {
     const visit = row[settings.visit_col];
-    if (isBlank(visit) || order2.has(String(visit))) continue;
-    if (toNumber(row[settings.value_col]) === null) continue;
-    order2.set(String(visit), ordered ? toNumber(row[settings.visit_order_col]) : null);
+    if (isBlank(visit)) continue;
+    const name = String(visit);
+    if (toNumber(row[settings.value_col]) !== null) usable.add(name);
+    const order2 = ordered ? toNumber(row[settings.visit_order_col]) : null;
+    if (order2 !== null && (!number.has(name) || order2 < number.get(name))) number.set(name, order2);
   }
-  return [...order2.keys()].sort((a, b) => {
-    const [first, second] = [order2.get(a), order2.get(b)];
-    if (first !== null && second !== null && first !== second) return first - second;
-    return byName(a, b);
+  return [...usable].sort((a, b) => {
+    const [first, second] = [number.get(a), number.get(b)];
+    const numbered = (first !== void 0) - (second !== void 0);
+    if (numbered !== 0) return -numbered;
+    if (first !== void 0 && first !== second) return first - second;
+    return byName(a, b) || (a < b ? -1 : a > b ? 1 : 0);
   });
 }
 function visits(results, settings) {
@@ -1208,7 +1213,8 @@ ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-${root} .sv-rail{max-width:100%;overflow-x:auto}`;
+${root} .sv-rail{max-width:100%;overflow-x:auto}
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
 function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   const { kit } = chart;
   Object.assign(
@@ -1255,6 +1261,20 @@ function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
     chart.sidebarToggle.click();
   }
 }
+function checkTables(tables, settings) {
+  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+    const column = settings[key];
+    if (tables.results.length && !tables.results.some((row) => column in row)) {
+      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  if (tables.participants != null && tables.participants.length && !tables.participants.some((row) => participantIdCol in row)) {
+    throw new TypeError(
+      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
+    );
+  }
+}
 function readGiven(chart, data) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
@@ -1266,12 +1286,7 @@ function readGiven(chart, data) {
         "bio.viz: `participants` must be an array of records, one object per row."
       );
     }
-    for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-      const column = chart.settings[key];
-      if (tables.results.length && !tables.results.some((row) => column in row)) {
-        throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
-      }
-    }
+    checkTables(tables, chart.settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = "";
@@ -1282,6 +1297,35 @@ function readGiven(chart, data) {
     results: tables.results,
     participants: tables.participants && tables.participants.length ? tables.participants : null
   };
+}
+function drawSafely(chart, draw) {
+  chart.footnote.classList.remove("bv-failure");
+  try {
+    draw();
+  } catch (error) {
+    if (chart.desk) chart.desk.begin();
+    chart.asked = [];
+    chart.model = null;
+    if ("answer" in chart) chart.answer = null;
+    chart.destroyCharts();
+    clearListing(chart);
+    for (const wrap of [
+      chart.notes,
+      chart.multiplesWrap,
+      chart.listingWrap,
+      chart.gridWrap,
+      chart.screenWrap
+    ]) {
+      if (wrap) wrap.innerHTML = "";
+    }
+    if (chart.chartWrap) chart.chartWrap.classList.add("sv-hidden");
+    chart.statLine.textContent = "";
+    chart.statLine.dataset.state = "empty";
+    const message = String(error && error.message || error).replace(/^bio\.viz: /, "");
+    chart.footnote.textContent = `This chart could not be drawn: ${message}`;
+    chart.footnote.classList.add("bv-failure");
+    console.error(error);
+  }
 }
 function syncHost(chart) {
   chart.host.settings.profile = chart.settings.profile;
@@ -1711,10 +1755,16 @@ function keepFiltered({ results, participants }, settings, filters, filterMatche
   const kept = participants.filter(
     (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
   );
-  const ids = new Set(kept.map((row) => String(row[participantIdCol])));
+  const idOf = (row, column) => isBlank2(row[column]) ? null : String(row[column]);
+  const keptIds = new Set(kept.map((row) => idOf(row, participantIdCol)));
+  const filteredOut = new Set(
+    participants.map((row) => idOf(row, participantIdCol)).filter((id) => id !== null && !keptIds.has(id))
+  );
   return {
     participants: kept,
-    results: results.filter((row) => ids.has(String(row[idCol])))
+    // When the filters keep nobody, nobody passes: no results are framed, so a
+    // row for someone the table does not have cannot make a frame of no one.
+    results: kept.length ? results.filter((row) => !filteredOut.has(idOf(row, idCol))) : []
   };
 }
 var isNumeric = (value) => {
@@ -1925,6 +1975,8 @@ function failureOf(result) {
   const message = result && typeof result.message === "string" ? result.message : "no message";
   return { state: "error", text: `R reported an error: ${message}` };
 }
+var ANSWERED = /* @__PURE__ */ new WeakSet();
+var hasAnswered = (connection) => connection !== null && typeof connection === "object" && ANSWERED.has(connection);
 function createDesk({
   connection,
   note = null,
@@ -1932,10 +1984,13 @@ function createDesk({
   waiting = (said) => sentence("waiting", said)
 }) {
   let current = 0;
-  let answered = false;
-  const withNote = (said) => note && !answered ? `${said} ${note}` : said;
+  let retired = false;
+  const withNote = (said) => note && !hasAnswered(connection) ? `${said} ${note}` : said;
   return {
     idle: withNote,
+    retire() {
+      retired = true;
+    },
     begin() {
       current += 1;
       const round = current;
@@ -1945,8 +2000,11 @@ function createDesk({
           show(waiting(noted ? WAITING : withNote(WAITING), context));
           noted = true;
           return connection.run(name, { data, args, dataId }).then((result) => {
-            if (result && result.status === "ok" && result.form !== "precomputed") answered = true;
-            if (round !== current) return false;
+            const ran = result && result.status === "ok" && result.form !== "precomputed";
+            if (ran && connection !== null && typeof connection === "object") {
+              ANSWERED.add(connection);
+            }
+            if (retired || round !== current) return false;
             show(describe2(result, context), result);
             return true;
           });
@@ -2181,6 +2239,11 @@ function visitsDrawn(visits2, valueType, baselineVisits) {
   if (!RELATIVE.has(valueType) || !baselineVisits || baselineVisits.length !== 1) return visits2;
   return visits2.filter((visit) => visit !== baselineVisits[0]);
 }
+function measureVisits(results, settings, measure) {
+  const config = coreSettings(settings);
+  const rows = results.filter((row) => String(row[config.measure_col]) === String(measure));
+  return rows.length ? visits(rows, config) : [];
+}
 var EVERYONE = "All participants";
 var BAND = 0.8;
 function slots(colours) {
@@ -2222,7 +2285,9 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     };
   }
   const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
-  const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
+  const atMeasure = measureVisits(results, settings, state.measure);
+  const asked = state.visits.filter((visit) => atMeasure.includes(visit));
+  const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
   const variablesFor = (visit) => ({
@@ -2312,7 +2377,7 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     halfWidth,
     baselineVisits: framed.length ? framed[0].made.baseline_visits : baselineVisits.length ? baselineVisits : null,
     // The baseline visit that was chosen and not drawn, when there is one.
-    visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
+    visitsNotDrawn: needsVisit ? asked.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
     filtered: kept ? kept.length : null
   };
@@ -2407,6 +2472,7 @@ var GroupComparison = class {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -2458,7 +2524,9 @@ var GroupComparison = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given2 });
+    const next = syncSettings({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ("back" in given2) mountToolbar(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
@@ -2594,12 +2662,16 @@ var GroupComparison = class {
       value
     );
     if (state.valueType !== "baseline") {
+      const offered = this.visitsOffered();
+      const shown2 = state.visits.filter((visit) => offered.includes(visit));
       const visits2 = kit.multiSelect({
-        values: this.visits.all,
-        selected: state.visits.length === this.visits.all.length ? null : state.visits,
+        values: offered,
+        selected: shown2.length === offered.length ? null : shown2,
         onChange: (next) => {
-          const chosen = next === null ? this.visits.all : next;
-          state.visits = this.visits.all.filter((visit) => chosen.includes(visit));
+          const chosen = next === null ? offered : next;
+          state.visits = this.visits.all.filter(
+            (visit) => chosen.includes(visit) || !offered.includes(visit)
+          );
           redraw(false);
         }
       });
@@ -2725,17 +2797,34 @@ var GroupComparison = class {
       this.render();
     });
   }
+  // The visits the Visit control offers: the open biomarker's, or every visit
+  // in the overview.
+  visitsOffered() {
+    if (this.isOverview()) return this.visits.all;
+    return measureVisits(this.tables.results, this.settings, this.state.measure);
+  }
   // Every level of the group column in the tables, whatever the filters are set to.
   levelsOffered() {
     if (!this.state.groupBy) return [];
     if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
-    const model = buildPanels(
-      this.tables,
-      this.settings,
-      { ...this.state, levels: null, colorBy: NONE, panelBy: NONE, filters: {}, yScale: "linear" },
-      { filterMatches: this.kit.filterMatches }
-    );
-    return model.levels;
+    try {
+      const model = buildPanels(
+        this.tables,
+        this.settings,
+        {
+          ...this.state,
+          levels: null,
+          colorBy: NONE,
+          panelBy: NONE,
+          filters: {},
+          yScale: "linear"
+        },
+        { filterMatches: this.kit.filterMatches }
+      );
+      return model.levels;
+    } catch {
+      return [];
+    }
   }
   // The Test control offers the tests that fit the number of groups drawn, and
   // nothing else: a test that does not fit is never asked of R. The pairwise
@@ -2766,6 +2855,10 @@ var GroupComparison = class {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();
@@ -2785,7 +2878,8 @@ var GroupComparison = class {
       this.footnote.textContent = "No results to draw.";
       return;
     }
-    if (needsVisit && !this.state.visits.length) {
+    const offered = this.visitsOffered();
+    if (needsVisit && !this.state.visits.some((visit) => offered.includes(visit))) {
       this.footnote.textContent = "Choose a visit to draw.";
       return;
     }
@@ -3060,8 +3154,10 @@ var GroupComparison = class {
             title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
             ticks: {
               autoSkip: false,
-              // A small panel turns its labels when they would run together.
-              maxRotation: compact ? 50 : 0,
+              // A panel turns its labels when they would run together, as a
+              // narrow visit panel's long group names would; labels that fit
+              // stay level.
+              maxRotation: compact ? 50 : 90,
               ...compact ? { font: { size: 10 }, padding: 2 } : {},
               callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
             },
@@ -4019,6 +4115,7 @@ var AssociationScatter = class {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk2({
       connection: this.connection,
@@ -4095,7 +4192,9 @@ var AssociationScatter = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    this.settings = syncSettings2({ ...this.settings, ...given2 });
+    const next = syncSettings2({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
@@ -4340,6 +4439,10 @@ var AssociationScatter = class {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();
@@ -5166,6 +5269,7 @@ function buildMatrix({ results, participants }, settings, state, offered, option
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
+    dropped: [],
     unused: [],
     baselineVisits: null,
     filtered: kept ? kept.length : null
@@ -5185,6 +5289,9 @@ function buildMatrix({ results, participants }, settings, state, offered, option
     records,
     participants: made.participants,
     empty: made.data.length - records.length,
+    // With no variable required, who is left out is who the participant table
+    // does not have.
+    dropped: made.dropped,
     unused: made.unused,
     baselineVisits: made.baseline_visits
   };
@@ -5405,6 +5512,7 @@ var CorrelationMatrix = class {
   // The connection the grid asks: the one given in settings, or one with no R
   // attached, which answers that statistics are unavailable.
   connect() {
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk3({
       connection: this.connection,
@@ -5462,7 +5570,9 @@ var CorrelationMatrix = class {
   setSettings(settings) {
     const given2 = settings || {};
     this.close();
-    this.settings = syncSettings3({ ...this.settings, ...given2 });
+    const next = syncSettings3({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -5733,6 +5843,10 @@ var CorrelationMatrix = class {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     this.close();
     const round = this.desk.begin();
     this.asked = [];
@@ -5810,6 +5924,7 @@ var CorrelationMatrix = class {
         add(`${model.empty} left out: no value for any variable of the grid.`, true);
       }
     }
+    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
     model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
       (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
     );
@@ -6577,6 +6692,7 @@ function buildScreen({ results, participants }, settings, state, offered, option
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
+    dropped: [],
     unused: [],
     baselineVisits: null,
     filtered: kept ? kept.length : null
@@ -6591,22 +6707,34 @@ function buildScreen({ results, participants }, settings, state, offered, option
       message: `Two columns of the frame would be named ${twice}: rename the biomarker or the column.`
     };
   }
+  const fields = drawn.rows.map((row, index) => ({ key: `v${index + 1}`, name: row.name }));
+  const extraKey = "v0";
   const made = frame(
     { results: rows, participants: kept || void 0 },
     {
-      ...Object.fromEntries(drawn.rows.map((row) => [row.name, variableOf(row.axis)])),
-      [extra.name]: extra.variable
+      ...Object.fromEntries(
+        fields.map((field, index) => [field.key, variableOf(drawn.rows[index].axis)])
+      ),
+      [extraKey]: extra.variable
     },
     // None is required: a participant with some of the biomarkers is in the
     // frame, and R counts who each row has.
     { ...coreSettings(settings), required: [] }
   );
-  const records = made.data.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+  const named = made.data.map((record) => ({
+    [settings.id_col]: record[settings.id_col],
+    ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]])),
+    [extra.name]: record[extraKey]
+  }));
+  const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
   return {
     ...model,
     records,
     participants: made.participants,
-    empty: made.data.length - records.length,
+    empty: named.length - records.length,
+    // With no biomarker required, who is left out is who the participant table
+    // does not have.
+    dropped: made.dropped,
     unused: made.unused,
     baselineVisits: made.baseline_visits
   };
@@ -6683,6 +6811,7 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 var BACK2 = "Back to the biomarker screen";
 var HINT2 = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.";
+var DIFFERENCE_METHODS = "Interval: Hedges' g with a pooled standard deviation; p-value: Welch's t-test, as in the group comparison.";
 var COLUMN = "c:";
 var MEASURE = "m:";
 var BiomarkerScreen = class {
@@ -6708,6 +6837,7 @@ var BiomarkerScreen = class {
   // The connection the screen asks: the one given in settings, or one with no R
   // attached, which answers that statistics are unavailable.
   connect() {
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk4({
       connection: this.connection,
@@ -6763,7 +6893,9 @@ var BiomarkerScreen = class {
   setSettings(settings) {
     const given2 = settings || {};
     this.close();
-    this.settings = syncSettings4({ ...this.settings, ...given2 });
+    const next = syncSettings4({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
     this.readTables();
     const opening = this.seedState();
@@ -7032,6 +7164,10 @@ var BiomarkerScreen = class {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     this.close();
     const round = this.desk.begin();
     this.asked = [];
@@ -7066,7 +7202,7 @@ var BiomarkerScreen = class {
       this.footnote.textContent = "No participant has a value for any biomarker of this screen.";
       return;
     }
-    this.footnote.textContent = HINT2;
+    this.footnote.textContent = state.comparison === "difference" ? `${HINT2} ${DIFFERENCE_METHODS}` : HINT2;
     this.drawRows();
     if (!settings.statistic) return;
     const request = screenRequest({ name: settings.statistic, settings, state, model });
@@ -7101,6 +7237,7 @@ var BiomarkerScreen = class {
       if (model.empty)
         add(`${model.empty} left out: no value for any biomarker of the screen.`, true);
     }
+    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
     model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
       (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
     );

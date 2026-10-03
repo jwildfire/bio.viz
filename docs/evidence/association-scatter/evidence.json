@@ -1,6 +1,6 @@
 {
   "module": "association-scatter",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T07:25:53.623Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
+    "id": "37106291780",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
   },
   "records": [
     {
@@ -99,6 +99,38 @@
       "requirementIds": ["AS-DRAW-005"],
       "issueRefs": [26],
       "screenshots": ["AS-DRAW-005-identity-line.png"]
+    },
+    {
+      "test": "AS-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "AS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "AS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-DROP-003"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "AS-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-FAIL-001"],
+      "issueRefs": [49],
+      "screenshots": []
     },
     {
       "test": "AS-FILTER-001: loaded with the results table alone it draws and shows no filters, and offers no colour and no panel when the rows carry none (#26)",
@@ -347,6 +379,14 @@
       "requirementIds": ["AS-STAT-020"],
       "issueRefs": [26],
       "screenshots": ["AS-STAT-020-logarithmic-axes.png"]
+    },
+    {
+      "test": "AS-STAT-021: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-STAT-021"],
+      "issueRefs": [49],
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -1402,6 +1442,14 @@
       "status": "pass",
       "requirementIds": ["AS-STAT-014"],
       "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote AS-STAT-022: the recipe run on a data frame with a panel column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["AS-STAT-022"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]

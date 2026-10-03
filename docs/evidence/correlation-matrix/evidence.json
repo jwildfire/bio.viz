@@ -1,6 +1,6 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T07:25:53.623Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
+    "id": "37106291780",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
   },
   "records": [
     {
@@ -138,6 +138,38 @@
       "status": "pass",
       "requirementIds": ["CM-DRILL-005"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-DROP-003"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-FAIL-001"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
@@ -370,6 +402,22 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-014"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-015: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-015"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "CM-STAT-016: the waiting note is said until R has answered once on the connection, so a pair the grid opens after R has answered says nothing more of starting R (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-016"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
@@ -1298,6 +1346,14 @@
       "status": "pass",
       "requirementIds": ["CM-STAT-012"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote CM-STAT-017: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CM-STAT-017"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]

@@ -43,7 +43,9 @@ import {
   writeStatistic,
   mountToolbar,
   renderPager,
-  toolbarStyles
+  toolbarStyles,
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import { VALUE_TYPES } from './core/variable.js';
 import { NOBODY_PASSES } from './shared/tables.js';
@@ -69,6 +71,7 @@ import {
   jitter,
   listMeasures,
   listVisits,
+  measureVisits,
   overviewCount,
   overviewPage,
   yTitle
@@ -150,6 +153,9 @@ class GroupComparison {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -206,7 +212,11 @@ class GroupComparison {
    */
   setSettings(settings) {
     const given = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes.
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ('back' in given) mountToolbar(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
@@ -358,12 +368,19 @@ class GroupComparison {
       value
     );
     if (state.valueType !== 'baseline') {
+      // With one biomarker open, the visits it has values at; in the overview,
+      // every visit.
+      const offered = this.visitsOffered();
+      const shown = state.visits.filter((visit) => offered.includes(visit));
       const visits = kit.multiSelect({
-        values: this.visits.all,
-        selected: state.visits.length === this.visits.all.length ? null : state.visits,
+        values: offered,
+        selected: shown.length === offered.length ? null : shown,
         onChange: (next) => {
-          const chosen = next === null ? this.visits.all : next;
-          state.visits = this.visits.all.filter((visit) => chosen.includes(visit));
+          const chosen = next === null ? offered : next;
+          // A visit the biomarker lacks keeps its place for another biomarker.
+          state.visits = this.visits.all.filter(
+            (visit) => chosen.includes(visit) || !offered.includes(visit)
+          );
           redraw(false);
         }
       });
@@ -504,19 +521,39 @@ class GroupComparison {
     });
   }
 
+  // The visits the Visit control offers: the open biomarker's, or every visit
+  // in the overview.
+  visitsOffered() {
+    if (this.isOverview()) return this.visits.all;
+    return measureVisits(this.tables.results, this.settings, this.state.measure);
+  }
+
   // Every level of the group column in the tables, whatever the filters are set to.
   levelsOffered() {
     if (!this.state.groupBy) return [];
     // In the overview no one biomarker says which levels have a value: the
     // levels are the column's own.
     if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
-    const model = buildPanels(
-      this.tables,
-      this.settings,
-      { ...this.state, levels: null, colorBy: NONE, panelBy: NONE, filters: {}, yScale: 'linear' },
-      { filterMatches: this.kit.filterMatches }
-    );
-    return model.levels;
+    // A failure here is the drawing's to say: the chart is drawn next, through
+    // drawSafely, which says it in the footnote. The control offers nothing.
+    try {
+      const model = buildPanels(
+        this.tables,
+        this.settings,
+        {
+          ...this.state,
+          levels: null,
+          colorBy: NONE,
+          panelBy: NONE,
+          filters: {},
+          yScale: 'linear'
+        },
+        { filterMatches: this.kit.filterMatches }
+      );
+      return model.levels;
+    } catch {
+      return [];
+    }
   }
 
   // The Test control offers the tests that fit the number of groups drawn, and
@@ -550,6 +587,11 @@ class GroupComparison {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();
@@ -570,7 +612,8 @@ class GroupComparison {
       this.footnote.textContent = 'No results to draw.';
       return;
     }
-    if (needsVisit && !this.state.visits.length) {
+    const offered = this.visitsOffered();
+    if (needsVisit && !this.state.visits.some((visit) => offered.includes(visit))) {
       this.footnote.textContent = 'Choose a visit to draw.';
       return;
     }
@@ -887,8 +930,10 @@ class GroupComparison {
             title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
             ticks: {
               autoSkip: false,
-              // A small panel turns its labels when they would run together.
-              maxRotation: compact ? 50 : 0,
+              // A panel turns its labels when they would run together, as a
+              // narrow visit panel's long group names would; labels that fit
+              // stay level.
+              maxRotation: compact ? 50 : 90,
               ...(compact ? { font: { size: 10 }, padding: 2 } : {}),
               callback: (value) => (Number.isInteger(value) ? (panel.ticks[value] ?? '') : '')
             },

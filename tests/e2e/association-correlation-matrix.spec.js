@@ -2,6 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js';
 import { captureEvidence } from './evidence.js';
@@ -3438,5 +3445,68 @@ test.describe('correlation matrix: the filter rules safety.viz’s charts follow
     const warnings = warningsOf(page);
     await open(page, { settings: { filters: RULED_FILTERS } });
     await expectFilterRules(page, warnings, () => ({ ...window.__cm.chart.state.filters }));
+  });
+});
+
+// ---- What the v0.1.0-RC1 review found (#49) ---------------------------------------
+
+test.describe('correlation matrix: what the v0.1.0-RC1 review found', () => {
+  test('CM-STAT-015: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)', async ({
+    page
+  }) => {
+    await expectReplacedConnectionDead(page, 'cm');
+  });
+
+  test('CM-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)', async ({
+    page
+  }) => {
+    await expectFailureSaid(page, 'cm', (name) => window[name].chart.gridWrap.childElementCount);
+  });
+
+  test('CM-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)', async ({
+    page
+  }) => {
+    await expectDropsCounted(page, 'cm');
+  });
+
+  test('CM-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'cm');
+  });
+
+  test('CM-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'cm');
+  });
+
+  test('CM-STAT-016: the waiting note is said until R has answered once on the connection, so a pair the grid opens after R has answered says nothing more of starting R (#49)', async ({
+    page
+  }) => {
+    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+    await page.addInitScript(() => {
+      window.__pending = [];
+      const connection = {
+        run(name) {
+          return new Promise((resolve) => window.__pending.push({ name, resolve }));
+        }
+      };
+      window.__cmSettings = { connection, waiting_note: 'NOTE: R starts now, 13 MB.' };
+    });
+    await page.goto('/tests/e2e/fixtures/correlation-matrix.html');
+    await page.evaluate(() => window.__cm.ready);
+    const line = page.locator('#chart .bv-statistic').first();
+    await expect(line).toContainText('NOTE: R starts now, 13 MB.');
+    // R, started in the browser, answers the grid.
+    await page.evaluate(() =>
+      window.__pending
+        .splice(0)
+        .forEach((asked) => asked.resolve({ status: 'ok', value: {}, form: 'browser' }))
+    );
+    await page.evaluate(() => window.__cm.chart.open('CRP', 'IL-6'));
+    const drilled = page.locator('#chart .bv-matrix-drill .bv-statistic').first();
+    await expect(drilled).toHaveAttribute('data-state', 'waiting');
+    await expect(drilled).not.toContainText('NOTE');
   });
 });

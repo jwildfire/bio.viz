@@ -58,23 +58,31 @@ function needColumn(rows, column, setting, table) {
   }
 }
 
-// The visits of the results table, in order: by the visit-order column when
-// the table has one, otherwise by name, numbers inside a name counted as
-// numbers. Only visits with at least one usable result are listed.
+// The visits of the results table, in one order whatever order the rows come
+// in. With a visit-order column: the visits that have a number in it first, by
+// their least number (a visit numbered on several rows takes the least), then
+// the visits with no number; within each, and for visits with the same number,
+// by name, numbers inside a name counted as numbers. Without the column: by
+// name. Only visits with at least one usable result are listed.
 function visitsInOrder(results, settings) {
   const byName = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
   const ordered = settings.visit_order_col !== null && hasColumn(results, settings.visit_order_col);
-  const order = new Map();
+  const usable = new Set();
+  const number = new Map();
   for (const row of results) {
     const visit = row[settings.visit_col];
-    if (isBlank(visit) || order.has(String(visit))) continue;
-    if (toNumber(row[settings.value_col]) === null) continue;
-    order.set(String(visit), ordered ? toNumber(row[settings.visit_order_col]) : null);
+    if (isBlank(visit)) continue;
+    const name = String(visit);
+    if (toNumber(row[settings.value_col]) !== null) usable.add(name);
+    const order = ordered ? toNumber(row[settings.visit_order_col]) : null;
+    if (order !== null && (!number.has(name) || order < number.get(name))) number.set(name, order);
   }
-  return [...order.keys()].sort((a, b) => {
-    const [first, second] = [order.get(a), order.get(b)];
-    if (first !== null && second !== null && first !== second) return first - second;
-    return byName(a, b);
+  return [...usable].sort((a, b) => {
+    const [first, second] = [number.get(a), number.get(b)];
+    const numbered = (first !== undefined) - (second !== undefined);
+    if (numbered !== 0) return -numbered;
+    if (first !== undefined && first !== second) return first - second;
+    return byName(a, b) || (a < b ? -1 : a > b ? 1 : 0);
   });
 }
 

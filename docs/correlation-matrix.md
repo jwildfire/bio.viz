@@ -42,6 +42,8 @@ A setting that is not known, or a value a setting cannot take, is refused: `corr
 
 `init` and `setData` take `{ results, participants }`, each an array of records, one object per row: the tables the [core](core.md) reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## The grid's variables
 
 | Mode           | The variables                             | Set by                                               |
@@ -256,19 +258,65 @@ In R, the key of one grid's stored result, from the frame and what the view is s
 #          variables is an unnamed list, one per column of the grid in order, each a
 #          variable as the settings write one: list(measure =, value =, visit =),
 #          without visit for a baseline value.
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list of values is an unnamed list, so it is written as a
+# JSON array whatever its length. Text is sorted by code point
+# (`method = "radix"`), which is the order the chart sorts in.
 correlation_matrix_key <- function(dfFrame, lView) {
-  lDataId <- list(chart = "correlation-matrix", variables = unname(lView$variables))
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  lDataId <- list(chart = "correlation-matrix", variables = lapply(unname(lView$variables), function(variable) lapply(variable, chart_text)))
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   lArgs <- list(
     chrCols = as.list(paste0("v", seq_along(lView$variables))),
     strMethod = lView$method
   )
+  # The minimum is sent only when the reader set one; otherwise it is R's own.
   if (!is.null(lView$min_pairs)) lArgs$nMinPairs <- lView$min_pairs
   list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfFrame))
 }

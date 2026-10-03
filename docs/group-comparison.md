@@ -55,6 +55,8 @@ Only the results table is required. With it alone the chart has no filters, and 
 
 With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most `max_levels` different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses; loosen a filter and it draws again.
 
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
 ## The chart's methods
 
 The lifecycle is safety.viz's, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.
@@ -136,6 +138,8 @@ On a logarithmic scale a value of zero or less cannot be shown. It is left out, 
 
 The note above the chart says how many participants were drawn, of how many, and why any was left out, in the [core's words](core.md#dropped).
 
+The groups' labels under a panel stay level when they fit, and turn when they would run into one another, as narrow visit panels' long group names would.
+
 ## The overview
 
 With no biomarker chosen the chart draws every biomarker: the view it opens on when `start_value` is null, and the entry All Biomarkers at the head of the Biomarker control. It is the way in, as the all-measures view of safety.viz's histogram is.
@@ -168,21 +172,21 @@ Each panel is a Chart.js chart of its own, as safety.viz's small multiples are, 
 
 In safety.viz's sidebar, in five sections.
 
-| Section    | Control              | What it sets                                                                           |
-| ---------- | -------------------- | -------------------------------------------------------------------------------------- |
-| Value      | Biomarker            | All Biomarkers, which is the overview, or one biomarker.                               |
-| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline. |
-| Value      | Visit                | The visit, or visits. Not shown for a baseline value, which has no visit.              |
-| Groups     | Group by             | The column on the axis.                                                                |
-| Groups     | Levels               | Which of its levels are drawn.                                                         |
-| Groups     | Colour by            | The second grouping, or none.                                                          |
-| Groups     | Panel by             | The variable the panels are made by, or none. Switched off in the overview.            |
-| Display    | Draw as              | Box, violin or points.                                                                 |
-| Display    | Scale                | Linear or logarithmic.                                                                 |
-| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.   |
-| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with more than two groups.     |
-| Filters    | one per filter       | The participants drawn. Only with a participant table.                                 |
-|            | Reset chart          | Returns every control to what the chart opened on.                                     |
+| Section    | Control              | What it sets                                                                                                                                                                                   |
+| ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Value      | Biomarker            | All Biomarkers, which is the overview, or one biomarker.                                                                                                                                       |
+| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline.                                                                                                         |
+| Value      | Visit                | The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; in the overview, every visit. Not shown for a baseline value, which has no visit. |
+| Groups     | Group by             | The column on the axis.                                                                                                                                                                        |
+| Groups     | Levels               | Which of its levels are drawn.                                                                                                                                                                 |
+| Groups     | Colour by            | The second grouping, or none.                                                                                                                                                                  |
+| Groups     | Panel by             | The variable the panels are made by, or none. Switched off in the overview.                                                                                                                    |
+| Display    | Draw as              | Box, violin or points.                                                                                                                                                                         |
+| Display    | Scale                | Linear or logarithmic.                                                                                                                                                                         |
+| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.                                                                                                           |
+| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with more than two groups.                                                                                                             |
+| Filters    | one per filter       | The participants drawn. Only with a participant table.                                                                                                                                         |
+|            | Reset chart          | Returns every control to what the chart opened on.                                                                                                                                             |
 
 The Statistics section is there when the setting `statistic` names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level, a minimum group size or a cut: those are R's.
 
@@ -291,29 +295,77 @@ In R, the key of one panel's stored result, from the panel's rows and what the v
 ```r
 # dfRows: the panel's rows, one per participant: the id, y, x (and color, panel when set).
 # lView:  the view, by the chart's names; a member that is not set is NULL.
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript's String() writes it. TRUE and FALSE are "true" and "false". A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written "2". The text is JavaScript's for every number that needs 16
+# significant digits or fewer; of two 17-digit texts that read back the same,
+# JavaScript may choose the other.
+chart_text <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, "true", "false"))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number <- function(value) {
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return("0")
+  if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written <- sprintf("%.*e", precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits <- sub("0+$", "", gsub(".", "", sub("e.*$", "", written), fixed = TRUE))
+  k <- nchar(digits)
+  n <- as.integer(sub("^.*e", "", written)) + 1L
+  text <- if (k <= n && n <= 21) {
+    paste0(digits, strrep("0", n - k))
+  } else if (n > 0 && n <= 21) {
+    paste0(substr(digits, 1, n), ".", substr(digits, n + 1, k))
+  } else if (n > -6 && n <= 0) {
+    paste0("0.", strrep("0", -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k > 1) paste0(".", substr(digits, 2, k)) else "",
+           "e", if (n - 1 >= 0) "+" else "-", abs(n - 1))
+  }
+  if (value < 0) paste0("-", text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list is an unnamed list, so it is written as a JSON array
+# whatever its length. Text is sorted by code point (`method = "radix"`), which
+# is the order the chart sorts in.
 group_comparison_key <- function(dfRows, lView) {
-  chrGroups <- sort(unique(as.character(dfRows$x)), method = "radix")
-  lDataId <- list(chart = "group-comparison", measure = lView$measure, value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit <- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(lView$baseline_visits)
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  if (!is.null(lView$visit)) lDataId$visit <- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
   lDataId$groups <- as.list(chrGroups)
   if (!is.null(lView$color_by)) lDataId$color_by <- lView$color_by
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by <- lView$panel_by
-    lDataId$panel <- lView$panel
+    lDataId$panel <- chart_text(lView$panel)
   }
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = "radix"))
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
   list(
     name = lView$statistic,
     args = list(
-      strValueCol = "y", strGroupCol = "x", strMethod = lView$test,
+      strValueCol = "y",
+      strGroupCol = "x",
+      strMethod = lView$test,
+      # Pairs exist only among more than two groups.
       bPairwise = isTRUE(lView$pairwise) && length(chrGroups) > 2
     ),
     dataId = lDataId,

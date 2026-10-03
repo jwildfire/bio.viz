@@ -198,6 +198,7 @@ export function buildMatrix({ results, participants }, settings, state, offered,
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
+    dropped: [],
     unused: [],
     baselineVisits: null,
     filtered: kept ? kept.length : null
@@ -220,6 +221,9 @@ export function buildMatrix({ results, participants }, settings, state, offered,
     records,
     participants: made.participants,
     empty: made.data.length - records.length,
+    // With no variable required, who is left out is who the participant table
+    // does not have.
+    dropped: made.dropped,
     unused: made.unused,
     baselineVisits: made.baseline_visits
   };

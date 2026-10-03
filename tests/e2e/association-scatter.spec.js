@@ -2,6 +2,13 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, expect, chromium } from '@playwright/test';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectSettingsRefused,
+  expectReplacedConnectionDead
+} from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
@@ -2630,5 +2637,39 @@ test.describe('association scatter: the filter rules safety.viz’s charts follo
     const warnings = warningsOf(page);
     await open(page, { settings: { filters: RULED_FILTERS } });
     await expectFilterRules(page, warnings, () => ({ ...window.__as.chart.state.filters }));
+  });
+});
+
+// ---- What the v0.1.0-RC1 review found (#49) ---------------------------------------
+
+test.describe('association scatter: what the v0.1.0-RC1 review found', () => {
+  test('AS-STAT-021: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)', async ({
+    page
+  }) => {
+    await expectReplacedConnectionDead(page, 'as');
+  });
+
+  test('AS-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)', async ({
+    page
+  }) => {
+    await expectFailureSaid(page, 'as', (name) => window[name].chart.charts.length);
+  });
+
+  test('AS-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)', async ({
+    page
+  }) => {
+    await expectDropsCounted(page, 'as');
+  });
+
+  test('AS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)', async ({
+    page
+  }) => {
+    await expectNobodyWithOrphans(page, 'as');
+  });
+
+  test('AS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)', async ({
+    page
+  }) => {
+    await expectSettingsRefused(page, 'as');
   });
 });

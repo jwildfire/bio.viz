@@ -28,6 +28,11 @@
 # A default, not an agreed or validated threshold.
 nMinGroupDefault <- 5L
 
+# The fewest complete pairs a smooth is fitted to. loess() with its defaults
+# (span 0.75, degree 2) gives a band that is not finite on most samples of five
+# or six points, and on few of seven or more.
+nMinSmooth <- 7L
+
 # The expected count below which chisq.test() itself warns that its
 # approximation may be incorrect.
 nSmallExpectedCount <- 5
@@ -273,6 +278,14 @@ Stat_TooSmallReason <- function(chrGroups, nCounts, nMinGroup) {
   )
 }
 
+# Whether values do not vary: their spread is within rounding of their size,
+# the test t.test() makes before it refuses data that are "essentially
+# constant". Every value zero does not vary.
+Stat_Constant <- function(nValue) {
+  nRange <- range(nValue)
+  (nRange[2] - nRange[1]) <= 10 * .Machine$double.eps * max(abs(nRange))
+}
+
 # ---- Group comparison -------------------------------------------------------
 
 # A value per row, split by group. Rows with no group, with a group that was
@@ -375,6 +388,30 @@ Analyze_GroupDifference <- function(dfData, strValueCol, strGroupCol, strMethod 
       }
     }
 
+    # With more than two groups no t.test() has looked at the values: a test
+    # of values that do not vary is refused here, as t.test() refuses them.
+    strConstant <- NA_character_
+    if (strMethod == "anova" && sum(nCounts) <= nGroups) {
+      strConstant <- sprintf(
+        "Not computed: an ANOVA needs more rows than groups, to estimate the variance within them; it has %d rows in %d groups.",
+        as.integer(sum(nCounts)), nGroups
+      )
+    } else if (strMethod == "anova") {
+      nWithin <- sum(vapply(lValues, function(nGroup) sum((nGroup - mean(nGroup))^2), numeric(1)))
+      nPooled <- sqrt(nWithin / (sum(nCounts) - nGroups))
+      if (nPooled <= 10 * .Machine$double.eps * max(abs(vapply(lValues, mean, numeric(1))))) {
+        strConstant <- "Not computed: the values are essentially constant within every group, so there is no variance to test against."
+      }
+    } else if (strMethod == "kruskal" && Stat_Constant(unlist(lValues))) {
+      strConstant <- sprintf("Not computed: every value is %s, so there is nothing to rank.", format(lValues[[1]][1]))
+    }
+    if (!is.na(strConstant)) {
+      return(Stat_Result(
+        strTest = strMethod, strStatus = "error", strReason = strConstant, xCounts = lCounts,
+        dfDropped = dfDropped, chrWarnings = chrWarnings
+      ))
+    }
+
     # The rows used, in the order they came, for the tests that take them all.
     dfModel <- data.frame(Value = nValue[bUsed], Group = factor(chrGroup[bUsed], levels = chrLevels))
     lTest <- if (strMethod == "t") {
@@ -404,6 +441,13 @@ Analyze_GroupDifference <- function(dfData, strValueCol, strGroupCol, strMethod 
       )
     } else {
       Stat_FromTest(lTest$value)
+    }
+    # A test that gives no p-value has answered nothing.
+    if (!is.finite(lParts$p_value)) {
+      return(Stat_Result(
+        strTest = strMethod, strStatus = "error", xCounts = lCounts, dfDropped = dfDropped, chrWarnings = chrWarnings,
+        strReason = sprintf("Not computed: %s gave no p-value.", lParts$method)
+      ))
     }
 
     # With more than two groups, each pair is compared with the two-group test
@@ -482,6 +526,18 @@ Stat_CorrelationPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup) {
       "Not computed: %d complete pairs. The minimum is %s.", lPair$counts, format(nMinGroup)
     )
     return(lPair)
+  }
+  # A variable that does not vary has no correlation: cor.test() would give
+  # none, and only a warning.
+  for (strAxis in c("x", "y")) {
+    nAxis <- if (strAxis == "x") nX[bPair] else nY[bPair]
+    if (Stat_Constant(nAxis)) {
+      lPair$status <- "error"
+      lPair$reason <- sprintf(
+        "Not computed: %s does not vary (every value is %s), so a correlation is not defined.", strAxis, format(nAxis[1])
+      )
+      return(lPair)
+    }
   }
   lRun <- Stat_Capture(function() {
     stats::cor.test(nX[bPair], nY[bPair], method = strMethod, conf.level = nConfLevel)
@@ -627,14 +683,17 @@ Analyze_CorrelationMatrix <- function(dfData, chrCols, strMethod = "pearson", nC
       }
     }
 
+    bAny <- any(dfRows$status == "ok")
     bNone <- all(dfRows$status == "too_small")
     Stat_Result(
       strTest = strMethod,
-      strStatus = if (bNone) "too_small" else "ok",
-      strReason = if (bNone) {
+      strStatus = if (bAny) "ok" else if (bNone) "too_small" else "error",
+      strReason = if (bAny) {
+        NA_character_
+      } else if (bNone) {
         sprintf("Not computed: no pair of columns has %s complete pairs.", format(nMinPairs))
       } else {
-        NA_character_
+        "Not computed: no pair of columns could be computed. Each row gives its reason."
       },
       strMethod = strMethodName, xCounts = lCounts,
       chrWarnings = chrWarnings,
@@ -673,10 +732,24 @@ Stat_FitPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints) {
     return(lFit)
   }
   dfPairs <- data.frame(x = nX[bPair], y = nY[bPair])
-  if (min(dfPairs$x) == max(dfPairs$x)) {
+  if (Stat_Constant(dfPairs$x)) {
     lFit$status <- "error"
     lFit$reason <- sprintf(
       "Not computed: every x value is %s, so there is no line to fit.", format(dfPairs$x[1])
+    )
+    return(lFit)
+  }
+  if (Stat_Constant(dfPairs$y)) {
+    lFit$status <- "error"
+    lFit$reason <- sprintf(
+      "Not computed: every y value is %s, so there is nothing to fit.", format(dfPairs$y[1])
+    )
+    return(lFit)
+  }
+  if (strMethod == "smooth" && lFit$counts < max(nMinGroup, nMinSmooth)) {
+    lFit$status <- "too_small"
+    lFit$reason <- sprintf(
+      "Not computed: %d complete pairs, and a smooth needs at least %s.", lFit$counts, format(max(nMinGroup, nMinSmooth))
     )
     return(lFit)
   }
@@ -706,6 +779,12 @@ Stat_FitPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints) {
 
   if (strMethod == "linear") {
     lSummary <- lRun$value$summary
+    if (!"x" %in% rownames(lSummary$coefficients)) {
+      lFit$status <- "error"
+      lFit$reason <- "Not computed: lm() could not estimate a slope from these x values."
+      lFit$method <- NA_character_
+      return(lFit)
+    }
     lFit$estimates <- Stat_Estimates(
       c("Intercept", "Slope"), NA_character_, unname(lRun$value$coefficients),
       unname(lRun$value$intervals[, 1]), unname(lRun$value$intervals[, 2]), nConfLevel
@@ -723,6 +802,20 @@ Stat_FitPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints) {
       lower = as.numeric(lRun$value$band[, "lwr"]),
       upper = as.numeric(lRun$value$band[, "upr"])
     )
+    # With no residual degrees of freedom lm() has a line and nothing else:
+    # no interval, no test and no band.
+    if (!all(is.finite(c(
+      lFit$estimates$estimate, lFit$estimates$lower, lFit$estimates$upper, lFit$t, lFit$p_value,
+      lFit$line$fit, lFit$line$lower, lFit$line$upper
+    )))) {
+      lFit <- c(lFit[c("counts", "warnings")], list(
+        status = "error",
+        reason = "Not computed: lm() gave an interval, a test or a band that is not finite, as it does when no residual degrees of freedom are left.",
+        method = NA_character_, estimates = Stat_Estimates(), statistic = Stat_Statistic(), t = NA_real_, df = NA_real_,
+        r_squared = NA_real_, p_value = NA_real_,
+        line = data.frame(x = numeric(0), fit = numeric(0), lower = numeric(0), upper = numeric(0))
+      ))
+    }
   } else {
     # The pointwise band: the fit, give or take the t quantile, on the degrees
     # of freedom predict() returns, times the standard error of the fit.
@@ -732,12 +825,23 @@ Stat_FitPair <- function(nX, nY, strMethod, nConfLevel, nMinGroup, nPoints) {
     lFit$statistic <- Stat_Statistic(
       c("enp", "df", "residual.scale"), c(lRun$value$enp, lBand$df, lBand$residual.scale)
     )
-    lFit$line <- data.frame(
+    dfLine <- data.frame(
       x = dfGrid$x,
       fit = as.numeric(lBand$fit),
       lower = as.numeric(lBand$fit) - nHalfWidth,
       upper = as.numeric(lBand$fit) + nHalfWidth
     )
+    # On few points, or few distinct x values, loess() can give a curve or a
+    # band that is not finite somewhere; such a smooth is not drawn in part.
+    if (!all(is.finite(c(dfLine$fit, dfLine$lower, dfLine$upper)))) {
+      lFit$status <- "error"
+      lFit$reason <- "Not computed: loess() gave a curve or a band that is not finite at some x values, as it can when its local fits have too few points or too few distinct x values."
+      lFit$method <- NA_character_
+      lFit$df <- NA_real_
+      lFit$statistic <- Stat_Statistic()
+      return(lFit)
+    }
+    lFit$line <- dfLine
   }
   lFit
 }
@@ -1006,6 +1110,18 @@ Analyze_Survival <- function(dfData, strTimeCol, strGroupCol, strCensorCol = NUL
       ))
     }
 
+    if (sum(nEvents) == 0L) {
+      return(Stat_Result(
+        strTest = "logrank", strStatus = "error", xCounts = lCounts, dfDropped = dfDropped, dfRows = dfRows,
+        strReason = "Not computed: there is no event in any group, so there is nothing to compare."
+      ))
+    }
+    # With two groups and no event in one, the Cox model's hazard ratio is
+    # infinite or zero: it is not estimated, and the log-rank test, which does
+    # not need it, is kept.
+    chrNoEvents <- chrLevels[nEvents == 0L]
+    bCox <- nGroups == 2L && length(chrNoEvents) == 0L
+
     # The rows used, in the order they came. The hazard ratio is the first
     # group's hazard over the second's, so the second group is the reference.
     dfModel <- data.frame(Group = factor(chrGroup[bUsed], levels = chrLevels))
@@ -1017,7 +1133,7 @@ Analyze_Survival <- function(dfData, strTimeCol, strGroupCol, strCensorCol = NUL
     chrWarnings <- c(lLogRank$warnings, lFit$warnings)
     chrErrors <- c(lLogRank$error, lFit$error)
     lCox <- NULL
-    if (nGroups == 2L) {
+    if (bCox) {
       dfModel$Against <- factor(chrGroup[bUsed], levels = rev(chrLevels))
       lCox <- Stat_Capture(function() summary(survival::coxph(Outcome ~ Against, data = dfModel), conf.int = nConfLevel))
       chrWarnings <- c(chrWarnings, lCox$warnings)
@@ -1029,6 +1145,32 @@ Analyze_Survival <- function(dfData, strTimeCol, strGroupCol, strCensorCol = NUL
         strTest = "logrank", strStatus = "error", strReason = paste(unique(chrErrors), collapse = "; "),
         xCounts = lCounts, dfDropped = dfDropped, chrWarnings = chrWarnings, dfRows = dfRows
       ))
+    }
+
+    # With no event while two groups are both at risk the log-rank statistic
+    # has no variance: there is nothing it compares.
+    if (max(abs(lLogRank$value$var)) <= 10 * .Machine$double.eps * sum(nEvents)) {
+      return(Stat_Result(
+        strTest = "logrank", strStatus = "error", xCounts = lCounts, dfDropped = dfDropped, chrWarnings = chrWarnings,
+        dfRows = dfRows,
+        strReason = "Not computed: no event happens while two groups are both at risk, so the log-rank test has nothing to compare."
+      ))
+    }
+    # The hazard ratio is estimable when the Cox model gives it a finite
+    # interval. With no events in one of two groups, or every event in one
+    # before every event in the other, its estimate runs off to zero or to
+    # infinity instead.
+    bHazardRatio <- bCox && all(is.finite(lCox$value$conf.int[1, c(1, 3, 4)]))
+    strNotEstimable <- if (nGroups != 2L || bHazardRatio) {
+      NA_character_
+    } else {
+      strWhy <- if (length(chrNoEvents) > 0L) {
+        sprintf("%s has no events", paste(chrNoEvents, collapse = " and "))
+      } else {
+        "the Cox model's likelihood has no maximum, as when every event in one group comes before every event in the other"
+      }
+      bZero <- if (length(chrNoEvents) > 0L) identical(chrNoEvents, chrLevels[1]) else lCox$value$coefficients[1, 1] < 0
+      sprintf("%s, so the Cox model's estimate is %s", strWhy, if (bZero) "zero" else "infinite")
     }
 
     # survdiff() reports its p-value from version 3.3 of survival; before that
@@ -1056,7 +1198,13 @@ Analyze_Survival <- function(dfData, strTimeCol, strGroupCol, strCensorCol = NUL
     if (anyNA(dfRows$median) || anyNA(dfRows$lower) || anyNA(dfRows$upper)) {
       chrNotes <- c(chrNotes, "A missing median or bound was not reached: the curve, or its band, did not fall to one half.")
     }
-    if (nGroups == 2L) {
+    if (!is.na(strNotEstimable)) {
+      chrNotes <- c(chrNotes, sprintf(
+        "The hazard ratio is not estimable: %s. It is left out; p_value is the log-rank test's, which does not need it.",
+        strNotEstimable
+      ))
+    }
+    if (bHazardRatio) {
       dfRows$hazard_ratio[1] <- unname(lCox$value$conf.int[1, 1])
       dfRows$hr_lower[1] <- unname(lCox$value$conf.int[1, 3])
       dfRows$hr_upper[1] <- unname(lCox$value$conf.int[1, 4])
@@ -1223,18 +1371,33 @@ Analyze_Screen <- function(dfData, chrCols, strComparison = "difference", strGro
           } else {
             dfRows$status[iRow] <- "error"
             dfRows$reason[iRow] <- lEffect$error
+            dfRows$method[iRow] <- NA_character_
+            dfRows$statistic[iRow] <- NA_real_
             dfRows$p_unadjusted[iRow] <- NA_real_
           }
         } else {
           # The last estimate is the one the screen is about: the coefficient,
           # or the hazard ratio after the two medians.
           dfLast <- lRow$estimates[nrow(lRow$estimates), ]
-          dfRows$estimate[iRow] <- dfLast$estimate
-          dfRows$lower[iRow] <- dfLast$lower
-          dfRows$upper[iRow] <- dfLast$upper
-          dfRows$level[iRow] <- dfLast$level
           if (strComparison == "hazard") {
             dfRows$events[iRow] <- sum(lRow$rows$events)
+          }
+          if (strComparison == "hazard" && !"Hazard ratio" %in% lRow$estimates$name) {
+            # The row is about the hazard ratio: with none, it has no number.
+            strNote <- grep("^The hazard ratio is not estimable: ", unlist(lRow$notes), value = TRUE)[1]
+            dfRows$status[iRow] <- "error"
+            dfRows$reason[iRow] <- paste0(
+              "Not computed: the hazard ratio is not estimable: ",
+              sub("^The hazard ratio is not estimable: (.*?)\\. It is left out.*$", "\\1", strNote, perl = TRUE), "."
+            )
+            dfRows$method[iRow] <- NA_character_
+            dfRows$statistic[iRow] <- NA_real_
+            dfRows$p_unadjusted[iRow] <- NA_real_
+          } else {
+            dfRows$estimate[iRow] <- dfLast$estimate
+            dfRows$lower[iRow] <- dfLast$lower
+            dfRows$upper[iRow] <- dfLast$upper
+            dfRows$level[iRow] <- dfLast$level
           }
         }
       }
@@ -1258,7 +1421,10 @@ Analyze_Screen <- function(dfData, chrCols, strComparison = "difference", strGro
         sum(bTested), strPAdjust, sum(!bTested), nRows
       ),
       if (strComparison == "difference") {
-        "The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function."
+        c(
+          "The p-values are t.test()'s (Welch). The standardised difference and its interval are computed here, not by an existing function.",
+          "The interval is the pooled-variance (Student) interval for Hedges' g, while the p-value is Welch's, which does not pool the variances: when the two groups' spreads differ, a row's interval can include zero while its p-value is below 0.05, or exclude zero while it is above."
+        )
       } else if (strComparison == "correlation") {
         Stat_NoIntervalNote(strCorMethod)
       } else {

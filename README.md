@@ -1,6 +1,6 @@
 # bio.viz
 
-Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz).
+Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz), and needs safety.viz v1.9.0 or later (until that is released, safety.viz `dev`): the charts are built from safety.viz's kit, which first ships in v1.9.0.
 
 - Site: <https://jwildfire.github.io/bio.viz/> (released) and <https://jwildfire.github.io/bio.viz/dev/> (the `dev` branch)
 - Gallery: <https://jwildfire.github.io/bio.viz/dev/gallery/> — each chart and shared part with its evidence page (requirements, the tests that prove each, screenshots) and its API reference
@@ -51,7 +51,7 @@ const result = await connection.run('rank_sum', {
 
 if (result.status === 'ok') {
   console.log(BioViz.r.formatStatistic(result.value).text);
-  // "Wilcoxon rank-sum test: p = 0.031 (Placebo n = 86, Active n = 84). Exploratory, unadjusted."
+  // "Wilcoxon rank sum test with continuity correction: p < 0.001 (Placebo n = 70, Xanomeline High Dose n = 52). Exploratory, unadjusted."
 }
 ```
 

@@ -164,6 +164,21 @@ export function visitsDrawn(visits, valueType, baselineVisits) {
   return visits.filter((visit) => visit !== baselineVisits[0]);
 }
 
+/**
+ * The visits one biomarker has values at, in visit order: what the Visit
+ * control offers while that biomarker is open, and the only visits drawn for
+ * it. The core's visit order, of that biomarker's rows.
+ * @param {object[]} results The results table.
+ * @param {object} settings The chart's settings.
+ * @param {string} measure The biomarker.
+ * @returns {string[]} The visits.
+ */
+export function measureVisits(results, settings, measure) {
+  const config = coreSettings(settings);
+  const rows = results.filter((row) => String(row[config.measure_col]) === String(measure));
+  return rows.length ? visitsInOrder(rows, config) : [];
+}
+
 /** The one group everyone is in when no column makes a group. */
 export const EVERYONE = 'All participants';
 
@@ -246,7 +261,12 @@ export function buildPanels({ results, participants }, settings, state, options 
   const baselineVisits = RELATIVE.has(state.valueType)
     ? config.baseline_visits || visitsInOrder(rows, config).slice(0, 1)
     : [];
-  const drawnVisits = visitsDrawn(state.visits, state.valueType, baselineVisits);
+  // Only the visits the biomarker has values at, in visit order: read from
+  // the results before the filters, so a visit is not dropped because the
+  // filters leave nobody there.
+  const atMeasure = measureVisits(results, settings, state.measure);
+  const asked = state.visits.filter((visit) => atMeasure.includes(visit));
+  const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) =>
     needsVisit
@@ -360,7 +380,7 @@ export function buildPanels({ results, participants }, settings, state, options 
         ? baselineVisits
         : null,
     // The baseline visit that was chosen and not drawn, when there is one.
-    visitsNotDrawn: needsVisit ? state.visits.filter((visit) => !drawnVisits.includes(visit)) : [],
+    visitsNotDrawn: needsVisit ? asked.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
     filtered: kept ? kept.length : null
   };

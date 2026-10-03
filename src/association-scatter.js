@@ -67,7 +67,9 @@ import {
   syncHost,
   mountToolbar,
   toolbarStyles,
-  writeStatistic
+  writeStatistic,
+  drawSafely,
+  checkTables
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -145,6 +147,9 @@ class AssociationScatter {
   // The connection the statistics line asks: the one given in settings, or one
   // with no R attached, which answers that statistics are unavailable.
   connect() {
+    // A desk that is replaced answers nothing more: an answer to a question
+    // asked of the old connection is never shown.
+    if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
     this.desk = createStatisticDesk({
       connection: this.connection,
@@ -235,7 +240,11 @@ class AssociationScatter {
    */
   setSettings(settings) {
     const given = settings || {};
-    this.settings = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings({ ...this.settings, ...given });
+    // The tables must still have the columns the new settings name; if not, the
+    // settings are refused and nothing changes.
+    checkTables(this.tables, next);
+    this.settings = next;
     syncHost(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();
@@ -508,6 +517,11 @@ class AssociationScatter {
    * @returns {void}
    */
   render() {
+    drawSafely(this, () => this.draw());
+  }
+
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw() {
     const round = this.desk.begin();
     this.asked = [];
     this.destroyCharts();

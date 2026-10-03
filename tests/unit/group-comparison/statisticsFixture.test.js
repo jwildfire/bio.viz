@@ -13,6 +13,8 @@ import {
 import { STATISTICS, readRecord, sha256 } from '../../../scripts/vendor-lib.mjs';
 import { createConnection } from '../../../src/r/index.js';
 import { canonicalJson } from '../../../src/r/canonical.js';
+import { statisticRequest } from '../../../src/group-comparison/statistic.js';
+import { syncSettings } from '../../../src/group-comparison/configure.js';
 
 // The expected results of the statistics line (#16), and the rows they were
 // computed on. The rows are derived by the chart's own code and committed, so R
@@ -220,5 +222,49 @@ describe('what desktop R answered, and the key it wrote', () => {
       data: requestOf(demo, CASES[0]).data.slice(1)
     });
     expect(short.status).toBe('unavailable');
+  });
+
+  it('GC-STAT-044: a stored result written by the recipe from a data frame whose panel column holds numbers is found by the chart, which names the panel as text (#49)', async () => {
+    // tools/r-group-statistics.R writes this case from the rows of the panel for
+    // F with that column holding the number 2, as an R data frame of a cohort
+    // number holds it.
+    const recipe = (fromR.recipes || []).find((entry) => entry.case === 'numeric-panel');
+    expect(recipe, 'the recipe case is in the fixture').toBeTruthy();
+    expect(recipe.dataId.panel).toBe('2');
+    const rows = text(`${GROUP_STATISTICS.directory}/welch-panel-women.csv`)
+      .trimEnd()
+      .split('\n')
+      .slice(1)
+      .map((line) => {
+        const [USUBJID, y, x] = line.split(',');
+        return { USUBJID, y: Number(y), x, panel: '2' };
+      });
+    const request = statisticRequest({
+      name: 'Analyze_GroupDifference',
+      test: 't',
+      pairwise: false,
+      settings: syncSettings({ baseline_visits: 'Baseline' }),
+      state: { ...VIEW, panelBy: 'COHORT' },
+      panel: { records: rows, visit: 'Week 4', panelLevel: '2' }
+    });
+    expect(canonicalJson(recipe.dataId)).toBe(canonicalJson(request.dataId));
+    const connection = createConnection({ results: [recipe] });
+    expect(await connection.run(request.name, request)).toEqual({
+      status: 'ok',
+      value: recipe.value,
+      form: 'precomputed'
+    });
+  });
+
+  it('GC-STAT-045: the recipe’s chart_text writes each value as the chart writes it, with String(): logicals in lower case, numbers in the fewest digits, with an exponent below 1e-6 and from 1e21 (#49)', () => {
+    const recipe = (fromR.recipes || []).find((entry) => entry.case === 'chart-text');
+    expect(recipe, 'the chart_text case is in the fixture').toBeTruthy();
+    expect(recipe.values.length).toBeGreaterThanOrEqual(15);
+    expect(recipe.values).toContain(true);
+    expect(recipe.values).toContain(1e-7);
+    expect(recipe.values).toContain(1e21);
+    recipe.values.forEach((value, index) => {
+      expect(recipe.text[index], `R's text for ${value}`).toBe(String(value));
+    });
   });
 });

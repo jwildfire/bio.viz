@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-03T02:52:48.352Z",
+  "generatedAt": "2026-10-03T07:25:53.623Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37091289718",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37091289718"
+    "id": "37106291780",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
   },
   "records": [
     {
@@ -141,6 +141,38 @@
       "screenshots": []
     },
     {
+      "test": "BS-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence that names it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-DROP-002: with results the participant table does not have and filters that let nobody through, the chart says that nobody passes the filters (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-002"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-DROP-003: a setting naming a participant id column the participant table does not have is refused with the same sentence, and the chart stays as it was (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-003"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-FAIL-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
       "test": "BS-FILTER-001: on the demo, filters with nobody in common leave the chart saying, in words, that no participant passes the filters; no rows are drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#36)",
       "suite": "browser",
       "status": "pass",
@@ -269,6 +301,14 @@
       "screenshots": []
     },
     {
+      "test": "BS-NAME-001: a biomarker whose name has a space at either end is screened under its name as written, and R is handed it by that name (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-NAME-001"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
       "test": "BS-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#36)",
       "suite": "browser",
       "status": "pass",
@@ -338,6 +378,22 @@
       "status": "pass",
       "requirementIds": ["BS-STAT-008"],
       "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-013: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-013"],
+      "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-015"],
+      "issueRefs": [49],
       "screenshots": []
     },
     {
@@ -1258,6 +1314,14 @@
       "status": "pass",
       "requirementIds": ["BS-STAT-012"],
       "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "what desktop R answered, and the key it wrote BS-STAT-014: the recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with (#49)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-014"],
+      "issueRefs": [49],
       "screenshots": []
     }
   ]
