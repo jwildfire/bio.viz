@@ -77,6 +77,22 @@
         "source": ["src/correlation-matrix.js"],
         "settings": "src/correlation-matrix/configure.js"
       }
+    },
+    {
+      "module": "biomarker-screen",
+      "title": "Biomarker screen",
+      "kind": "chart",
+      "status": "available",
+      "blurb": "Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups or a correlation with one variable, with R's estimate and its interval on one axis without units, and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. The rows are sorted by the estimate, and a click on a row opens that biomarker in the group comparison or the association scatter, with a way back.",
+      "matrix": "biomarker-screen.md",
+      "demo": "biomarker-screen.js",
+      "hero": "BS-DRAW-001-the-planted-difference.png",
+      "api": {
+        "doc": "biomarker-screen.md",
+        "surface": ["biomarkerScreen"],
+        "source": ["src/biomarker-screen.js"],
+        "settings": "src/biomarker-screen/configure.js"
+      }
     }
   ]
 }

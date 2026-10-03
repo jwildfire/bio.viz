@@ -48,3 +48,11 @@ export { associationScatter } from './association-scatter.js';
  * Built from safety.viz's kit, which the page loads beside this bundle.
  */
 export { correlationMatrix } from './correlation-matrix.js';
+
+/**
+ * The biomarker screen: one row per biomarker for a comparison chosen once,
+ * with R's estimates and p-values, unadjusted and adjusted across the rows, and
+ * the way into the group comparison and the association scatter. Built from
+ * safety.viz's kit, which the page loads beside this bundle.
+ */
+export { biomarkerScreen } from './biomarker-screen.js';
