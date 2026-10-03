@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-02T23:50:46.979Z",
+  "generatedAt": "2026-10-03T01:05:28.367Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -743,6 +743,22 @@
       "status": "pass",
       "requirementIds": ["PVAL-PAIR-002"],
       "issueRefs": [27],
+      "screenshots": []
+    },
+    {
+      "test": "formatScreenRow: one row of a biomarker screen PVAL-SCREEN-001: a row’s estimate comes with its interval, its unadjusted p-value with its method and each group’s count, and its adjusted p-value with the adjustment by name and how many rows it covered, in parts for a table (#36)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-SCREEN-001"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "formatScreenRow: one row of a biomarker screen PVAL-SCREEN-002: a row with something missing is refused, and one R could not compute shows R’s words with its counts and no number (#36)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-SCREEN-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {

@@ -1,5 +1,5 @@
 {
-  "module": "association-scatter",
+  "module": "biomarker-screen",
   "generatedAt": "2026-10-03T01:05:28.367Z",
   "environment": {
     "os": "darwin 23.6.0",
@@ -10,332 +10,324 @@
   "run": null,
   "records": [
     {
-      "test": "AS-BRUSH-001: dragging across the points lists the participants of the region, the others fade, and the statistics stay those of every participant drawn (#26)",
+      "test": "BS-CTRL-001: the sidebar offers the comparison, the value and visit, the groups or the variable and method, the adjustment, the order, a filter per category column, and Reset chart (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-BRUSH-001"],
-      "issueRefs": [26],
-      "screenshots": ["AS-BRUSH-001-a-region-listed.png"]
-    },
-    {
-      "test": "AS-BRUSH-002: with panels a region is in the panel it was dragged in and lists that panel’s participants; chart.brush() selects one by values, and a new region replaces the last (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-BRUSH-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CTRL-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-BRUSH-003: where a finger is the pointer a drag on the chart scrolls the page until Select a region is on; then a drag selects a region and does not scroll (#26)",
+      "test": "BS-CTRL-002: a change to a control draws the screen again and asks R with it; the same group twice swaps them; Reset chart returns to the opening (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-BRUSH-003"],
-      "issueRefs": [26],
-      "screenshots": ["AS-BRUSH-003-a-region-on-a-phone.png"]
-    },
-    {
-      "test": "AS-BRUSH-004: a change to a control or a filter, a click on nothing, or clearBrush() lets go of the region and empties the listing (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-BRUSH-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CTRL-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-CTRL-003: the variable, the value type, the visit and the scale of each axis are chosen in the sidebar, and the chart follows (#26)",
+      "test": "BS-CTRL-003: a change to the order draws R’s rows in another order and asks R nothing (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-CTRL-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CTRL-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-CTRL-004: the colour, the panels, the fitted line and the method are chosen in the sidebar, and Reset chart returns every control to what the chart opened on (#26)",
+      "test": "BS-CTRL-004: with the setting `statistic` null there are no Statistics controls, R is asked for nothing and no rows are drawn (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-CTRL-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CTRL-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-DRAW-001: the planted pair, one point per participant at its two results, each axis named for its variable and unit (#26)",
+      "test": "BS-DRAW-001: the planted difference: one row per biomarker sorted by R’s estimate with IL-6 at the top, its dot and its line where R’s numbers put them on one axis with nought marked, and its estimate, both p-values and each group’s count beside it (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-DRAW-001"],
-      "issueRefs": [26],
-      "screenshots": ["AS-DRAW-001-planted-pair.png"]
-    },
-    {
-      "test": "AS-DRAW-002: a colour gives each level its own colour and a key, and the key does not switch a level off (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-DRAW-002"],
-      "issueRefs": [26],
-      "screenshots": ["AS-DRAW-002-colour-by-arm.png"]
-    },
-    {
-      "test": "AS-DRAW-003: panels by one further variable are each a chart of their own on the same two axes, with their own count (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-DRAW-003"],
-      "issueRefs": [26],
-      "screenshots": ["AS-DRAW-003-panels-by-sex.png"]
-    },
-    {
-      "test": "AS-DRAW-004: each axis can be logarithmic on its own, and values of zero or less are left out and counted by axis (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-DRAW-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRAW-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-DRAW-005: the identity line is drawn with no R attached, and nothing is asked of R for it (#26)",
+      "test": "BS-DRAW-002: every row is a button named by the shared formatter’s sentence; the caption and the line say what the estimate is, which test, and by what adjustment across how many biomarkers, once (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-DRAW-005"],
-      "issueRefs": [26],
-      "screenshots": ["AS-DRAW-005-identity-line.png"]
-    },
-    {
-      "test": "AS-FILTER-001: loaded with the results table alone it draws and shows no filters, and offers no colour and no panel when the rows carry none (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-FILTER-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRAW-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-FILTER-002: loaded with participant data it shows filters and offers participant-level variables, and a filter narrows the participants drawn (#26)",
+      "test": "BS-DRAW-003: every p-value comes with its method and counts and is labelled exploratory, the adjustment by name; no star and no verdict anywhere, for either adjustment or comparison (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-FILTER-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRAW-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-FILTER-003: on the demo, filters with nobody in common leave the chart saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
+      "test": "BS-DRAW-004: a row R could not compute shows R’s reason and no number, no dot and no line, and says it is outside the adjustment; where no row could be computed the line gives R’s reason (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-FILTER-003"],
-      "issueRefs": [29],
+      "requirementIds": ["BS-DRAW-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-FIT-005: with no R attached a linear fit and a smooth are not drawn and the chart says why, while the points and the identity line still draw (#26)",
+      "test": "BS-DRAW-005: the correlation against IL-10 at Baseline draws every other biomarker on an axis from −1 to 1 with TNF-alpha at the top; Spearman draws and prints no interval (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-FIT-005"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRAW-005"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-FIT-006: with R’s answers stored a linear fit and a smooth are drawn from R’s points with their band, each colour’s in its colour, and the slope and intercept are printed with their intervals (#26)",
+      "test": "BS-DRAW-006: the chart says how many are in the frame of how many and who was left out, and that each row has its own counts, as R counted them (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-FIT-006"],
-      "issueRefs": [26],
-      "screenshots": ["AS-FIT-006-linear-fit-by-arm.png", "AS-FIT-006-linear-fit.png"]
-    },
-    {
-      "test": "AS-KIT-001: the chart is built from safety.viz’s kit on the page and draws with the kit’s Chart.js; without safety.viz it says what is missing (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-KIT-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRAW-006"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIFE-001: init, setData, setSettings, render, resize and destroy drive the chart as they drive a safety.viz chart, and setSettings({ x, y }) opens it on a named pair (#26)",
+      "test": "BS-DRILL-001: a click on a row of a difference opens the group comparison for that biomarker in place, at the same visit and value with the same groups and Welch’s test, and a button back that takes the keyboard’s place (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIFE-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIFE-002: tables the chart cannot read are refused with a message, shown in its place (#26)",
+      "test": "BS-DRILL-002: a click on a row of a correlation opens the association scatter for that biomarker against the fixed variable, with the same method (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIFE-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIFE-003: the chart can be mounted inside another chart’s element on a named pair, with a way back that calls the caller, by a click or from the keyboard (#26)",
+      "test": "BS-DRILL-003: from the keyboard a row is reached with Tab and opened with Enter or Space, and Enter or Space on the button back returns (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIFE-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIST-001: the listing’s search and paging work on the participants listed, and its export downloads them under this chart’s name (#26)",
+      "test": "BS-DRILL-004: the chart a row opens has the screen’s connection, its filters and its columns; from stored results the group comparison’s Welch p-value is the row’s unadjusted p-value, and the scatter’s coefficient is the row’s (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIST-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-001: the demo draws first and starts R when the chart first asks; the line waits, saying what the first start costs, and then prints Pearson’s coefficient, for everyone and within each arm, as desktop R gives it; the planted 0.6 is inside the printed interval (#26)",
+      "test": "BS-DRILL-005: returning shows the screen exactly as it was, on the same page in the same order, with the keyboard on the row, and R is not asked again (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-005"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-002: Spearman’s coefficient, overall and within each arm, is the one desktop R gives; where R’s own answer differs between the two versions both are recorded and nothing else differs (#26)",
+      "test": "BS-DRILL-006: chart.open(biomarker) opens a row’s chart and returns it, chart.opened() gives it, chart.close() returns; a name the screen lacks is refused; drawing again closes it (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DRILL-006"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-003: the linear fit’s slope, intercept, their intervals and every point of the line and its band, overall and within each arm, are the ones desktop R gives, and the lines drawn are those points (#26)",
+      "test": "BS-FILTER-001: on the demo, filters with nobody in common leave the chart saying, in words, that no participant passes the filters; no rows are drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-FILTER-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-004: the smooth’s curve and band are the ones desktop R gives, and no p-value is printed for it (#26)",
+      "test": "BS-KIT-001: the chart is built from safety.viz’s kit on the page; without safety.viz it says what is missing (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-KIT-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-005: with both axes logarithmic Pearson’s coefficient and the linear fit are those of the logarithms, as desktop R gives them, and the line says which scale they were computed on (#26)",
+      "test": "BS-LIFE-001: init, setData, setSettings, render, resize and destroy drive the chart as they drive a safety.viz chart; setSettings moves a control, and destroy takes down the screen and a chart a row had opened (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-005"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIFE-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-006: a filter change shows the waiting state and then the new result, and never the old one; a level with too few pairs, and a view with too few, print R’s reason and no number (#26)",
+      "test": "BS-LIFE-002: tables the chart cannot read are refused with a message, shown in its place (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-006"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIFE-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-007: the megabytes and seconds of the first statistic are measured, recorded where a reader of the run can find them, and are what the page tells its reader (#26)",
+      "test": "BS-LIMIT-002: Previous and Next go between pages of the sorted rows, which page of how many is said, and R is not asked again (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-007"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIMIT-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-LIVE-008: on a phone the demo prints R’s coefficient, its table per arm and the fitted line’s, and the page does not scroll sideways (#26)",
+      "test": "BS-LIST-001: the rows download as a CSV file under this chart’s name, in the order shown (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-LIVE-008"],
-      "issueRefs": [26],
-      "screenshots": ["AS-LIVE-008-r-in-the-browser-on-a-phone.png"]
-    },
-    {
-      "test": "AS-MOBILE-001: at 390px the chart fills the width with its controls folded away one tap from open, panels stack one to a row, and the page does not scroll sideways (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-MOBILE-001"],
-      "issueRefs": [26],
-      "screenshots": ["AS-MOBILE-001-panels-on-a-phone.png"]
-    },
-    {
-      "test": "AS-MOBILE-002: at 390px a point can be tapped, its listing read and a profile opened below the chart, with the coefficient and both tables beneath, and the page does not scroll sideways (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-MOBILE-002"],
-      "issueRefs": [26],
-      "screenshots": ["AS-MOBILE-002-tables-on-a-phone.png"]
-    },
-    {
-      "test": "AS-PROF-001: clicking a point lists that participant and opens their profile through the participantsSelected event; a row of the listing does the same (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-PROF-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIST-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#26)",
+      "test": "BS-LIVE-001: the demo starts R when the screen first asks; the line waits, saying what the first start costs, and then every row is desktop R’s, in the order of R’s estimates with IL-6 at the top (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-SITE-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIVE-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-SITE-002: the live demo draws the chart on the synthetic study, opening on the planted pair coloured by arm, with R attached; where R cannot be reached it still draws, and says so (#26)",
+      "test": "BS-LIVE-002: with Holm’s adjustment every row equals desktop R’s (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-SITE-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIVE-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll (#26)",
+      "test": "BS-LIVE-003: the correlation against IL-10 at Baseline, by Benjamini-Hochberg and by Holm and with Spearman, equals desktop R’s in every row, with TNF-alpha at the top and 0.6 inside its interval (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-SITE-003"],
-      "issueRefs": [26],
-      "screenshots": ["AS-SITE-003-demo-on-a-phone.png"]
-    },
-    {
-      "test": "AS-STAT-015: with no R attached the statistics line of every panel reads that statistics are unavailable, and nothing is fetched to say so (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-015"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIVE-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-STAT-016: the line shows that it is waiting until R answers, and then prints the answer through the shared formatter; R is asked for the rows that are drawn (#26)",
+      "test": "BS-LIVE-004: a change shows the waiting state and then the new screen, as desktop R gives it, and never the old one: a filter, another column of groups, the result at Baseline, a participant-level number, and every row too small (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-STAT-016"],
-      "issueRefs": [26],
-      "screenshots": ["AS-STAT-016-statistics-line.png"]
-    },
-    {
-      "test": "AS-STAT-017: a change to a variable, a visit, a scale, the colour, the method or a filter each clears the line and asks R again, the answer to the question before is never shown, and a region asks nothing (#26)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-017"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIVE-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-STAT-018: each panel asks R for itself, on its own rows and under its own identity, and is answered for itself (#26)",
+      "test": "BS-LIVE-005: a row of the difference opens the group comparison, whose Welch p-value from the same R is the row’s; a row of the correlation opens the scatter, whose coefficient is the row’s; returning asks R nothing (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-STAT-018"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIVE-005"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "AS-STAT-019: a view R’s answer was stored for prints it with no R and no request, the coefficient with its interval and the table per colour; a view it was not stored for reads unavailable, never another view’s numbers (#26)",
+      "test": "BS-LIVE-006: the megabytes and seconds of the first screen, and of a screen once R has started, are measured, recorded, and are what the page tells its reader (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-STAT-019"],
-      "issueRefs": [26],
-      "screenshots": ["AS-STAT-019-coefficient-by-arm.png"]
+      "requirementIds": ["BS-LIVE-006"],
+      "issueRefs": [36],
+      "screenshots": []
     },
     {
-      "test": "AS-STAT-020: with an axis logarithmic the line says which scale the statistic was computed on, and R is handed the logarithms (#26)",
+      "test": "BS-LIVE-007: on a phone the demo draws its rows from R, stacked, and the page does not scroll sideways (#36)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["AS-STAT-020"],
-      "issueRefs": [26],
-      "screenshots": ["AS-STAT-020-logarithmic-axes.png"]
+      "requirementIds": ["BS-LIVE-007"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-MOBILE-001: at 390px the controls are folded away; each row stacks its name, its interval on the full width and its numbers, each named, and the page does not scroll sideways (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-MOBILE-001"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-MOBILE-002: at 390px a tap on a row opens its chart and its button returns, and the page never scrolls sideways (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-MOBILE-002"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-SITE-001: the gallery lists the chart, with links to its live demo, its evidence page and its API reference (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-SITE-001"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-SITE-002: the live demo draws the chart on the synthetic study, opening on the planted difference, with R attached; where R cannot be reached it draws no rows, and says so (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-SITE-002"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-SITE-003: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open and a row opened (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-SITE-003"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-SITE-005: the demos point at one another: the screen’s page says a row opens the group comparison or the scatter, and their pages point to the screen as the way in (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-SITE-005"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-004: until R answers the line reads that it is waiting, with the page’s note until R has answered once, and no rows are drawn; then the rows are drawn from R’s answer (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-004"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-005: a change that asks R again clears the rows and the line, and an answer to the question before is never shown (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-005"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-006: with no R attached the line says statistics are unavailable and no rows are drawn, the biomarkers it would screen are named, and nothing is fetched (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-006"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-007: with R’s answers stored in the page the rows are drawn from them with no R and no request; a view not stored says so and draws no rows (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-007"],
+      "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-STAT-008: chart.statistics() returns what the chart asked R for the screen now drawn and what R answered: one entry (#36)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-STAT-008"],
+      "issueRefs": [36],
+      "screenshots": []
     },
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -546,275 +538,139 @@
       "screenshots": []
     },
     {
-      "test": "association scatter: settings AS-CFG-001: every setting has a default, and the column and baseline defaults are the core’s (#26)",
+      "test": "biomarker screen: how R’s answer is described BS-STAT-002: the method, how many rows R computed of how many, and the adjustment across how many; R’s notes; R’s reason where no row could be computed; R’s error; and a result with no method, or rows not adjusted as one family, is refused (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-CFG-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: settings AS-CFG-002: an axis is a variable as the core takes one: a biomarker at a visit with a value type, or a participant-level column read as a number (#26)",
+      "test": "biomarker screen: how R’s answer is described BS-STAT-002: with no R the line says statistics are unavailable, with stored results a view not stored says so, and the desk never shows an answer to the question before (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-CFG-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: settings AS-CFG-003: a caller’s settings are laid over the defaults, and a setting that is not known, or a value a setting cannot take, is refused with a message naming it (#26)",
+      "test": "biomarker screen: how R’s answer is described BS-STAT-003: each row is the shared formatter’s, R’s numbers are kept for the dot, the line and the order only where R computed the row, and a row is in the adjustment when R says it is (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-CFG-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: settings AS-CFG-004: the chart has no setting that chooses a confidence level, a minimum number of pairs, an adjustment or how smooth a smooth is (#26)",
+      "test": "biomarker screen: settings BS-CFG-001: every setting has a default; the column and baseline defaults are the core’s; the chart opens on every biomarker at the first visit, a difference between two groups, Benjamini-Hochberg, sorted by estimate, twenty to a page (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-CFG-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CFG-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the API reference AS-SITE-004: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#26)",
+      "test": "biomarker screen: settings BS-CFG-002: a caller’s settings are laid over the defaults, and a setting that is not known, or a value a setting cannot take, is refused with a message naming it; two groups, and a variable as the core takes one (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-SITE-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-CFG-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the fitted line AS-FIT-001: R is asked for a panel’s line with the function named in settings, the rows and the identity the coefficient is asked with, and the two columns and the kind of line; a colour adds the column a line is fitted within (#26)",
+      "test": "biomarker screen: the API reference BS-SITE-004: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-FIT-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-SITE-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the fitted line AS-FIT-002: a linear fit prints the test of its slope with its method and counts, the slope and the intercept with the intervals R gave, and R-squared; with a colour, each level’s slope and intercept in a small table (#26)",
+      "test": "biomarker screen: the order, the axis and the pages BS-DATA-005: the rows are ordered by R’s estimate, largest first, by name, or by R’s adjusted p-value, smallest first; uncomputed rows last; ties in R’s order (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-FIT-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-005"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the fitted line AS-FIT-003: a smooth prints its method and the pairs it used and no p-value, because a smooth has no test, with R’s notes; a level R drew no curve for says why (#26)",
+      "test": "biomarker screen: the order, the axis and the pages BS-DATA-006: every row is on one axis without units, symmetric about nought and holding every interval for a difference, from −1 to 1 for a coefficient (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-FIT-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-006"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the fitted line AS-FIT-004: the lines drawn are exactly the points R returned, joined: nothing of a line, a curve or a band is worked out here, and with no answer from R there is no line (#26)",
+      "test": "biomarker screen: the order, the axis and the pages BS-LIMIT-001: with more rows than the limit the rows are paged, and the note says how many of how many, in what order and how many to a page (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-FIT-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-LIMIT-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the line y = x, and a region AS-DATA-009: the identity line is y = x across the part of the two axes they share: two ends of a ruler, and no statistic (#26)",
+      "test": "biomarker screen: the rows BS-DATA-001: the rows are the biomarkers of the list, in its order, each at the one visit with the one value type; a baseline value has no visit (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-009"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the line y = x, and a region AS-DATA-010: a region holds the participants whose point is inside it on both axes, edges included, however its corners are given (#26)",
+      "test": "biomarker screen: the rows BS-DATA-002: for a correlation the fixed variable is not a row of its own, and with nothing to screen the chart says why (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-010"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-001: one point per participant, from the core’s frame with x and y as two variables; a participant missing either is left out and counted by reason and by axis (#26)",
+      "test": "biomarker screen: the rows BS-DATA-003: the frame is the core’s, one column per biomarker named by it with none required, and the column of groups or the fixed variable beside them; a participant with none is left out and counted; the filters choose first; two columns of one name are refused (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-001"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-002: either axis is a biomarker at a visit with any value type, or a participant-level number (#26)",
+      "test": "biomarker screen: the rows BS-DATA-004: a difference compares the two groups chosen when the column has both, and otherwise its first two, in order (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-002"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-DATA-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-003: a colour splits the points by its levels, and panels by one further variable are one panel per level, each holding its own participants (#26)",
+      "test": "biomarker screen: what R is asked BS-STAT-001: one request for the whole screen: the function, the frame, the biomarkers, the comparison with its groups or its variable and method, and the adjustment; an identity that names the chart, the value type, the visit, the baseline, the variable and the filters (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-003"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-001"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-004: each axis has its own scale, and on a logarithmic one a value of zero or less is left out and counted for that axis (#26)",
+      "test": "bundle: the biomarker screen ships, safety.viz, Chart.js and webR do not BS-KIT-002: BioViz.biomarkerScreen is exported by both committed bundles, which hold none of safety.viz, no Chart.js and no webR, and defining it needs no safety.viz (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-KIT-002"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-005: a filter chooses participants: the ones filtered out are not drawn and not counted as missing, and a filter that lets nobody through draws nothing (#26)",
+      "test": "bundle: the biomarker screen ships, safety.viz, Chart.js and webR do not BS-KIT-003: the chart is built from the shared parts and writes none of them again; of other charts it imports only their public functions, and no chart imports anything of this one (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-005"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-KIT-003"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "association scatter: the points AS-DATA-006: with the results table alone the points are the ones the participant table would give, and a column carried on the results rows can be a colour or an axis (#26)",
+      "test": "bundle: the biomarker screen ships, safety.viz, Chart.js and webR do not BS-KIT-004: the chart’s source holds no statistical inference: no arithmetic of an estimate, an interval, a p-value or an adjustment, and nothing ordered by a key R did not return (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-DATA-006"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: the points AS-DATA-007: an axis is named for its variable, with the unit its values are in; a fold change has no unit, a percent change is in percent, and a column is named by its label (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-DATA-007"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: the points AS-DATA-008: a change, a fold change or a percent change read at the one baseline visit is the same for everyone, and is said to be nothing to draw (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-DATA-008"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what R is asked AS-STAT-001: R is asked for one panel with the function named in settings, the panel’s rows by the names of their fields, and the two columns and the coefficient; a colour adds the column a coefficient is given within (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-001"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what R is asked AS-STAT-002: the identity of a panel’s rows states what was drawn by the settings’ own names, a member that is not set is left out, and no two views share one (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-002"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what R is asked AS-STAT-003: on a logarithmic axis R is handed the base-10 logarithm of that axis’s values, the values as plotted, and the scale is part of the rows’ identity (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-003"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the controls offer AS-CTRL-001: the participant-level numbers an axis can take are the columns in which every written value is a number and more than one value occurs; the setting `numbers` is the list when given (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-CTRL-001"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the controls offer AS-CTRL-002: with no variable named the chart opens on the first two biomarkers at the first visit; a variable that is named is the one it opens on, and one the tables lack gives way and is reported (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-CTRL-002"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-004: the result is printed through the shared formatter with its method and counts, labelled exploratory and unadjusted, and the coefficient with the interval R gave; no star and never the word significant (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-004"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-005: Spearman’s coefficient is printed with no interval, because R gives none, and R’s note says so; none is made up (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-005"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-006: with a colour the coefficient within each level is printed from R’s rows as a small table, each with its count, its interval and its p-value under a caption naming the method; a level with too few pairs prints R’s reason in its row (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-006"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-007: too few pairs prints R’s reason, once, and no number (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-007"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-008: what R warned and noted is printed as R worded it, and an answer that is not R’s result reads as what it is: unavailable, not stored, an error (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-008"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-009: the line says it is waiting from the moment a result is asked for until it arrives, with the page’s note until R has answered once, and an answer that arrives after the chart has been drawn again is never shown (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-009"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "association scatter: what the line says AS-STAT-010: what a coefficient covers is said under it, and every time an axis is logarithmic the line says which scale the statistic was computed on (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-STAT-010"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "bundle: the association scatter ships, safety.viz and Chart.js do not AS-KIT-002: BioViz.associationScatter is exported by both committed bundles, which hold none of safety.viz and no Chart.js, and defining it needs no safety.viz (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-KIT-002"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "bundle: the association scatter ships, safety.viz and Chart.js do not AS-KIT-003: the chart is built from the parts every chart shares and from nothing of the group comparison chart; that chart is built from the same parts (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-KIT-003"],
-      "issueRefs": [26],
-      "screenshots": []
-    },
-    {
-      "test": "bundle: the association scatter ships, safety.viz and Chart.js do not AS-KIT-004: the chart’s source holds no statistical inference: it imports no statistics, and no arithmetic of a correlation, a regression, a smooth, an interval or a p-value is written in it (#26)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["AS-KIT-004"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-KIT-004"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
@@ -1338,51 +1194,51 @@
       "screenshots": []
     },
     {
-      "test": "the rows R is run on AS-STAT-011: deriving each case’s rows again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#26)",
+      "test": "the frames R is run on BS-STAT-010: a frame is the chart’s: the id, one column per biomarker named by it, the column of groups or the variable, a gap an empty cell; and the demo’s settings read from its own script (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-011"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-010"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "the rows R is run on AS-STAT-011: the rows are the chart’s: one per participant, the fields the chart hands R, the values the chart drew, and the demo’s settings read from the demo’s own script (#26)",
+      "test": "the frames R is run on BS-STAT-010: deriving each case’s frame again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-011"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-010"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "what desktop R answered, and the key it wrote AS-STAT-012: the expected results name the script, the R version and the vendored statistics file that made them, and hold one result per case (#26)",
+      "test": "what desktop R answered, and the key it wrote BS-STAT-009: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with, and the recipe in the reference is the script’s (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-012"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-009"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "what desktop R answered, and the key it wrote AS-STAT-013: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with (#26)",
+      "test": "what desktop R answered, and the key it wrote BS-STAT-009: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its view, and by no other view’s (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-013"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-009"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "what desktop R answered, and the key it wrote AS-STAT-013: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its panel, and by no other view’s (#26)",
+      "test": "what desktop R answered, and the key it wrote BS-STAT-011: the expected results name the script, the R version and the vendored statistics file, and hold one result per case, both comparisons and both adjustments, rows R could not compute left out of the adjustment (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-013"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-011"],
+      "issueRefs": [36],
       "screenshots": []
     },
     {
-      "test": "what desktop R answered, and the key it wrote AS-STAT-014: the correlation the study was planted with, 0.6, lies inside the interval R gives for the planted pair; and R’s Spearman coefficient is the same on logarithms as on the values (#26)",
+      "test": "what desktop R answered, and the key it wrote BS-STAT-012: in desktop R the planted biomarkers are the top rows, and a row’s statistic is the one the matching single chart’s own expected results hold (#36)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["AS-STAT-014"],
-      "issueRefs": [26],
+      "requirementIds": ["BS-STAT-012"],
+      "issueRefs": [36],
       "screenshots": []
     }
   ]
