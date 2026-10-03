@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-03T07:25:53.623Z",
+  "generatedAt": "2026-10-03T08:36:04.957Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37106291780",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37106291780"
+    "id": "37110218227",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
   },
   "records": [
     {
@@ -162,6 +162,14 @@
       "status": "pass",
       "requirementIds": ["BS-DROP-003"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "BS-DROP-004: the participant table and the setting that names its id column change together, with setData(tables, settings), and the chart draws (#52)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-DROP-004"],
+      "issueRefs": [52],
       "screenshots": []
     },
     {
@@ -389,11 +397,11 @@
       "screenshots": []
     },
     {
-      "test": "BS-STAT-015: for a difference the footnote says where the rows are drawn that the interval is Hedges’ g with a pooled standard deviation and the p-value Welch’s t-test, as in the group comparison; for a correlation it says nothing of it (#49)",
+      "test": "BS-STAT-015: for a difference the statistics line under the rows prints R’s own note that the interval pools the variances and the p-value does not; the chart adds no words of its own about R’s method (#49, #52)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["BS-STAT-015"],
-      "issueRefs": [49],
+      "issueRefs": [],
       "screenshots": []
     },
     {

@@ -202,11 +202,21 @@ class CorrelationMatrix {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {CorrelationMatrix} The chart, for chaining.
    */
-  setData(data) {
+  setData(data, settings) {
     this.close();
-    this.tables = readGiven(this, data);
+    if (settings === undefined || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      // The tables and the settings that read them change together: the
+      // tables are checked against the new settings, which are then laid over.
+      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildControls();
@@ -224,11 +234,11 @@ class CorrelationMatrix {
    */
   setSettings(settings) {
     const given = settings || {};
-    this.close();
     const next = syncSettings({ ...this.settings, ...given });
     // The tables must still have the columns the new settings name; if not, the
-    // settings are refused and nothing changes.
+    // settings are refused and nothing changes, a chart opened in place included.
     checkTables(this.tables, next);
+    this.close();
     this.settings = next;
     if ('connection' in given || 'waiting_note' in given) this.connect();
     this.readTables();

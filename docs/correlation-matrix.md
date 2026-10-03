@@ -107,18 +107,18 @@ The note above the grid says how many participants are in the frame of how many,
 
 The lifecycle is safety.viz's, so a page drives the libraries the same way. `init`, `setData`, `setSettings` and `close` return the chart, so calls can be chained.
 
-| Method                        | What it does                                                                                                                                                |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chart.init(data)`            | Loads the tables and draws. The same as `setData`.                                                                                                          |
-| `chart.setData(data)`         | Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.          |
-| `chart.setSettings(settings)` | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                         |
-| `chart.render()`              | Draws everything again from the tables, the settings and the controls, and asks R again.                                                                    |
-| `chart.resize()`              | Fits the grid to its container, for a page that changes the container's size without resizing the window.                                                   |
-| `chart.destroy()`             | Takes the chart down, with a scatter a cell had opened, and empties its element. A destroyed chart cannot be used again.                                    |
-| `chart.statistics()`          | What the chart has asked R for the grid now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                          |
-| `chart.open(x, y)`            | Opens the association scatter for a pair, as a click on its cell does. `x` and `y` are two of the grid's variables, each by its label. Returns the scatter. |
-| `chart.close()`               | Closes that scatter and shows the grid again, as it was.                                                                                                    |
-| `chart.scatter()`             | The association scatter a cell has opened, or null while the grid is shown.                                                                                 |
+| Method                          | What it does                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chart.init(data)`              | Loads the tables and draws. The same as `setData`.                                                                                                                                                                                                                                                                                                                                                                    |
+| `chart.setData(data, settings)` | Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. `settings`, when given, are laid over the chart's with the tables, for tables that need them: a participant table whose id column has another name comes with `{ participant_id_col }`. The tables are checked against those settings, so the two change together. |
+| `chart.setSettings(settings)`   | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                                                                                                                                                                                                                                                                                   |
+| `chart.render()`                | Draws everything again from the tables, the settings and the controls, and asks R again.                                                                                                                                                                                                                                                                                                                              |
+| `chart.resize()`                | Fits the grid to its container, for a page that changes the container's size without resizing the window.                                                                                                                                                                                                                                                                                                             |
+| `chart.destroy()`               | Takes the chart down, with a scatter a cell had opened, and empties its element. A destroyed chart cannot be used again.                                                                                                                                                                                                                                                                                              |
+| `chart.statistics()`            | What the chart has asked R for the grid now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                                                                                                                                                                                                                                                                                    |
+| `chart.open(x, y)`              | Opens the association scatter for a pair, as a click on its cell does. `x` and `y` are two of the grid's variables, each by its label. Returns the scatter.                                                                                                                                                                                                                                                           |
+| `chart.close()`                 | Closes that scatter and shows the grid again, as it was.                                                                                                                                                                                                                                                                                                                                                              |
+| `chart.scatter()`               | The association scatter a cell has opened, or null while the grid is shown.                                                                                                                                                                                                                                                                                                                                           |
 
 Tables the chart cannot read are refused: `setData` throws a `TypeError`, and the message is shown in the chart's element.
 
@@ -264,9 +264,10 @@ In R, the key of one grid's stored result, from the frame and what the view is s
 # number is written in the fewest digits that read back as the same number,
 # whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
 # (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
-# written "2". The text is JavaScript's for every number that needs 16
-# significant digits or fewer; of two 17-digit texts that read back the same,
-# JavaScript may choose the other.
+# written "2", and NaN "NaN". The text is JavaScript's for every number that
+# needs 13 significant digits or fewer. Beyond that R's reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript's.
 chart_text <- function(x) {
   if (is.null(x)) return(NULL)
   if (is.logical(x)) return(ifelse(x, "true", "false"))
@@ -275,6 +276,7 @@ chart_text <- function(x) {
 }
 
 chart_number <- function(value) {
+  if (is.nan(value)) return("NaN")
   if (is.na(value)) return(NA_character_)
   if (value == 0) return("0")
   if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")

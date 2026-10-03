@@ -54,9 +54,10 @@ source(file.path(vendored, "statistics.R"))
 # number is written in the fewest digits that read back as the same number,
 # whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
 # (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
-# written "2". The text is JavaScript's for every number that needs 16
-# significant digits or fewer; of two 17-digit texts that read back the same,
-# JavaScript may choose the other.
+# written "2", and NaN "NaN". The text is JavaScript's for every number that
+# needs 13 significant digits or fewer. Beyond that R's reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript's.
 chart_text <- function(x) {
   if (is.null(x)) return(NULL)
   if (is.logical(x)) return(ifelse(x, "true", "false"))
@@ -65,6 +66,7 @@ chart_text <- function(x) {
 }
 
 chart_number <- function(value) {
+  if (is.nan(value)) return("NaN")
   if (is.na(value)) return(NA_character_)
   if (value == 0) return("0")
   if (is.infinite(value)) return(if (value > 0) "Infinity" else "-Infinity")
@@ -200,7 +202,16 @@ recipes <- local({
       key,
       list(value = do.call(key$name, c(list(rows), key$args)))
     ),
-    list(case = "chart-text", values = values, text = lapply(values, chart_text))
+    list(case = "chart-text", values = values, text = lapply(values, chart_text)),
+    # The edge of the claim: numbers of 13 significant digits, the most for
+    # which R's reading of a number is exact enough to find the fewest digits;
+    # and NaN, which JSON cannot hold as a value but the chart writes "NaN".
+    local({
+      digits13 <- list(0.1234567890123, 9876543.210987, 1.000000000001, -45.67890123456,
+                       3.141592653590, 2.718281828459e-5, 6.022140760000e23)
+      list(case = "chart-text-edge", values = digits13, text = lapply(digits13, chart_text),
+           nan = chart_text(NaN))
+    })
   )
 })
 

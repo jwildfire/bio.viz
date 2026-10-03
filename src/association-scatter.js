@@ -218,10 +218,20 @@ class AssociationScatter {
    * @param {{results: object[], participants?: object[]}} data The tables: the
    *   results table, and the participant table when there is one. A bare array
    *   is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them: a participant table whose id column has another name
+   *   comes with `participant_id_col`. The tables are checked against these.
    * @returns {AssociationScatter} The chart, for chaining.
    */
-  setData(data) {
-    this.tables = readGiven(this, data);
+  setData(data, settings) {
+    if (settings === undefined || settings === null) {
+      this.tables = readGiven(this, data);
+    } else {
+      // The tables and the settings that read them change together: the
+      // tables are checked against the new settings, which are then laid over.
+      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      this.setSettings(settings);
+    }
     this.readTables();
     this.state = this.seedState();
     this.buildProfileFeed();

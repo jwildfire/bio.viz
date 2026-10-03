@@ -73,7 +73,8 @@
     "CM-DROP-001": "With a participant table, a participant the results have and the table does not is left out and counted (`Not in the participant table`), and a row of results with no participant id is counted (`Row has no participant id`); a participant table without the participant id column is refused with a sentence that names the column.",
     "CM-STAT-016": "The waiting note (what starting R costs) is said until R has answered once on the connection, so a pair the grid opens in the scatter after R has answered does not say it again.",
     "CM-DROP-002": "With results for participants the participant table does not have and filters that let nobody through, the chart says `No participant passes the filters.`, as it does with no such rows.",
-    "CM-DROP-003": "A setting that names a participant id column the participant table does not have (`setSettings({ participant_id_col })`) is refused with the same sentence as the tables are, before anything changes, and the chart stays as it was drawn.",
-    "CM-STAT-017": "The R recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with, so a stored result written that way is found."
+    "CM-DROP-003": "A setting that names a participant id column the participant table does not have (`setSettings({ participant_id_col })`) is refused with the same sentence as the tables are, before anything changes, and the chart stays as it was drawn, a chart opened in place included (bio.viz#52).",
+    "CM-STAT-017": "The R recipe run on a data frame with a visit column that holds numbers writes the identity as text, as the chart asks with, so a stored result written that way is found.",
+    "CM-DROP-004": "The participant table and the setting that names its id column change together: `setData(tables, settings)` checks the tables against the settings it is given with them, lays the settings over, and draws."
   }
 }

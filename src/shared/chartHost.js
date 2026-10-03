@@ -199,9 +199,11 @@ export function checkTables(tables, settings) {
  *
  * @param {object} chart The chart.
  * @param {object|object[]} data What `init` or `setData` was given.
+ * @param {object} [settings] The settings the tables are read with: the
+ *   chart's, or the ones `setData` was given with them.
  * @returns {{results: object[], participants: ?object[]}} The tables.
  */
-export function readGiven(chart, data) {
+export function readGiven(chart, data, settings = chart.settings) {
   const tables = Array.isArray(data) ? { results: data } : data || {};
   try {
     if (!isRecordTable(tables.results)) {
@@ -212,7 +214,7 @@ export function readGiven(chart, data) {
         'bio.viz: `participants` must be an array of records, one object per row.'
       );
     }
-    checkTables(tables, chart.settings);
+    checkTables(tables, settings);
   } catch (error) {
     chart.destroyCharts();
     chart.element.innerHTML = '';

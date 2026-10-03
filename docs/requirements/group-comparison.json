@@ -135,6 +135,10 @@
     "GC-STAT-045": "The recipes' `chart_text` writes each value as the chart's `String()` does: logicals as `true` and `false`, numbers in the fewest digits that read back the same, in full from 1e-6 to below 1e21 and with an exponent outside that.",
     "GC-FAIL-002": "A failure while the controls are built, where the Levels control reads the groups, is said like any other: the footnote says the chart could not be drawn, and nothing is thrown.",
     "GC-DRAW-007": "With one biomarker open at several visits, the groups' labels under each visit's panel do not run into one another, at 1280 and at 390 pixels wide: they stay level when they fit and turn when they would not.",
-    "GC-CTRL-008": "With one biomarker open, the Visit control offers, and the chart draws, only the visits that biomarker has values at, in visit order; the overview offers every visit."
+    "GC-CTRL-008": "With one biomarker open, the Visit control offers, and the chart draws, only the visits that biomarker has values at, in visit order; the overview offers every visit.",
+    "GC-DROP-004": "The participant table and the setting that names its id column change together: `setData(tables, settings)` checks the tables against the settings it is given with them, lays the settings over, and draws.",
+    "GC-OVW-020": "In the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others; only the one-biomarker view draws only that biomarker's visits.",
+    "GC-DRAW-008": "With five long arm names, the groups' labels under each visit's panel do not run into one another at 1280 pixels wide.",
+    "GC-STAT-046": "The recipes' `chart_text` writes NaN as `NaN`, and holds to the chart's `String()` for numbers of 13 significant digits, the most its claim covers."
   }
 }

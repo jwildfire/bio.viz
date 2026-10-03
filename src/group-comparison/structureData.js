@@ -223,6 +223,8 @@ export function tickLabel(level, cells) {
  * @param {object} [options]
  * @param {Function} [options.filterMatches] safety.viz's test of one value
  *   against one filter's selection.
+ * @param {boolean} [options.everyVisit] Draw every visit chosen, as the
+ *   overview does, rather than only the ones the biomarker has values at.
  * @returns {object} The panels, and what is common to them.
  */
 export function buildPanels({ results, participants }, settings, state, options = {}) {
@@ -264,7 +266,11 @@ export function buildPanels({ results, participants }, settings, state, options 
   // Only the visits the biomarker has values at, in visit order: read from
   // the results before the filters, so a visit is not dropped because the
   // filters leave nobody there.
-  const atMeasure = measureVisits(results, settings, state.measure);
+  // The overview keeps every visit in every row, so its rows line up: a
+  // biomarker with no result at a visit has an empty panel there.
+  const atMeasure = options.everyVisit
+    ? state.visits
+    : measureVisits(results, settings, state.measure);
   const asked = state.visits.filter((visit) => atMeasure.includes(visit));
   const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
@@ -461,7 +467,7 @@ export function buildOverview(tables, settings, state, measures, options = {}) {
     return {
       measure,
       title: yTitle(tables.results, settings, { ...row, visits: [] }),
-      model: buildPanels(tables, settings, row, options)
+      model: buildPanels(tables, settings, row, { ...options, everyVisit: true })
     };
   });
 }
