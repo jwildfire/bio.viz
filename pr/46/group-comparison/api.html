@@ -73,11 +73,12 @@
 <tr><td data-label="Table"><code>participants</code></td><td data-label="Required">no</td><td data-label="One row per">participant</td><td data-label="What it adds">Filters, and participant-level columns to group by, colour by and panel by.</td></tr></tbody></table>
 <p>Only the results table is required. With it alone the chart has no filters, and a group comes from a column carried on the results rows: one that is not the id, the biomarker, the result, the visit, the visit order or the unit, and that holds one value for each participant. When the results rows carry no such column there is nothing to group by; the chart says so in its controls and draws everyone as one group.</p>
 <p>With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Group by, Colour by and Panel by controls. A category column is one with at most <code>max_levels</code> different values. A filter chooses participants: the ones filtered out are not drawn, and are not counted as missing a result. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads <code>No participant passes the filters.</code>, the words every chart uses; loosen a filter and it draws again.</p>
+<p>A participant table is matched to the results by the participant&#39;s id, in the column <code>participant_id_col</code> names, or <code>id_col</code>&#39;s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (<code>Not in the participant table</code>), and so is a row of results with no participant id (<code>Row has no participant id</code>). If drawing fails for any other reason, the footnote says <code>This chart could not be drawn:</code> and why, nothing half drawn is left, and the controls stay.</p>
 <h2 id="the-charts-methods">The chart&#39;s methods</h2>
 <p>The lifecycle is safety.viz&#39;s, so a page drives both libraries the same way. Each of the first three returns the chart, so calls can be chained.</p>
 <table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
 <tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
-<tr><td data-label="Method"><code>chart.setData(data)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data, settings)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. <code>settings</code>, when given, are laid over the chart&#39;s with the tables, for tables that need them: a participant table whose id column has another name comes with <code>{ participant_id_col }</code>. The tables are checked against those settings, so the two change together.</td></tr>
 <tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
 <tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls.</td></tr>
 <tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the chart to its container, for a page that changes the container&#39;s size without resizing the window.</td></tr>
@@ -135,6 +136,7 @@
 <p>For a change, a fold change or a percent change from baseline, the baseline visit itself is not drawn when it is the only baseline visit: there the value is the same for every participant by definition, no change or a fold of one, and there is nothing to draw or to compare. The note above the chart says so. With several baseline visits a value at one of them is measured against the baseline over all of them, and every visit is drawn.</p>
 <p>On a logarithmic scale a value of zero or less cannot be shown. It is left out, and the note above the chart counts how many were.</p>
 <p>The note above the chart says how many participants were drawn, of how many, and why any was left out, in the <a href="../core/api.html#dropped">core&#39;s words</a>.</p>
+<p>The groups&#39; labels under a panel stay level when they fit, and turn when they would run into one another, as narrow visit panels&#39; long group names would.</p>
 <h2 id="the-overview">The overview</h2>
 <p>With no biomarker chosen the chart draws every biomarker: the view it opens on when <code>start_value</code> is null, and the entry All Biomarkers at the head of the Biomarker control. It is the way in, as the all-measures view of safety.viz&#39;s histogram is.</p>
 <ul><li>One row per biomarker, in the Biomarker control&#39;s order: the setting <code>measures</code>, or by name. A row is headed by the biomarker and the unit its values are in.</li><li>In a row, one small panel per visit chosen, in visit order, with the groups drawn as the mark chosen and the number in each group beneath. With the Visit control on all visits, which is how the chart opens, that is every visit.</li><li>Each biomarker has its own value axis, the same across its visits, so the panels of a row compare by eye and biomarkers on different scales do not flatten one another. The axis runs as far as the row&#39;s marks reach: for boxes, from the lowest whisker to the highest.</li><li>A row is a button named <code>View IL-6</code>: a click on it, or Enter or Space when the keyboard is on it, opens that biomarker alone, with its visits as panels, the listing, the participant profile and a statistics line under each panel. All Biomarkers in the Biomarker control leads back, and Reset chart returns to whichever the settings open on.</li></ul>
@@ -163,7 +165,7 @@
 <table class="doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
 <tbody><tr><td data-label="Section">Value</td><td data-label="Control">Biomarker</td><td data-label="What it sets">All Biomarkers, which is the overview, or one biomarker.</td></tr>
 <tr><td data-label="Section">Value</td><td data-label="Control">Value</td><td data-label="What it sets">The value type: result, baseline, change, fold change or percent change from baseline.</td></tr>
-<tr><td data-label="Section">Value</td><td data-label="Control">Visit</td><td data-label="What it sets">The visit, or visits. Not shown for a baseline value, which has no visit.</td></tr>
+<tr><td data-label="Section">Value</td><td data-label="Control">Visit</td><td data-label="What it sets">The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; in the overview, every visit. Not shown for a baseline value, which has no visit.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Group by</td><td data-label="What it sets">The column on the axis.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Levels</td><td data-label="What it sets">Which of its levels are drawn.</td></tr>
 <tr><td data-label="Section">Groups</td><td data-label="Control">Colour by</td><td data-label="What it sets">The second grouping, or none.</td></tr>
@@ -239,29 +241,79 @@
 <p>In R, the key of one panel&#39;s stored result, from the panel&#39;s rows and what the view is set to:</p>
 <pre><code class="language-r"># dfRows: the panel&#39;s rows, one per participant: the id, y, x (and color, panel when set).
 # lView:  the view, by the chart&#39;s names; a member that is not set is NULL.
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript&#39;s String() writes it. TRUE and FALSE are &quot;true&quot; and &quot;false&quot;. A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written &quot;2&quot;, and NaN &quot;NaN&quot;. The text is JavaScript&#39;s for every number that
+# needs 13 significant digits or fewer. Beyond that R&#39;s reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript&#39;s.
+chart_text &lt;- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, &quot;true&quot;, &quot;false&quot;))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number &lt;- function(value) {
+  if (is.nan(value)) return(&quot;NaN&quot;)
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return(&quot;0&quot;)
+  if (is.infinite(value)) return(if (value &gt; 0) &quot;Infinity&quot; else &quot;-Infinity&quot;)
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written &lt;- sprintf(&quot;%.*e&quot;, precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits &lt;- sub(&quot;0+{{content}}quot;, &quot;&quot;, gsub(&quot;.&quot;, &quot;&quot;, sub(&quot;e.*{{content}}quot;, &quot;&quot;, written), fixed = TRUE))
+  k &lt;- nchar(digits)
+  n &lt;- as.integer(sub(&quot;^.*e&quot;, &quot;&quot;, written)) + 1L
+  text &lt;- if (k &lt;= n &amp;&amp; n &lt;= 21) {
+    paste0(digits, strrep(&quot;0&quot;, n - k))
+  } else if (n &gt; 0 &amp;&amp; n &lt;= 21) {
+    paste0(substr(digits, 1, n), &quot;.&quot;, substr(digits, n + 1, k))
+  } else if (n &gt; -6 &amp;&amp; n &lt;= 0) {
+    paste0(&quot;0.&quot;, strrep(&quot;0&quot;, -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k &gt; 1) paste0(&quot;.&quot;, substr(digits, 2, k)) else &quot;&quot;,
+           &quot;e&quot;, if (n - 1 &gt;= 0) &quot;+&quot; else &quot;-&quot;, abs(n - 1))
+  }
+  if (value &lt; 0) paste0(&quot;-&quot;, text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list is an unnamed list, so it is written as a JSON array
+# whatever its length. Text is sorted by code point (`method = &quot;radix&quot;`), which
+# is the order the chart sorts in.
 group_comparison_key &lt;- function(dfRows, lView) {
-  chrGroups &lt;- sort(unique(as.character(dfRows$x)), method = &quot;radix&quot;)
-  lDataId &lt;- list(chart = &quot;group-comparison&quot;, measure = lView$measure, value_type = lView$value_type)
-  if (!is.null(lView$visit)) lDataId$visit &lt;- lView$visit
-  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits &lt;- as.list(lView$baseline_visits)
+  chrGroups &lt;- sort(unique(chart_text(dfRows$x)), method = &quot;radix&quot;)
+  lDataId &lt;- list(chart = &quot;group-comparison&quot;, measure = chart_text(lView$measure), value_type = lView$value_type)
+  if (!is.null(lView$visit)) lDataId$visit &lt;- chart_text(lView$visit)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits &lt;- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat &lt;- lView$baseline_stat
   if (!is.null(lView$group_by)) lDataId$group_by &lt;- lView$group_by
   lDataId$groups &lt;- as.list(chrGroups)
   if (!is.null(lView$color_by)) lDataId$color_by &lt;- lView$color_by
   if (!is.null(lView$panel_by)) {
     lDataId$panel_by &lt;- lView$panel_by
-    lDataId$panel &lt;- lView$panel
+    lDataId$panel &lt;- chart_text(lView$panel)
   }
   if (length(lView$filters) &gt; 0) {
     lDataId$filters &lt;- lapply(lView$filters, function(xValues) {
-      as.list(sort(unique(as.character(xValues)), method = &quot;radix&quot;))
+      as.list(sort(unique(chart_text(xValues)), method = &quot;radix&quot;))
     })
   }
   if (identical(lView$y_scale, &quot;log&quot;)) lDataId$positive_only &lt;- TRUE
   list(
     name = lView$statistic,
     args = list(
-      strValueCol = &quot;y&quot;, strGroupCol = &quot;x&quot;, strMethod = lView$test,
+      strValueCol = &quot;y&quot;,
+      strGroupCol = &quot;x&quot;,
+      strMethod = lView$test,
+      # Pairs exist only among more than two groups.
       bPairwise = isTRUE(lView$pairwise) &amp;&amp; length(chrGroups) &gt; 2
     ),
     dataId = lDataId,
@@ -293,7 +345,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/8a0326bf47c5fdfc64de3dcfcb70969ad1fcb4b1"><code>8a0326b</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/769bf6f80347fda7f01d924504ebb05da2616bf9"><code>769bf6f</code></a>.
       </p>
       <p>
         Built in the open — follow the
