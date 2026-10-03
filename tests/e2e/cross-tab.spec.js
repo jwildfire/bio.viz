@@ -1,0 +1,546 @@
+import { readFileSync } from 'node:fs';
+import { test, expect } from '@playwright/test';
+import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
+import { describeAnswer } from '../../src/cross-tab/statistic.js';
+import { captureEvidence } from './evidence.js';
+import {
+  expectDropsCounted,
+  expectFailureSaid,
+  expectNobodyWithOrphans,
+  expectReplacedConnectionDead,
+  expectSettingsRefused,
+  expectTablesAndSettingsTogether
+} from './review.js';
+
+// The cross-tabulation in a real page (#44): safety.viz's vendored bundle and
+// bio.viz's committed bundle, loaded as two script tags, drawing the vendored
+// synthetic study. `npm run test:e2e -- cross-tab` runs this file.
+//
+// Every group but the last reaches no network and runs no R: the test is asked
+// of a connection with no R attached, or of results desktop R stored. The last
+// group, "live", opens the gallery's demo and runs real R from webR's public
+// CDN, and holds what it answers to desktop R's.
+
+const readJson = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
+// What desktop R makes of each table (tools/r-cross-tab.R). No number below was typed.
+const fromR = readJson('../fixtures/cross-tab-r.json');
+const caseOf = (name) => fromR.cases.find((entry) => entry.case === name);
+const keyed = ({ name, args, dataId, rows, value }) => ({ name, args, dataId, rows, value });
+const stored = (...names) => names.map(caseOf).map(keyed);
+const FIXTURE = '/tests/e2e/fixtures/cross-tab.html';
+const NO_R = 'Statistics are unavailable: no R is attached to this chart.';
+const CRP_MEDIAN = { measure: 'CRP', visit: 'Baseline', cut: 'median' };
+const CRP_TYPED = { measure: 'CRP', visit: 'Baseline', cut: [8] };
+const percentText = (value) => `${value.toFixed(1)}%`;
+
+const blockR = (page) =>
+  page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
+
+function watch(page) {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(msg.text());
+  });
+  return errors;
+}
+
+async function open(page, { data = 'both', settings = null, make = true } = {}) {
+  await blockR(page);
+  await page.addInitScript((given) => {
+    window.__ctSettings = given || {};
+  }, settings);
+  await page.goto(`${FIXTURE}?data=${data}${make ? '' : '&make=no'}`);
+  await page.evaluate(() => window.__ct.ready);
+}
+
+const root = (page) => page.locator('#chart > .bv-cross-tab');
+const line = (page) => root(page).locator('.sv-main > .bv-statistic');
+const footnote = (page) => root(page).locator('.sv-footnote');
+
+const withStored = (page, results, settings = {}) =>
+  page.evaluate(
+    ({ results, settings }) => {
+      window.__ct.chart.setSettings({
+        ...settings,
+        connection: window.BioViz.r.createConnection({ results })
+      });
+    },
+    { results, settings }
+  );
+
+// The table as drawn: the categories each way, each cell's count and
+// percentage, and the totals, read from the page.
+const tableOf = (page) =>
+  page.evaluate(() => {
+    const table = document.querySelector('#chart .bv-crosstab');
+    const cols = [...table.querySelectorAll('thead th')].slice(1, -1).map((th) => th.textContent);
+    const body = [...table.querySelectorAll('tbody tr')];
+    return {
+      caption: table.querySelector('caption').textContent,
+      rows: body.map((tr) => tr.querySelector('th').textContent),
+      cols,
+      counts: body.map((tr) =>
+        [...tr.querySelectorAll('td.bv-cell button')].map((button) =>
+          Number(button.firstChild.textContent)
+        )
+      ),
+      percents: body.map((tr) =>
+        [...tr.querySelectorAll('td.bv-cell button')].map((button) => {
+          const percent = button.querySelector('.bv-percent');
+          return percent ? percent.textContent : null;
+        })
+      ),
+      rowTotals: body.map((tr) => Number(tr.querySelector('td.bv-total').textContent)),
+      colTotals: [...table.querySelectorAll('tfoot td')]
+        .slice(0, -1)
+        .map((td) => Number(td.textContent)),
+      total: Number([...table.querySelectorAll('tfoot td')].at(-1).textContent)
+    };
+  });
+
+// The stacked bars, read from the chart itself.
+const barsOf = (page) =>
+  page.evaluate(() => {
+    const [chart] = window.__ct.chart.charts;
+    return {
+      labels: chart.data.labels,
+      datasets: chart.data.datasets.map((dataset) => ({
+        label: dataset.label,
+        data: dataset.data
+      })),
+      stacked: [chart.options.scales.x.stacked, chart.options.scales.y.stacked],
+      max: chart.options.scales.x.max
+    };
+  });
+
+function expectTable(drawn, entry, percent = 'row') {
+  expect(drawn.rows).toEqual(entry.row_levels);
+  expect(drawn.cols).toEqual(entry.col_levels);
+  expect(drawn.counts).toEqual(entry.counts);
+  expect(drawn.rowTotals).toEqual(entry.row_totals);
+  expect(drawn.colTotals).toEqual(entry.col_totals);
+  expect(drawn.total).toBe(entry.total);
+  const expected =
+    percent === 'none'
+      ? entry.counts.map((row) => row.map(() => null))
+      : (percent === 'row' ? entry.row_percent : entry.col_percent).map((row) =>
+          row.map(percentText)
+        );
+  expect(drawn.percents).toEqual(expected);
+}
+
+const resultText = (entry) => describeAnswer({ status: 'ok', value: entry.value }).text;
+
+test.describe('cross-tabulation: the page and the two bundles', () => {
+  test('CT-KIT-001: the chart is built from safety.viz’s kit on the page and draws its bars with the kit’s Chart.js; without safety.viz it says what is missing (#44)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page);
+    const found = await page.evaluate(() => ({
+      ownChart: 'Chart' in window.BioViz,
+      drawsWithKit: window.__ct.chart.charts.every(
+        (chart) => chart instanceof window.SafetyViz.kit.Chart
+      ),
+      charts: window.__ct.chart.charts.length,
+      root: document.querySelector('#chart > .sv-root').className,
+      sections: [...document.querySelectorAll('#chart .sv-section-title')].map(
+        (title) => title.textContent
+      )
+    }));
+    expect(found).toEqual({
+      ownChart: false,
+      drawsWithKit: true,
+      charts: 1,
+      root: 'sv-root bv-cross-tab',
+      sections: ['Table', 'Statistics', 'Filters']
+    });
+    expect(errors).toEqual([]);
+    await page.goto('/tests/e2e/fixtures/index.html');
+    const message = await page.evaluate(() => {
+      try {
+        window.BioViz.crossTab(document.body, {});
+        return 'made';
+      } catch (error) {
+        return error.message;
+      }
+    });
+    expect(message).toMatch(
+      /^bio\.viz: the cross-tabulation is built from safety\.viz's kit, and `SafetyViz\.kit` was not found\./
+    );
+  });
+});
+
+test.describe('cross-tabulation: what is drawn', () => {
+  test('CT-DRAW-001: arm by response: every count, the totals and each row’s percentages are desktop R’s, and the stacked bars are the same percentages (#44)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page);
+    const entry = caseOf('arm-by-response-chisq');
+    const drawn = await tableOf(page);
+    expect(drawn.caption).toBe('ARM by RESPONSE');
+    expectTable(drawn, entry);
+    const bars = await barsOf(page);
+    expect(bars.labels).toEqual(entry.row_levels);
+    expect(bars.datasets.map((dataset) => dataset.label)).toEqual(entry.col_levels);
+    bars.datasets.forEach((dataset, j) =>
+      dataset.data.forEach((value, i) => expect(value).toBeCloseTo(entry.row_percent[i][j], 12))
+    );
+    expect(bars.stacked).toEqual([true, true]);
+    expect(bars.max).toBe(100);
+    await expect(root(page).locator('.sv-notes')).toContainText(
+      '200 of 200 participants in the table.'
+    );
+    expect(errors).toEqual([]);
+    await captureEvidence(page.locator('.sv-main'), 'CT-DRAW-001', 'arm-by-response');
+  });
+
+  test('CT-DRAW-002: column percentages are each count of its column’s total, and the bars then stack each column by the rows; with none there are no percentages (#44)', async ({
+    page
+  }) => {
+    await open(page, { settings: { percent: 'col' } });
+    const entry = caseOf('arm-by-response-chisq');
+    expectTable(await tableOf(page), entry, 'col');
+    const bars = await barsOf(page);
+    expect(bars.labels).toEqual(entry.col_levels);
+    expect(bars.datasets.map((dataset) => dataset.label)).toEqual(entry.row_levels);
+    bars.datasets.forEach((dataset, i) =>
+      dataset.data.forEach((value, j) => expect(value).toBeCloseTo(entry.col_percent[i][j], 12))
+    );
+    await root(page).locator('select[data-control="percent"]').selectOption('none');
+    expectTable(await tableOf(page), entry, 'none');
+  });
+
+  test('CT-DRAW-003: a biomarker cut by the shared cut rule makes the columns, low to high, with desktop R’s counts, and the footnote states the cut; the Columns control offers it (#44)', async ({
+    page
+  }) => {
+    await open(page, {
+      settings: { row_by: 'RESPONSE', col_by: CRP_MEDIAN, cuts: [CRP_TYPED] }
+    });
+    const entry = caseOf('response-by-crp-median-chisq');
+    expectTable(await tableOf(page), entry);
+    await expect(footnote(page)).toContainText(
+      'CRP at Baseline is cut at its median, 2.783, worked out on the 200 participants with a value.'
+    );
+    const offered = await root(page)
+      .locator('select[data-control="col-by"] option')
+      .allTextContents();
+    expect(offered).toContain('CRP at Baseline, cut at the median');
+    expect(offered).toContain('CRP at Baseline, cut at 8');
+    await captureEvidence(page.locator('.sv-main'), 'CT-DRAW-003', 'response-by-crp-median');
+  });
+});
+
+test.describe('cross-tabulation: the statistics line', () => {
+  test('CT-STAT-005: with R’s answers stored in the page, the chi-square and Fisher results print with their method and counts, Fisher’s odds ratio with its interval, and the identity R wrote is the chart’s (#44)', async ({
+    page
+  }) => {
+    await open(page);
+    await withStored(page, stored('arm-by-response-chisq', 'arm-by-response-fisher'));
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      resultText(caseOf('arm-by-response-chisq'))
+    );
+    await expect(line(page).locator('.bv-stat-scope')).toHaveText(
+      'This test is of the 200 participants in the table.'
+    );
+    await root(page).locator('select[data-control="test"]').selectOption('fisher');
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      resultText(caseOf('arm-by-response-fisher'))
+    );
+    await expect(line(page).locator('.bv-stat-estimate')).toHaveText(
+      'odds ratio: 1.292, 95% confidence interval 0.6994 to 2.398.'
+    );
+    const [asked] = await page.evaluate(() => window.__ct.chart.statistics());
+    expect(keyed({ ...asked, value: asked.answer.value })).toEqual(
+      keyed(caseOf('arm-by-response-fisher'))
+    );
+    await captureEvidence(root(page).locator('.sv-main'), 'CT-STAT-005', 'fisher-with-odds-ratio');
+  });
+
+  test('CT-STAT-006: R’s small-expected-count warning is printed with the result for a table with an expected count below 5, and not for one without (#44)', async ({
+    page
+  }) => {
+    await open(page);
+    await withStored(page, stored('response-by-crp-typed-chisq', 'response-by-crp-median-chisq'), {
+      row_by: 'RESPONSE',
+      col_by: CRP_TYPED
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const small = caseOf('response-by-crp-typed-chisq');
+    expect(small.value.rows.some((row) => row.small_expected)).toBe(true);
+    await expect(line(page).locator('.bv-stat-remark')).toHaveText([
+      `R warned: ${small.value.warnings[0]}`,
+      `R’s note: ${small.value.notes[0]}`
+    ]);
+    await captureEvidence(root(page).locator('.sv-main'), 'CT-STAT-006', 'small-expected-counts');
+    await page.evaluate(() =>
+      window.__ct.chart.setSettings({
+        col_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' }
+      })
+    );
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expect(
+      caseOf('response-by-crp-median-chisq').value.rows.some((row) => row.small_expected)
+    ).toBe(false);
+    await expect(line(page).locator('.bv-stat-remark')).toHaveCount(0);
+  });
+
+  test('CT-STAT-007: with no R attached the line says statistics are unavailable, the table and the bars are still drawn, and nothing is fetched (#44)', async ({
+    page
+  }) => {
+    const requests = [];
+    page.on('request', (request) => requests.push(new URL(request.url()).hostname));
+    await open(page);
+    await expect(line(page)).toHaveText(NO_R);
+    expectTable(await tableOf(page), caseOf('arm-by-response-chisq'));
+    expect((await barsOf(page)).labels).toHaveLength(2);
+    expect(requests.filter((host) => /r-wasm/.test(host))).toEqual([]);
+    // No test chosen: no R is asked.
+    await root(page).locator('select[data-control="test"]').selectOption('none');
+    await expect(line(page)).toHaveText('Statistics: no test chosen.');
+    expect(await page.evaluate(() => window.__ct.chart.statistics())).toEqual([]);
+  });
+
+  test('CT-STAT-008: the test is of the participants the filters keep, as desktop R gives it for the women alone, and the line says the filter (#44)', async ({
+    page
+  }) => {
+    await open(page);
+    await withStored(page, stored('arm-by-response-women-chisq'));
+    await root(page).locator('select[data-filter="SEX"]').selectOption('F');
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expectTable(await tableOf(page), caseOf('arm-by-response-women-chisq'));
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      resultText(caseOf('arm-by-response-women-chisq'))
+    );
+    await expect(line(page).locator('.bv-stat-scope')).toHaveText(
+      'This test is of the 91 participants in the table. Filters: SEX is F.'
+    );
+  });
+});
+
+test.describe('cross-tabulation: listing and participant profile', () => {
+  test('CT-LIST-001: clicking a count lists that cell’s participants in the kit’s listing, and a row of it opens the participant’s profile (#44)', async ({
+    page
+  }) => {
+    await open(page);
+    const entry = caseOf('arm-by-response-chisq');
+    await root(page).locator('.bv-cell button[data-row="Treatment"][data-col="Responder"]').click();
+    const n = entry.counts[1][1];
+    await expect(page.locator('.sv-listing-actions strong')).toHaveText(`${n} of ${n} records`);
+    await expect(page.locator('.sv-listing thead th')).toHaveText([
+      'Participant',
+      'ARM',
+      'RESPONSE'
+    ]);
+    await expect(footnote(page)).toHaveText(
+      `ARM Treatment, RESPONSE Responder: ${n} participants listed. Click a row to open the participant's profile.`
+    );
+    const listed = await page.evaluate(() =>
+      window.__ct.chart.host.currentTableData.map((row) => [row.ARM, row.RESPONSE])
+    );
+    expect(new Set(listed.map(String))).toEqual(new Set(['Treatment,Responder']));
+    await page.locator('.sv-listing tbody tr').first().click();
+    await expect(page.locator('#chart .sv-rail')).not.toBeEmpty();
+    await captureEvidence(page.locator('.sv-listing'), 'CT-LIST-001', 'participants-of-a-cell');
+  });
+});
+
+test.describe('cross-tabulation: on a phone and on the site', () => {
+  test('CT-MOBILE-001: at 390px the controls are folded away, the table fits or scrolls inside its own box, and the page does not scroll sideways (#44)', async ({
+    browser
+  }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true
+    });
+    const page = await context.newPage();
+    await open(page, { settings: { row_by: 'RESPONSE', col_by: CRP_TYPED } });
+    const measure = () =>
+      page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth
+      }));
+    expect(await measure()).toEqual({ viewport: 390, scrollWidth: 390 });
+    await expect(root(page)).toHaveClass(/sv-collapsed/);
+    await captureEvidence(root(page), 'CT-MOBILE-001', 'the-table-on-a-phone');
+    await context.close();
+  });
+
+  test('CT-SITE-002: the gallery lists the chart with links to its live demo, its evidence page and its API reference, and the demo opens on arm by response (#44)', async ({
+    page
+  }) => {
+    await blockR(page);
+    await page.goto('/_site/gallery/index.html');
+    const card = page.locator('#charts [data-module="cross-tab"]');
+    await expect(card.locator('h3')).toHaveText('Cross-tabulation');
+    await expect(card).toContainText('Is this category associated with that one?');
+    await card.getByRole('link', { name: 'Evidence' }).click();
+    await expect(page).toHaveURL(/\/_site\/cross-tab\/evidence\.html$/);
+    await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
+    await expect(page.locator('h1')).toHaveText('The cross-tabulation');
+    await expect(page.locator('.api-body h2 code').filter({ hasText: /^crossTab\(/ })).toHaveCount(
+      1
+    );
+    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Live demo' }).click();
+    await expect(page).toHaveURL(/\/_site\/cross-tab\/index\.html$/);
+    await page.evaluate(() => window.BioVizDemo.ready);
+    const drawn = await tableOf(page);
+    expect(drawn.rows).toEqual(['Placebo', 'Treatment']);
+    expect(drawn.counts).toEqual(caseOf('arm-by-response-chisq').counts);
+    // Where R cannot be reached the table is drawn all the same, and the line says so.
+    await expect(line(page)).toHaveAttribute('data-state', 'unavailable');
+    const offered = await root(page)
+      .locator('select[data-control="col-by"] option')
+      .allTextContents();
+    expect(offered).toContain('CRP at Baseline, cut at the median');
+  });
+
+  test('CT-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#44)', async ({
+    browser
+  }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true
+    });
+    const page = await context.newPage();
+    await blockR(page);
+    await page.goto('/_site/cross-tab/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+    const measure = () =>
+      page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        bodyScrollWidth: document.body.scrollWidth
+      }));
+    const holds = { viewport: 390, scrollWidth: 390, bodyScrollWidth: 390 };
+    expect(await measure()).toEqual(holds);
+    await root(page).locator('.sv-sidebar-toggle').tap();
+    await expect(root(page).locator('.sv-controls')).toBeVisible();
+    expect(await measure()).toEqual(holds);
+    await root(page).locator('.sv-sidebar-toggle').tap();
+    await captureEvidence(page.locator('#demo'), 'CT-SITE-001', 'demo-on-a-phone');
+    await context.close();
+  });
+});
+
+test.describe('cross-tabulation: what the v0.1.0-RC1 review found, held here too', () => {
+  test('CT-STAT-009: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#44)', async ({
+    page
+  }) => {
+    await expectReplacedConnectionDead(page, 'ct');
+  });
+
+  test('CT-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#44)', async ({
+    page
+  }) => {
+    await expectFailureSaid(page, 'ct', (name) => window[name].chart.charts.length);
+  });
+
+  test('CT-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence; filters that let nobody through say so; the id column and the table change together (#44)', async ({
+    page
+  }) => {
+    await expectDropsCounted(page, 'ct');
+    await expectNobodyWithOrphans(page, 'ct');
+    await expectSettingsRefused(page, 'ct');
+    await expectTablesAndSettingsTogether(page, 'ct');
+  });
+});
+
+test.describe('cross-tabulation: the demo, with R in the browser, live', () => {
+  test.describe.configure({ mode: 'serial', timeout: 240_000 });
+
+  let context;
+  let page;
+
+  test.beforeAll(async ({ browser }) => {
+    context = await browser.newContext();
+    page = await context.newPage();
+    await page.goto('/_site/cross-tab/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+  });
+
+  test.afterAll(async () => {
+    await context.close();
+  });
+
+  const answered = () =>
+    expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const found = document.querySelector('#chart > .bv-cross-tab .sv-main > .bv-statistic');
+            return found ? found.dataset.state : 'empty';
+          }),
+        { timeout: 200_000 }
+      )
+      .not.toMatch(/^(waiting|empty)$/);
+
+  async function holdToDesktop(name, settings) {
+    const expected = caseOf(name);
+    await page.evaluate((given) => window.BioVizDemo.chart.setSettings(given), settings);
+    await answered();
+    const [asked] = await page.evaluate(() => window.BioVizDemo.chart.statistics());
+    expect(asked.answer.status, `${name}: ${asked.answer.message}`).toBe('ok');
+    expect(asked.answer.form).toBe('browser');
+    expect({ name: asked.name, args: asked.args, dataId: asked.dataId, rows: asked.rows }).toEqual({
+      name: expected.name,
+      args: expected.args,
+      dataId: expected.dataId,
+      rows: expected.rows
+    });
+    const differing = compareValues(expected.value, asked.answer.value).filter((row) => !row.ok);
+    expect(differing, `${name}: within 1 part in ${1 / TOLERANCE.relative}`).toEqual([]);
+    expectTable(await tableOf(page), expected);
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(resultText(expected));
+    const remarks = describeAnswer({ status: 'ok', value: expected.value }).remarks.map(
+      (remark) => remark.text
+    );
+    await expect(line(page).locator('.bv-stat-remark')).toHaveText(remarks);
+    return expected;
+  }
+
+  test('CT-LIVE-001: arm by response, by chi-square and by Fisher’s exact test, with R started in this browser: every count, statistic and p-value is desktop R’s (#44)', async () => {
+    await holdToDesktop('arm-by-response-chisq', {
+      row_by: 'ARM',
+      col_by: 'RESPONSE',
+      test: 'chisq'
+    });
+    await holdToDesktop('arm-by-response-fisher', { test: 'fisher' });
+    await captureEvidence(root(page).locator('.sv-main'), 'CT-LIVE-001', 'r-in-the-browser');
+  });
+
+  test('CT-LIVE-002: response by CRP at Baseline cut at its median, by both tests, and cut at 8, where R warns of small expected counts, are desktop R’s (#44)', async () => {
+    await holdToDesktop('response-by-crp-median-chisq', {
+      row_by: 'RESPONSE',
+      col_by: CRP_MEDIAN,
+      test: 'chisq'
+    });
+    await holdToDesktop('response-by-crp-median-fisher', { test: 'fisher' });
+    const small = await holdToDesktop('response-by-crp-typed-chisq', {
+      col_by: CRP_TYPED,
+      test: 'chisq'
+    });
+    expect(small.value.notes.length).toBe(1);
+  });
+
+  test('CT-LIVE-003: the women alone, by the filter, is desktop R’s (#44)', async () => {
+    await page.evaluate(() =>
+      window.BioVizDemo.chart.setSettings({ row_by: 'ARM', col_by: 'RESPONSE', test: 'chisq' })
+    );
+    await answered();
+    await root(page).locator('select[data-filter="SEX"]').selectOption('F');
+    await answered();
+    const expected = caseOf('arm-by-response-women-chisq');
+    const [asked] = await page.evaluate(() => window.BioVizDemo.chart.statistics());
+    expect(asked.dataId).toEqual(expected.dataId);
+    expect(compareValues(expected.value, asked.answer.value).filter((row) => !row.ok)).toEqual([]);
+    expectTable(await tableOf(page), expected);
+  });
+});

@@ -348,7 +348,7 @@ The chart list: an object naming every chart the library offers, in [safety.viz'
 ```js
 BioViz.portfolio.version; // 2
 Object.keys(BioViz.portfolio.modules);
-// ['group-comparison', 'association-scatter', 'correlation-matrix', 'biomarker-screen']
+// ['group-comparison', 'association-scatter', 'correlation-matrix', 'biomarker-screen', 'cross-tab']
 ```
 
 | Field                        | What it says                                                                                                                                                                                                                                                                  |

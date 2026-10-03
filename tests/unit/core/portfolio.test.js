@@ -9,6 +9,7 @@ import * as groupComparison from '../../../src/group-comparison/configure.js';
 import * as associationScatter from '../../../src/association-scatter/configure.js';
 import * as correlationMatrix from '../../../src/correlation-matrix/configure.js';
 import * as biomarkerScreen from '../../../src/biomarker-screen/configure.js';
+import * as crossTab from '../../../src/cross-tab/configure.js';
 
 // The chart list (#32, obot.roadmap#366): bio.viz's charts in safety.viz's
 // portfolio manifest format, version 2, so safety.viz's demo app can list and
@@ -32,7 +33,8 @@ const CONFIGURATIONS = {
   'group-comparison': groupComparison,
   'association-scatter': associationScatter,
   'correlation-matrix': correlationMatrix,
-  'biomarker-screen': biomarkerScreen
+  'biomarker-screen': biomarkerScreen,
+  'cross-tab': crossTab
 };
 
 // The column-name settings a chart declares, by safety.viz's rule for its own
