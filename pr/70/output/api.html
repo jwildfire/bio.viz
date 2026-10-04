@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getting results out: API reference · bio.viz</title>
+    <meta name="description" content="The interface of the bio.viz Getting results out module: what it exports, what each call takes and what it answers." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.1.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../gallery/index.html">Gallery</a>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main ">
+<section class="hero">
+  <p class="eyebrow">API reference</p>
+  <h1>Getting results out</h1>
+  <nav class="page-tabs" aria-label="Pages for this module"><a href="../gallery/index.html">Gallery</a><a href="evidence.html">Evidence</a><a class="current" aria-current="page" href="api.html">API reference</a></nav>
+</section>
+
+<nav class="api-toc" aria-label="On this page">
+  <h2>On this page</h2>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#the-settings">The settings</a></li><li><a href="#placeholders">Placeholders</a></li><li><a href="#where-they-are-drawn">Where they are drawn</a></li><li><a href="#the-footnote-the-chart-writes">The footnote the chart writes</a></li><li><a href="#downloads">Downloads</a></li><li><a href="#the-functions-of-biovizoutput">The functions of <code>BioViz.output</code></a></li><li><a href="#filltexttemplate-values"><code>fillText(template, values)</code></a></li><li><a href="#placeholdersintemplate"><code>placeholdersIn(template)</code></a></li><li><a href="#automaticfootnoteparts"><code>automaticFootnote(parts)</code></a></li><li><a href="#countstextcounts-of"><code>countsText(counts, of)</code></a></li><li><a href="#tocsvrows-columns"><code>toCsv(rows, columns)</code></a></li><li><a href="#parsecsvtext"><code>parseCsv(text)</code></a></li><li><a href="#title_defaults"><code>TITLE_DEFAULTS</code></a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+</nav>
+
+<article class="api-body">
+<p>What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders the chart fills from the view it draws, and one footnote the chart always writes last, saying when and by what the figure was drawn and what stands behind each statistic it printed. The rules are written once, in <code>src/shared/titles.js</code>, and every chart follows them; a page or a widget that writes the same words reaches them as <code>BioViz.output</code>.</p>
+<p>Under the footnotes each chart offers three downloads: a PNG of the chart with its title and footnotes drawn in, the statistics R returned as CSV, and the table the chart drew from as CSV. The specification a chart is written to and rebuilt from comes next, under the same requirement (<a href="https://github.com/jwildfire/obot.roadmap/issues/361">obot.roadmap#361</a>).</p>
+<h2 id="at-a-glance">At a glance</h2>
+<pre><code class="language-js">BioViz.groupComparison(&#39;#chart&#39;, {
+  start_value: &#39;IL-6&#39;,
+  visits: [&#39;Week 4&#39;],
+  value_type: &#39;change&#39;,
+  group_by: &#39;ARM&#39;,
+  title: &#39;{measure}: {value} at {visits}&#39;,
+  subtitle: &#39;{n} participants, by {group}&#39;,
+  footnotes: [&#39;Synthetic study from gsm.bio.&#39;, &#39;Filters: {filters}.&#39;]
+}).init({ results, participants });</code></pre>
+<p>Above the chart:</p>
+<p>&gt; IL-6: Change from baseline at Week 4 &gt; 186 participants, by Arm</p>
+<p>Under it, the two footnotes and the chart&#39;s own:</p>
+<p>&gt; Synthetic study from gsm.bio. &gt; Filters: none. &gt; Drawn on 2026-10-04 by bio.viz 0.1.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.</p>
+<h2 id="the-settings">The settings</h2>
+<p>Every chart has the three settings, with the same defaults and the same checks.</p>
+<table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The title above the chart: text with placeholders. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">Footnotes under the chart: text, or a list of texts, with placeholders, in the order given. Empty texts are dropped. Null means none.</td></tr></tbody></table>
+<p>A title or a subtitle that is not text, or footnotes that are not text or a list of texts, are refused with a sentence that names the setting, as every other setting is. The chart&#39;s own footnote is not a setting: it is always written, and always last.</p>
+<h2 id="placeholders">Placeholders</h2>
+<p>A placeholder is a name in braces: <code>{measure}</code>. When the chart draws, each one is replaced by the text of its value for the view drawn, and the title, the subtitle and the footnotes are written again whenever the chart draws again or an answer from R arrives.</p>
+<ul><li>A placeholder is replaced by text, once, from left to right. Nothing in a template or in a value is evaluated: there are no expressions, no functions and no templates that run, and a value is never read for placeholders of its own. <code>${…}</code>, <code>&lt;script&gt;</code> and <code>{{…}}</code> are shown as they are written.</li><li>A name the chart does not have is left as written, braces and all, so a slip in a setting shows on the page instead of disappearing.</li><li>A value that is null is written as nothing; a number as it reads.</li><li>What comes out is written on the page as text, never as markup.</li></ul>
+<p>Every chart fills these three:</p>
+<table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words (<code>Sex is F; Arm is Placebo</code>), or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC, as ISO 8601: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
+<p>Each chart adds its own, listed in its reference under Titles and footnotes: <a href="../group-comparison/api.html#titles-and-footnotes">group comparison</a>, <a href="../association-scatter/api.html#titles-and-footnotes">association scatter</a>, <a href="../correlation-matrix/api.html#titles-and-footnotes">correlation matrix</a>, <a href="../biomarker-screen/api.html#titles-and-footnotes">biomarker screen</a>, <a href="../cross-tab/api.html#titles-and-footnotes">cross-tabulation</a> and <a href="../stratified-survival/api.html#titles-and-footnotes">stratified survival</a>. Every chart has <code>{n}</code>, the participants it draws.</p>
+<h2 id="where-they-are-drawn">Where they are drawn</h2>
+<p>The title and the subtitle are drawn at the top of the chart&#39;s own frame, above its toolbar, notes and figure; the footnotes at the bottom of it, under the figure and the statistics line and above the listing. They are part of the chart&#39;s element, so they move, wrap and print with it, and at a 390-pixel viewport they wrap like any other text, with no horizontal scroll. The title is a heading of level 2 to assistive technology.</p>
+<h2 id="the-footnote-the-chart-writes">The footnote the chart writes</h2>
+<p>The last footnote is the chart&#39;s, and it says three things:</p>
+<ol><li>The date the chart was drawn, in UTC, and the bio.viz version that drew it: <code>Drawn on 2026-10-04 by bio.viz 0.1.0.</code></li><li>For every statistic printed, R&#39;s method and the counts R used, as R returned them: <code>Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)</code>. One count is written <code>n = 200</code>; up to four groups each by name; more, such as a screen&#39;s biomarkers, as the least and the most with how many there are: <code>n = 179 to 186 across 12 biomarkers</code>.</li><li>Which R computed them: <code>computed by R in this browser</code>, or, for a result stored with the page, <code>computed by R 4.3.3 with gsm.bio 0.2.0, stored with the page</code> when the connection was told the versions (<code>computedBy</code>, below), and <code>stored with the page</code> when it was not.</li></ol>
+<p>While an answer is on its way it says <code>Statistics: waiting for R.</code>, and it is written again when the answer arrives. A chart that asked R nothing says <code>No statistic was asked of R.</code>; one whose answer did not come says that statistics are unavailable, or that R reported an error, as the statistics line under the chart says in full.</p>
+<p>Nothing in the footnote is worked out by the chart. The method and the counts are R&#39;s, read off its answer; the chart only writes them down.</p>
+<h3 id="stored-results-and-which-r-computed-them">Stored results, and which R computed them</h3>
+<p>gsm.bio&#39;s widget records which R computed the results it stores with a page: <code>computed_by</code>, with <code>r_version</code>, <code>gsm_bio_version</code> and <code>computed_at</code>. Handed to the connection as <code>computedBy</code>, the record comes back with every stored answer, and the footnote names the two versions:</p>
+<pre><code class="language-js">const connection = BioViz.r.createConnection({
+  results: statistics.results,
+  computedBy: statistics.computed_by // { r_version, gsm_bio_version, computed_at }
+});</code></pre>
+<p>See <a href="../r-connection/api.html#createconnectionoptions">the connection&#39;s reference</a>.</p>
+<h2 id="downloads">Downloads</h2>
+<p>Every chart has the two settings, with the same defaults and the same checks.</p>
+<table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>downloads</code></td><td data-label="Default"><code>true</code></td><td data-label="What it is">Whether the bar of downloads is shown under the footnotes.</td></tr>
+<tr><td data-label="Setting"><code>png_scale</code></td><td data-label="Default"><code>2</code></td><td data-label="What it is">The PNG&#39;s resolution: image pixels per CSS pixel, from 1 to 4. At 2, 192 pixels to the inch.</td></tr></tbody></table>
+<p>The bar has three buttons. Each saves a file named for the chart and the view, the way safety.viz&#39;s kit saves its listing (a link to the file, clicked): <code>bio.viz-{chart}-{view}.png</code>, <code>bio.viz-{chart}-{view}-statistics.csv</code> and <code>bio.viz-{chart}-{view}-table.csv</code>, where the view is a few of the chart&#39;s placeholders in lower case joined by hyphens: <code>bio.viz-cross-tab-arm-by-response.png</code>. A chart&#39;s <code>fileOf(kind)</code> makes the same file without saving it, a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>.</p>
+<h3 id="the-png">The PNG</h3>
+<p>The chart&#39;s frame as the page draws it, from the title to the chart&#39;s own footnote: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes. The controls, the hint under the chart, the listing and the bar of downloads are left out. It is drawn at <code>png_scale</code> image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its <code>pHYs</code> chunk gives the pixels per metre. Its text chunks (<code>iTXt</code>, UTF-8) give its <code>Title</code> (the title and subtitle), its <code>Description</code> (the footnotes, the chart&#39;s own last) and its <code>Software</code> (the bio.viz version), so the file still says what it is when it is separated from the page.</p>
+<p>The picture is the page&#39;s drawing, not a drawing for print: anything bound for a document should come from gsm.bio&#39;s static twin of the chart, which draws a vector figure from the same settings.</p>
+<h3 id="the-statistics">The statistics</h3>
+<p>The statistics R returned for the view drawn, as shown, as one table. For each answer there is a row for R&#39;s result (its <code>part</code> is <code>result</code>) and a row for each of its parts: each estimate (<code>estimates</code>), each row of a screen or a grid (<code>rows</code>), and so on, numbered by <code>item</code>. Every member R returned is a column, a nested one as <code>outer.inner</code> (<code>counts.Placebo</code>) and a list of values as one field joined by <code>; </code>. Each row also names the answer it came from (<code>asked</code>), the R function (<code>function</code>) and the data it was asked about (<code>data.…</code>, the identity a stored result is found by). Every number is R&#39;s, written as the shortest text that reads back as the same number. Until R has answered there is nothing to download, and the button waits; a view that asks R nothing, such as the group comparison&#39;s overview, offers none.</p>
+<h3 id="the-table">The table</h3>
+<p>The table the chart drew from, one row per participant drawn, with the headings the chart&#39;s listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value; and so on, as each chart&#39;s reference says. A number is written as it was drawn, unrounded.</p>
+<h3 id="csv">CSV</h3>
+<p>Every CSV file, the listing&#39;s export among them, is written by RFC 4180: records end in CRLF, and a field or a heading that holds a comma, a double quote, a carriage return or a line feed is written between double quotes with each double quote doubled. A heading that holds a comma is one heading (<a href="https://github.com/jwildfire/bio.viz/issues/39">bio.viz#39</a>). An empty field is a value the participant does not have; <code>TRUE</code> and <code>FALSE</code> are written as R reads them.</p>
+<h2 id="the-functions-of-biovizoutput">The functions of <code>BioViz.output</code></h2>
+<p>The rules above, for a page or a widget that writes the same words beside a chart.</p>
+<h2 id="filltexttemplate-values"><code>fillText(template, values)</code></h2>
+<p>The template with every placeholder whose name is a key of <code>values</code> replaced by the text of its value, and every other left as written. A value that is null or undefined is written as nothing; anything else as <code>String(value)</code>. Nothing is evaluated.</p>
+<pre><code class="language-js">BioViz.output.fillText(&#39;{measure} at {visit}&#39;, { measure: &#39;CRP&#39;, visit: &#39;Week 4&#39; });
+// &#39;CRP at Week 4&#39;
+BioViz.output.fillText(&#39;${1 + 1} {unknown}&#39;, {});
+// &#39;${1 + 1} {unknown}&#39;</code></pre>
+<h2 id="placeholdersintemplate"><code>placeholdersIn(template)</code></h2>
+<p>The names of the placeholders a template holds, each once, in the order written.</p>
+<h2 id="automaticfootnoteparts"><code>automaticFootnote(parts)</code></h2>
+<p>The footnote a chart writes last.</p>
+<table class="doc-table"><thead><tr><th scope="col">Part</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Part"><code>date</code></td><td data-label="What it is">The date drawn, <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Part"><code>version</code></td><td data-label="What it is">The bio.viz version.</td></tr>
+<tr><td data-label="Part"><code>asked</code></td><td data-label="What it is">What the chart asked R, each <code>{ answer }</code> with the answer as the connection gave it, or null while it is on its way. A chart&#39;s <code>statistics()</code> returns this.</td></tr>
+<tr><td data-label="Part"><code>of</code></td><td data-label="What it is">What R&#39;s counts are of, when there are more than four: <code>&#39;biomarkers&#39;</code>. Default <code>&#39;groups&#39;</code>.</td></tr></tbody></table>
+<h2 id="countstextcounts-of"><code>countsText(counts, of)</code></h2>
+<p>R&#39;s counts as the footnote writes them: a number as <code>n = 200</code>; an object of up to four groups as <code>Placebo n = 95, Treatment n = 91</code>; more as <code>n = 179 to 186 across 12 biomarkers</code>, with <code>of</code> naming what they are of. Null when R returned none.</p>
+<h2 id="tocsvrows-columns"><code>toCsv(rows, columns)</code></h2>
+<p>Rows as CSV by RFC 4180, with a heading row: <code>columns</code> is a list of <code>{ value_col, label }</code>, which field of a row each column holds and its heading. Records end in CRLF.</p>
+<h2 id="parsecsvtext"><code>parseCsv(text)</code></h2>
+<p>CSV read back by RFC 4180, every field as text: a list of records, the heading row first. The inverse of <code>toCsv</code>.</p>
+<h2 id="title_defaults"><code>TITLE_DEFAULTS</code></h2>
+<p>The three settings&#39; defaults, which every chart has: <code>{ title: null, subtitle: null, footnotes: null }</code>.</p>
+<h2 id="what-is-not-here">What is not here</h2>
+<ul><li>A vector figure (SVG or PDF) from the browser: the PNG is the page&#39;s drawing. Vector figures come from gsm.bio&#39;s static twins (<a href="https://github.com/jwildfire/obot.roadmap/issues/362">obot.roadmap#362</a>).</li><li>The specification a chart is written to and rebuilt from (<a href="https://github.com/jwildfire/bio.viz/issues/68">bio.viz#68</a>).</li><li>Rich text in a title or a footnote: they are plain text. A line break, bold or a link is not drawn.</li><li>A footnote placed anywhere but under the chart, or the chart&#39;s own footnote turned off.</li></ul>
+</article>
+
+<p class="sub" id="api-source">
+  This page is the file <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/output.md"><code>docs/output.md</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/f4f6315f30fe8b0640bb64c412d69129b82bb968"><code>f4f6315</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>

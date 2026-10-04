@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Library core: API reference · bio.viz</title>
+    <meta name="description" content="The interface of the bio.viz Library core module: what it exports, what each call takes and what it answers." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.1.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../gallery/index.html">Gallery</a>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main ">
+<section class="hero">
+  <p class="eyebrow">API reference</p>
+  <h1>The library core</h1>
+  <nav class="page-tabs" aria-label="Pages for this module"><a href="../gallery/index.html">Gallery</a><a href="evidence.html">Evidence</a><a class="current" aria-current="page" href="api.html">API reference</a></nav>
+</section>
+
+<nav class="api-toc" aria-label="On this page">
+  <h2>On this page</h2>
+  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#the-cut-rule">The cut rule</a></li><li><a href="#cuts"><code>CUTS</code></a></li><li><a href="#cutpointsvalues-cut"><code>cutPoints(values, cut)</code></a></li><li><a href="#cutgroupvalue-points"><code>cutGroup(value, points)</code></a></li><li><a href="#cutlabelspoints"><code>cutLabels(points)</code></a></li><li><a href="#cutwordscut"><code>cutWords(cut)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
+</nav>
+
+<article class="api-body">
+<p>What a page or a widget can rely on before it asks for a chart: where the bundles are, what they define and the version they report; and the two steps every chart shares before anything is drawn, exported as <code>BioViz.core</code>: a variable named one way, and named variables resolved to one row per participant. The charts and the connection to R each have a reference of their own.</p>
+<h2 id="loading-the-library">Loading the library</h2>
+<p>The bundles are committed, so a page needs no build step and no package manager. Copy the folder <code>dist/bio.viz-0.1.0/</code> and load the script-tag bundle; it defines one global, <code>BioViz</code>:</p>
+<pre><code class="language-html">&lt;script src=&quot;dist/bio.viz-0.1.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  console.log(BioViz.version); // &quot;0.1.0&quot;
+&lt;/script&gt;</code></pre>
+<p>An ES module bundle with the same exports sits beside it:</p>
+<pre><code class="language-js">import { version, core, r } from &#39;./dist/bio.viz-0.1.0/bio.viz.esm.js&#39;;</code></pre>
+<table class="doc-table"><thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="File"><code>dist/bio.viz-0.1.0/bio.viz.js</code></td><td data-label="What it is">The script-tag bundle. Defines the global <code>BioViz</code>.</td></tr>
+<tr><td data-label="File"><code>dist/bio.viz-0.1.0/bio.viz.esm.js</code></td><td data-label="What it is">The ES module bundle. The same exports, as named exports.</td></tr>
+<tr><td data-label="File"><code>*.map</code></td><td data-label="What it is">A source map for each, so a debugger shows the source.</td></tr></tbody></table>
+<p>Nothing else is bundled into either file. safety.viz and R are loaded beside bio.viz on a page: safety.viz with its own script tag, and R the first time a statistic is asked for.</p>
+<h2 id="version"><code>version</code></h2>
+<p>A string: the version of the library, <code>0.1.0</code>. It equals the <code>version</code> field of <code>package.json</code> and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.</p>
+<h2 id="a-variable">A variable</h2>
+<p>A variable is what goes on an axis, makes a group, a colour or a panel. It is written one way wherever a chart takes one, and it is one of two things:</p>
+<pre><code class="language-js">// a biomarker at a visit, with a value type
+const y = { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; };
+
+// a column
+const x = { col: &#39;ARM&#39; };</code></pre>
+<p>The biomarker and the visit are written as the results table writes them (<code>IL-6</code>, <code>TNF-alpha</code>, <code>Week 4</code>); nothing is assumed about what a name may contain. Which column holds the biomarker&#39;s name, the visit and the result is a <a href="#default_settings">setting</a>.</p>
+<h2 id="variablespec"><code>variable(spec)</code></h2>
+<p>Checks a variable and returns it in full, frozen. A chart calls it where the variable is written, so a mistake is found there and not in an empty chart.</p>
+<table class="doc-table"><thead><tr><th scope="col">Key</th><th scope="col">For</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Key"><code>measure</code></td><td data-label="For">a biomarker</td><td data-label="Meaning">The biomarker&#39;s name, as the results table writes it.</td></tr>
+<tr><td data-label="Key"><code>visit</code></td><td data-label="For">a biomarker</td><td data-label="Meaning">The visit&#39;s name, as the results table writes it. Required, except with the value type <code>baseline</code>, which takes none.</td></tr>
+<tr><td data-label="Key"><code>value</code></td><td data-label="For">a biomarker</td><td data-label="Meaning">The <a href="#value_types">value type</a>. <code>raw</code> when not given.</td></tr>
+<tr><td data-label="Key"><code>col</code></td><td data-label="For">a column</td><td data-label="Meaning">The column&#39;s name.</td></tr>
+<tr><td data-label="Key"><code>type</code></td><td data-label="For">a column</td><td data-label="Meaning"><code>&#39;number&#39;</code> to read the column as a number. Without it the value is passed on as the table holds it.</td></tr>
+<tr><td data-label="Key"><code>cut</code></td><td data-label="For">either</td><td data-label="Meaning">To cut the number into groups: <code>&#39;median&#39;</code>, <code>&#39;tertiles&#39;</code>, <code>&#39;quartiles&#39;</code>, or the cut points as a list, ascending. A column cut must be read as a number (<code>type: &#39;number&#39;</code>). See <a href="#the-cut-rule">the cut rule</a>.</td></tr></tbody></table>
+<p>It returns <code>{ kind: &#39;measure&#39;, measure, visit, value }</code> or <code>{ kind: &#39;column&#39;, col, type }</code>, with <code>visit</code> and <code>type</code> null where they do not apply, and <code>cut</code> when the variable has one (typed points as a frozen copy). A variable it returned can be handed back to it.</p>
+<p>A malformed variable is refused: <code>variable</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code>, quotes the variable as written and names what is wrong. It refuses a variable that:</p>
+<ul><li>is not an object;</li><li>names neither a biomarker nor a column, or names both;</li><li>has an empty <code>measure</code> or <code>col</code>, or one that is not text;</li><li>has a <code>value</code> that is not one of the five value types;</li><li>is a biomarker with no <code>visit</code>, or a baseline value with one;</li><li>is a column with a <code>visit</code> or a <code>value</code>, or with a <code>type</code> other than <code>&#39;number&#39;</code>;</li><li>has a key that is not in the table above;</li><li>has a <code>cut</code> that is not one of <a href="#cuts"><code>CUTS</code></a> or a list of cut points: an empty list, a point that is not a finite number, or points that are not each greater than the one before;</li><li>cuts a column that is not read as a number.</li></ul>
+<h2 id="the-cut-rule">The cut rule</h2>
+<p>One rule cuts a number into groups, the same in every chart that makes groups from one and the same in R. A variable carries the cut it asks for:</p>
+<pre><code class="language-js">{ measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;median&#39; }   // two groups
+{ measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;tertiles&#39; } // three
+{ measure: &#39;CRP&#39;, value: &#39;baseline&#39;, cut: &#39;quartiles&#39; } // four
+{ col: &#39;AGE&#39;, type: &#39;number&#39;, cut: [40, 60] }           // typed points: three groups</code></pre>
+<ul><li>The values cut are the variable&#39;s, one per participant, for the participants the chart&#39;s filters keep. A participant with no value is left out of the points and is in no group. The <a href="#frametables-variables-settings">frame</a> resolves a cut variable to its number like any other; the cut is a step after it, across participants.</li><li>The cut points are R&#39;s <code>quantile()</code> with its default, type 7, at 1/2 (the median), 1/3 and 2/3 (the tertiles) or 1/4, 2/4 and 3/4 (the quartiles). Typed points are used as written.</li><li>A participant is in the group R&#39;s <code>cut(x, breaks = c(-Inf, points, Inf), right = TRUE)</code> puts them in: a value equal to a cut point falls in the lower group.</li><li>A point that repeats, as one does when many values are tied, collapses: the median of a cut always makes two groups, but quartiles of tied values may make fewer than four. The chart says so.</li><li>The groups are ordered low to high and labelled with their bounds: <code>≤ a</code> for the first, <code>&gt; a, ≤ b</code> for each between, <code>&gt; z</code> for the last. A bound is written to four significant digits, as R&#39;s <code>format(signif(p, 4), scientific = FALSE, trim = TRUE)</code> writes it: 2.783, 0.5833, 123500, and 2.0625 as 2.062, because R rounds a tie to even. However small or large, a bound is written in full with no trailing zero: 0.000000000000000111, 0.0000001, and 3382000000000000000000; a whole number past 2^53 is written to the last digit of the double that holds it, as R writes one. This holds from about 1e-300 to 1e300. Beyond that the label can differ from R&#39;s: below about 2.2e-308 R writes scientific notation, and above about 1e306 the digits differ (<a href="https://github.com/jwildfire/bio.viz/issues/60">#60</a>). A value that is not a finite number, an infinite one among them, is missing here; R&#39;s <code>quantile()</code> keeps an infinite value.</li><li>Two points that differ only past four significant digits write the same bounds, so the groups between them have the same label. Those groups are one, as R&#39;s <code>cut()</code> merges levels with the same label, and the chart says so. Typed points written alike are refused, because the groups they ask for could not be told apart.</li><li>A cut point describes the values, as the median line of a box does. Nothing here tests, estimates or compares.</li></ul>
+<p>The same groups in R, for gsm.bio or anyone checking a chart (<code>tools/r-cut.R</code> writes the expected results the unit tests hold this library to, with exactly these lines):</p>
+<pre><code class="language-r">CUT_PROBS &lt;- list(median = 0.5, tertiles = c(1, 2) / 3, quartiles = c(1, 2, 3) / 4)
+
+cut_bound &lt;- function(p) format(signif(p, 4), scientific = FALSE, trim = TRUE)
+
+bound_labels &lt;- function(points) {
+  k &lt;- length(points)
+  if (k == 0) return(character(0))
+  bounds &lt;- vapply(points, cut_bound, character(1))
+  middle &lt;- if (k &gt; 1) paste0(&quot;&gt; &quot;, bounds[-k], &quot;, ≤ &quot;, bounds[-1]) else character(0)
+  c(paste0(&quot;≤ &quot;, bounds[1]), middle, paste0(&quot;&gt; &quot;, bounds[k]))
+}
+
+cut_labels &lt;- function(points) unique(bound_labels(points))
+
+cut_points &lt;- function(x, cut) {
+  asked &lt;- if (is.character(cut)) {
+    stats::quantile(x, CUT_PROBS[[cut]], type = 7, na.rm = TRUE, names = FALSE)
+  } else {
+    cut
+  }
+  list(asked = asked, points = unique(asked))
+}
+
+cut_groups &lt;- function(x, points) {
+  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = bound_labels(points)))
+}</code></pre>
+<p>A label holds the sign ≤ (U+2264), so R must run in a UTF-8 locale. Where a chart writes a cut variable into the identity of the rows it hands R, it writes it as the settings do, <code>{ measure, visit, value, cut }</code> with the visit left out for a baseline value, or <code>{ col, type: &#39;number&#39;, cut }</code>; typed points are always a list, so in R write them as one (<code>I(c(2, 5))</code> or <code>list(2, 5)</code> for jsonlite), even a single point. jsonlite writes a number to four decimal places unless told otherwise, so write the identity with <code>digits = NA</code> too, which writes 15 significant digits, enough for a point typed with 15 or fewer: with the default, a typed point of 0.000012345 is written 0, and the key does not match.</p>
+<h2 id="cuts"><code>CUTS</code></h2>
+<p>The cuts a variable may name, as a list: <code>median</code>, <code>tertiles</code>, <code>quartiles</code>. Typed points are a list of numbers instead.</p>
+<h2 id="cutpointsvalues-cut"><code>cutPoints(values, cut)</code></h2>
+<p>The cut points of a variable&#39;s values, and the groups they make. <code>values</code> holds one value per participant; one that is not a finite number is missing and is left out. <code>cut</code> is one of <code>CUTS</code> or the typed points. It returns:</p>
+<table class="doc-table"><thead><tr><th scope="col">Field</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Field"><code>cut</code></td><td data-label="What it is">The cut, as given.</td></tr>
+<tr><td data-label="Field"><code>n</code></td><td data-label="What it is">How many values it was worked out on.</td></tr>
+<tr><td data-label="Field"><code>asked</code></td><td data-label="What it is">The points asked for: R&#39;s <code>quantile()</code> of the values, or the typed points.</td></tr>
+<tr><td data-label="Field"><code>points</code></td><td data-label="What it is">The points used: <code>asked</code> with a repeated point once.</td></tr>
+<tr><td data-label="Field"><code>repeated</code></td><td data-label="What it is">Whether a point repeated and collapsed.</td></tr>
+<tr><td data-label="Field"><code>merged</code></td><td data-label="What it is">Whether points written alike gave groups the same label, which merged.</td></tr>
+<tr><td data-label="Field"><code>labels</code></td><td data-label="What it is">The label of each group, low to high: one more than there are points, fewer where groups merged.</td></tr></tbody></table>
+<p>With no value there is nothing to cut at: no points and no groups.</p>
+<h2 id="cutgroupvalue-points"><code>cutGroup(value, points)</code></h2>
+<p>The group a value falls in, counted from 0, low to high, as R&#39;s <code>cut(right = TRUE)</code> places it, so a value equal to a cut point is in the group below it, and its place among the <code>labels</code> of the cut, so groups that merged are one. Null for a missing value. <code>points</code> are a cut&#39;s <code>points</code>.</p>
+<h2 id="cutlabelspoints"><code>cutLabels(points)</code></h2>
+<p>The labels of the groups a cut&#39;s <code>points</code> make, low to high, as above: <code>cutLabels([2, 5])</code> is <code>[&#39;≤ 2&#39;, &#39;&gt; 2, ≤ 5&#39;, &#39;&gt; 5&#39;]</code>. A label that repeats is given once: <code>cutLabels([2.7928, 2.793, 2.7932])</code> is <code>[&#39;≤ 2.793&#39;, &#39;&gt; 2.793, ≤ 2.793&#39;, &#39;&gt; 2.793&#39;]</code>.</p>
+<h2 id="cutwordscut"><code>cutWords(cut)</code></h2>
+<p>A cut in words, for a label or a legend: <code>cut at the median</code>, <code>cut at the tertiles</code>, <code>cut at 2 and 5</code>. <a href="#labelspec"><code>label</code></a> adds it after the variable: <code>CRP at Baseline, cut at the median</code>.</p>
+<h2 id="value_types"><code>VALUE_TYPES</code></h2>
+<p>The five value types, as a list: <code>raw</code>, <code>baseline</code>, <code>change</code>, <code>fold_change</code>, <code>percent_change</code>. Each is worked out for one participant from that participant&#39;s own results for the biomarker.</p>
+<table class="doc-table"><thead><tr><th scope="col">Value type</th><th scope="col">What it is</th><th scope="col">Not worked out when</th></tr></thead>
+<tbody><tr><td data-label="Value type"><code>raw</code></td><td data-label="What it is">The result at the visit.</td><td data-label="Not worked out when">There is no usable result at the visit.</td></tr>
+<tr><td data-label="Value type"><code>baseline</code></td><td data-label="What it is">The baseline: the result at the baseline visits.</td><td data-label="Not worked out when">There is no usable result at any baseline visit.</td></tr>
+<tr><td data-label="Value type"><code>change</code></td><td data-label="What it is">The result at the visit minus the baseline.</td><td data-label="Not worked out when">Either is missing.</td></tr>
+<tr><td data-label="Value type"><code>fold_change</code></td><td data-label="What it is">The result at the visit divided by the baseline.</td><td data-label="Not worked out when">Either is missing, or the baseline is zero or negative.</td></tr>
+<tr><td data-label="Value type"><code>percent_change</code></td><td data-label="What it is">100 × (result at the visit − baseline) ÷ baseline.</td><td data-label="Not worked out when">Either is missing, or the baseline is zero or negative.</td></tr></tbody></table>
+<p>The terms, exactly:</p>
+<ul><li>A usable result is a finite number, or text that reads as one (a table read from a CSV file holds its numbers as text, and <code>&#39; 7 &#39;</code> is 7). An empty cell, <code>NA</code>, <code>&lt;0.5</code> and anything else is not a result.</li><li>The result at a visit is the first usable result, in the table&#39;s order, among the participant&#39;s rows for that biomarker and visit. A later one is not used, and is <a href="#unused">counted</a>.</li><li>The baseline visits are the ones named in the setting <code>baseline_visits</code>. When none is named, the baseline visit is the first visit in <a href="#visitsresults-settings">visit order</a>. Only visits with a usable result are considered.</li><li>With one baseline visit, the baseline is the result there. With several, one result is taken per baseline visit that has one, and they are brought to one value by the setting <code>baseline_stat</code>: their mean by default. A participant with a result at only some of the baseline visits has a baseline from those.</li><li>A fold change of 1 is no change and a percent change of 0 is no change; a fold change of 1.5 is a percent change of 50. A result of zero at the visit over a positive baseline is a fold change of 0 and a percent change of −100.</li><li>A baseline of zero has no ratio. A negative baseline has one by arithmetic, and it is not computed: a fold or a percent change from below zero does not mean what its name says. A participant with either is dropped and counted, under its own reason. <code>change</code> is a difference and is computed whatever the sign.</li></ul>
+<p>This follows safety.viz&#39;s shift plot, which names its baseline visits the same way and brings several to one value with the same statistics. It differs in three places: the shift plot has no fold change; it computes a percent change from a negative baseline, where this does not; and its <code>first</code> is the first row in the table, where here it is the first baseline visit as named in settings.</p>
+<h2 id="frametables-variables-settings"><code>frame(tables, variables, settings)</code></h2>
+<p>Resolves named variables to one row per participant.</p>
+<pre><code class="language-js">const { data, dropped } = BioViz.core.frame(
+  { results, participants },
+  {
+    y: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; },
+    x: { col: &#39;ARM&#39; }
+  },
+  { baseline_visits: [&#39;Baseline&#39;] }
+);
+// data:    [{ USUBJID: &#39;BIO-001&#39;, y: -1.027, x: &#39;Placebo&#39; }, …]   186 records
+// dropped: [{ reason: &#39;No result at the visit&#39;, variable: &#39;y&#39;, n: 13 },
+//           { reason: &#39;Result at the visit is missing or not a number&#39;, variable: &#39;y&#39;, n: 1 }]</code></pre>
+<table class="doc-table"><thead><tr><th scope="col">Argument</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Argument"><code>tables</code></td><td data-label="Meaning"><code>{ results, participants }</code>. Each is an array of records, one object per row. <code>results</code> is required; <code>participants</code> may be left out.</td></tr>
+<tr><td data-label="Argument"><code>variables</code></td><td data-label="Meaning">The variables, each under the name its field is to have. The name is the caller&#39;s: <code>y</code>, <code>x</code>, <code>panel</code>, or anything else that is not the id column.</td></tr>
+<tr><td data-label="Argument"><code>settings</code></td><td data-label="Meaning">Column names and how the baseline is found: see <a href="#default_settings"><code>DEFAULT_SETTINGS</code></a>. May be left out.</td></tr></tbody></table>
+<p>It returns:</p>
+<table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>data</code></td><td data-label="Meaning">One record per participant: the participant&#39;s id under the name of the id column, and one field per variable. Nothing else.</td></tr>
+<tr><td data-label="Member"><code>id_col</code></td><td data-label="Meaning">The name of the id field in <code>data</code>.</td></tr>
+<tr><td data-label="Member"><code>variables</code></td><td data-label="Meaning">The variables in full, by name, as <code>variable</code> returns them.</td></tr>
+<tr><td data-label="Member"><code>participants</code></td><td data-label="Meaning">How many participants were seen. It equals the records in <code>data</code> plus the counts in <code>dropped</code>.</td></tr>
+<tr><td data-label="Member"><code>dropped</code></td><td data-label="Meaning">Participants who are not in <code>data</code>, counted: a list of <code>{ reason, variable, n }</code>. See <a href="#dropped"><code>DROPPED</code></a>.</td></tr>
+<tr><td data-label="Member"><code>unused</code></td><td data-label="Meaning">Rows that were read and not used, counted: a list of <code>{ reason, table, n }</code>. See <a href="#unused"><code>UNUSED</code></a>.</td></tr>
+<tr><td data-label="Member"><code>baseline_visits</code></td><td data-label="Meaning">The baseline visits that were used, or null when no variable needed a baseline.</td></tr></tbody></table>
+<h3 id="the-tables">The tables</h3>
+<p>Only the results table is required. It has one record per participant, biomarker and visit, and needs the id column always, and the biomarker, visit and result columns when a variable is a biomarker.</p>
+<p>A column variable is read from the participant table when that table is given and has the column. Otherwise it is read from the results rows, where a participant&#39;s rows must agree: the column holds one value for the participant, and an empty cell beside a filled one counts as that one value. A participant whose rows hold more than one value is dropped and counted. A column that neither table has is refused.</p>
+<p>A wide table, with one row per participant and a column per variable, needs no special handling. Give it as <code>results</code>, or as <code>participants</code> beside a long results table, and name its columns as column variables:</p>
+<pre><code class="language-js">BioViz.core.frame(
+  { results: wide },
+  { y: { col: &#39;IL6_WEEK4&#39;, type: &#39;number&#39; }, x: { col: &#39;ARM&#39; } }
+);</code></pre>
+<h3 id="who-is-in-the-frame">Who is in the frame</h3>
+<p>With a participant table given, it says who the participants are, and in what order: one record per participant in it. A participant who has results and is not in the participant table is left out and counted. A participant who is in it and has no results is dropped, and counted, for any biomarker variable. A second row for the same participant in the participant table is not used, and a row of either table with no id is not used; both are counted in <code>unused</code>.</p>
+<p>With no participant table, the participants are everyone with a row of results, in the order first seen.</p>
+<p>A participant is dropped when a variable cannot be worked out for them, and is counted once, under the first such variable in the order the variables were given. So <code>data.length</code> plus the counts in <code>dropped</code> is always <code>participants</code>.</p>
+<p>By default every variable is required. The setting <code>required</code> names the ones that are; a variable not named there is left as <code>null</code> in a participant&#39;s record, which R reads as missing, instead of dropping the participant. <code>required: []</code> keeps everyone. This is for a chart that compares many variables in pairs and must keep a participant who lacks one of them.</p>
+<h3 id="what-it-refuses">What it refuses</h3>
+<p><code>frame</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> when the call cannot be made: tables that are not arrays of records, a table other than the two, variables not given by name, a variable named as the id column is, a malformed variable, a setting that is not known or has a value it cannot take, a column a setting names that the table does not have, or a column variable whose column is in neither table.</p>
+<p>It does not refuse on what the tables hold. A biomarker or a visit that no row has gives an empty <code>data</code> and a count of everyone under <code>No result at the visit</code>.</p>
+<p>It changes nothing it is given.</p>
+<h2 id="visitsresults-settings"><code>visits(results, settings)</code></h2>
+<p>The visits of a results table, in visit order, as a list of names. Only visits with at least one usable result are listed. A chart offers these in its visit control, and the first of them is the baseline visit when <code>baseline_visits</code> names none.</p>
+<p>Visit order is one order, whatever order the rows come in:</p>
+<ul><li>With a visit-order column, the visits that have a number in it come first, by number. A visit numbered on several rows takes its least number.</li><li>Then come the visits with no number in that column.</li><li>Visits with the same number, the visits with no number, and every visit when the table has no visit-order column are ordered by name, with numbers inside a name counted as numbers, so <code>Week 2</code> comes before <code>Week 12</code>.</li></ul>
+<p>So visits Screening (−1), Baseline (0), Day 1 (no number) and Week 4 (4) are in the order Screening, Baseline, Week 4, Day 1.</p>
+<pre><code class="language-js">BioViz.core.visits(results); // [&#39;Baseline&#39;, &#39;Week 2&#39;, &#39;Week 4&#39;, &#39;Week 8&#39;, &#39;Week 12&#39;]</code></pre>
+<p><code>results</code> is the results table and <code>settings</code> the same settings <code>frame</code> takes; only the column names are read.</p>
+<h2 id="default_settings"><code>DEFAULT_SETTINGS</code></h2>
+<p>The settings and their defaults. The names are safety.viz&#39;s, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.</p>
+<table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>id_col</code></td><td data-label="Default"><code>&#39;USUBJID&#39;</code></td><td data-label="Meaning">The participant&#39;s id, in the results table. Also the name of the id field in the frame.</td></tr>
+<tr><td data-label="Setting"><code>measure_col</code></td><td data-label="Default"><code>&#39;TEST&#39;</code></td><td data-label="Meaning">The biomarker&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>value_col</code></td><td data-label="Default"><code>&#39;STRESN&#39;</code></td><td data-label="Meaning">The result.</td></tr>
+<tr><td data-label="Setting"><code>visit_col</code></td><td data-label="Default"><code>&#39;VISIT&#39;</code></td><td data-label="Meaning">The visit&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>visit_order_col</code></td><td data-label="Default"><code>&#39;VISITNUM&#39;</code></td><td data-label="Meaning">A number that orders the visits (<a href="#visitsresults-settings">visit order</a>), and so finds the first visit when no baseline visit is named. May be null.</td></tr>
+<tr><td data-label="Setting"><code>participant_id_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s id in the participant table, when it is not named as <code>id_col</code> is.</td></tr>
+<tr><td data-label="Setting"><code>baseline_visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The baseline visit, or a list of them. Null means the first visit in visit order.</td></tr>
+<tr><td data-label="Setting"><code>baseline_stat</code></td><td data-label="Default"><code>&#39;mean&#39;</code></td><td data-label="Meaning">How several baseline visits are brought to one value: one of <a href="#baseline_stats"><code>BASELINE_STATS</code></a>.</td></tr>
+<tr><td data-label="Setting"><code>required</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The names of the variables a participant must have to be in the frame. Null means all of them.</td></tr></tbody></table>
+<h2 id="baseline_stats"><code>BASELINE_STATS</code></h2>
+<p>How several baseline visits are brought to one baseline value: <code>mean</code>, <code>min</code>, <code>max</code> or <code>first</code>. <code>first</code> is the first baseline visit, in the order they are named in settings, at which the participant has a result. With one baseline visit they all give that visit&#39;s result.</p>
+<h2 id="dropped"><code>DROPPED</code></h2>
+<p>The reasons a participant is not in the frame. Each entry of the frame&#39;s <code>dropped</code> list is <code>{ reason, variable, n }</code>: one of these sentences, the name of the variable that could not be worked out, and how many participants. Only reasons that dropped someone are listed, in the order of the variables and then of this table.</p>
+<table class="doc-table"><thead><tr><th scope="col">Key</th><th scope="col"><code>reason</code></th><th scope="col">When</th></tr></thead>
+<tbody><tr><td data-label="Key"><code>NOT_IN_PARTICIPANT_TABLE</code></td><td data-label="reason"><code>Not in the participant table</code></td><td data-label="When">The participant has results and is not in the participant table. <code>variable</code> is null.</td></tr>
+<tr><td data-label="Key"><code>NO_RESULT</code></td><td data-label="reason"><code>No result at the visit</code></td><td data-label="When">No row for the biomarker at the visit.</td></tr>
+<tr><td data-label="Key"><code>MISSING_RESULT</code></td><td data-label="reason"><code>Result at the visit is missing or not a number</code></td><td data-label="When">There are rows, and none has a usable result.</td></tr>
+<tr><td data-label="Key"><code>NO_BASELINE</code></td><td data-label="reason"><code>No baseline result</code></td><td data-label="When">No row for the biomarker at any baseline visit.</td></tr>
+<tr><td data-label="Key"><code>MISSING_BASELINE</code></td><td data-label="reason"><code>Baseline result is missing or not a number</code></td><td data-label="When">There are baseline rows, and none has a usable result.</td></tr>
+<tr><td data-label="Key"><code>ZERO_BASELINE</code></td><td data-label="reason"><code>Baseline is zero</code></td><td data-label="When">A fold or percent change was asked for.</td></tr>
+<tr><td data-label="Key"><code>NEGATIVE_BASELINE</code></td><td data-label="reason"><code>Baseline is negative</code></td><td data-label="When">A fold or percent change was asked for.</td></tr>
+<tr><td data-label="Key"><code>EMPTY_COLUMN</code></td><td data-label="reason"><code>Column is empty</code></td><td data-label="When">The column has nothing for the participant.</td></tr>
+<tr><td data-label="Key"><code>VARYING_COLUMN</code></td><td data-label="reason"><code>Column has more than one value for the participant</code></td><td data-label="When">A column read from the results rows, where the participant&#39;s rows disagree.</td></tr>
+<tr><td data-label="Key"><code>NOT_A_NUMBER</code></td><td data-label="reason"><code>Column value is not a number</code></td><td data-label="When">A column read as a number.</td></tr></tbody></table>
+<p>For a change, a fold change or a percent change, the visit is looked at before the baseline: a participant missing both is counted under the visit.</p>
+<h2 id="unused"><code>UNUSED</code></h2>
+<p>The reasons a row was read and not used. Each entry of the frame&#39;s <code>unused</code> list is <code>{ reason, table, n }</code>: one of these sentences, <code>results</code> or <code>participants</code>, and how many rows. These count rows, not participants: a participant whose first result was used is in the frame however many later ones were not.</p>
+<table class="doc-table"><thead><tr><th scope="col">Key</th><th scope="col"><code>reason</code></th><th scope="col">When</th></tr></thead>
+<tbody><tr><td data-label="Key"><code>NO_ID</code></td><td data-label="reason"><code>Row has no participant id</code></td><td data-label="When">Either table.</td></tr>
+<tr><td data-label="Key"><code>DUPLICATE_PARTICIPANT</code></td><td data-label="reason"><code>Later row for a participant already in the participant table</code></td><td data-label="When">The participant table. The first row is the one used.</td></tr>
+<tr><td data-label="Key"><code>DUPLICATE_RESULT</code></td><td data-label="reason"><code>Later result for the same participant, biomarker and visit</code></td><td data-label="When">A usable result after the first, at a biomarker and visit a variable reads.</td></tr>
+<tr><td data-label="Key"><code>MISSING_RESULT</code></td><td data-label="reason"><code>Result is missing or not a number</code></td><td data-label="When">A row with no usable result, at a biomarker and visit a variable reads.</td></tr></tbody></table>
+<p>Only the biomarkers and visits the variables read are counted: a duplicate at a visit no variable asked for is not looked at.</p>
+<h2 id="labelspec"><code>label(spec)</code></h2>
+<p>A variable in words, for an axis title or a legend. <code>spec</code> is a variable as written or as <code>variable</code> returned it.</p>
+<table class="doc-table"><thead><tr><th scope="col">Variable</th><th scope="col">Label</th></tr></thead>
+<tbody><tr><td data-label="Variable"><code>{ col: &#39;ARM&#39; }</code></td><td data-label="Label"><code>ARM</code></td></tr>
+<tr><td data-label="Variable"><code>{ measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39; }</code></td><td data-label="Label"><code>IL-6 at Week 4</code></td></tr>
+<tr><td data-label="Variable"><code>{ measure: &#39;IL-6&#39;, value: &#39;baseline&#39; }</code></td><td data-label="Label"><code>IL-6 at baseline</code></td></tr>
+<tr><td data-label="Variable"><code>{ measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; }</code></td><td data-label="Label"><code>IL-6 at Week 4, change from baseline</code></td></tr></tbody></table>
+<p><code>fold_change</code> and <code>percent_change</code> read the same way: <code>IL-6 at Week 4, fold change from baseline</code>.</p>
+<h2 id="handing-the-frame-to-r">Handing the frame to R</h2>
+<p><code>data</code> is what a chart draws, and it is what goes to R as the table of a statistics call: plain records of text and finite numbers, which the <a href="../r-connection/api.html">connection to R</a> turns into a data frame with one column per field. The fields are named as the variables were, and gsm.bio&#39;s statistics functions take a table and the names of its columns, so the names pass straight through:</p>
+<pre><code class="language-js">const { data } = BioViz.core.frame({ results, participants }, { y, x }, settings);
+const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
+  data,
+  args: { strValueCol: &#39;y&#39;, strGroupCol: &#39;x&#39;, strMethod: &#39;wilcoxon&#39; }
+});</code></pre>
+<p>A field&#39;s name is the name the caller gave its variable, so it is stable whatever the biomarker is called, and two variables on the same biomarker are told apart by their names: <code>{ week4: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39; }, change: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; } }</code>. R takes any name as a column name here; a short plain one (<code>y</code>, <code>x</code>, <code>v1</code>) is easiest to read in R&#39;s messages.</p>
+<h2 id="portfolio"><code>portfolio</code></h2>
+<p>The chart list: an object naming every chart the library offers, in <a href="https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json">safety.viz&#39;s portfolio manifest format</a>, version 2, so safety.viz&#39;s demo app can list bio.viz&#39;s charts and draw them beside its own on the files a study already has. It is <code>src/data/portfolio.json</code>, and the site publishes the same list at <code>portfolio.json</code>, with the format beside it at <code>schema/portfolio.json</code>.</p>
+<p>One chart is not in it: the <a href="../stratified-survival/api.html">stratified survival chart</a> reads an outcomes table, which no standard domain of the format holds, so the app could not hand it one (<a href="https://github.com/jwildfire/bio.viz/issues/63">#63</a>).</p>
+<pre><code class="language-js">BioViz.portfolio.version; // 2
+Object.keys(BioViz.portfolio.modules);
+// [&#39;group-comparison&#39;, &#39;association-scatter&#39;, &#39;correlation-matrix&#39;, &#39;biomarker-screen&#39;, &#39;cross-tab&#39;]</code></pre>
+<table class="doc-table"><thead><tr><th scope="col">Field</th><th scope="col">What it says</th></tr></thead>
+<tbody><tr><td data-label="Field"><code>version</code></td><td data-label="What it says"><code>2</code>, the format&#39;s version.</td></tr>
+<tr><td data-label="Field"><code>groups</code></td><td data-label="What it says">One group, <code>biomarkers</code>, labelled Biomarkers: the app lists the charts under it, on a tab of their own.</td></tr>
+<tr><td data-label="Field"><code>modules</code></td><td data-label="What it says">One entry per chart, keyed by its name: <code>export</code>, the factory&#39;s name on <code>BioViz</code>; <code>title</code>; <code>library</code>, <code>bio.viz</code>; and <code>group</code>, <code>biomarkers</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.tables</code></td><td data-label="What it says">The tables <code>init</code> takes: <code>results</code>, from the labs and vitals domain (<code>bds</code>), required; and <code>participants</code>, from the subject-level domain (<code>subject</code>), optional. They are also the entry&#39;s <code>domains</code> and <code>optionalDomains</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.settings</code></td><td data-label="What it says">Each column setting of the chart, keyed as in its settings: the domain it reads, the standard column it defaults to (<code>null</code> where the chart has no default) and whether the chart cannot be made without it. <code>participant_id_col</code> reads the subject-level domain&#39;s <code>USUBJID</code>.</td></tr>
+<tr><td data-label="Field"><code>modules.*.unmappedSettings</code></td><td data-label="What it says"><code>omit</code>: a setting with no column mapped is left out, so the chart keeps its default, because a chart refuses <code>null</code> for the columns it needs.</td></tr></tbody></table>
+<p>The participant is named once in each file. <code>id_col</code> reads it from the results and <code>participant_id_col</code> from the participant table, so when the two files call it differently the app maps each file&#39;s own name and the charts join the two on them. Left out, <code>participant_id_col</code> is <code>id_col</code>&#39;s name, as in every chart.</p>
+<p>The list adds nothing to the format, and the format is safety.viz&#39;s: it is copied to <code>src/data/schema/portfolio.json</code> by <code>node tools/vendor-portfolio-schema.mjs</code>, with a record of the commit, and a test validates the list against the copy and holds each entry to its chart&#39;s own settings.</p>
+<h2 id="what-is-not-here">What is not here</h2>
+<p>No statistics. Deriving a change from baseline is arithmetic on one participant&#39;s own results, and a cut point is a description of the values, as a median is. Nothing in the core tests, estimates or compares: a median and the quartiles of a box belong to the chart that draws them, and every test to R.</p>
+<h2 id="what-else-is-exported">What else is exported</h2>
+<table class="doc-table"><thead><tr><th scope="col">Export</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Export"><code>r</code></td><td data-label="What it is">The connection to R and the rule for printing a p-value. Its reference is <a href="../r-connection/api.html">the connection to R</a>.</td></tr>
+<tr><td data-label="Export"><code>core</code></td><td data-label="What it is">The variable and the frame, described above.</td></tr></tbody></table>
+</article>
+
+<p class="sub" id="api-source">
+  This page is the file <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/core.md"><code>docs/core.md</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/f4f6315f30fe8b0640bb64c412d69129b82bb968"><code>f4f6315</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>
