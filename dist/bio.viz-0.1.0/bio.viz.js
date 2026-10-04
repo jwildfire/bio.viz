@@ -8728,7 +8728,9 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
   var BACK2 = "Back to the biomarker screen";
   var NO_OUTCOMES = "A hazard ratio needs an outcomes table: give `outcomes`, one row per participant and endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.";
   var HAZARD_NOTE = "Each biomarker is cut at its median, as R\u2019s Analyze_Screen cuts it, a value on the median low: the hazard ratio is the high group\u2019s hazard over the low group\u2019s.";
-  var HINT3 = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.";
+  var OPEN_HINT = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ";
+  var HINT3 = OPEN_HINT + "share one axis without units, with nought marked.";
+  var HAZARD_HINT = OPEN_HINT + "share one logarithmic axis without units, with 1, no difference, marked.";
   var COLUMN = "c:";
   var MEASURE = "m:";
   var BiomarkerScreen = class {
@@ -9171,7 +9173,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         this.footnote.textContent = "No participant has a value for any biomarker of this screen.";
         return;
       }
-      this.footnote.textContent = HINT3;
+      this.footnote.textContent = state.comparison === "hazard" ? HAZARD_HINT : HINT3;
       this.drawRows();
       if (!settings.statistic) return;
       const request = screenRequest({ name: settings.statistic, settings, state, model });

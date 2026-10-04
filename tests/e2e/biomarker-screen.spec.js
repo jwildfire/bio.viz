@@ -370,6 +370,9 @@ test.describe('biomarker screen: what is drawn', () => {
     expect(shown.rows).toHaveLength(12);
     expect(shown.rows[0].biomarker).toBe('IL-6');
     expect(shown.ticks).toEqual(['−2', '−1', '0', '1', '2']);
+    await expect(root(page).locator('.sv-footnote')).toHaveText(
+      'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.'
+    );
     expectRows(shown, resultOf('difference-week-4-change').value, { groups: ARMS });
     expect(shown.rows[0]).toMatchObject({
       value: '0.9133 (0.6111 to 1.213)',
@@ -2279,6 +2282,10 @@ test.describe('biomarker screen: the hazard rows', () => {
       /^Each row: Hazard ratio, High \/ Low, on Event-free survival \(months\), with its 95% confidence interval on one logarithmic axis, with 1, no difference, marked\./
     );
     expect(shown.ticks).toContain('1');
+    // The hint names the line the log axis marks: 1, not nought.
+    await expect(root(page).locator('.sv-footnote')).toHaveText(
+      'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one logarithmic axis without units, with 1, no difference, marked.'
+    );
     expectRows(shown, resultOf('hazard-baseline').value, {
       groups: ['High', 'Low'],
       comparison: 'hazard'

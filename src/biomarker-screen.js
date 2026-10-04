@@ -129,9 +129,12 @@ export const NO_OUTCOMES =
 const HAZARD_NOTE =
   'Each biomarker is cut at its median, as R’s Analyze_Screen cuts it, a value on the median ' +
   'low: the hazard ratio is the high group’s hazard over the low group’s.';
-const HINT =
-  'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ' +
-  'share one axis without units, with nought marked.';
+const OPEN_HINT =
+  'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ';
+// What the axis marks: nought, or for a hazard ratio's logarithmic axis, 1.
+const HINT = OPEN_HINT + 'share one axis without units, with nought marked.';
+const HAZARD_HINT =
+  OPEN_HINT + 'share one logarithmic axis without units, with 1, no difference, marked.';
 const COLUMN = 'c:';
 const MEASURE = 'm:';
 
@@ -646,7 +649,7 @@ class BiomarkerScreen {
     }
     // What R's methods are, and where they differ, R says in its own notes on
     // the statistics line.
-    this.footnote.textContent = HINT;
+    this.footnote.textContent = state.comparison === 'hazard' ? HAZARD_HINT : HINT;
     this.drawRows();
     if (!settings.statistic) return;
 

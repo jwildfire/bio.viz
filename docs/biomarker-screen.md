@@ -85,14 +85,14 @@ A heading says what the rows are: `Change from baseline at Week 4: Placebo again
 
 Then one row per biomarker:
 
-| Column              | What                                                                                                            |
-| ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Biomarker           | Its name.                                                                                                       |
-| The axis            | R's estimate as a dot and its interval as a line, on the one axis every row shares, with nought marked.         |
-| Estimate (interval) | R's estimate and its interval, to four significant figures.                                                     |
-| p, unadjusted       | R's p-value for the row, `p = 0.031`, or `p < 0.001`.                                                           |
-| p, the adjustment   | The same, adjusted across the rows by the adjustment named in the column's heading.                             |
-| n                   | The counts R used: each group's for a difference, `95 / 91`, or the number of complete pairs for a correlation. |
+| Column              | What                                                                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Biomarker           | Its name.                                                                                                                                                                                          |
+| The axis            | R's estimate as a dot and its interval as a line, on the one axis every row shares, with nought marked; for a hazard ratio a logarithmic axis, with 1 marked, and the hint under the rows says so. |
+| Estimate (interval) | R's estimate and its interval, to four significant figures.                                                                                                                                        |
+| p, unadjusted       | R's p-value for the row, `p = 0.031`, or `p < 0.001`.                                                                                                                                              |
+| p, the adjustment   | The same, adjusted across the rows by the adjustment named in the column's heading.                                                                                                                |
+| n                   | The counts R used: each group's for a difference, `95 / 91`, or the number of complete pairs for a correlation.                                                                                    |
 
 The axis runs symmetrically about nought for a difference, far enough to hold every interval, and from −1 to 1 for a coefficient. It has no unit: the rows share it because each estimate is in standard deviations, or is a coefficient. A hazard ratio is drawn on a logarithmic axis instead, from a half to two at least, labelled at powers of two, with 1, no difference, marked; the counts are High's and Low's.
 
