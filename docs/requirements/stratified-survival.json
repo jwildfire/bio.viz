@@ -17,7 +17,7 @@
     "SS-DRAG-001": "Dragging the cut line moves the curves at once and asks R nothing, and the line says R is asked when it is let go; letting it go makes the cut a typed point as its label writes it, held by the Groups control, and asks R once.",
     "SS-DRAG-002": "Dropped at 4, R's stored answer for the cut at 4 is found and printed, and the curves are R's for that cut; the left and right arrow keys move the line too.",
     "SS-DRAG-003": "An answer asked for before the line was taken hold of is never shown: the line waits for the answer to the cut it is let go at.",
-    "SS-STAT-001": "R is asked once per view, with one row per participant drawn, and the function, the arguments, the identity and the row count that desktop R's recipe writes; a cut's groups go low to high and a column's by code point; the flag goes under the name the table reads it by.",
+    "SS-STAT-001": "R is asked once per view, with one row per participant drawn, and the function, the arguments, the identity and the row count that desktop R's recipe writes; a cut's groups go high to low, so the hazard ratio is the higher group's over the lower's, and a column's by code point; the flag goes under the name the table reads it by.",
     "SS-STAT-002": "Handed to a connection as stored results, each of R's answers is found by the chart's request for its view.",
     "SS-STAT-003": "R's log-rank test is printed with its method and counts, labelled exploratory and unadjusted; each group's median with its log-log interval, a median or bound R did not reach reading not reached; and, for two groups, the hazard ratio with its interval.",
     "SS-STAT-004": "A hazard ratio R does not estimate is not printed, and R's note says why, as R wrote it (gsm.bio#26).",
