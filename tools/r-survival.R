@@ -65,14 +65,15 @@ study_outcomes <- utils::read.csv(file.path(study, "synthetic_outcomes.csv"), st
 #          list(measure =, visit =, value =, cut =), without visit for a
 #          baseline value, or list(col =, type = "number", cut =), typed points
 #          as a list), groups (the groups low to high for a cut, as cut() made
-#          them), baseline_visits, baseline_stat, filters (a named list of
+#          them; R is handed them high to low), baseline_visits, baseline_stat, filters (a named list of
 #          column to values)
 #
 # A member of the identity that is not set is left out, never written as null.
 # A list of values is an unnamed list, so it is written as a JSON array
 # whatever its length. Text is sorted by code point (`method = "radix"`), which
-# is the order the chart sorts in. A cut's groups are handed to R low to high, a
-# column's by code point. The baseline settings are named only when a cut
+# is the order the chart sorts in. A cut's groups are handed to R high to low,
+# so the hazard ratio of two is the higher group's hazard over the lower's, as
+# the biomarker screen's High / Low is; a column's by code point. The baseline settings are named only when a cut
 # biomarker reads a baseline: its value is a baseline, or a change from one.
 reads_baseline <- function(variable) {
   is.list(variable) && !is.null(variable$measure) && !identical(variable$value, "raw")
@@ -94,7 +95,7 @@ survival_key <- function(dfRows, lView) {
       as.list(sort(unique(as.character(xValues)), method = "radix"))
     })
   }
-  chrGroups <- if (is.list(lView$group_by)) lView$groups else sort(unique(dfRows$group), method = "radix")
+  chrGroups <- if (is.list(lView$group_by)) rev(lView$groups) else sort(unique(dfRows$group), method = "radix")
   lArgs <- list(strTimeCol = "time", strGroupCol = "group")
   if ("censor" %in% names(dfRows)) lArgs$strCensorCol <- "censor" else lArgs$strEventCol <- "event"
   lArgs$chrGroups <- as.list(chrGroups)

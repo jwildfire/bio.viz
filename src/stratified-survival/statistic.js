@@ -32,9 +32,10 @@ export { NOT_STORED, WAITING } from '../shared/statisticLine.js';
 export const ONE_GROUP =
   'Statistics: no test. The log-rank test compares two or more groups, and one is drawn.';
 
-// The groups as the key names them: a cut's low to high, a column's by code
-// point, the same in every browser language.
-const keyOrder = (by, levels) => (isCut(by) ? [...levels] : sorted(levels));
+// The groups as R is handed them: a cut's high to low, so the hazard ratio of
+// two is the higher group's hazard over the lower's, as the biomarker screen's
+// "High / Low" is; a column's by code point, the same in every browser language.
+const keyOrder = (by, levels) => (isCut(by) ? [...levels].reverse() : sorted(levels));
 
 // Whether the groups are a cut biomarker that reads a baseline.
 const readsBaseline = (by) =>

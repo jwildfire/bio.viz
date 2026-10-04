@@ -98,7 +98,7 @@ While a line is held the curves, the at-risk strip and the histogram follow it a
 
 ## The statistics line
 
-R is asked once per view, with one row per participant drawn: the id, `time`, `group`, and the flag, `censor` or `event`, as the outcomes table gives it. The line says it is waiting until R answers, and a change to a control, a filter or the cut clears it and asks again; an answer to a question no longer on screen is never shown. R's log-rank result is printed with its method and counts, labelled exploratory and unadjusted. Under it, each group's median survival with its log-log interval, as R's `survfit()` gives it, a median or a bound the curve did not reach reading `not reached`; and, for two groups, the hazard ratio with its interval, Cox's, the hazard in the first group over the hazard in the second. Where R does not estimate the hazard ratio, as when one group has no event, it is not printed, and R's note says why. What R said about its answer is printed as R worded it. The chart computes no test statistic, no p-value, no median and no hazard ratio. With no R attached the curves are still drawn, and the line says that statistics are unavailable.
+R is asked once per view, with one row per participant drawn: the id, `time`, `group`, and the flag, `censor` or `event`, as the outcomes table gives it. The line says it is waiting until R answers, and a change to a control, a filter or the cut clears it and asks again; an answer to a question no longer on screen is never shown. R's log-rank result is printed with its method and counts, labelled exploratory and unadjusted. Under it, each group's median survival with its log-log interval, as R's `survfit()` gives it, a median or a bound the curve did not reach reading `not reached`; and, for two groups, the hazard ratio with its interval, Cox's: for a cut, the hazard in the higher group over the hazard in the lower. Where R does not estimate the hazard ratio, as when one group has no event, it is not printed, and R's note says why. What R said about its answer is printed as R worded it. The chart computes no test statistic, no p-value, no median and no hazard ratio. With no R attached the curves are still drawn, and the line says that statistics are unavailable.
 
 ### What R is asked
 
@@ -109,13 +109,13 @@ connection.run('Analyze_Survival', {
     strTimeCol: 'time',
     strGroupCol: 'group',
     strCensorCol: 'censor', // or strEventCol: 'event'
-    chrGroups: ['≤ 2.783', '> 2.783'] // a cut's low to high, a column's by code point
+    chrGroups: ['> 2.783', '≤ 2.783'] // a cut's high to low, a column's by code point
   },
   dataId // what the rows are: see below
 });
 ```
 
-The groups R is handed are in an order that depends on nothing but them: a cut's low to high, a column's sorted by code point, as R's `sort(method = "radix")` sorts them, the same in every browser and every language. The hazard ratio is the first group's hazard over the second's, so for a cut it is the lower group's over the higher's.
+The groups R is handed are in an order that depends on nothing but them: a cut's high to low, a column's sorted by code point, as R's `sort(method = "radix")` sorts them, the same in every browser and every language. The hazard ratio is the first group's hazard over the second's, so for a cut it is the higher group's over the lower's, as the biomarker screen's "High / Low" is; R's medians are listed in the same order.
 
 `dataId` states what the rows are, so a [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together:
 

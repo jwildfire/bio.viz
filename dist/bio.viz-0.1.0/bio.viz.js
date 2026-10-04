@@ -8987,7 +8987,7 @@ ${C3} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
 
   // src/stratified-survival/statistic.js
   var ONE_GROUP = "Statistics: no test. The log-rank test compares two or more groups, and one is drawn.";
-  var keyOrder2 = (by, levels) => isCut(by) ? [...levels] : sorted(levels);
+  var keyOrder2 = (by, levels) => isCut(by) ? [...levels].reverse() : sorted(levels);
   var readsBaseline2 = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
   function survivalRequest({ name, settings, state, model }) {
     const filters = filtersInForce(state.filters);

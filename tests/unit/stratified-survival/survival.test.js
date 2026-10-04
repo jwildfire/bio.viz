@@ -288,12 +288,14 @@ describe('stratified survival: what R is asked, and what the line says', () => {
     const median = describeAnswer({ status: 'ok', value: caseOf('crp-median').value });
     expect(median.state).toBe('shown');
     expect(median.text).toBe(
-      'Log-rank test: p < 0.001 (≤ 2.783 n = 100, > 2.783 n = 100). Exploratory, unadjusted.'
+      'Log-rank test: p < 0.001 (> 2.783 n = 100, ≤ 2.783 n = 100). Exploratory, unadjusted.'
     );
+    // A cut's groups go to R high to low: the hazard ratio is high over low,
+    // as the biomarker screen's is.
     expect(median.estimates).toEqual([
-      'Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.',
       'Median (> 2.783): 8.28, 95% confidence interval 5.24 to 9.71.',
-      'Hazard ratio (≤ 2.783 / > 2.783): 0.2839, 95% confidence interval 0.1958 to 0.4115.'
+      'Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.',
+      'Hazard ratio (> 2.783 / ≤ 2.783): 3.523, 95% confidence interval 2.43 to 5.107.'
     ]);
     // Three groups: medians, and no hazard ratio.
     const tertiles = describeAnswer({ status: 'ok', value: caseOf('crp-tertiles').value });

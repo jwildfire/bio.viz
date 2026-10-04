@@ -322,7 +322,7 @@ test.describe('stratified survival: moving the cut line', () => {
       `CRP at Baseline, cut at ${point}`
     );
     expect(await page.evaluate(() => window.__runs.length)).toBe(2);
-    expect(await page.evaluate(() => window.__runs[1])).toEqual([`≤ ${point}`, `> ${point}`]);
+    expect(await page.evaluate(() => window.__runs[1])).toEqual([`> ${point}`, `≤ ${point}`]);
     const [asked] = await page.evaluate(() => window.__ss.chart.statistics());
     expect(asked.dataId.group_by).toEqual({ ...CRP, value: 'raw', cut: [point] });
     expect(errors).toEqual([]);
