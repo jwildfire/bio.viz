@@ -116,6 +116,16 @@ describe('biomarker screen: the hazard rows', () => {
     expect(gapped.records).toHaveLength(model.records.length);
     expect(gapped.records.filter((record) => record.time === null)).toHaveLength(2);
     expect(gapped.outcomeGaps).toEqual([{ reason: LEFT_OUT.NO_OUTCOME, n: 2 }]);
+    // One of the two has no result either: not in the frame, so not counted.
+    const gone = outcomes[0].USUBJID;
+    const fewerResults = buildScreen(
+      { results: results.filter((row) => row.USUBJID !== gone), participants, outcomes: fewer },
+      settings,
+      state(),
+      offered
+    );
+    expect(fewerResults.records).toHaveLength(model.records.length - 1);
+    expect(fewerResults.outcomeGaps).toEqual([{ reason: LEFT_OUT.NO_OUTCOME, n: 1 }]);
     // With no endpoint there is nothing to screen.
     expect(
       screenRows(settings, state({ endpoint: null }), { ...offered, endpoints: [] }).message

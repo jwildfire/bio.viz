@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-04T06:25:22.099Z",
+  "generatedAt": "2026-10-04T06:32:17.296Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -247,6 +247,22 @@
       "status": "pass",
       "requirementIds": ["BS-HAZ-013"],
       "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-014: on a wide logarithmic axis the tick labels are thinned to every other one, counted from 1, which is always labelled, and each is written by the shared rule for a value (#65 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-014"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-015: an endpoint setting the outcomes table does not hold warns in the console, as a visit does, and the screen opens on the first endpoint (#65 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-015"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

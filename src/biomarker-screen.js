@@ -780,10 +780,12 @@ class BiomarkerScreen {
     const head = kit.createElement('div', 'bv-screen-head');
     head.setAttribute('aria-hidden', 'true');
     const ticks = kit.createElement('div', 'bv-ticks');
-    // A wide axis is labelled at every other tick, so the labels do not crowd.
+    // A wide axis is labelled at every other tick, so the labels do not crowd,
+    // counted from the reference line's tick, which is always labelled.
     const every = range.ticks.length > 7 ? 2 : 1;
+    const anchor = Math.max(range.ticks.indexOf(range.reference ?? 0), 0);
     range.ticks.forEach((tick, index) => {
-      if (index % every !== 0 && index !== range.ticks.length - 1) return;
+      if ((index - anchor) % every !== 0) return;
       const label = kit.createElement('span', 'bv-tick', shown(tick).replace('-', '−'));
       const at = placeOf(tick, range);
       label.style.left = `${at}%`;

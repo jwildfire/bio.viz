@@ -9251,8 +9251,9 @@ var BiomarkerScreen = class {
     head.setAttribute("aria-hidden", "true");
     const ticks = kit.createElement("div", "bv-ticks");
     const every = range.ticks.length > 7 ? 2 : 1;
+    const anchor = Math.max(range.ticks.indexOf(range.reference ?? 0), 0);
     range.ticks.forEach((tick, index) => {
-      if (index % every !== 0 && index !== range.ticks.length - 1) return;
+      if ((index - anchor) % every !== 0) return;
       const label2 = kit.createElement("span", "bv-tick", shown(tick).replace("-", "\u2212"));
       const at = placeOf(tick, range);
       label2.style.left = `${at}%`;

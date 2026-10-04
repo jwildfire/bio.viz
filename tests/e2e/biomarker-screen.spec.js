@@ -13,6 +13,7 @@ import {
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
+import { shown as shownValue } from '../../src/shared/chartHost.js';
 import { captureEvidence } from './evidence.js';
 import {
   CASES as SCREEN_CASES,
@@ -2512,6 +2513,62 @@ test.describe('biomarker screen: the hazard rows', () => {
     expect(opened).toMatchObject({ endpoint: 'OS', dataId: 'OS' });
     expect(opened.first).toBe(efsFirst * 2);
     expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-014: on a wide logarithmic axis the tick labels are thinned to every other one, counted from 1, which is always labelled, and each is written by the shared rule for a value (#65 review)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes' });
+    // R's answer with one row's interval made wide, from 0.6 to 300.
+    const wide = keyed(resultOf('hazard-baseline'));
+    wide.value = {
+      ...wide.value,
+      rows: wide.value.rows.map((row) =>
+        row.biomarker === 'CRP' ? { ...row, lower: 0.6, upper: 300 } : row
+      )
+    };
+    await withStored(page, [wide], { comparison: 'hazard', visit: 'Baseline', value_type: 'raw' });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const { ticks } = axisRange(
+      wide.value.rows.filter((row) => row.status === 'ok'),
+      'hazard'
+    );
+    expect(ticks.length).toBeGreaterThan(7);
+    const one = ticks.indexOf(1);
+    expect(one).toBe(1);
+    const labelled = ticks.filter((tick, index) => (index - one) % 2 === 0);
+    expect((await screen(page)).ticks).toEqual(labelled.map((tick) => shownValue(tick)));
+    expect(labelled).toContain(1);
+    // A narrow axis keeps every label.
+    await withStored(page, stored('hazard-baseline'), {});
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expect((await screen(page)).ticks).toEqual(['0.5', '1', '2', '4', '8']);
+    expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-015: an endpoint setting the outcomes table does not hold warns in the console, as a visit does, and the screen opens on the first endpoint (#65 review)', async ({
+    page
+  }) => {
+    const warnings = warningsOf(page);
+    await open(page, { data: 'outcomes', settings: { comparison: 'hazard', endpoint: 'PFS' } });
+    expect(warnings).toContain(
+      'The initial endpoint [PFS] does not exist. Defaulting to the first.'
+    );
+    expect(await controls(page)).toMatchObject({ comparison: 'hazard', endpoint: 'EFS' });
+    // Without an outcomes table there is no endpoint to warn about.
+    const quiet = await page.evaluate(() => {
+      const before = [];
+      const warn = console.warn;
+      console.warn = (text) => before.push(text);
+      window.BioViz.biomarkerScreen(document.createElement('div'), {
+        baseline_visits: 'Baseline',
+        endpoint: 'PFS'
+      }).init({ results: window.__bs.data.results, participants: window.__bs.data.participants });
+      console.warn = warn;
+      return before.filter((text) => text.includes('endpoint'));
+    });
+    expect(quiet).toEqual([]);
   });
 });
 
