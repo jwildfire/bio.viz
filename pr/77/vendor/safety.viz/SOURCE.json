@@ -5,6 +5,10 @@
   "commit": "096cc26d48e5d3cd1bf03eb78249658974c7a307",
   "version": "1.9.0",
   "merged_to_dev": true,
+  "release": {
+    "tag": "v1.9.0",
+    "commit": "04f67bd6051aaa7e462868038dc0cdb08b425f51"
+  },
   "files": [
     {
       "file": "safety.viz.js",
