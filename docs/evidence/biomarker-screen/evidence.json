@@ -1,13 +1,16 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-04T05:09:09.767Z",
+  "generatedAt": "2026-10-04T05:14:36.231Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37179259514",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37179259514"
+  },
   "records": [
     {
       "test": "BS-CTRL-001: the sidebar offers the comparison, the value and visit, the groups or the variable and method, the adjustment, the order, a filter per category column, and Reset chart (#36)",
@@ -199,7 +202,7 @@
       "status": "pass",
       "requirementIds": ["BS-HAZ-005"],
       "issueRefs": [62],
-      "screenshots": []
+      "screenshots": ["BS-HAZ-005-hazard-rows.png"]
     },
     {
       "test": "BS-HAZ-006: without an outcomes table the screen offers only its other two comparisons and says why, and a setting asking for a hazard ratio opens on a difference (#62)",
@@ -223,7 +226,7 @@
       "status": "pass",
       "requirementIds": ["BS-HAZ-008"],
       "issueRefs": [62],
-      "screenshots": []
+      "screenshots": ["BS-HAZ-008-a-hazard-row-opened-with-r.png"]
     },
     {
       "test": "BS-KIT-001: the chart is built from safety.viz’s kit on the page; without safety.viz it says what is missing (#36)",
