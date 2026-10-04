@@ -15,7 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
-import { TITLE_DEFAULTS } from '../shared/titles.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
 /** What the percentages are of: each row's total, each column's, or none. */
 export const PERCENTS = Object.freeze(['row', 'col', 'none']);
@@ -67,7 +67,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   normal_col_high: null,
   normal_col_low: null,
   // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**

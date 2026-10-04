@@ -1235,7 +1235,9 @@ test.describe('correlation matrix: the list of pairs', () => {
     let saved = await save();
     expect(saved.file).toBe('bio.viz-correlation-matrix-pairs.csv');
     const rows = await listed(page);
-    const quoted = (cells) => cells.map((cell) => `"${cell}"`).join(',');
+    // Written by RFC 4180 (#67): a field is quoted only when it must be.
+    const field = (cell) => (/[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell);
+    const quoted = (cells) => cells.map(field).join(',');
     expect(saved.lines).toEqual([
       'Pair,Complete pairs,Pearson’s r (95% confidence interval)',
       ...rows.map(quoted)
@@ -1248,7 +1250,7 @@ test.describe('correlation matrix: the list of pairs', () => {
     expect(saved.lines).toHaveLength(67);
     const warned = resultOf('biomarkers-baseline-spearman').value.rows.map((row) => row.warning);
     saved.lines.slice(1).forEach((written, index) => {
-      expect(written.endsWith(`,"${warned[index] || ''}"`), written).toBe(true);
+      expect(written.endsWith(`,${field(warned[index] || '')}`), written).toBe(true);
     });
   });
 });

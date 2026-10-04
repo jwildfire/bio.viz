@@ -1,16 +1,20 @@
 # output requirements matrix
 
-> Requirement matrix for getting results out of the browser: what every bio.viz chart does so that what it shows can leave the page and still say what it is. Written with the titles and footnotes ([bio.viz#66](https://github.com/jwildfire/bio.viz/issues/66)); parent requirement [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361). Design: [353_design.html](https://jwildfire.github.io/obot.roadmap/requirements/design/353_design.html), section Getting results out.
+> Requirement matrix for getting results out of the browser: what every bio.viz chart does so that what it shows can leave the page and still say what it is. Written with the titles and footnotes ([bio.viz#66](https://github.com/jwildfire/bio.viz/issues/66)), extended with the downloads ([bio.viz#67](https://github.com/jwildfire/bio.viz/issues/67)); parent requirement [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361). Design: [353_design.html](https://jwildfire.github.io/obot.roadmap/requirements/design/353_design.html), section Getting results out.
 
 ## Scope
 
 Every chart's title, subtitle and footnotes: settings of text with named placeholders, filled from the view drawn, as text, with nothing evaluated, and drawn in the chart's own frame above and under what it draws, at every width. One footnote the chart writes last: the date drawn, the bio.viz version, and R's method and counts behind each statistic printed, with the R and gsm.bio versions of a stored result. The rules are written once, in `src/shared/titles.js`, and reached by a page as `BioViz.output`.
 
-Not in scope here yet: the PNG and CSV downloads ([bio.viz#67](https://github.com/jwildfire/bio.viz/issues/67)) and the specification a chart is written to and rebuilt from ([bio.viz#68](https://github.com/jwildfire/bio.viz/issues/68)), which add their rows to this matrix.
+Every chart's downloads: a PNG of its frame with the title and footnotes drawn in, at a stated resolution, carrying its title and footnotes in the file; the statistics R returned for the view as CSV; and the table the chart drew from as CSV, every CSV written by RFC 4180.
+
+Not in scope here yet: the specification a chart is written to and rebuilt from ([bio.viz#68](https://github.com/jwildfire/bio.viz/issues/68)), which adds its rows to this matrix.
 
 ## Source inventory
 
 - Task [bio.viz#66](https://github.com/jwildfire/bio.viz/issues/66), What changes and Definition of done.
+- Task [bio.viz#67](https://github.com/jwildfire/bio.viz/issues/67), What changes and Definition of done; [bio.viz#39](https://github.com/jwildfire/bio.viz/issues/39), a heading with a comma in the kit's CSV.
+- PNG (Third Edition): the `pHYs` and `iTXt` chunks. RFC 4180: the CSV format.
 - Requirement [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361); design [353_design.html](https://jwildfire.github.io/obot.roadmap/requirements/design/353_design.html), Getting results out: titles and footnotes with named placeholders, and one footnote written automatically with the date, library version, method and counts.
 - gsm.bio, `R/utils-widget.R`, `StoredResultsProvenance()`: the record a widget stores of which R computed its results (`r_version`, `gsm_bio_version`, `computed_at`).
 - Developer guidelines, Artifacts and pages: every page holds at a 390-pixel viewport with no horizontal scroll.
@@ -32,3 +36,13 @@ Not in scope here yet: the PNG and CSV downloads ([bio.viz#67](https://github.co
 | EXP-DRAW-005 | DRAW | The same for the cross-tabulation. | bio.viz#66 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
 | EXP-DRAW-006 | DRAW | The same for the stratified survival chart. | bio.viz#66 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
 | EXP-SITE-001 | SITE | Each chart's demo on the gallery shows its title, subtitle and footnotes, every placeholder filled, with the chart's own footnote last; at 390px the page does not scroll sideways. | bio.viz#66 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | One test per chart. |
+| EXP-CSV-001 | CSV | A CSV is written by RFC 4180: records end in CRLF; a field or a heading holding a comma, a double quote, a carriage return or a line feed is quoted, each double quote doubled; it reads back field for field, and a number reads back as itself. | bio.viz#67 What changes; bio.viz#39 | unit | `tests/unit/output/downloads.test.js` | drafted | Not reviewed by @jwildfire | The listing's export is written the same way. |
+| EXP-CSV-002 | CSV | The statistics are R's answer laid out as a table: a row for each answer's result and one for each of its parts, every member R returned a column and every number R's own, with the R function asked and the data it was asked about; an answer R did not give has no rows. | bio.viz#67 What changes | unit | `tests/unit/output/downloads.test.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-PNG-001 | PNG | A downloaded PNG carries its resolution as pixels per metre (`pHYs`) and its title, footnotes and software as UTF-8 text (`iTXt`), each chunk with its CRC, after the header. | bio.viz#67 Definition of done | unit | `tests/unit/output/downloads.test.js` | drafted | Not reviewed by @jwildfire | The CRC is held to node's zlib. |
+| EXP-DL-001 | DL | The group comparison downloads a PNG of its frame at `png_scale` times its width on the page, its title and footnotes in the file; the statistics R returned as CSV, every number R's; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading; each file is named for the chart and the view. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-DL-002 | DL | The same for the association scatter. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-DL-003 | DL | The same for the correlation matrix. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | Its comma heading comes from a biomarker renamed in the table. |
+| EXP-DL-004 | DL | The same for the biomarker screen. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-DL-005 | DL | The same for the cross-tabulation. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-DL-006 | DL | The same for the stratified survival chart. | bio.viz#67 Definition of done | browser | `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |
+| EXP-DL-007 | DL | Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing. | bio.viz#67 What changes | unit, browser | `tests/unit/output/downloads.test.js`, `tests/e2e/output.spec.js` | drafted | Not reviewed by @jwildfire | |

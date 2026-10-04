@@ -87,6 +87,8 @@ A participant with a group and no row for the endpoint is left out and counted (
 | `title`              | `null`               | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none. |
 | `subtitle`           | `null`               | The line under the title, written the same way. Null means none.                                                                                              |
 | `footnotes`          | `null`               | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                |
+| `downloads`          | `true`               | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                           |
+| `png_scale`          | `2`                  | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.            |
 
 ## Titles and footnotes
 
@@ -100,6 +102,18 @@ The settings `title`, `subtitle` and `footnotes` are text with named placeholder
 | `{filters}`  | The filters in force, in words, or `none`.          |
 | `{date}`     | The date drawn, in UTC: `2026-10-04`.               |
 | `{version}`  | The bio.viz version.                                |
+
+## Downloads
+
+Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-stratified-survival-….png`:
+
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                      |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. The controls, the listing and the bar are left out. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every number as R returned it. Offered once R has answered.                                                                                                                                                                        |
+| Table (CSV)      | The table the chart drew from: one row per participant drawn: the participant, their group, their time and whether it ended in the event.                                                                                                                                                                                                          |
+
+A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
 
 ## What is drawn
 

@@ -10,6 +10,8 @@
 
 import { checkOutcomes } from './outcomes.js';
 import { VERSION, automaticFootnote, dateDrawn, fillText } from './titles.js';
+import { statisticsTable, toCsv } from './csv.js';
+import { drawFrame } from './png.js';
 
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
@@ -100,7 +102,12 @@ ${root} .bv-titles:empty{display:none}
 ${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
 ${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
 ${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
-${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
+${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}
+${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:.6rem 0 0;font-size:.8rem;color:#52616f}
+${root} .bv-downloads[hidden]{display:none}
+${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -135,6 +142,9 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
   chart.main.prepend(chart.titleBlock);
   chart.footBlock = kit.createElement('div', 'bv-foot');
   chart.listingWrap.before(chart.footBlock);
+  // The downloads, under the footnotes and out of the picture (#67).
+  chart.module = moduleClass.replace(/^bv-/, '');
+  mountDownloads(chart);
 
   // What the kit's listing and participant rail read and keep.
   chart.host = {
@@ -434,6 +444,134 @@ export function writeTitles(chart) {
     if (index === said.footnotes.length - 1) line.dataset.automatic = 'true';
     chart.footBlock.append(line);
   });
+  syncDownloads(chart);
+}
+
+// ---- The downloads -------------------------------------------------------------
+
+/** What each download is called on its button. */
+export const DOWNLOAD_LABELS = Object.freeze({
+  png: 'PNG',
+  statistics: 'Statistics (CSV)',
+  table: 'Table (CSV)'
+});
+
+// Text as part of a file name: lower case, words joined by hyphens.
+const slug = (text) =>
+  String(text)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+    .replace(/-+$/g, '');
+
+/**
+ * The name a download is saved under: the chart, the view, and what it is.
+ * `bio.viz-cross-tab-arm-by-response.png`, `…-statistics.csv`, `…-table.csv`.
+ * @param {object} chart The chart.
+ * @param {string} kind `png`, `statistics` or `table`.
+ * @returns {string}
+ */
+export function downloadName(chart, kind) {
+  const values = placeholderValues(chart);
+  const view = (chart.viewFields || [])
+    .map((name) => values[name])
+    .filter((value) => value !== null && value !== undefined && String(value).trim() !== '')
+    .join(' ');
+  const base = ['bio.viz', chart.module, slug(view)].filter(Boolean).join('-');
+  return kind === 'png' ? `${base}.png` : `${base}-${kind}.csv`;
+}
+
+/**
+ * One download of a chart, as a file: the chart's frame as a PNG, the
+ * statistics R returned for the view as CSV, or the table the chart drew from
+ * as CSV.
+ * @param {object} chart The chart.
+ * @param {string} kind `png`, `statistics` or `table`.
+ * @returns {Promise<{name: string, blob: Blob}>}
+ */
+export async function downloadFile(chart, kind) {
+  const name = downloadName(chart, kind);
+  if (kind === 'statistics') {
+    const { columns, rows } = statisticsTable(chart.asked || []);
+    return { name, blob: new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }) };
+  }
+  if (kind === 'table') {
+    const { columns, rows } =
+      typeof chart.tableOf === 'function' ? chart.tableOf() : { columns: [], rows: [] };
+    return { name, blob: new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }) };
+  }
+  if (kind === 'png') {
+    const said = titlesOf(chart);
+    const leaving = [chart.toolbar, chart.footnote, chart.listingWrap, chart.downloadBar].filter(
+      Boolean
+    );
+    const { blob } = await drawFrame(chart.main, {
+      scale: chart.settings.png_scale,
+      leaveOut: (element) => leaving.includes(element),
+      text: {
+        Title: [said.title, said.subtitle].filter(Boolean).join(' — '),
+        Description: said.footnotes.join(' '),
+        Software: `bio.viz ${VERSION}`
+      }
+    });
+    return { name, blob };
+  }
+  throw new TypeError(
+    `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
+  );
+}
+
+// The bar under the footnotes: a button for each download.
+function mountDownloads(chart) {
+  const { kit } = chart;
+  chart.downloadBar = kit.createElement('div', 'bv-downloads');
+  chart.downloadBar.append(kit.createElement('span', 'bv-downloads-label', 'Download:'));
+  chart.downloadButtons = {};
+  for (const [kind, label] of Object.entries(DOWNLOAD_LABELS)) {
+    const button = kit.createElement('button', null, label);
+    button.type = 'button';
+    button.dataset.download = kind;
+    button.onclick = async () => {
+      button.disabled = true;
+      try {
+        const { name, blob } = await downloadFile(chart, kind);
+        saveFile(blob, name);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        syncDownloads(chart);
+      }
+    };
+    chart.downloadButtons[kind] = button;
+    chart.downloadBar.append(button);
+  }
+  chart.footBlock.after(chart.downloadBar);
+  /**
+   * One download, as a file, without saving it: see `downloadFile`.
+   * @param {string} kind `png`, `statistics` or `table`.
+   */
+  chart.fileOf = (kind) => downloadFile(chart, kind);
+}
+
+// Which downloads there is something to download for.
+function syncDownloads(chart) {
+  if (!chart.downloadBar) return;
+  chart.downloadBar.hidden = !chart.settings.downloads;
+  const answered = (chart.asked || []).some(
+    (entry) => entry.answer && entry.answer.status === 'ok'
+  );
+  const table = typeof chart.tableOf === 'function' ? chart.tableOf() : { rows: [] };
+  // A view that asks R nothing has no statistics to offer; one that waits for
+  // R's answer offers them once it comes.
+  const { png, statistics } = chart.downloadButtons;
+  if (!(chart.asked || []).length) statistics.remove();
+  else if (!statistics.isConnected) png.after(statistics);
+  statistics.disabled = !answered;
+  chart.downloadButtons.table.disabled = !table.rows.length;
+  chart.downloadButtons.png.disabled = false;
 }
 
 /** The settings the kit's listing and rail read, after the chart's settings change. */
@@ -623,13 +761,24 @@ export function clearListing(chart) {
  * @param {string} file The name the file is downloaded under.
  */
 export function downloadCsv(kit, rows, columns, file) {
-  const blob = new Blob([kit.buildCsv(rows, columns)], { type: 'text/csv' });
+  saveFile(new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }), file);
+}
+
+/**
+ * Saves a file the way safety.viz's kit saves its listing: a link to the file,
+ * clicked, and let go.
+ * @param {Blob} blob The file.
+ * @param {string} name Its name.
+ */
+export function saveFile(blob, name) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = file;
+  link.download = name;
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 /** Downloads the rows the listing shows, searched and sorted as it shows them, as CSV. */

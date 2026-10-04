@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { captureEvidence } from './evidence.js';
+import { parseCsv, statisticsTable } from '../../src/shared/csv.js';
+import { readPng } from '../../src/shared/png.js';
 
 // Getting results out (#66): every chart's title, subtitle and footnotes in a
 // real page, filled from the view drawn, with the footnote the chart writes
@@ -47,6 +49,10 @@ const sum = (counts) =>
 const CHARTS = [
   {
     module: 'group-comparison',
+    comma: {
+      settings: { groups: [{ value_col: 'ARM', label: 'Arm, randomised' }] },
+      heading: 'Arm, randomised'
+    },
     id: 'EXP-DRAW-001',
     global: 'gc',
     data: 'arm-sex',
@@ -67,6 +73,10 @@ const CHARTS = [
   },
   {
     module: 'association-scatter',
+    comma: {
+      settings: { color_by: 'ARM', groups: [{ value_col: 'ARM', label: 'Arm, randomised' }] },
+      heading: 'Arm, randomised'
+    },
     id: 'EXP-DRAW-002',
     global: 'as',
     settings: {},
@@ -80,6 +90,7 @@ const CHARTS = [
   },
   {
     module: 'correlation-matrix',
+    comma: { rename: { from: 'CRP', to: 'CRP, serum' }, heading: 'CRP, serum' },
     id: 'EXP-DRAW-003',
     global: 'cm',
     settings: {},
@@ -94,6 +105,7 @@ const CHARTS = [
   },
   {
     module: 'biomarker-screen',
+    comma: { rename: { from: 'CRP', to: 'CRP, serum' }, heading: 'CRP, serum' },
     id: 'EXP-DRAW-004',
     global: 'bs',
     settings: { visit: 'Week 4', value_type: 'change', group_by: 'ARM' },
@@ -108,6 +120,15 @@ const CHARTS = [
   },
   {
     module: 'cross-tab',
+    comma: {
+      settings: {
+        groups: [
+          { value_col: 'ARM', label: 'Arm, randomised' },
+          { value_col: 'RESPONSE', label: 'Response' }
+        ]
+      },
+      heading: 'Arm, randomised'
+    },
     id: 'EXP-DRAW-005',
     global: 'ct',
     settings: {},
@@ -118,6 +139,10 @@ const CHARTS = [
   },
   {
     module: 'stratified-survival',
+    comma: {
+      settings: { group_by: 'ARM', groups: [{ value_col: 'ARM', label: 'Arm, randomised' }] },
+      heading: 'Arm, randomised'
+    },
     id: 'EXP-DRAW-006',
     global: 'ss',
     settings: {},
@@ -341,4 +366,188 @@ test.describe('getting results out: the gallery', () => {
       await expect.poll(() => layout(page)).toEqual({ viewport: 390, scrollWidth: 390 });
     });
   }
+});
+
+// A download, as the page saves it: its name and its bytes.
+async function downloaded(page, chart, kind) {
+  const waiting = page.waitForEvent('download');
+  await page.locator(`#chart .bv-downloads button[data-download="${kind}"]`).click();
+  const download = await waiting;
+  const file = await download.path();
+  return { name: download.suggestedFilename(), bytes: readFileSync(file) };
+}
+
+const slug = (text) =>
+  text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+    .replace(/-+$/g, '');
+
+const DOWNLOADS = [
+  'EXP-DL-001',
+  'EXP-DL-002',
+  'EXP-DL-003',
+  'EXP-DL-004',
+  'EXP-DL-005',
+  'EXP-DL-006'
+];
+
+test.describe('getting results out: the downloads of every chart', () => {
+  CHARTS.forEach((chart, index) => {
+    test(`${DOWNLOADS[index]}: the ${chart.module.replace('-', ' ')} downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)`, async ({
+      page
+    }) => {
+      const errors = watch(page);
+      await blockR(page);
+      await openChart(page, chart, { title: chart.title, subtitle: chart.subtitle });
+      const value = chart.stored.value;
+      await expect
+        .poll(async () => (await framed(page, chart)).footnotes.at(-1))
+        .toMatch(/stored with the page\.$/);
+      const said = await framed(page, chart);
+      const view = await page.evaluate((name) => {
+        const shown = window[name].chart;
+        return {
+          width: Math.ceil(shown.main.getBoundingClientRect().width),
+          viewFields: shown.viewFields,
+          values: shown.placeholders(),
+          table: shown.tableOf(),
+          asked: shown.statistics()
+        };
+      }, `__${chart.global}`);
+      const base = `bio.viz-${chart.module}-${slug(
+        view.viewFields
+          .map((field) => view.values[field])
+          .filter((entry) => entry !== '' && entry !== null && entry !== undefined)
+          .join(' ')
+      )}`;
+
+      // The picture: twice the frame's width, with its title and footnotes in the file.
+      const png = await downloaded(page, chart, 'png');
+      expect(png.name).toBe(`${base}.png`);
+      const read = readPng(new Uint8Array(png.bytes));
+      expect(read.width).toBe(view.width * 2);
+      expect(read.height).toBeGreaterThan(200);
+      expect(read.perMetre).toBe(Math.round((2 * 96) / 0.0254));
+      expect(read.text).toEqual({
+        Title: `${said.title} — ${said.subtitle}`,
+        Description: said.footnotes.join(' '),
+        Software: `bio.viz ${pkg.version}`
+      });
+
+      // The statistics: R's answer, laid out, every number R's.
+      const statistics = await downloaded(page, chart, 'statistics');
+      expect(statistics.name).toBe(`${base}-statistics.csv`);
+      const [head, ...records] = parseCsv(statistics.bytes.toString('utf8'));
+      const expected = statisticsTable(view.asked);
+      expect(head).toEqual(expected.columns.map((column) => column.label));
+      expect(records).toHaveLength(expected.rows.length);
+      const result = Object.fromEntries(head.map((name, i) => [name, records[0][i]]));
+      expect(result.part).toBe('result');
+      expect(result.method).toBe(value.method);
+      if (typeof value.p_value === 'number') expect(Number(result.p_value)).toBe(value.p_value);
+      for (const [list, parts] of Object.entries(value)) {
+        if (!Array.isArray(parts) || !parts.some((part) => part && typeof part === 'object'))
+          continue;
+        parts.forEach((part, at) => {
+          const record = records.find(
+            (entry) =>
+              entry[head.indexOf('part')] === list && entry[head.indexOf('item')] === String(at + 1)
+          );
+          expect(record, `${list} ${at}`).toBeDefined();
+          for (const [member, number] of Object.entries(part)) {
+            if (typeof number === 'number')
+              expect(Number(record[head.indexOf(member)]), `${list} ${at} ${member}`).toBe(number);
+          }
+        });
+      }
+
+      // The table: the rows and columns the chart drew from.
+      const table = await downloaded(page, chart, 'table');
+      expect(table.name).toBe(`${base}-table.csv`);
+      const [columns, ...rows] = parseCsv(table.bytes.toString('utf8'));
+      expect(columns).toEqual(view.table.columns.map((column) => column.label));
+      expect(rows).toHaveLength(view.table.rows.length);
+      expect(rows.length).toBeGreaterThan(0);
+      const text = (cell) =>
+        cell === null || cell === undefined
+          ? ''
+          : typeof cell === 'boolean'
+            ? cell
+              ? 'TRUE'
+              : 'FALSE'
+            : String(cell);
+      rows.forEach((row, i) =>
+        expect(row, `row ${i}`).toEqual(
+          view.table.columns.map((column) => text(view.table.rows[i][column.value_col]))
+        )
+      );
+
+      // A heading that holds a comma is one heading, quoted, and reads back whole.
+      if (chart.comma.rename) {
+        await page.evaluate(
+          ({ name, from, to, measure }) => {
+            const shown = window[name];
+            shown.chart.setData({
+              ...shown.data,
+              results: shown.data.results.map((row) =>
+                row[measure] === from ? { ...row, [measure]: to } : row
+              )
+            });
+          },
+          { name: `__${chart.global}`, ...chart.comma.rename, measure: 'TEST' }
+        );
+      } else {
+        await page.evaluate(({ name, settings }) => window[name].chart.setSettings(settings), {
+          name: `__${chart.global}`,
+          settings: chart.comma.settings
+        });
+      }
+      const renamed = await downloaded(page, chart, 'table');
+      const text2 = renamed.bytes.toString('utf8');
+      const [headings] = parseCsv(text2);
+      expect(headings).toContain(chart.comma.heading);
+      expect(text2.split('\r\n')[0]).toContain(`"${chart.comma.heading}"`);
+      expect(errors).toEqual([]);
+    });
+  });
+
+  test('EXP-DL-007: with `downloads` false the bar is not shown; the statistics download waits for R’s answer; and `png_scale` sets the picture’s size and resolution (#67)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart, { png_scale: 3 });
+    await expect(page.locator('#chart .bv-downloads')).toBeVisible();
+    const width = await page.evaluate(() =>
+      Math.ceil(window.__ct.chart.main.getBoundingClientRect().width)
+    );
+    const png = await downloaded(page, chart, 'png');
+    const read = readPng(new Uint8Array(png.bytes));
+    expect(read.width).toBe(width * 3);
+    expect(read.perMetre).toBe(Math.round((3 * 96) / 0.0254));
+    await page.evaluate(() => window.__ct.chart.setSettings({ downloads: false }));
+    await expect(page.locator('#chart .bv-downloads')).toBeHidden();
+    // No R: nothing R returned to download.
+    await page.evaluate(() =>
+      window.__ct.chart.setSettings({
+        downloads: true,
+        connection: window.BioViz.r.createConnection()
+      })
+    );
+    await expect(
+      page.locator('#chart .bv-downloads button[data-download="statistics"]')
+    ).toBeDisabled();
+    // A view that asks R nothing offers no statistics.
+    await page.evaluate(() => window.__ct.chart.setSettings({ test: 'none' }));
+    await expect(
+      page.locator('#chart .bv-downloads button[data-download="statistics"]')
+    ).toHaveCount(0);
+    await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
+    await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
+  });
 });

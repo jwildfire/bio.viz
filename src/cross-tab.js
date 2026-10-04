@@ -715,6 +715,30 @@ class CrossTab {
   }
 
   /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, state, settings } = this;
+    if (!model || !model.records) return { columns: [], rows: [] };
+    return {
+      columns: [
+        { value_col: settings.id_col, label: 'Participant' },
+        { value_col: 'row', label: this.labelOf(state.rowBy) },
+        { value_col: 'col', label: this.labelOf(state.colBy) }
+      ],
+      rows: model.records
+    };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['rows', 'columns'];
+  }
+
+  /**
    * What the title, subtitle and footnotes' placeholders hold for the view now
    * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
    * @returns {object}

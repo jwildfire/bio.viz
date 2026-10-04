@@ -14,6 +14,16 @@
     "EXP-DRAW-004": "The same for the biomarker screen.",
     "EXP-DRAW-005": "The same for the cross-tabulation.",
     "EXP-DRAW-006": "The same for the stratified survival chart.",
-    "EXP-SITE-001": "Each chart's demo on the gallery shows its title, subtitle and footnotes, every placeholder filled, with the chart's own footnote last; at 390px the page does not scroll sideways."
+    "EXP-SITE-001": "Each chart's demo on the gallery shows its title, subtitle and footnotes, every placeholder filled, with the chart's own footnote last; at 390px the page does not scroll sideways.",
+    "EXP-CSV-001": "A CSV is written by RFC 4180: records end in CRLF; a field or a heading holding a comma, a double quote, a carriage return or a line feed is quoted, each double quote doubled; it reads back field for field, and a number reads back as itself.",
+    "EXP-CSV-002": "The statistics are R's answer laid out as a table: a row for each answer's result and one for each of its parts, every member R returned a column and every number R's own, with the R function asked and the data it was asked about; an answer R did not give has no rows.",
+    "EXP-PNG-001": "A downloaded PNG carries its resolution as pixels per metre (`pHYs`) and its title, footnotes and software as UTF-8 text (`iTXt`), each chunk with its CRC, after the header.",
+    "EXP-DL-001": "The group comparison downloads a PNG of its frame at `png_scale` times its width on the page, its title and footnotes in the file; the statistics R returned as CSV, every number R's; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading; each file is named for the chart and the view.",
+    "EXP-DL-002": "The same for the association scatter.",
+    "EXP-DL-003": "The same for the correlation matrix.",
+    "EXP-DL-004": "The same for the biomarker screen.",
+    "EXP-DL-005": "The same for the cross-tabulation.",
+    "EXP-DL-006": "The same for the stratified survival chart.",
+    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing."
   }
 }

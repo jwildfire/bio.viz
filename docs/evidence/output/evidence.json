@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T08:21:12.498Z",
+  "generatedAt": "2026-10-04T08:53:02.807Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -119,6 +119,62 @@
       "status": "pass",
       "requirementIds": ["EXP-AUTO-003"],
       "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-001: the group comparison downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-001"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-002: the association scatter downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-002"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-003: the correlation matrix downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-003"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-004: the biomarker screen downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-004"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-005: the cross tab downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-005"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-006: the stratified survival downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-006"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-007: with `downloads` false the bar is not shown; the statistics download waits for R’s answer; and `png_scale` sets the picture’s size and resolution (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-007"],
+      "issueRefs": [67],
       "screenshots": []
     },
     {
@@ -591,6 +647,38 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-CSV-001: a CSV is written by RFC 4180: CRLF between records; a field or a heading that holds a comma, a double quote, a carriage return or a line feed is quoted, with each double quote doubled; and it reads back field for field, a heading with a comma one heading (#67, #39)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-001"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-CSV-002: the statistics are R’s answer laid out as a table: a row for each answer’s result and one for each of its parts, every member R returned a column, every number R’s own, with the function asked and the data it was asked about; an answer R did not give has no rows (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-002"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-DL-007: every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4; anything else is refused with a sentence (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-007"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and its title and footnotes as international text, each chunk with its CRC, written after the header so any reader finds them (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-001"],
+      "issueRefs": [67],
       "screenshots": []
     },
     {

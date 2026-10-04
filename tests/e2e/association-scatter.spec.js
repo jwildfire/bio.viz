@@ -1345,12 +1345,16 @@ test.describe('association scatter: a region, the listing and the participant pr
       page.getByRole('button', { name: 'Export: CSV' }).click()
     ]);
     expect(download.suggestedFilename()).toBe('bio.viz-association-scatter-listing.csv');
-    const lines = readFileSync(await download.path(), 'utf8').split('\n');
+    // Written by RFC 4180 (#67): records end in CRLF, and a field is quoted
+    // only when it must be.
+    const lines = readFileSync(await download.path(), 'utf8')
+      .trimEnd()
+      .split('\r\n');
     expect(lines[0]).toBe(
       'Participant,TNF-alpha at Baseline (pg/mL),IL-10 at Baseline (pg/mL),ARM'
     );
     expect(lines).toHaveLength(201);
-    expect(lines[1]).toMatch(/^"BIO-\d{3}","\d[\d.]*","\d[\d.]*","(Placebo|Treatment)"$/);
+    expect(lines[1]).toMatch(/^BIO-\d{3},\d[\d.]*,\d[\d.]*,(Placebo|Treatment)$/);
   });
 
   test('AS-PROF-001: clicking a point lists that participant and opens their profile through the participantsSelected event; a row of the listing does the same (#26)', async ({

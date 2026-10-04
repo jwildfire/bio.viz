@@ -10,3 +10,4 @@ export {
   fillText,
   placeholdersIn
 } from './shared/titles.js';
+export { parseCsv, toCsv } from './shared/csv.js';

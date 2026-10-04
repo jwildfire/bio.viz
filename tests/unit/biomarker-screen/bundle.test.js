@@ -24,7 +24,16 @@ const importsOf = (file) =>
   [...source(file).matchAll(/^\s*(?:import|export)\s[^'"]*from\s+['"]([^'"]+)['"]/gm)].map(
     (match) => path.normalize(path.join(path.dirname(file), match[1]))
   );
-const reached = (files) => new Set(files.flatMap(importsOf));
+// What a chart's files reach: what they import, and what the shared parts they
+// import import in turn (#67: the downloads' CSV and PNG writers are reached
+// through the shell).
+const reached = (files) => {
+  const seen = new Set(files.flatMap(importsOf));
+  for (const file of seen) {
+    if (file.startsWith('src/shared/')) for (const next of importsOf(file)) seen.add(next);
+  }
+  return seen;
+};
 const codeOf = (files) =>
   files
     .map(source)

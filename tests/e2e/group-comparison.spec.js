@@ -584,10 +584,12 @@ test.describe('group comparison: listing and participant profile', () => {
     ]);
     expect(download.suggestedFilename()).toBe('bio.viz-group-comparison-listing.csv');
     const text = readFileSync(await download.path(), 'utf8');
-    const lines = text.split('\n');
+    // Written by RFC 4180 (#67): records end in CRLF, and a field is quoted
+    // only when it must be.
+    const lines = text.trimEnd().split('\r\n');
     expect(lines[0]).toBe('Participant,ARM,Value');
     expect(lines).toHaveLength(92);
-    expect(lines[1]).toMatch(/^"BIO-\d{3}","Treatment","-?\d/);
+    expect(lines[1]).toMatch(/^BIO-\d{3},Treatment,-?\d/);
   });
 
   test('GC-PROF-001: a listing row opens safety.viz’s participant profile through the participantsSelected event (#9)', async ({

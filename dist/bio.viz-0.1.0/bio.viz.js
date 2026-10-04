@@ -1390,7 +1390,9 @@ var BioViz = (() => {
     automaticFootnote: () => automaticFootnote,
     countsText: () => countsText,
     fillText: () => fillText,
-    placeholdersIn: () => placeholdersIn
+    parseCsv: () => parseCsv,
+    placeholdersIn: () => placeholdersIn,
+    toCsv: () => toCsv
   });
 
   // src/shared/titles.js
@@ -1400,6 +1402,14 @@ var BioViz = (() => {
   };
   var VERSION = true ? "0.1.0" : "unbuilt";
   var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
+  var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
+  function checkDownloads(settings) {
+    if (typeof settings.downloads !== "boolean") refuse4("`downloads` must be true or false.");
+    const scale = settings.png_scale;
+    if (typeof scale !== "number" || !Number.isFinite(scale) || scale < 1 || scale > 4) {
+      refuse4("`png_scale` must be a number from 1 to 4: image pixels per CSS pixel.");
+    }
+  }
   var PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
   function fillText(template, values = {}) {
     return String(template).replace(PLACEHOLDER, (written, name) => {
@@ -1469,6 +1479,108 @@ var BioViz = (() => {
     const said = ok.map((answer) => answerText(answer, of)).join("; ");
     const missing = answers.length - ok.length;
     return `${drawn} Statistics: ${said}; ${sources.join("; ")}.` + (missing ? ` ${missing} of ${answers.length} could not be computed.` : "");
+  }
+
+  // src/shared/csv.js
+  var NEEDS_QUOTES = /[",\r\n]/;
+  function csvField(value) {
+    if (value === null || value === void 0) return "";
+    let text2;
+    if (typeof value === "number") text2 = Number.isFinite(value) ? String(value) : "";
+    else if (typeof value === "boolean") text2 = value ? "TRUE" : "FALSE";
+    else text2 = String(value);
+    return NEEDS_QUOTES.test(text2) ? `"${text2.replace(/"/g, '""')}"` : text2;
+  }
+  function toCsv(rows, columns) {
+    const lines = [columns.map((column) => csvField(column.label)).join(",")];
+    for (const row of rows) {
+      lines.push(columns.map((column) => csvField(row[column.value_col])).join(","));
+    }
+    return `${lines.join("\r\n")}\r
+`;
+  }
+  function parseCsv(text2) {
+    const records = [];
+    let record = [];
+    let field = "";
+    let quoted = false;
+    let index = 0;
+    const end = () => {
+      record.push(field);
+      field = "";
+    };
+    while (index < text2.length) {
+      const char = text2[index];
+      if (quoted) {
+        if (char === '"' && text2[index + 1] === '"') {
+          field += '"';
+          index += 2;
+          continue;
+        }
+        if (char === '"') quoted = false;
+        else field += char;
+        index += 1;
+        continue;
+      }
+      if (char === '"') quoted = true;
+      else if (char === ",") end();
+      else if (char === "\r" && text2[index + 1] === "\n") {
+        end();
+        records.push(record);
+        record = [];
+        index += 2;
+        continue;
+      } else if (char === "\n") {
+        end();
+        records.push(record);
+        record = [];
+      } else field += char;
+      index += 1;
+    }
+    if (field !== "" || record.length) {
+      end();
+      records.push(record);
+    }
+    return records;
+  }
+  var isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  function scalars(object, prefix = "") {
+    const out = {};
+    for (const [key, value] of Object.entries(object)) {
+      const name = `${prefix}${key}`;
+      if (isObject(value)) Object.assign(out, scalars(value, `${name}.`));
+      else if (Array.isArray(value)) {
+        if (value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
+          if (value.length)
+            out[name] = value.map((entry) => entry === null ? "NA" : String(entry)).join("; ");
+        }
+      } else out[name] = value;
+    }
+    return out;
+  }
+  function statisticsTable(asked) {
+    const rows = [];
+    asked.forEach((entry, index) => {
+      const answer = entry.answer;
+      if (!answer || answer.status !== "ok" || !isObject(answer.value)) return;
+      const about = {
+        asked: index + 1,
+        function: entry.name,
+        ...isObject(entry.dataId) ? scalars(entry.dataId, "data.") : { data: entry.dataId }
+      };
+      const value = answer.value;
+      rows.push({ ...about, part: "result", ...scalars(value) });
+      for (const [key, list] of Object.entries(value)) {
+        if (!Array.isArray(list) || !list.some(isObject)) continue;
+        list.forEach((part, at) => {
+          if (isObject(part)) rows.push({ ...about, part: key, item: at + 1, ...scalars(part) });
+        });
+      }
+    });
+    const order2 = [];
+    for (const row of rows)
+      for (const key of Object.keys(row)) if (!order2.includes(key)) order2.push(key);
+    return { columns: order2.map((key) => ({ value_col: key, label: key })), rows };
   }
 
   // src/shared/settings.js
@@ -1555,6 +1667,7 @@ var BioViz = (() => {
       refuse5("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
     }
     checkTitles(settings);
+    checkDownloads(settings);
   }
   function checkBack(settings) {
     if (settings.back !== null && (!isPlainObject4(settings.back) || !isText4(settings.back.label) || typeof settings.back.action !== "function")) {
@@ -1874,6 +1987,160 @@ var BioViz = (() => {
     return outcomeOf;
   }
 
+  // src/shared/png.js
+  var PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+  var crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) {
+      crcTable = new Uint32Array(256);
+      for (let n = 0; n < 256; n += 1) {
+        let c = n;
+        for (let k = 0; k < 8; k += 1) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+        crcTable[n] = c >>> 0;
+      }
+    }
+    let crc = 4294967295;
+    for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ crc >>> 8;
+    return (crc ^ 4294967295) >>> 0;
+  }
+  var utf8 = (text2) => new TextEncoder().encode(text2);
+  function chunk(type, data) {
+    const body = new Uint8Array(4 + data.length);
+    body.set(utf8(type), 0);
+    body.set(data, 4);
+    const out = new Uint8Array(12 + data.length);
+    const view = new DataView(out.buffer);
+    view.setUint32(0, data.length);
+    out.set(body, 4);
+    view.setUint32(8 + data.length, crc32(body));
+    return out;
+  }
+  function itxt(keyword, text2) {
+    const head = utf8(keyword);
+    const value = utf8(text2);
+    const data = new Uint8Array(head.length + 5 + value.length);
+    data.set(head, 0);
+    data.set([0, 0, 0, 0, 0], head.length);
+    data.set(value, head.length + 5);
+    return chunk("iTXt", data);
+  }
+  function phys(perMetre) {
+    const data = new Uint8Array(9);
+    const view = new DataView(data.buffer);
+    view.setUint32(0, perMetre);
+    view.setUint32(4, perMetre);
+    data[8] = 1;
+    return chunk("pHYs", data);
+  }
+  var CSS_PIXELS_PER_INCH = 96;
+  function pngChunks(png, { scale, text: text2 }) {
+    for (let i = 0; i < PNG_SIGNATURE.length; i += 1) {
+      if (png[i] !== PNG_SIGNATURE[i]) throw new Error("bio.viz: not a PNG.");
+    }
+    const afterHeader = 8 + 25;
+    const extra = [
+      phys(Math.round(scale * CSS_PIXELS_PER_INCH / 0.0254)),
+      ...Object.entries(text2).filter(([, value]) => typeof value === "string" && value !== "").map(([keyword, value]) => itxt(keyword, value))
+    ];
+    const size = extra.reduce((total, part) => total + part.length, png.length);
+    const out = new Uint8Array(size);
+    out.set(png.subarray(0, afterHeader), 0);
+    let at = afterHeader;
+    for (const part of extra) {
+      out.set(part, at);
+      at += part.length;
+    }
+    out.set(png.subarray(afterHeader), at);
+    return out;
+  }
+  var HEIGHTS = /* @__PURE__ */ new Set(["height", "block-size", "max-height", "max-block-size"]);
+  function copyStyles(from, to) {
+    const style = getComputedStyle(from);
+    const fixed = from.tagName === "CANVAS" || from.tagName === "IMG";
+    let text2 = "";
+    for (let i = 0; i < style.length; i += 1) {
+      const name = style[i];
+      if (!fixed && HEIGHTS.has(name)) continue;
+      text2 += `${name}:${style.getPropertyValue(name)};`;
+    }
+    to.setAttribute("style", text2);
+  }
+  function copyTree(from, to) {
+    if (from.nodeType !== 1) return;
+    copyStyles(from, to);
+    if (from.tagName === "CANVAS") return;
+    const a = from.children;
+    const b = to.children;
+    for (let i = 0; i < a.length; i += 1) copyTree(a[i], b[i]);
+  }
+  async function drawFrame(frame2, { leaveOut, scale, text: text2 }) {
+    const copy = frame2.cloneNode(true);
+    copyTree(frame2, copy);
+    const canvases = frame2.querySelectorAll("canvas");
+    const copies = copy.querySelectorAll("canvas");
+    canvases.forEach((canvas2, i) => {
+      const picture = document.createElement("img");
+      picture.setAttribute("style", copies[i].getAttribute("style") || "");
+      picture.width = canvas2.clientWidth;
+      picture.height = canvas2.clientHeight;
+      picture.src = canvas2.width && canvas2.height ? canvas2.toDataURL("image/png") : "";
+      copies[i].replaceWith(picture);
+    });
+    const all = [...frame2.querySelectorAll("*")];
+    const copied = [...copy.querySelectorAll("*")];
+    const dropped = all.map((element, i) => element.tagName !== "CANVAS" && leaveOut(element) ? copied[i] : null).filter(Boolean);
+    dropped.forEach((element) => element.remove());
+    copy.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+    const width = Math.ceil(frame2.getBoundingClientRect().width);
+    copy.style.width = `${width}px`;
+    copy.style.height = "auto";
+    copy.style.minHeight = "0";
+    copy.style.margin = "0";
+    copy.style.background = "#ffffff";
+    const holder = document.createElement("div");
+    holder.setAttribute(
+      "style",
+      `position:absolute;left:-100000px;top:0;width:${width}px;background:#fff`
+    );
+    holder.append(copy);
+    document.body.append(holder);
+    await Promise.all(
+      [...copy.querySelectorAll("img")].map(
+        (picture) => picture.complete ? null : new Promise((done) => picture.onload = picture.onerror = done)
+      )
+    );
+    const height = Math.ceil(copy.getBoundingClientRect().height);
+    holder.remove();
+    const markup = new XMLSerializer().serializeToString(copy);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div></foreignObject></svg>`;
+    const image = new Image();
+    await new Promise((done, fail) => {
+      image.onload = done;
+      image.onerror = () => fail(new Error("bio.viz: the chart could not be drawn as a picture."));
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.scale(scale, scale);
+    context.drawImage(image, 0, 0, width, height);
+    const written = await new Promise(
+      (done, fail) => canvas.toBlob(
+        (blob) => blob ? done(blob) : fail(new Error("bio.viz: the picture could not be written.")),
+        "image/png"
+      )
+    );
+    const bytes = pngChunks(new Uint8Array(await written.arrayBuffer()), { scale, text: text2 });
+    return {
+      blob: new Blob([bytes], { type: "image/png" }),
+      width: canvas.width,
+      height: canvas.height
+    };
+  }
+
   // src/shared/chartHost.js
   var PALETTE = [
     "#2563eb",
@@ -1942,7 +2209,12 @@ ${root} .bv-titles:empty{display:none}
 ${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
 ${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
 ${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
-${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
+${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}
+${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:.6rem 0 0;font-size:.8rem;color:#52616f}
+${root} .bv-downloads[hidden]{display:none}
+${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
   function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
     const { kit } = chart;
     Object.assign(
@@ -1960,6 +2232,8 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     chart.main.prepend(chart.titleBlock);
     chart.footBlock = kit.createElement("div", "bv-foot");
     chart.listingWrap.before(chart.footBlock);
+    chart.module = moduleClass.replace(/^bv-/, "");
+    mountDownloads(chart);
     chart.host = {
       settings: {
         profile: chart.settings.profile,
@@ -2158,6 +2432,89 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
       if (index === said.footnotes.length - 1) line.dataset.automatic = "true";
       chart.footBlock.append(line);
     });
+    syncDownloads(chart);
+  }
+  var DOWNLOAD_LABELS = Object.freeze({
+    png: "PNG",
+    statistics: "Statistics (CSV)",
+    table: "Table (CSV)"
+  });
+  var slug = (text2) => String(text2).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+  function downloadName(chart, kind) {
+    const values = placeholderValues(chart);
+    const view = (chart.viewFields || []).map((name) => values[name]).filter((value) => value !== null && value !== void 0 && String(value).trim() !== "").join(" ");
+    const base = ["bio.viz", chart.module, slug(view)].filter(Boolean).join("-");
+    return kind === "png" ? `${base}.png` : `${base}-${kind}.csv`;
+  }
+  async function downloadFile(chart, kind) {
+    const name = downloadName(chart, kind);
+    if (kind === "statistics") {
+      const { columns, rows } = statisticsTable(chart.asked || []);
+      return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
+    }
+    if (kind === "table") {
+      const { columns, rows } = typeof chart.tableOf === "function" ? chart.tableOf() : { columns: [], rows: [] };
+      return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
+    }
+    if (kind === "png") {
+      const said = titlesOf(chart);
+      const leaving = [chart.toolbar, chart.footnote, chart.listingWrap, chart.downloadBar].filter(
+        Boolean
+      );
+      const { blob } = await drawFrame(chart.main, {
+        scale: chart.settings.png_scale,
+        leaveOut: (element) => leaving.includes(element),
+        text: {
+          Title: [said.title, said.subtitle].filter(Boolean).join(" \u2014 "),
+          Description: said.footnotes.join(" "),
+          Software: `bio.viz ${VERSION}`
+        }
+      });
+      return { name, blob };
+    }
+    throw new TypeError(
+      `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
+    );
+  }
+  function mountDownloads(chart) {
+    const { kit } = chart;
+    chart.downloadBar = kit.createElement("div", "bv-downloads");
+    chart.downloadBar.append(kit.createElement("span", "bv-downloads-label", "Download:"));
+    chart.downloadButtons = {};
+    for (const [kind, label2] of Object.entries(DOWNLOAD_LABELS)) {
+      const button = kit.createElement("button", null, label2);
+      button.type = "button";
+      button.dataset.download = kind;
+      button.onclick = async () => {
+        button.disabled = true;
+        try {
+          const { name, blob } = await downloadFile(chart, kind);
+          saveFile(blob, name);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          syncDownloads(chart);
+        }
+      };
+      chart.downloadButtons[kind] = button;
+      chart.downloadBar.append(button);
+    }
+    chart.footBlock.after(chart.downloadBar);
+    chart.fileOf = (kind) => downloadFile(chart, kind);
+  }
+  function syncDownloads(chart) {
+    if (!chart.downloadBar) return;
+    chart.downloadBar.hidden = !chart.settings.downloads;
+    const answered = (chart.asked || []).some(
+      (entry) => entry.answer && entry.answer.status === "ok"
+    );
+    const table = typeof chart.tableOf === "function" ? chart.tableOf() : { rows: [] };
+    const { png, statistics } = chart.downloadButtons;
+    if (!(chart.asked || []).length) statistics.remove();
+    else if (!statistics.isConnected) png.after(statistics);
+    statistics.disabled = !answered;
+    chart.downloadButtons.table.disabled = !table.rows.length;
+    chart.downloadButtons.png.disabled = false;
   }
   function syncHost(chart) {
     chart.host.settings.profile = chart.settings.profile;
@@ -2272,13 +2629,17 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     chart.kit.resetProfileRail(host);
   }
   function downloadCsv(kit, rows, columns, file) {
-    const blob = new Blob([kit.buildCsv(rows, columns)], { type: "text/csv" });
+    saveFile(new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }), file);
+  }
+  function saveFile(blob, name) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = file;
+    link.download = name;
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   function downloadListing(chart, file) {
     const { host, kit } = chart;
@@ -2490,7 +2851,9 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings(overrides) {
     const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
@@ -4082,6 +4445,34 @@ ${toolbarStyles(".bv-group-comparison")}
       });
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.panels) return { columns: [], rows: [] };
+      const visits2 = model.panels.some((panel) => panel.visit !== null && panel.visit !== void 0);
+      const columns = [{ value_col: settings.id_col, label: "Participant" }];
+      if (visits2) columns.push({ value_col: "visit", label: "Visit" });
+      if (state.groupBy) columns.push({ value_col: "x", label: this.labelOf(state.groupBy) });
+      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+      if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
+      columns.push({
+        value_col: "y",
+        label: `${state.measure}, ${VALUE_LABELS[state.valueType] || state.valueType}`
+      });
+      const rows = model.panels.flatMap(
+        (panel) => panel.records.map((record) => ({ ...record, visit: panel.visit }))
+      );
+      return { columns, rows };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["measure", "visits", "group"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -4261,7 +4652,9 @@ ${toolbarStyles(".bv-group-comparison")}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings2(overrides) {
     const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
@@ -5546,6 +5939,28 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       );
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.panels) return { columns: [], rows: [] };
+      const columns = [
+        { value_col: settings.id_col, label: "Participant" },
+        { value_col: "x", label: this.titleOf(state.x) },
+        { value_col: "y", label: this.titleOf(state.y) }
+      ];
+      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+      if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
+      return { columns, rows: model.panels.flatMap((panel) => panel.records) };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["y", "x"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -5875,7 +6290,9 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
     // The association scatter a cell opens.
     scatter: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings3(overrides) {
     const settings = layOver(DEFAULT_SETTINGS4, overrides, "the correlation matrix");
@@ -7036,6 +7453,27 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       this.listingWrap.append(details);
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, settings } = this;
+      if (!model || !model.records || !model.variables) return { columns: [], rows: [] };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          ...model.variables.map((variable2) => ({ value_col: variable2.name, label: variable2.label }))
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["heading"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -7241,7 +7679,9 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings4(overrides) {
     const settings = layOver(
@@ -8456,6 +8896,29 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       return railSettings(this, "linear");
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.records) return { columns: [], rows: [] };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          { value_col: "group", label: this.labelOf(state.groupBy) },
+          { value_col: "time", label: "Time" },
+          { value_col: "event", label: "Event" }
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["endpoint", "group"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -8565,7 +9028,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     association_scatter: null,
     stratified_survival: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings5(overrides) {
     const settings = layOver(DEFAULT_SETTINGS6, flaggedSettings(overrides), "the biomarker screen");
@@ -9678,6 +10143,33 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       );
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, settings } = this;
+      if (!model || !model.records || !model.rows) return { columns: [], rows: [] };
+      const OUTCOME = { time: "Time", censor: "Censored", event: "Event" };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          ...model.rows.map((row) => ({ value_col: row.name, label: row.name })),
+          ...model.extra ? [{ value_col: model.extra, label: model.extra }] : [],
+          ...(model.outcomeFields || []).map((field) => ({
+            value_col: field,
+            label: OUTCOME[field] || field
+          }))
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["heading"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -9900,7 +10392,9 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings6(overrides) {
     const settings = layOver(DEFAULT_SETTINGS7, overrides, "the cross-tabulation");
@@ -10687,6 +11181,28 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     }
     railSettings() {
       return railSettings(this, "linear");
+    }
+    /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.records) return { columns: [], rows: [] };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          { value_col: "row", label: this.labelOf(state.rowBy) },
+          { value_col: "col", label: this.labelOf(state.colBy) }
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["rows", "columns"];
     }
     /**
      * What the title, subtitle and footnotes' placeholders hold for the view now

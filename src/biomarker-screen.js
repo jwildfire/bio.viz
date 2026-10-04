@@ -933,6 +933,35 @@ class BiomarkerScreen {
   }
 
   /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, settings } = this;
+    if (!model || !model.records || !model.rows) return { columns: [], rows: [] };
+    const OUTCOME = { time: 'Time', censor: 'Censored', event: 'Event' };
+    return {
+      columns: [
+        { value_col: settings.id_col, label: 'Participant' },
+        ...model.rows.map((row) => ({ value_col: row.name, label: row.name })),
+        ...(model.extra ? [{ value_col: model.extra, label: model.extra }] : []),
+        ...(model.outcomeFields || []).map((field) => ({
+          value_col: field,
+          label: OUTCOME[field] || field
+        }))
+      ],
+      rows: model.records
+    };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['heading'];
+  }
+
+  /**
    * What the title, subtitle and footnotes' placeholders hold for the view now
    * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
    * @returns {object}
