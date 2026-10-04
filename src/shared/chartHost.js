@@ -9,7 +9,7 @@
 // slots; a chart's own file decides what is drawn and what R is asked.
 
 import { checkOutcomes } from './outcomes.js';
-import { VERSION, automaticFootnote, dateDrawn, fillText } from './titles.js';
+import { VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
 
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
@@ -357,7 +357,7 @@ export function sharedPlaceholders(chart) {
     chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
   return {
     date: dateDrawn(),
-    version: VERSION,
+    version: VERSION_SAID,
     filters: filters.length
       ? filters.map(({ label, values }) => `${label} is ${values.join(' or ')}`).join('; ')
       : 'none'
@@ -374,7 +374,10 @@ export function placeholderValues(chart) {
   let own = {};
   try {
     own = typeof chart.placeholders === 'function' ? chart.placeholders() || {} : {};
-  } catch {
+  } catch (error) {
+    // The title is still drawn, its own placeholders left as written; the
+    // error is the chart's, and is said where a developer will see it.
+    console.error('bio.viz: the chart’s placeholders could not be read.', error);
     own = {};
   }
   return { ...sharedPlaceholders(chart), ...own };
@@ -387,22 +390,52 @@ export function placeholderValues(chart) {
  * @returns {{title: ?string, subtitle: ?string, footnotes: string[]}}
  */
 export function titlesOf(chart) {
+  const parts = partsOf(chart);
+  const joined = (runs) => (runs === null ? null : runs.map((run) => run.text).join(''));
+  return {
+    title: joined(parts.title),
+    subtitle: joined(parts.subtitle),
+    footnotes: parts.footnotes.map(joined)
+  };
+}
+
+// The title, subtitle and footnotes as runs of text, each placeholder's value a
+// run of its own. A title or subtitle of only white space is none.
+function partsOf(chart) {
   const { settings } = chart;
   const values = placeholderValues(chart);
-  const filled = (template) => (template === null ? null : fillText(template, values));
+  const filled = (template) =>
+    typeof template !== 'string' || template.trim() === '' ? null : fillParts(template, values);
   return {
     title: filled(settings.title),
     subtitle: filled(settings.subtitle),
     footnotes: [
-      ...(settings.footnotes || []).map(filled),
-      automaticFootnote({
-        date: values.date,
-        version: VERSION,
-        asked: chart.asked || [],
-        of: chart.footnoteCounts
-      })
+      ...(settings.footnotes || []).map(filled).filter(Boolean),
+      [
+        {
+          text: automaticFootnote({
+            date: values.date,
+            version: VERSION_SAID,
+            asked: chart.asked || [],
+            of: chart.footnoteCounts
+          }),
+          value: false
+        }
+      ]
     ]
   };
+}
+
+// Text into an element as text: each placeholder's value in a <bdi>, so a value
+// written right to left keeps to itself.
+function writeRuns(kit, element, runs) {
+  for (const run of runs) {
+    if (run.value) {
+      const isolated = document.createElement('bdi');
+      isolated.textContent = run.text;
+      element.append(isolated);
+    } else element.append(document.createTextNode(run.text));
+  }
 }
 
 /**
@@ -413,24 +446,24 @@ export function titlesOf(chart) {
 export function writeTitles(chart) {
   if (!chart.titleBlock || !chart.footBlock) return;
   const { kit } = chart;
-  const said = titlesOf(chart);
+  const said = partsOf(chart);
   chart.titleBlock.innerHTML = '';
-  if (said.title !== null && said.title !== '') {
+  if (said.title !== null) {
     const title = kit.createElement('div', 'bv-title');
     title.setAttribute('role', 'heading');
     title.setAttribute('aria-level', '2');
-    title.textContent = said.title;
+    writeRuns(kit, title, said.title);
     chart.titleBlock.append(title);
   }
-  if (said.subtitle !== null && said.subtitle !== '') {
+  if (said.subtitle !== null) {
     const subtitle = kit.createElement('p', 'bv-subtitle');
-    subtitle.textContent = said.subtitle;
+    writeRuns(kit, subtitle, said.subtitle);
     chart.titleBlock.append(subtitle);
   }
   chart.footBlock.innerHTML = '';
-  said.footnotes.forEach((text, index) => {
+  said.footnotes.forEach((runs, index) => {
     const line = kit.createElement('p', 'bv-foot-line');
-    line.textContent = text;
+    writeRuns(kit, line, runs);
     if (index === said.footnotes.length - 1) line.dataset.automatic = 'true';
     chart.footBlock.append(line);
   });

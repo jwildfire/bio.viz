@@ -123,16 +123,16 @@ Every setting, with its default. The column settings and the baseline settings a
 
 The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
 
-| Placeholder | What it holds                                                           |
-| ----------- | ----------------------------------------------------------------------- |
-| `{measure}` | The biomarker drawn, or `every biomarker` in the overview.              |
-| `{visits}`  | The visits drawn, separated by commas.                                  |
-| `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on. |
-| `{group}`   | What the groups are, as the Group control names it; empty for none.     |
-| `{n}`       | How many participants are drawn.                                        |
-| `{filters}` | The filters in force, in words, or `none`.                              |
-| `{date}`    | The date drawn, in UTC: `2026-10-04`.                                   |
-| `{version}` | The bio.viz version.                                                    |
+| Placeholder | What it holds                                                                          |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `{measure}` | The biomarker drawn, or `every biomarker` in the overview.                             |
+| `{visits}`  | The visits drawn, separated by commas.                                                 |
+| `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on.                |
+| `{group}`   | What the groups are, as the Group control names it; empty for none.                    |
+| `{n}`       | How many participants are drawn: in the overview, on its page of biomarkers, anywhere. |
+| `{filters}` | The filters in force, in words, or `none`.                                             |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.                                                  |
+| `{version}` | The bio.viz version.                                                                   |
 
 ## What is drawn
 

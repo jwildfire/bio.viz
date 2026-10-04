@@ -1256,9 +1256,16 @@ class GroupComparison {
    * @returns {object}
    */
   placeholders() {
-    const { state, model } = this;
+    const { state, model, overview } = this;
+    // The participants drawn: in the one biomarker's panels, or, in the
+    // overview, anywhere on its page of biomarkers.
+    const panels = model
+      ? model.panels
+      : overview
+        ? overview.rows.flatMap((row) => row.model.panels)
+        : [];
     const ids = new Set();
-    for (const panel of (model && model.panels) || []) {
+    for (const panel of panels) {
       for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
     }
     return {
@@ -1266,7 +1273,7 @@ class GroupComparison {
       visits: (state.visits || []).join(', '),
       value: VALUE_LABELS[state.valueType] || state.valueType,
       group: state.groupBy ? this.labelOf(state.groupBy) : '',
-      n: model ? ids.size : ''
+      n: model || overview ? ids.size : ''
     };
   }
 

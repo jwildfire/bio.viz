@@ -1,17 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
+  DEVELOPMENT,
   NOTHING_ASKED,
   STILL_WAITING,
   TITLE_DEFAULTS,
   VERSION,
+  VERSION_SAID,
   automaticFootnote,
   checkTitles,
   countsText,
   dateDrawn,
+  fillParts,
   fillText,
   placeholdersIn
 } from '../../../src/shared/titles.js';
+import { titlesOf } from '../../../src/shared/chartHost.js';
 import { createConnection } from '../../../src/r/index.js';
 import { syncSettings as groupComparison } from '../../../src/group-comparison/configure.js';
 import { syncSettings as associationScatter } from '../../../src/association-scatter/configure.js';
@@ -157,7 +161,7 @@ describe('getting results out: titles and footnotes', () => {
       }
     };
     expect(automaticFootnote({ date, version, asked: [{ answer: stored }] })).toBe(
-      `${drawn} Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R 4.3.3 with gsm.bio 0.2.0, stored with the page.`
+      `${drawn} Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page.`
     );
     // A stored result whose versions the page was not told.
     expect(
@@ -232,5 +236,114 @@ describe('getting results out: titles and footnotes', () => {
         'bio.viz: `computedBy` must be { r_version, gsm_bio_version, computed_at }, each text: which R computed the stored results.'
       );
     }
+  });
+});
+
+describe('getting results out: what the #69 review found', () => {
+  const welch = { method: 'Welch Two Sample t-test', counts: { Placebo: 95, Treatment: 91 } };
+  const group = JSON.parse(
+    readFileSync(new URL('../../fixtures/group-statistics-r.json', import.meta.url), 'utf8')
+  );
+  const screen = JSON.parse(
+    readFileSync(new URL('../../fixtures/screen-statistics-r.json', import.meta.url), 'utf8')
+  );
+  const valueOf = (fixture, name) => fixture.results.find((entry) => entry.case === name).value;
+  const drawn = `Drawn on 2026-10-04 by bio.viz ${VERSION_SAID}.`;
+  const say = (answer, of) =>
+    automaticFootnote({ date: '2026-10-04', version: VERSION_SAID, asked: [{ answer }], of });
+
+  it('EXP-AUTO-004: the chart’s own footnote names every method R used for what is printed, the pairwise test beside the overall one, and every adjustment of the p-values, by name (#69 review)', () => {
+    const pairwise = valueOf(group, 'kruskal-pairwise');
+    expect(say(ok(pairwise))).toBe(
+      `${drawn} Statistics: Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction and Wilcoxon rank sum exact test (Placebo F n = 42, Placebo M n = 53, Treatment F n = 42, Treatment M n = 49), p-values adjusted by Holm; computed by R in this browser.`
+    );
+    const screened = valueOf(screen, 'difference-week-4-change');
+    expect(say(ok(screened), 'biomarkers')).toMatch(
+      /^Drawn on .* Statistics: Welch Two Sample t-test \(n = \d+ to \d+ across 12 biomarkers\), p-values adjusted by Benjamini-Hochberg; computed by R in this browser\.$/
+    );
+    const holm = valueOf(screen, 'difference-week-4-change-holm');
+    expect(say(ok(holm), 'biomarkers')).toMatch(/, p-values adjusted by Holm; /);
+    // No adjustment, no words about one.
+    expect(say(ok(welch))).not.toMatch(/adjusted/);
+  });
+
+  it('EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while the release log has an upcoming section, and never in a tagged build (#69 review)', () => {
+    expect(DEVELOPMENT).toBe(Boolean(pkg.bioviz && pkg.bioviz.development));
+    expect(VERSION_SAID).toBe(
+      DEVELOPMENT ? `${pkg.version} with development changes` : pkg.version
+    );
+    const news = readFileSync(new URL('../../../NEWS.md', import.meta.url), 'utf8');
+    const upcoming = /^# bio\.viz v\S+ \(Upcoming\)$/m.test(news);
+    expect(DEVELOPMENT, 'bioviz.development in package.json follows NEWS.md').toBe(upcoming);
+    if ((process.env.GITHUB_REF || '').startsWith('refs/tags/')) expect(DEVELOPMENT).toBe(false);
+    expect(say(ok(welch))).toMatch(
+      new RegExp(`^Drawn on 2026-10-04 by bio\\.viz ${VERSION_SAID.replace(/\./g, '\\.')}\\. `)
+    );
+  });
+
+  it('EXP-AUTO-006: the counts are named for four groups and summarised for five, numeric text is read as a number, many counts are summarised without spreading them; the source is the connection’s form as it says, and a stored result’s date is named (#69 review)', () => {
+    const four = { a: 1, b: 2, c: 3, d: 4 };
+    expect(countsText(four)).toBe('a n = 1, b n = 2, c n = 3, d n = 4');
+    expect(countsText({ ...four, e: 5 }, 'groups')).toBe('n = 1 to 5 across 5 groups');
+    expect(countsText('200')).toBe('n = 200');
+    expect(countsText({ a: '7', b: 9 })).toBe('a n = 7, b n = 9');
+    expect(countsText('many')).toBe(null);
+    const huge = Object.fromEntries(Array.from({ length: 300000 }, (_, i) => [`v${i}`, i % 50]));
+    expect(countsText(huge, 'variables')).toBe('n = 0 to 49 across 300000 variables');
+    // The form, as the connection says it.
+    expect(say({ status: 'ok', value: welch, form: 'browser' })).toMatch(
+      /; computed by R in this browser\.$/
+    );
+    expect(say({ status: 'ok', value: welch, form: 'server' })).toMatch(/; computed by R\.$/);
+    expect(say({ status: 'ok', value: welch })).toMatch(/; computed by R\.$/);
+    expect(
+      say({
+        status: 'ok',
+        value: welch,
+        form: 'precomputed',
+        computedBy: {
+          r_version: '4.3.3',
+          gsm_bio_version: '0.2.0',
+          computed_at: '2026-10-01T09:00:00Z'
+        }
+      })
+    ).toMatch(
+      /; computed by R 4\.3\.3 with gsm\.bio 0\.2\.0 on 2026-10-01, stored with the page\.$/
+    );
+  });
+
+  it('EXP-TXT-004: a title or subtitle of only white space is absent; a chart whose placeholders throw is still titled, and the error is reported, not swallowed; each placeholder’s value is its own run of text, so a page can isolate its direction (#69 review)', () => {
+    const chart = (settings, placeholders) => ({
+      settings: { title: null, subtitle: null, footnotes: null, ...settings },
+      asked: [],
+      placeholders
+    });
+    expect(titlesOf(chart({ title: '   ', subtitle: '\n\t' }, () => ({})))).toMatchObject({
+      title: null,
+      subtitle: null
+    });
+    const errors = [];
+    const error = console.error;
+    console.error = (...args) => errors.push(args);
+    let said;
+    try {
+      said = titlesOf(
+        chart({ title: '{n} at {version}' }, () => {
+          throw new Error('broken');
+        })
+      );
+    } finally {
+      console.error = error;
+    }
+    expect(said.title).toBe(`{n} at ${VERSION_SAID}`);
+    expect(errors).toHaveLength(1);
+    expect(String(errors[0][0])).toMatch(/placeholders/);
+    expect(fillParts('{a} and {b}!', { a: 'שלום', b: 2 })).toEqual([
+      { text: 'שלום', value: true },
+      { text: ' and ', value: false },
+      { text: '2', value: true },
+      { text: '!', value: false }
+    ]);
+    expect(fillParts('{x}', {})).toEqual([{ text: '{x}', value: false }]);
   });
 });
