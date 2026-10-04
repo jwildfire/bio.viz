@@ -13,6 +13,7 @@ __export(r_exports, {
   formatComparison: () => formatComparison,
   formatEstimate: () => formatEstimate,
   formatGroup: () => formatGroup,
+  formatMedian: () => formatMedian,
   formatPair: () => formatPair,
   formatScreenRow: () => formatScreenRow,
   formatStatistic: () => formatStatistic
@@ -454,6 +455,25 @@ function formatEstimate(estimate) {
   return {
     status: "shown",
     text: `${lead}, ${percent}% confidence interval ${figure(row.lower)} to ${figure(row.upper)}.`
+  };
+}
+function formatMedian(estimate) {
+  const row = estimate && typeof estimate === "object" ? estimate : {};
+  const refuse5 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+  const name = text(row.name);
+  if (!name) return refuse5("it has no name");
+  const absent = (value) => value === void 0 || value === null;
+  for (const part of ["estimate", "lower", "upper"]) {
+    if (!absent(row[part]) && !isNumber(row[part])) return refuse5(`${name} is not a number`);
+  }
+  if (!(row.level > 0 && row.level < 1)) return refuse5(`the interval of ${name} has no level`);
+  const said = (value) => absent(value) ? "not reached" : figure(value);
+  const group = text(row.group);
+  const percent = Number((row.level * 100).toPrecision(12));
+  const interval = absent(row.lower) && absent(row.upper) ? "not reached" : `${said(row.lower)} to ${said(row.upper)}`;
+  return {
+    status: "shown",
+    text: `${name}${group ? ` (${group})` : ""}: ${said(row.estimate)}, ${percent}% confidence interval ${interval}.`
   };
 }
 function formatComparison(comparison) {
@@ -1724,11 +1744,11 @@ function mountToolbar(chart) {
   }
   return chart.toolbar;
 }
-var toolbarStyles = (C4) => `${C4} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
-${C4} .bv-toolbar:empty{display:none}
-${C4} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-${C4} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
-${C4} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
+var toolbarStyles = (C5) => `${C5} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
+${C5} .bv-toolbar:empty{display:none}
+${C5} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${C5} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
+${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
 
 // src/shared/settings.js
 var isText3 = (value) => typeof value === "string" && value.trim() !== "";
@@ -2551,12 +2571,12 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
   ]) {
     if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
   }
-  const grouping2 = (by) => isCut(by) ? by : { col: by };
+  const grouping3 = (by) => isCut(by) ? by : { col: by };
   const variablesFor = (visit) => ({
     y: yOf(visit),
-    ...state.groupBy ? { x: grouping2(state.groupBy) } : {},
+    ...state.groupBy ? { x: grouping3(state.groupBy) } : {},
     ...state.colorBy ? { color: { col: state.colorBy } } : {},
-    ...state.panelBy ? { panel: grouping2(state.panelBy) } : {}
+    ...state.panelBy ? { panel: grouping3(state.panelBy) } : {}
   });
   const grouped = (record) => {
     const out = { ...record };
@@ -8798,6 +8818,1237 @@ function crossTab(element, settings) {
   return new CrossTab(element, settings);
 }
 
+// src/stratified-survival/configure.js
+var DEFAULT_SETTINGS7 = Object.freeze({
+  // Columns of the results table, and of the participant table.
+  id_col: "USUBJID",
+  measure_col: "TEST",
+  value_col: "STRESN",
+  visit_col: "VISIT",
+  visit_order_col: "VISITNUM",
+  unit_col: "STRESU",
+  participant_id_col: null,
+  // How a baseline is found (the core's rules).
+  baseline_visits: null,
+  baseline_stat: "mean",
+  // Columns of the outcomes table: one row per participant and endpoint, with
+  // the time and a flag, either way round: censored (ADaM's CNSR, 1 =
+  // censored) or an event (1 = event). Exactly one of the two is named.
+  outcome_id_col: null,
+  endpoint_col: "PARAMCD",
+  endpoint_label_col: "PARAM",
+  time_col: "AVAL",
+  censor_col: "CNSR",
+  event_col: null,
+  // What the chart opens on: the endpoint, and the groups, a column or a cut
+  // variable. Null means the first endpoint, and the first category column.
+  endpoint: null,
+  group_by: null,
+  // Cut variables the Group control offers beside the columns.
+  cuts: null,
+  // The times the at-risk strip counts at. Null means the axis's ticks.
+  at_risk_times: null,
+  // What the controls offer.
+  measures: null,
+  groups: null,
+  max_levels: 12,
+  filters: null,
+  // The listing of participants.
+  details: null,
+  page_size: 10,
+  // The statistics line.
+  connection: null,
+  statistic: "Analyze_Survival",
+  waiting_note: null,
+  // A way back, when another chart opened this one in its place.
+  back: null,
+  // safety.viz's participant profile.
+  profile: true,
+  profile_details: null,
+  studyday_col: null,
+  normal_col_high: null,
+  normal_col_low: null
+});
+function syncSettings6(overrides) {
+  const given2 = overrides || {};
+  const flagged = given2.event_col !== void 0 && given2.event_col !== null && !("censor_col" in given2) ? { ...given2, censor_col: null } : given2;
+  const settings = layOver(DEFAULT_SETTINGS7, flagged, "the stratified survival chart");
+  checkShared(settings, BASELINE_STATS);
+  checkBack(settings);
+  for (const key of [
+    "visit_order_col",
+    "unit_col",
+    "participant_id_col",
+    "outcome_id_col",
+    "endpoint_label_col",
+    "censor_col",
+    "event_col",
+    "studyday_col",
+    "normal_col_high",
+    "normal_col_low"
+  ]) {
+    columnOrNull(settings, key);
+  }
+  for (const key of ["endpoint_col", "time_col"]) {
+    if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
+  }
+  if (settings.censor_col === null === (settings.event_col === null)) {
+    refuse4(
+      "Name exactly one of `censor_col` (1 = censored, as ADaM\u2019s CNSR) and `event_col` (1 = event); give the other as null."
+    );
+  }
+  if (settings.endpoint !== null && !isText3(settings.endpoint)) {
+    refuse4("`endpoint` must be the name of an endpoint, or null for the first.");
+  }
+  if (isCut(settings.group_by)) checkGrouping(settings, "group_by");
+  else columnOrNull(settings, "group_by");
+  if (settings.cuts !== null) {
+    if (!Array.isArray(settings.cuts)) refuse4("`cuts` must be a list of cut variables, or null.");
+    settings.cuts = settings.cuts.map((spec, index) => {
+      const holder = { [`cuts[${index}]`]: spec };
+      if (!isCut(spec)) {
+        refuse4(
+          `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
+        );
+      }
+      checkGrouping(holder, `cuts[${index}]`);
+      return holder[`cuts[${index}]`];
+    });
+  }
+  if (settings.at_risk_times !== null) {
+    const times = settings.at_risk_times;
+    if (!Array.isArray(times) || !times.length || !times.every((time) => typeof time === "number" && Number.isFinite(time) && time >= 0) || times.some((time, index) => index > 0 && !(time > times[index - 1]))) {
+      refuse4("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
+    }
+    settings.at_risk_times = [...times];
+  }
+  for (const key of ["page_size", "max_levels"]) {
+    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
+      refuse4(`\`${key}\` must be a whole number, one or more.`);
+    }
+  }
+  if (settings.statistic !== null && !isText3(settings.statistic)) {
+    refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
+  }
+  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+  settings.measures = textList2(settings.measures, "measures");
+  settings.groups = fieldList(settings.groups, "groups");
+  settings.filters = fieldList(settings.filters, "filters");
+  settings.details = fieldList(settings.details, "details");
+  settings.profile_details = fieldList(settings.profile_details, "profile_details");
+  return settings;
+}
+function flagOf(settings) {
+  return settings.censor_col !== null ? { col: settings.censor_col, field: "censor" } : { col: settings.event_col, field: "event" };
+}
+
+// src/stratified-survival/drag.js
+var dropPoint = (value) => Number(writePoint(value));
+function movePoints(points, index, value, { drop = false } = {}) {
+  if (!Number.isFinite(value) || index < 0 || index >= points.length) return null;
+  const point = drop ? dropPoint(value) : value;
+  const below = index > 0 ? points[index - 1] : -Infinity;
+  const above = index < points.length - 1 ? points[index + 1] : Infinity;
+  if (!(point > below && point < above)) return null;
+  const written = writePoint(point);
+  if (index > 0 && writePoint(below) === written || index < points.length - 1 && writePoint(above) === written) {
+    return null;
+  }
+  return points.map((each, i) => i === index ? point : each);
+}
+
+// src/stratified-survival/statistic.js
+var ONE_GROUP = "Statistics: no test. The log-rank test compares two or more groups, and one is drawn.";
+var keyOrder2 = (by, levels) => isCut(by) ? [...levels].reverse() : sorted(levels);
+var readsBaseline2 = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
+function survivalRequest({ name, settings, state, model }) {
+  const filters = filtersInForce(state.filters);
+  const { field } = flagOf(settings);
+  const baseline = readsBaseline2(state.groupBy);
+  return {
+    name,
+    data: model.records.map((record) => ({
+      [settings.id_col]: record[settings.id_col],
+      time: record.time,
+      group: record.group,
+      [field]: record.flag
+    })),
+    args: {
+      strTimeCol: "time",
+      strGroupCol: "group",
+      ...field === "censor" ? { strCensorCol: "censor" } : { strEventCol: "event" },
+      chrGroups: keyOrder2(state.groupBy, model.levels)
+    },
+    dataId: {
+      chart: "stratified-survival",
+      endpoint: state.endpoint,
+      group_by: state.groupBy,
+      ...baseline && settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
+      ...baseline ? { baseline_stat: settings.baseline_stat } : {},
+      ...Object.keys(filters).length ? { filters } : {}
+    },
+    rows: model.records.length
+  };
+}
+function describeAnswer3(result, context = {}) {
+  if (result && result.status === "ok") {
+    const value = result.value && typeof result.value === "object" ? result.value : {};
+    const formatted = formatStatistic(value);
+    const described = sentence(formatted.status, formatted.text);
+    if (formatted.status === "shown") {
+      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && typeof row === "object").map((row) => (row.name === "Median" ? formatMedian(row) : formatEstimate(row)).text);
+    }
+    described.remarks = remarksOf(value);
+    described.scope = context.scope || null;
+    return described;
+  }
+  const failure = failureOf(result);
+  return sentence(failure.state, failure.text);
+}
+function scopeText6({ n, endpoint, filters = [] }) {
+  const said = [`This test is of the ${n} participant${n === 1 ? "" : "s"} drawn, on ${endpoint}.`];
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(" ");
+}
+function createStatisticDesk6({ connection, note = null }) {
+  return createDesk({ connection, note, describe: describeAnswer3 });
+}
+
+// src/stratified-survival/structureData.js
+var LEFT_OUT = Object.freeze({
+  NO_OUTCOME: "No outcome for the endpoint",
+  SEVERAL_OUTCOMES: "More than one outcome row for the endpoint",
+  MISSING_OUTCOME: "Time or flag is missing or not a number",
+  NOT_A_FLAG: "Flag is not 0 or 1",
+  NEGATIVE_TIME: "Time is negative"
+});
+var grouping2 = (by) => isCut(by) ? by : { col: by };
+var numberOf2 = (value) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+function listEndpoints(outcomes, settings) {
+  return levelsOf(outcomes.map((row) => row[settings.endpoint_col])).map((endpoint) => {
+    const labelled = settings.endpoint_label_col ? outcomes.find(
+      (row) => String(row[settings.endpoint_col]) === endpoint && !isBlank2(row[settings.endpoint_label_col])
+    ) : null;
+    return {
+      endpoint,
+      label: labelled ? String(labelled[settings.endpoint_label_col]) : endpoint
+    };
+  });
+}
+function timeTicks(last) {
+  if (!(last > 0)) return [0];
+  const rough = last / 5;
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((candidate) => candidate >= rough);
+  const ticks = [];
+  for (let i = 0; i * step <= last * (1 + 1e-12); i += 1) {
+    ticks.push(Number((i * step).toPrecision(12)));
+  }
+  return ticks;
+}
+function histogramOf(values, count = 24) {
+  if (!values.length) return [];
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  if (low === high) return [{ from: low, to: high, n: values.length }];
+  const width = (high - low) / count;
+  const bars = Array.from({ length: count }, (_, i) => ({
+    from: low + i * width,
+    to: i === count - 1 ? high : low + (i + 1) * width,
+    n: 0
+  }));
+  for (const value of values) {
+    bars[Math.min(count - 1, Math.floor((value - low) / width))].n += 1;
+  }
+  return bars;
+}
+function buildSurvival({ results, participants, outcomes }, settings, state, { kmEstimate, filterMatches }) {
+  const config = coreSettings(settings);
+  const idCol = config.id_col;
+  const { participants: kept, results: rows } = keepFiltered(
+    { results, participants },
+    settings,
+    state.filters,
+    filterMatches
+  );
+  const empty = {
+    records: [],
+    levels: [],
+    curves: [],
+    times: [0],
+    cut: null,
+    values: [],
+    bars: [],
+    participants: kept ? kept.length : 0,
+    dropped: [],
+    unused: [],
+    filtered: kept ? kept.length : null,
+    last: 0
+  };
+  if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
+  const cut = isCut(state.groupBy) ? cutOf({ results: rows, participants: kept }, state.groupBy, settings) : null;
+  const made = frame(
+    { results: rows, participants: kept || void 0 },
+    { group: grouping2(state.groupBy) },
+    config
+  );
+  const outcomeId = settings.outcome_id_col || idCol;
+  const flag = flagOf(settings);
+  const byId = /* @__PURE__ */ new Map();
+  for (const row of outcomes) {
+    if (String(row[settings.endpoint_col]) !== state.endpoint || isBlank2(row[outcomeId])) continue;
+    const id = String(row[outcomeId]);
+    byId.set(id, [...byId.get(id) || [], row]);
+  }
+  const left = /* @__PURE__ */ new Map();
+  const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
+  const records = [];
+  const values = [];
+  for (const record of made.data) {
+    const id = String(record[idCol]);
+    if (cut) values.push(record.group);
+    const found = byId.get(id) || [];
+    if (!found.length) {
+      leave(LEFT_OUT.NO_OUTCOME);
+      continue;
+    }
+    if (found.length > 1) {
+      leave(LEFT_OUT.SEVERAL_OUTCOMES);
+      continue;
+    }
+    const time = numberOf2(found[0][settings.time_col]);
+    const flagged = numberOf2(found[0][flag.col]);
+    if (time === null || flagged === null) {
+      leave(LEFT_OUT.MISSING_OUTCOME);
+      continue;
+    }
+    if (flagged !== 0 && flagged !== 1) {
+      leave(LEFT_OUT.NOT_A_FLAG);
+      continue;
+    }
+    if (time < 0) {
+      leave(LEFT_OUT.NEGATIVE_TIME);
+      continue;
+    }
+    records.push({
+      [idCol]: id,
+      group: cut ? groupLabel(record.group, cut) : String(record.group),
+      time,
+      flag: flagged,
+      event: flag.field === "censor" ? flagged === 0 : flagged === 1
+    });
+  }
+  const levels = cut ? cut.labels.filter((label2) => records.some((record) => record.group === label2)) : levelsOf(records.map((record) => record.group));
+  const last = records.reduce((most, record) => Math.max(most, record.time), 0);
+  const times = settings.at_risk_times || timeTicks(last);
+  const curves = levels.map((level) => {
+    const members = records.filter((record) => record.group === level);
+    const estimate = kmEstimate(
+      members.map((record) => ({ id: record[idCol], time: record.time, event: record.event }))
+    );
+    return {
+      level,
+      n: members.length,
+      events: members.filter((record) => record.event).length,
+      estimate,
+      risk: estimate.riskTableAt(times)
+    };
+  });
+  return {
+    ...empty,
+    records,
+    levels,
+    curves,
+    times,
+    cut,
+    values,
+    bars: cut ? histogramOf(values) : [],
+    participants: made.participants,
+    dropped: [...made.dropped, ...[...left].map(([reason, n]) => ({ reason, n }))],
+    unused: made.unused,
+    last
+  };
+}
+function atRisk(model, level, time) {
+  return model.records.filter((record) => record.group === level && record.time >= time);
+}
+
+// src/stratified-survival.js
+var MODULE_CLASS5 = "bv-stratified-survival";
+var STYLE_ID6 = "bio-viz-stratified-survival-styles";
+var C4 = `.${MODULE_CLASS5}`;
+var STYLES6 = `${lineStyles(C4)}
+${toolbarStyles(C4)}
+${C4} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
+${C4} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
+${C4} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
+${C4} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
+${C4} .bv-risk th,${C4} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right}
+${C4} .bv-risk thead th{background:#f6f8fa;font-weight:600;padding:.2rem .5rem}
+${C4} .bv-risk tbody th{text-align:left;background:#f6f8fa}
+${C4} .bv-risk button{display:block;width:100%;margin:0;border:0;background:transparent;padding:.25rem .5rem;font:inherit;text-align:inherit;color:inherit;cursor:pointer}
+${C4} .bv-risk button:hover{background:#f4f8fc}
+${C4} .bv-risk button:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
+${C4} .bv-swatch{display:inline-block;width:.7rem;height:.7rem;margin-right:.35rem;border-radius:2px;vertical-align:-1px}
+${C4} .bv-hist{margin:0 0 .6rem}
+${C4} .bv-hist-canvas{height:150px;position:relative;touch-action:none}
+${C4} .bv-hist-canvas canvas{cursor:ew-resize}
+${C4} .bv-hist-canvas canvas:focus-visible{outline:2px solid #0b62a4;outline-offset:2px}
+${C4} .bv-cut-counts{margin:.25rem 0 0;font-size:.8rem;color:#52616f}
+${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}`;
+var HINT4 = "Click a curve, or a count of the at-risk strip, to list its participants and open a participant\u2019s profile.";
+var DRAG_HINT = "Drag a cut line on the histogram to move it: the curves follow, and R is asked when it is let go.";
+var MOVING = "Statistics: R is asked when the cut line is let go. The curves are drawn for the cut where it is now.";
+var NEEDS_OUTCOMES = "This chart needs an outcomes table: give `outcomes`, one row per participant and endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.";
+var CUT_KEY3 = "bv-cut:";
+var MOVED_KEY = "bv-cut:moved";
+var GRIP = 10;
+var uncutLabel = (spec) => {
+  const plain5 = { ...spec };
+  delete plain5.cut;
+  return label(plain5);
+};
+var isRecordTable2 = (rows) => Array.isArray(rows) && rows.every((row) => row !== null && typeof row === "object");
+var StratifiedSurvival = class {
+  constructor(element, settings) {
+    this.kit = findKit("the stratified survival chart");
+    this.element = typeof element === "string" ? document.querySelector(element) : element;
+    if (!this.element) {
+      throw new Error(`bio.viz: stratified survival target not found: ${element}`);
+    }
+    this.settings = syncSettings6(settings);
+    this.tables = { results: [], participants: null, outcomes: null };
+    this.charts = [];
+    this.model = null;
+    this.measures = [];
+    this.categories = [];
+    this.cutOptions = [];
+    this.endpoints = [];
+    this.filterSpecs = [];
+    this.state = {};
+    this.asked = [];
+    this.drag = null;
+    this.connect();
+    this.renderShell();
+  }
+  // The connection the statistics line asks: the one given in settings, or one
+  // with no R attached, which answers that statistics are unavailable.
+  connect() {
+    if (this.desk) this.desk.retire();
+    this.connection = this.settings.connection || createConnection();
+    this.desk = createStatisticDesk6({
+      connection: this.connection,
+      note: this.settings.waiting_note
+    });
+  }
+  renderShell() {
+    mountShell(this, {
+      moduleClass: MODULE_CLASS5,
+      styleId: STYLE_ID6,
+      styles: STYLES6,
+      listingFile: "bio.viz-stratified-survival-listing.csv"
+    });
+    const { kit } = this;
+    this.riskWrap = kit.createElement("div", "bv-risk-wrap");
+    this.histWrap = kit.createElement("div", "bv-hist");
+    this.histBox = kit.createElement("div", "bv-hist-canvas");
+    this.histCanvas = document.createElement("canvas");
+    this.histCanvas.tabIndex = 0;
+    this.histBox.append(this.histCanvas);
+    this.cutCounts = kit.createElement("p", "bv-cut-counts");
+    this.histWrap.append(this.histBox, this.cutCounts);
+    this.chartWrap.after(this.riskWrap);
+    this.riskWrap.after(this.histWrap);
+    this.listenToHistogram();
+    this.canvas.addEventListener("click", (event) => {
+      const chart = this.curvesChart;
+      if (!chart) return;
+      const [hit] = chart.getElementsAtEventForMode(event, "nearest", { intersect: false }, false);
+      if (hit) this.listGroup(chart.data.datasets[hit.datasetIndex].level);
+    });
+    mountToolbar(this);
+  }
+  /**
+   * Load the tables and draw: the same as `setData`.
+   * @param {{results: object[], participants?: object[], outcomes?: object[]}} data
+   * @returns {StratifiedSurvival} The chart, for chaining.
+   */
+  init(data) {
+    return this.setData(data);
+  }
+  /**
+   * Replace the tables and draw again. The controls are rebuilt from the new
+   * tables and return to what the settings open on.
+   * @param {{results: object[], participants?: object[], outcomes?: object[]}} data
+   *   The tables: the results table, the participant table when there is one,
+   *   and the outcomes table. A bare array is taken as the results table.
+   * @param {object} [settings] Settings to change with the tables, when the new
+   *   tables need them. The tables are checked against these.
+   * @returns {StratifiedSurvival} The chart, for chaining.
+   */
+  setData(data, settings) {
+    const next = settings === void 0 || settings === null ? this.settings : syncSettings6({ ...this.settings, ...settings });
+    const given2 = Array.isArray(data) ? { results: data } : data || {};
+    const read2 = readGiven(this, given2, next);
+    const outcomes = this.readOutcomes(given2.outcomes, next);
+    this.tables = { ...read2, outcomes };
+    if (next !== this.settings) this.setSettings(settings);
+    this.readTables();
+    this.state = this.seedState();
+    this.buildProfileFeed();
+    this.buildControls();
+    this.render();
+    return this;
+  }
+  // The outcomes table, checked: an array of records with the columns the
+  // settings name, or null when there is none.
+  readOutcomes(outcomes, settings) {
+    if (outcomes === void 0 || outcomes === null) return null;
+    try {
+      if (!isRecordTable2(outcomes)) {
+        refuse4("`outcomes` must be an array of records, one object per row.");
+      }
+      checkOutcomes(outcomes, settings);
+    } catch (error) {
+      this.destroyCharts();
+      this.element.innerHTML = "";
+      this.element.append(this.kit.createElement("div", "sv-warning", error.message));
+      throw error;
+    }
+    return outcomes.length ? outcomes : null;
+  }
+  /**
+   * Lay new settings over the current ones and draw again. A setting that says
+   * what the chart opens on (`endpoint`, `group_by`, `filters`) moves its
+   * control.
+   * @param {object} settings The settings to change.
+   * @returns {StratifiedSurvival} The chart, for chaining.
+   */
+  setSettings(settings) {
+    const given2 = settings || {};
+    const next = syncSettings6({ ...this.settings, ...given2 });
+    checkTables(this.tables, next);
+    if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
+    this.settings = next;
+    syncHost(this);
+    if ("back" in given2) mountToolbar(this);
+    if ("connection" in given2 || "waiting_note" in given2) this.connect();
+    this.readTables();
+    const opening = this.seedState();
+    const moved = { endpoint: "endpoint", group_by: "groupBy", filters: "filters" };
+    for (const [setting, key] of Object.entries(moved)) {
+      if (setting in given2) this.state[key] = opening[key];
+    }
+    this.repairState(opening);
+    this.buildProfileFeed();
+    this.kit.syncProfileRail(this.host, () => this.railSettings());
+    this.buildControls();
+    this.render();
+    return this;
+  }
+  // What the controls can offer, read from the tables and the settings.
+  readTables() {
+    const { results, outcomes } = this.tables;
+    const { settings } = this;
+    this.measures = results.length ? listMeasures(results, settings) : [];
+    this.categories = results.length ? categoryColumns(this.tables, settings) : [];
+    this.filterSpecs = filterColumns(this.tables, settings, this.categories).map(
+      (spec) => this.kit.normalizeFilterSpec(spec)
+    );
+    this.endpoints = outcomes ? listEndpoints(outcomes, settings) : [];
+    const moved = this.cutOptions.find((entry) => entry.key === MOVED_KEY);
+    this.cutOptions = [];
+    for (const by of [settings.group_by, ...settings.cuts || []]) {
+      if (!isCut(by)) continue;
+      const written = JSON.stringify(by);
+      if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
+      this.cutOptions.push({
+        key: `${CUT_KEY3}${this.cutOptions.length}`,
+        spec: by,
+        label: label(by)
+      });
+    }
+    if (moved) this.cutOptions.push(moved);
+  }
+  cutKey(by) {
+    const written = JSON.stringify(by);
+    return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
+  }
+  offers(value) {
+    return this.categories.some((entry) => entry.value_col === value) || this.cutOptions.some((entry) => entry.key === value);
+  }
+  // The Group control's value as the chart takes it: a column's name, or the
+  // cut variable.
+  groupingOf(value) {
+    const found = this.cutOptions.find((entry) => entry.key === value);
+    return found ? found.spec : value;
+  }
+  labelOf(value) {
+    const cut = this.cutOptions.find((entry) => entry.key === value);
+    if (cut) return cut.label;
+    const found = this.categories.find((entry) => entry.value_col === value);
+    return found ? found.label : value;
+  }
+  endpointLabel(endpoint) {
+    const found = this.endpoints.find((entry) => entry.endpoint === endpoint);
+    return found ? found.label : endpoint;
+  }
+  // The state with the groups as the chart takes them.
+  drawingState(state = this.state) {
+    return { ...state, groupBy: this.groupingOf(state.groupBy) };
+  }
+  // What the chart opens on: the settings, where the tables have what they
+  // name; otherwise the first endpoint and the first category column.
+  seedState() {
+    const { settings, categories, endpoints } = this;
+    const has = (column) => categories.some((entry) => entry.value_col === column);
+    let groupBy = categories[0] ? categories[0].value_col : null;
+    if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
+    else if (has(settings.group_by)) groupBy = settings.group_by;
+    const named2 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
+    return {
+      endpoint: named2 ? named2.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
+      groupBy,
+      filters: this.kit.initFilterState(this.filterSpecs)
+    };
+  }
+  repairState(opening) {
+    if (!this.offers(this.state.groupBy)) this.state.groupBy = opening.groupBy;
+    if (!this.endpoints.some((entry) => entry.endpoint === this.state.endpoint)) {
+      this.state.endpoint = opening.endpoint;
+    }
+  }
+  // ---- Controls ---------------------------------------------------------------
+  buildControls() {
+    const { kit, state } = this;
+    this.controls.innerHTML = "";
+    const { addSection, addControl, addReset } = kit.controlBuilders(this.controls);
+    const redraw = () => this.render();
+    const select = (name, labelText, options2, selected, onChange, parent) => {
+      const input = document.createElement("select");
+      input.dataset.control = name;
+      input.setAttribute("aria-label", labelText);
+      options2.forEach(([value, text2]) => kit.option(input, value, text2, value === selected));
+      input.onchange = () => onChange(input.value);
+      return addControl(labelText, input, parent);
+    };
+    const view = addSection("View");
+    if (this.endpoints.length) {
+      select(
+        "endpoint",
+        "Endpoint",
+        this.endpoints.map((entry) => [entry.endpoint, entry.label]),
+        state.endpoint,
+        (next) => {
+          state.endpoint = next;
+          redraw();
+        },
+        view
+      );
+    }
+    const options = [
+      ...this.categories.map((entry) => [entry.value_col, entry.label]),
+      ...this.cutOptions.map((entry) => [entry.key, entry.label])
+    ];
+    if (options.length) {
+      select(
+        "group-by",
+        "Groups",
+        options,
+        state.groupBy,
+        (next) => {
+          state.groupBy = next;
+          this.buildControls();
+          redraw();
+        },
+        view
+      );
+      if (isCut(this.groupingOf(state.groupBy))) {
+        view.append(kit.createElement("small", "bv-control-note", DRAG_HINT));
+      }
+    } else {
+      view.append(
+        kit.createElement(
+          "p",
+          "sv-warning bv-no-groups",
+          "No column can make a group. Give a participant table, or carry a column on the results rows."
+        )
+      );
+    }
+    addFilterControls(this, { addSection, addControl }, () => redraw());
+    addReset(() => {
+      this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
+      this.state = this.seedState();
+      this.buildControls();
+      this.render();
+    });
+  }
+  // ---- Drawing ----------------------------------------------------------------
+  /**
+   * Draw everything again from the tables, the settings and the controls, and
+   * ask R again. The curves, the strip, the histogram, the line and the listing
+   * are cleared first: nothing stays on screen that describes another view.
+   * @returns {void}
+   */
+  render() {
+    drawSafely(this, () => this.draw());
+  }
+  // Everything render() draws. drawSafely says so in the element when it fails.
+  draw({ ask = true } = {}) {
+    const round = this.desk.begin();
+    this.asked = [];
+    this.destroyCharts();
+    this.clearSelection();
+    this.notes.innerHTML = "";
+    this.riskWrap.innerHTML = "";
+    this.multiplesWrap.innerHTML = "";
+    this.cutCounts.textContent = "";
+    this.histWrap.classList.add("sv-hidden");
+    this.statLine.textContent = "";
+    this.statLine.dataset.state = "empty";
+    this.chartWrap.classList.add("sv-hidden");
+    this.model = null;
+    const { kit, settings, state } = this;
+    if (!this.tables.outcomes) {
+      this.footnote.textContent = NEEDS_OUTCOMES;
+      return;
+    }
+    if (!this.tables.results.length) {
+      this.footnote.textContent = "No results to draw.";
+      return;
+    }
+    if (!state.groupBy) {
+      this.footnote.textContent = "Choose the groups.";
+      return;
+    }
+    const drawing = this.viewState();
+    const model = buildSurvival(this.tables, settings, drawing, {
+      kmEstimate: kit.kmEstimate,
+      filterMatches: kit.filterMatches
+    });
+    this.model = model;
+    this.updateNotes(model);
+    if (model.filtered === 0) {
+      this.footnote.textContent = NOBODY_PASSES;
+      return;
+    }
+    if (!model.records.length) {
+      this.footnote.textContent = "No participant has a group and an outcome for the endpoint.";
+      return;
+    }
+    this.drawCurves(model);
+    this.drawRisk(model);
+    this.drawHistogram(model);
+    this.footnote.textContent = [HINT4, ...this.cutNotes(model)].join(" ");
+    if (!settings.statistic) return;
+    const show = (description) => writeStatistic(kit, this.statLine, description);
+    if (!ask) {
+      show({ state: "none", text: this.desk.idle(MOVING), estimates: [], remarks: [] });
+      return;
+    }
+    if (model.levels.length < 2) {
+      show({ state: "none", text: ONE_GROUP, estimates: [], remarks: [] });
+      return;
+    }
+    const request = survivalRequest({ name: settings.statistic, settings, state: drawing, model });
+    const asked = {
+      name: request.name,
+      args: request.args,
+      dataId: request.dataId,
+      rows: request.rows,
+      answer: null
+    };
+    this.asked.push(asked);
+    round.ask(
+      request,
+      (description, answer) => {
+        if (answer) asked.answer = answer;
+        show(description);
+      },
+      {
+        scope: scopeText6({
+          n: model.records.length,
+          endpoint: this.endpointLabel(state.endpoint),
+          filters: filtersForScope(this)
+        })
+      }
+    );
+  }
+  // The view the chart draws: the controls, with a cut line held where it is.
+  viewState() {
+    const drawing = this.drawingState();
+    if (this.drag && this.drag.points && isCut(drawing.groupBy)) {
+      return { ...drawing, groupBy: { ...drawing.groupBy, cut: [...this.drag.points] } };
+    }
+    return drawing;
+  }
+  // Above the curves: who is drawn, and who was left out.
+  updateNotes(model) {
+    const { kit } = this;
+    const add = (text2, warning) => this.notes.append(kit.createElement("span", warning ? "sv-warning" : null, text2));
+    if (model.participants) {
+      add(`${model.records.length} of ${model.participants} participants drawn.`);
+    }
+    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
+    model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
+      (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
+    );
+    if (model.filtered !== null && model.filtered < this.tables.participants.length) {
+      add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
+    }
+  }
+  cutNotes(model) {
+    if (!model.cut) return [];
+    return [cutNote(model.cut.spec, model.cut)];
+  }
+  colorOf(index) {
+    return PALETTE[index % PALETTE.length];
+  }
+  // The curves: each group's estimate as steps from 1 at time 0, to its last
+  // time, with a mark at each censored time.
+  drawCurves(model) {
+    const { kit, state } = this;
+    this.chartWrap.classList.remove("sv-hidden");
+    const datasets = [];
+    model.curves.forEach((curve, index) => {
+      const color = this.colorOf(index);
+      const steps = [
+        { x: 0, y: 1 },
+        ...curve.estimate.points.map((p) => ({ x: p.time, y: p.surv }))
+      ];
+      const final = steps[steps.length - 1];
+      if (curve.estimate.maxTime > final.x) steps.push({ x: curve.estimate.maxTime, y: final.y });
+      datasets.push({
+        label: `${curve.level} (n = ${curve.n})`,
+        level: curve.level,
+        kind: "curve",
+        data: steps,
+        stepped: "after",
+        borderColor: color,
+        backgroundColor: color,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHitRadius: 6,
+        fill: false
+      });
+      datasets.push({
+        label: `${curve.level}: censored`,
+        level: curve.level,
+        kind: "censor",
+        data: curve.estimate.censorTimes.map((mark) => ({ x: mark.time, y: mark.surv })),
+        showLine: false,
+        pointStyle: "line",
+        rotation: 90,
+        pointRadius: 5,
+        pointBorderWidth: 1.5,
+        borderColor: color,
+        backgroundColor: color
+      });
+    });
+    const chart = new kit.Chart(this.canvas.getContext("2d"), {
+      type: "line",
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        parsing: false,
+        interaction: { mode: "nearest", intersect: false },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { filter: (item) => datasets[item.datasetIndex].kind === "curve" },
+            title: { display: true, text: this.labelOf(state.groupBy) }
+          },
+          tooltip: {
+            filter: (item) => datasets[item.datasetIndex].kind === "curve",
+            callbacks: {
+              label: (item) => `${datasets[item.datasetIndex].level}: ${Number(item.raw.y.toPrecision(4))} at ${Number(item.raw.x.toPrecision(4))}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "linear",
+            min: 0,
+            max: model.times[model.times.length - 1] >= model.last ? model.times[model.times.length - 1] : model.last,
+            afterBuildTicks: (axis) => {
+              axis.ticks = model.times.map((value) => ({ value }));
+            },
+            title: { display: true, text: this.endpointLabel(state.endpoint) }
+          },
+          y: {
+            min: 0,
+            max: 1,
+            title: { display: true, text: "Kaplan\u2013Meier estimate" }
+          }
+        }
+      }
+    });
+    this.canvas.setAttribute(
+      "aria-label",
+      `Kaplan\u2013Meier curves by ${this.labelOf(state.groupBy)}: ` + model.curves.map((curve) => `${curve.level}, ${curve.n} participants, ${curve.events} events`).join("; ")
+    );
+    this.charts.push(chart);
+    this.curvesChart = chart;
+  }
+  // The at-risk strip: for each group, how many are at risk at each time of
+  // the axis. A group's name lists its participants, and a count lists the
+  // participants it counts.
+  drawRisk(model) {
+    const { kit } = this;
+    const table = kit.createElement("table", "bv-risk");
+    table.append(kit.createElement("caption", null, "Number at risk"));
+    const head = kit.createElement("thead");
+    const top = kit.createElement("tr");
+    const corner = kit.createElement("th", null, this.labelOf(this.state.groupBy));
+    corner.scope = "col";
+    top.append(corner);
+    model.times.forEach((time) => {
+      const th = kit.createElement("th", null, String(time));
+      th.scope = "col";
+      top.append(th);
+    });
+    head.append(top);
+    table.append(head);
+    const body = kit.createElement("tbody");
+    model.curves.forEach((curve, index) => {
+      const tr = kit.createElement("tr");
+      const th = kit.createElement("th");
+      th.scope = "row";
+      const name = kit.createElement("button");
+      name.type = "button";
+      name.dataset.group = curve.level;
+      const swatch = kit.createElement("span", "bv-swatch");
+      swatch.style.background = this.colorOf(index);
+      name.append(swatch, document.createTextNode(curve.level));
+      name.setAttribute("aria-label", `${curve.level}: ${curve.n} participants. List them.`);
+      name.onclick = () => this.listGroup(curve.level);
+      th.append(name);
+      tr.append(th);
+      curve.risk.forEach((cell) => {
+        const td = kit.createElement("td");
+        const button = kit.createElement("button", null, String(cell.atRisk));
+        button.type = "button";
+        button.dataset.group = curve.level;
+        button.dataset.time = String(cell.time);
+        button.setAttribute(
+          "aria-label",
+          `${curve.level}, at risk at ${cell.time}: ${cell.atRisk}. List them.`
+        );
+        button.onclick = () => this.listAtRisk(curve.level, cell.time);
+        td.append(button);
+        tr.append(td);
+      });
+      body.append(tr);
+    });
+    table.append(body);
+    this.riskWrap.append(table);
+  }
+  // The histogram of a cut variable's values, with a line at each cut point
+  // and how many values fall in each group.
+  drawHistogram(model) {
+    if (!model.cut || !model.bars.length) return;
+    const { kit } = this;
+    this.histWrap.classList.remove("sv-hidden");
+    const points = model.cut.points;
+    const low = model.bars[0].from;
+    const high = model.bars[model.bars.length - 1].to;
+    const lines = {
+      id: "bvCutLines",
+      afterDatasetsDraw: (chart2) => {
+        const { ctx, chartArea, scales } = chart2;
+        ctx.save();
+        ctx.strokeStyle = "#1f2933";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        points.forEach((point) => {
+          const x = scales.x.getPixelForValue(point);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+    };
+    const chart = new kit.Chart(this.histCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        datasets: [
+          {
+            label: "Participants",
+            data: model.bars.map((bar) => ({ x: (bar.from + bar.to) / 2, y: bar.n })),
+            backgroundColor: hexToRgba("#52616f", 0.45),
+            borderColor: "#52616f",
+            borderWidth: 1,
+            barPercentage: 1,
+            categoryPercentage: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        parsing: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: {
+            type: "linear",
+            min: low,
+            max: high,
+            offset: false,
+            title: { display: true, text: uncutLabel(model.cut.spec) }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+            title: { display: true, text: "Participants" }
+          }
+        }
+      },
+      plugins: [lines]
+    });
+    this.charts.push(chart);
+    this.histChart = chart;
+    const counts = model.cut.labels.map(
+      (label2, index) => `${label2}: ${model.values.filter((value) => cutGroup(value, points) === index).length}`
+    );
+    this.cutCounts.textContent = `Values each side of the cut: ${counts.join(" \xB7 ")}.`;
+    this.histCanvas.setAttribute(
+      "aria-label",
+      `Histogram of ${uncutLabel(model.cut.spec)}, cut at ${points.map((point) => Number(point.toPrecision(4))).join(" and ")}. Left and right arrows move the cut line.`
+    );
+  }
+  // ---- Moving a cut line ---------------------------------------------------------
+  listenToHistogram() {
+    const canvas = this.histCanvas;
+    const valueAt = (event) => {
+      const chart = this.histChart;
+      if (!chart) return null;
+      const box = canvas.getBoundingClientRect();
+      return chart.scales.x.getValueForPixel(event.clientX - box.left);
+    };
+    canvas.addEventListener("pointerdown", (event) => {
+      const chart = this.histChart;
+      if (!chart || !this.model || !this.model.cut) return;
+      const box = canvas.getBoundingClientRect();
+      const x = event.clientX - box.left;
+      const points = this.model.cut.points;
+      let nearest = -1;
+      let distance = Infinity;
+      points.forEach((point, index) => {
+        const away = Math.abs(chart.scales.x.getPixelForValue(point) - x);
+        if (away < distance) {
+          distance = away;
+          nearest = index;
+        }
+      });
+      if (nearest < 0 || distance > GRIP) return;
+      event.preventDefault();
+      if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+      this.holdCut(nearest);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!this.drag) return;
+      const value = valueAt(event);
+      if (value !== null) this.moveCut(this.drag.index, value);
+    });
+    const letGo = (event) => {
+      if (!this.drag) return;
+      const value = valueAt(event);
+      this.dropCut(this.drag.index, value === null ? this.drag.points[this.drag.index] : value);
+    };
+    canvas.addEventListener("pointerup", letGo);
+    canvas.addEventListener("pointercancel", letGo);
+    canvas.addEventListener("keydown", (event) => {
+      if (!this.model || !this.model.cut || !this.model.bars.length) return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      const [first] = this.model.bars;
+      const step = (first.to - first.from) * (event.key === "ArrowLeft" ? -1 : 1);
+      const index = this.drag ? this.drag.index : 0;
+      this.dropCut(index, this.model.cut.points[index] + step);
+    });
+  }
+  // Take hold of a cut line: the line stops showing R's answer for the old cut.
+  holdCut(index) {
+    if (!this.model || !this.model.cut) return;
+    this.drag = { index, points: [...this.model.cut.points] };
+  }
+  /**
+   * Move a cut line, as dragging it does: the curves, the strip and the
+   * histogram follow at once, and R is not asked until the line is let go.
+   * @param {number} index Which cut point.
+   * @param {number} value Where it is now, on the variable's scale.
+   * @returns {?number[]} The cut points drawn, or null when the line cannot go
+   *   there.
+   */
+  moveCut(index, value) {
+    if (!this.drag) this.holdCut(index);
+    if (!this.drag) return null;
+    const points = movePoints(this.drag.points, index, value);
+    if (!points) return null;
+    this.drag = { index, points };
+    drawSafely(this, () => this.draw({ ask: false }));
+    return points;
+  }
+  /**
+   * Let a cut line go, as dropping it does: the cut becomes typed points, the
+   * moved one where its label writes it, the Group control holds it, and R is
+   * asked for the new groups.
+   * @param {number} index Which cut point.
+   * @param {number} value Where it was let go, on the variable's scale.
+   * @returns {?number[]} The typed points, or null when the line cannot go there.
+   */
+  dropCut(index, value) {
+    const from = this.drag ? this.drag.points : this.model && this.model.cut && this.model.cut.points;
+    this.drag = null;
+    const spec = this.groupingOf(this.state.groupBy);
+    const points = from && isCut(spec) ? movePoints(from, index, value, { drop: true }) : null;
+    if (!points) {
+      this.render();
+      return null;
+    }
+    const typed = { ...spec, cut: points };
+    this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
+    const named2 = this.cutOptions.find(
+      (entry) => JSON.stringify(entry.spec) === JSON.stringify(typed)
+    );
+    if (named2) {
+      this.state.groupBy = named2.key;
+    } else {
+      this.cutOptions.push({ key: MOVED_KEY, spec: typed, label: label(typed) });
+      this.state.groupBy = MOVED_KEY;
+    }
+    this.buildControls();
+    this.render();
+    return points;
+  }
+  // ---- Listing and participant profile -------------------------------------------
+  /**
+   * List the participants of one group, as a click on its curve does.
+   * @param {string} level The group.
+   * @returns {Array<object>} The participants listed.
+   */
+  listGroup(level) {
+    if (!this.model) return [];
+    const records = this.model.records.filter((record) => record.group === String(level));
+    this.showRecords(records, `${this.labelOf(this.state.groupBy)} ${level}`);
+    this.listed = { group: String(level), time: null };
+    return records;
+  }
+  /**
+   * List the participants of a group at risk at a time, as a click on a count
+   * of the at-risk strip does.
+   * @param {string} level The group.
+   * @param {number} time The time.
+   * @returns {Array<object>} The participants listed.
+   */
+  listAtRisk(level, time) {
+    if (!this.model) return [];
+    const records = atRisk(this.model, String(level), Number(time));
+    this.showRecords(records, `${this.labelOf(this.state.groupBy)} ${level}, at risk at ${time}`);
+    this.listed = { group: String(level), time: Number(time) };
+    return records;
+  }
+  showRecords(records, what) {
+    this.clearSelection();
+    showListing(this, {
+      columns: this.listingColumns(),
+      rows: records.map((record) => ({
+        ...record,
+        outcome: record.event ? "Event" : "Censored"
+      }))
+    });
+    this.footnote.textContent = `${what}: ${records.length} participant${records.length === 1 ? "" : "s"} listed. Click a row to open the participant's profile.`;
+  }
+  listingColumns() {
+    if (this.settings.details) return this.settings.details;
+    return [
+      { value_col: this.settings.id_col, label: "Participant" },
+      { value_col: "group", label: this.labelOf(this.state.groupBy) },
+      { value_col: "time", label: "Time" },
+      { value_col: "outcome", label: "Outcome" }
+    ];
+  }
+  select(id) {
+    selectParticipant(this, id);
+  }
+  clearSelection() {
+    this.listed = null;
+    clearListing(this);
+  }
+  buildProfileFeed() {
+    buildProfileFeed(this, () => this.railSettings());
+  }
+  railSettings() {
+    return railSettings(this, "linear");
+  }
+  /**
+   * What the chart has asked R for the view now drawn, and what R answered:
+   * one entry, or none when nothing is asked. The request is exactly what the
+   * connection was given, so it is the key a stored result must carry.
+   * @returns {Array<{name: string, args: object, dataId: object, rows: number,
+   *   answer: ?object}>}
+   */
+  statistics() {
+    return structuredClone(this.asked);
+  }
+  // ---- Lifecycle --------------------------------------------------------------
+  /**
+   * Fit the curves and the histogram to their containers.
+   * @returns {void}
+   */
+  resize() {
+    this.charts.forEach((chart) => chart.resize());
+  }
+  destroyCharts() {
+    this.charts.forEach((chart) => chart.destroy());
+    this.charts = [];
+    this.curvesChart = null;
+    this.histChart = null;
+  }
+  /**
+   * Take the chart down: its curves, its histogram, its participant rail and
+   * everything in its element. A destroyed chart cannot be used again.
+   * @returns {void}
+   */
+  destroy() {
+    this.desk.begin();
+    this.destroyCharts();
+    this.kit.unmountProfileRail(this.host);
+    this.element.innerHTML = "";
+  }
+};
+function checkOutcomes(outcomes, settings) {
+  if (!outcomes.length) return;
+  const flag = flagOf(settings);
+  const needed = [
+    ["endpoint_col", settings.endpoint_col],
+    [
+      settings.outcome_id_col ? "outcome_id_col" : "id_col",
+      settings.outcome_id_col || settings.id_col
+    ],
+    ["time_col", settings.time_col],
+    [flag.field === "censor" ? "censor_col" : "event_col", flag.col]
+  ];
+  for (const [key, column] of needed) {
+    if (!outcomes.some((row) => column in row)) {
+      refuse4(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+}
+function stratifiedSurvival(element, settings) {
+  return new StratifiedSurvival(element, settings);
+}
+
 // src/data/portfolio.json
 var portfolio_default = {
   $schema: "./schema/portfolio.json",
@@ -9149,6 +10400,7 @@ export {
   groupComparison,
   portfolio_default as portfolio,
   r_exports as r,
+  stratifiedSurvival,
   version
 };
 //# sourceMappingURL=bio.viz.esm.js.map

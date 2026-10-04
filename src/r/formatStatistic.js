@@ -185,6 +185,42 @@ export function formatEstimate(estimate) {
 }
 
 /**
+ * Formats one median survival time R returned, a row of `estimates` from
+ * gsm.bio's `Analyze_Survival`: the median, and its interval with its level. R
+ * gives no median, or no bound, where the curve or its band did not fall to one
+ * half; that part reads `not reached`, as R's note says. Nothing is computed.
+ *
+ * @param {{name?: string, group?: string, estimate?: ?number, lower?: ?number,
+ *   upper?: ?number, level?: number}} estimate One row of `estimates`.
+ * @returns {{status: 'shown'|'refused', text: string}} `shown`: the median,
+ *   what it is a median of, and its interval, each part a number or `not
+ *   reached`. `refused`: it has no name, a value that is neither a number nor
+ *   missing, or no level.
+ */
+export function formatMedian(estimate) {
+  const row = estimate && typeof estimate === 'object' ? estimate : {};
+  const refuse = (what) => ({ status: 'refused', text: `Estimate not shown: ${what}.` });
+  const name = text(row.name);
+  if (!name) return refuse('it has no name');
+  const absent = (value) => value === undefined || value === null;
+  for (const part of ['estimate', 'lower', 'upper']) {
+    if (!absent(row[part]) && !isNumber(row[part])) return refuse(`${name} is not a number`);
+  }
+  if (!(row.level > 0 && row.level < 1)) return refuse(`the interval of ${name} has no level`);
+  const said = (value) => (absent(value) ? 'not reached' : figure(value));
+  const group = text(row.group);
+  const percent = Number((row.level * 100).toPrecision(12));
+  const interval =
+    absent(row.lower) && absent(row.upper)
+      ? 'not reached'
+      : `${said(row.lower)} to ${said(row.upper)}`;
+  return {
+    status: 'shown',
+    text: `${name}${group ? ` (${group})` : ''}: ${said(row.estimate)}, ${percent}% confidence interval ${interval}.`
+  };
+}
+
+/**
  * Formats one comparison of two groups from a result's `rows`, by the rules a
  * whole result is held to: its p-value is given only with its method, the two
  * groups' counts and its label.

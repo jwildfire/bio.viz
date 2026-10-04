@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is the first release, [released on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)); its site is the released one, <https://jwildfire.github.io/bio.viz/>. It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. On `dev`, for v0.2.0: a shared rule for cutting a biomarker into groups, and the [cross-tabulation](https://jwildfire.github.io/bio.viz/dev/cross-tab/), a two-way table with R's chi-square or Fisher's exact test. Stratified survival follows.
+Version 0.1.0 is the first release, [released on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)); its site is the released one, <https://jwildfire.github.io/bio.viz/>. It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. On `dev`, for v0.2.0: a shared rule for cutting a biomarker into groups, and the [cross-tabulation](https://jwildfire.github.io/bio.viz/dev/cross-tab/), a two-way table with R's chi-square or Fisher's exact test. And the [stratified survival chart](https://jwildfire.github.io/bio.viz/dev/stratified-survival/): Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag, and R's log-rank test, medians and hazard ratio.
 
 ## How it fits together
 
@@ -157,6 +157,23 @@ Is this category associated with that one? A two-way table of counts with its to
 ```
 
 The settings, what R is asked and the key a stored result is found by are in [docs/cross-tab.md](docs/cross-tab.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/cross-tab/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/cross-tab/) opens on arm by response.
+
+## The stratified survival chart
+
+Do participants with high and low levels of this biomarker have different outcomes? Kaplan–Meier curves per group, from safety.viz's kit, with censor marks and an at-risk strip, above a histogram of the biomarker with its cut line. The line can be dragged: the curves follow at once, and R is asked again when it is let go. Under the curves, R's log-rank test, each group's median survival with its interval and, for two groups, the hazard ratio with its interval. It takes a third table, the outcomes, one row per participant and endpoint, with a time and a censor or event flag. R in the browser needs the survival package.
+
+```html
+<script>
+  BioViz.stratifiedSurvival('#chart', {
+    group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: ['survival'] }
+    })
+  }).init({ results, participants, outcomes });
+</script>
+```
+
+The settings, the outcomes table, moving the cut line and what R is asked are in [docs/stratified-survival.md](docs/stratified-survival.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/stratified-survival/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/stratified-survival/) opens on event-free survival by CRP at Baseline cut at its median, where the synthetic study was planted with a survival effect.
 
 ## Naming a variable and getting one row per participant
 

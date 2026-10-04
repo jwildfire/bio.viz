@@ -365,6 +365,14 @@ export function validateRegistry(config) {
     if (entry.kind !== 'chart' && entry.demo !== undefined) {
       say('has a `demo`, and only a chart has one.');
     }
+    // A chart is in the chart list (src/data/portfolio.json) unless it says why
+    // it is not.
+    if (entry.portfolio !== undefined && entry.portfolio !== false) {
+      say('`portfolio`, when given, is false: the chart is left out of the chart list.');
+    }
+    if (entry.portfolio === false && !isText(entry.portfolioNote)) {
+      say('is left out of the chart list, and needs `portfolioNote`, a sentence saying why.');
+    }
     if (entry.hero !== undefined && !(isText(entry.hero) && entry.hero.endsWith('.png'))) {
       say('`hero`, when given, is the name of one of its evidence screenshots.');
     }

@@ -21,6 +21,7 @@ tests/fixtures/matrix-statistics-r.json
 tests/fixtures/screen-statistics-r.json
 tests/fixtures/cut-r.json
 tests/fixtures/cross-tab-r.json
+tests/fixtures/stratified-survival-r.json
 site/r-check/measured.json
 site/r-check/data/
 

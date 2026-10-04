@@ -2378,7 +2378,7 @@ test.describe('correlation matrix: on the site', () => {
     );
     await expect(card).toContainText('It prints no p-value.');
     // Every chart is listed, in the order they were built.
-    await expect(page.locator('#charts [data-module]')).toHaveCount(5);
+    await expect(page.locator('#charts [data-module]')).toHaveCount(6);
     expect(
       await page
         .locator('#charts [data-module]')
@@ -2388,7 +2388,8 @@ test.describe('correlation matrix: on the site', () => {
       'association-scatter',
       'correlation-matrix',
       'biomarker-screen',
-      'cross-tab'
+      'cross-tab',
+      'stratified-survival'
     ]);
 
     await card.getByRole('link', { name: 'Evidence' }).click();
