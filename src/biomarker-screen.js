@@ -55,6 +55,7 @@ import {
 import {
   VALUE_LABELS,
   addFilterControls,
+  shown,
   downloadCsv,
   filtersForScope,
   findKit,
@@ -286,6 +287,15 @@ class BiomarkerScreen {
       this.kit.normalizeFilterSpec(spec)
     );
     this.endpoints = this.tables.outcomes ? listEndpoints(this.tables.outcomes, settings) : [];
+    if (
+      this.tables.outcomes &&
+      settings.endpoint !== null &&
+      !this.endpoints.some((entry) => entry.endpoint === settings.endpoint)
+    ) {
+      console.warn(
+        `The initial endpoint [${settings.endpoint}] does not exist. Defaulting to the first.`
+      );
+    }
     if (results.length && settings.visit !== null && !this.visits.includes(settings.visit)) {
       console.warn(
         `The initial visit [${settings.visit}] does not exist. Defaulting to the first.`
@@ -770,8 +780,11 @@ class BiomarkerScreen {
     const head = kit.createElement('div', 'bv-screen-head');
     head.setAttribute('aria-hidden', 'true');
     const ticks = kit.createElement('div', 'bv-ticks');
-    range.ticks.forEach((tick) => {
-      const label = kit.createElement('span', 'bv-tick', String(tick).replace('-', '−'));
+    // A wide axis is labelled at every other tick, so the labels do not crowd.
+    const every = range.ticks.length > 7 ? 2 : 1;
+    range.ticks.forEach((tick, index) => {
+      if (index % every !== 0 && index !== range.ticks.length - 1) return;
+      const label = kit.createElement('span', 'bv-tick', shown(tick).replace('-', '−'));
       const at = placeOf(tick, range);
       label.style.left = `${at}%`;
       // The labels at the two ends stay inside the axis.

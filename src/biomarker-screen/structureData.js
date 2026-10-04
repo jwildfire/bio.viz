@@ -229,7 +229,6 @@ export function buildScreen(
   // Each participant's outcome for the endpoint, or nothing where there is none
   // to use: R leaves them out of every row, and counts them.
   const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
-  const gaps = new Map();
   const named = made.data.map((record) => {
     const row = {
       [settings.id_col]: record[settings.id_col],
@@ -237,7 +236,6 @@ export function buildScreen(
     };
     if (!hazard) return { ...row, [extra.name]: record[extraKey] };
     const outcome = outcomeOf(record[settings.id_col]);
-    if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
     return {
       ...row,
       time: outcome.reason ? null : outcome.time,
@@ -247,6 +245,15 @@ export function buildScreen(
   // A participant with none of the biomarkers gives no row anything: they are
   // left out of the frame, and counted.
   const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+  // Who of the frame has no outcome to use, by reason: counted after the frame
+  // is made, so a participant left out of it is not counted again.
+  const gaps = new Map();
+  if (hazard) {
+    for (const record of records) {
+      const outcome = outcomeOf(record[settings.id_col]);
+      if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
+    }
+  }
   return {
     ...model,
     records,

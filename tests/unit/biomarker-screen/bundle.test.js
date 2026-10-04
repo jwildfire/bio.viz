@@ -130,9 +130,12 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
     // The one logarithm is where a hazard ratio sits on its logarithmic axis
     // (#62), in placeOf: it places R's number, and works nothing out of it.
     const placing = codeOf(['src/biomarker-screen/structureData.js']);
-    const place = placing.slice(placing.indexOf('export const placeOf'));
+    const start = placing.indexOf('export const placeOf');
+    const end = placing.indexOf('\n};', start) + 3;
+    const place = placing.slice(start, end);
     expect(place.match(/Math\.log2\(/g)).toHaveLength(4);
-    const code = codeOf(screen).replace(/Math\.log2\((value|min|max)\)/g, 'logOf($1)');
+    // Only placeOf's own body is set aside: a logarithm anywhere else fails.
+    const code = codeOf(screen).replace(place, '');
     for (const marker of [
       /Math\.sqrt/,
       /Math\.exp\b|Math\.log|Math\.pow|\*\*/,
