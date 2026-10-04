@@ -214,7 +214,7 @@ A click on a row, or Enter or Space on it, opens that biomarker's own chart in p
 
 Each is given the screen's connection itself, so R is started once for all of them, the filters as they are set, and the column settings. Anything else the opened chart should have is given in the setting `group_comparison`, `association_scatter` or `stratified_survival` and laid under those.
 
-The opened chart asks R for its own statistics, as it always does. On the same rows they are the row's: the group comparison's Welch p-value is the row's unadjusted p-value, the scatter's coefficient is the row's estimate, and the survival chart's hazard ratio, the higher group's over the lower's, is the row's. The survival chart works out its median on the participants the filters keep who have a value, and R on those who also have an outcome; where every participant with a value has an outcome, as in the synthetic study, the two cuts are one.
+The opened chart asks R for its own statistics, as it always does. On the same rows they are the row's: the group comparison's Welch p-value is the row's unadjusted p-value, the scatter's coefficient is the row's estimate, and the survival chart's hazard ratio, the higher group's over the lower's, is the row's. The survival chart works out its median as R does, on the participants the filters keep who have both a value and an outcome, so where some have a value and no outcome the row and the chart still cut at one point, with the same participants High and Low.
 
 Back to the biomarker screen takes the chart down and shows the screen again exactly as it was, on the same page, with the keyboard on the row that was opened. Nothing is drawn again and R is not asked again.
 

@@ -121,7 +121,7 @@ With nothing else named it opens on every biomarker at the first visit, twelve a
 
 ## The biomarker screen
 
-Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups, a correlation with one variable, or, given an outcomes table, a hazard ratio for high against low on an endpoint, each biomarker cut at its median: R's estimate and its interval on one axis without units, and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. A click on a row opens that biomarker in the group comparison, the association scatter or the stratified survival chart, in place, with a way back.
+Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups, a correlation with one variable, or, given an outcomes table, a hazard ratio for high against low on an endpoint, each biomarker cut at its median: R's estimate and its interval on one axis without units (for hazard ratios a logarithmic one, with 1 marked), and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. A click on a row opens that biomarker in the group comparison, the association scatter or the stratified survival chart, in place, with a way back.
 
 ```html
 <script>
