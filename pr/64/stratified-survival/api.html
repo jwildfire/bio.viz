@@ -109,7 +109,7 @@
 <h2 id="moving-a-cut-line">Moving a cut line</h2>
 <p>While a line is held the curves, the at-risk strip and the histogram follow it at once, drawn for the cut where the line is, and the statistics line says that R is asked when the line is let go: no answer for another cut stays on screen. When it is let go the line lands on the point its label writes, four significant digits, so the point in the settings, in the key R&#39;s stored result is found by and on the label are one number. The cut becomes typed points (the median <code>2.783</code>, moved to <code>4</code>, is <code>cut: [4]</code>), the Groups control holds it, and R is asked for the new groups. A line cannot pass its neighbour, nor stop where two points would be written alike. Reset returns to the cut the settings name.</p>
 <h2 id="the-statistics-line">The statistics line</h2>
-<p>R is asked once per view, with one row per participant drawn: the id, <code>time</code>, <code>group</code>, and the flag, <code>censor</code> or <code>event</code>, as the outcomes table gives it. The line says it is waiting until R answers, and a change to a control, a filter or the cut clears it and asks again; an answer to a question no longer on screen is never shown. R&#39;s log-rank result is printed with its method and counts, labelled exploratory and unadjusted. Under it, each group&#39;s median survival with its log-log interval, as R&#39;s <code>survfit()</code> gives it, a median or a bound the curve did not reach reading <code>not reached</code>; and, for two groups, the hazard ratio with its interval, Cox&#39;s, the hazard in the first group over the hazard in the second. Where R does not estimate the hazard ratio, as when one group has no event, it is not printed, and R&#39;s note says why. What R said about its answer is printed as R worded it. The chart computes no test statistic, no p-value, no median and no hazard ratio. With no R attached the curves are still drawn, and the line says that statistics are unavailable.</p>
+<p>R is asked once per view, with one row per participant drawn: the id, <code>time</code>, <code>group</code>, and the flag, <code>censor</code> or <code>event</code>, as the outcomes table gives it. The line says it is waiting until R answers, and a change to a control, a filter or the cut clears it and asks again; an answer to a question no longer on screen is never shown. R&#39;s log-rank result is printed with its method and counts, labelled exploratory and unadjusted. Under it, each group&#39;s median survival with its log-log interval, as R&#39;s <code>survfit()</code> gives it, a median or a bound the curve did not reach reading <code>not reached</code>; and, for two groups, the hazard ratio with its interval, Cox&#39;s: for a cut, the hazard in the higher group over the hazard in the lower. Where R does not estimate the hazard ratio, as when one group has no event, it is not printed, and R&#39;s note says why. What R said about its answer is printed as R worded it. The chart computes no test statistic, no p-value, no median and no hazard ratio. With no R attached the curves are still drawn, and the line says that statistics are unavailable.</p>
 <h3 id="what-r-is-asked">What R is asked</h3>
 <pre><code class="language-js">connection.run(&#39;Analyze_Survival&#39;, {
   data, // one row per participant drawn: the id, time, group, censor (or event)
@@ -117,11 +117,11 @@
     strTimeCol: &#39;time&#39;,
     strGroupCol: &#39;group&#39;,
     strCensorCol: &#39;censor&#39;, // or strEventCol: &#39;event&#39;
-    chrGroups: [&#39;≤ 2.783&#39;, &#39;&gt; 2.783&#39;] // a cut&#39;s low to high, a column&#39;s by code point
+    chrGroups: [&#39;&gt; 2.783&#39;, &#39;≤ 2.783&#39;] // a cut&#39;s high to low, a column&#39;s by code point
   },
   dataId // what the rows are: see below
 });</code></pre>
-<p>The groups R is handed are in an order that depends on nothing but them: a cut&#39;s low to high, a column&#39;s sorted by code point, as R&#39;s <code>sort(method = &quot;radix&quot;)</code> sorts them, the same in every browser and every language. The hazard ratio is the first group&#39;s hazard over the second&#39;s, so for a cut it is the lower group&#39;s over the higher&#39;s.</p>
+<p>The groups R is handed are in an order that depends on nothing but them: a cut&#39;s high to low, a column&#39;s sorted by code point, as R&#39;s <code>sort(method = &quot;radix&quot;)</code> sorts them, the same in every browser and every language. The hazard ratio is the first group&#39;s hazard over the second&#39;s, so for a cut it is the higher group&#39;s over the lower&#39;s, as the biomarker screen&#39;s &quot;High / Low&quot; is; R&#39;s medians are listed in the same order.</p>
 <p><code>dataId</code> states what the rows are, so a <a href="../r-connection/api.html#stored-results">stored result</a> is found by the function&#39;s name, these arguments and this identity together:</p>
 <table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">What it is</th><th scope="col">Left out when</th></tr></thead>
 <tbody><tr><td data-label="Member"><code>chart</code></td><td data-label="What it is"><code>&#39;stratified-survival&#39;</code>.</td><td data-label="Left out when">never</td></tr>
@@ -146,7 +146,7 @@
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/e0a2dcc3797301f0ffd9b05aa0b2ab6c007cdc10"><code>e0a2dcc</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/75fd11ec0a16a6f0885f3510102e880d3b834e89"><code>75fd11e</code></a>.
       </p>
       <p>
         Built in the open — follow the
