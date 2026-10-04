@@ -13,7 +13,6 @@ __export(r_exports, {
   formatComparison: () => formatComparison,
   formatEstimate: () => formatEstimate,
   formatGroup: () => formatGroup,
-  formatMedian: () => formatMedian,
   formatPair: () => formatPair,
   formatScreenRow: () => formatScreenRow,
   formatStatistic: () => formatStatistic
@@ -291,21 +290,6 @@ function readBrowser(browser) {
     config: { baseUrl, packages: [...packages], source, sourceUrl }
   };
 }
-function readComputedBy(computedBy) {
-  if (computedBy === void 0 || computedBy === null) return null;
-  const text2 = (value) => typeof value === "string" && value.trim() !== "";
-  if (!isPlainObject(computedBy) || !text2(computedBy.r_version) || computedBy.gsm_bio_version !== void 0 && !text2(computedBy.gsm_bio_version) || computedBy.computed_at !== void 0 && !text2(computedBy.computed_at)) {
-    throw new TypeError(
-      "bio.viz: `computedBy` must be { r_version, gsm_bio_version, computed_at }, each text: which R computed the stored results."
-    );
-  }
-  const { r_version, gsm_bio_version, computed_at } = computedBy;
-  return Object.freeze({
-    r_version,
-    ...gsm_bio_version === void 0 ? {} : { gsm_bio_version },
-    ...computed_at === void 0 ? {} : { computed_at }
-  });
-}
 function misuse(name, request) {
   if (typeof name !== "string" || name.trim() === "") {
     return "bio.viz: run() needs the name of an R function.";
@@ -326,7 +310,6 @@ function createConnection(options = {}) {
     throw new TypeError("bio.viz: createConnection takes an object of settings.");
   }
   const store = createStore(options.results);
-  const computedBy = readComputedBy(options.computedBy);
   const browser = readBrowser(options.browser);
   let starting = null;
   function started() {
@@ -346,14 +329,7 @@ function createConnection(options = {}) {
       let missed = null;
       if (store) {
         const found = lookUp(store, name, { data, args, dataId });
-        if (found.hit) {
-          return computedBy ? {
-            status: "ok",
-            value: found.value,
-            form: "precomputed",
-            computedBy: { ...computedBy }
-          } : { status: "ok", value: found.value, form: "precomputed" };
-        }
+        if (found.hit) return { status: "ok", value: found.value, form: "precomputed" };
         missed = found.message;
       }
       if (!browser) {
@@ -409,9 +385,9 @@ var ADJUSTMENTS = {
   BY: "Benjamini-Yekutieli"
 };
 function adjustmentName(adjustment) {
-  const named2 = text(adjustment);
-  if (!named2 || named2.toLowerCase() === "none") return null;
-  return Object.hasOwn(ADJUSTMENTS, named2) ? ADJUSTMENTS[named2] : named2;
+  const named = text(adjustment);
+  if (!named || named.toLowerCase() === "none") return null;
+  return Object.hasOwn(ADJUSTMENTS, named) ? ADJUSTMENTS[named] : named;
 }
 var formatLabel = (adjustment) => adjustment ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
 var ENDS_A_SENTENCE = /[.!?]$/;
@@ -462,17 +438,17 @@ var figure = (value) => String(Number(value.toPrecision(4)));
 var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
 function formatEstimate(estimate) {
   const row = estimate && typeof estimate === "object" ? estimate : {};
-  const refuse8 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+  const refuse5 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
   const name = text(row.name);
-  if (!name) return refuse8("it has no name");
-  if (!isNumber(row.estimate)) return refuse8(`${name} is not a number`);
+  if (!name) return refuse5("it has no name");
+  if (!isNumber(row.estimate)) return refuse5(`${name} is not a number`);
   const group = text(row.group);
   const lead = `${name}${group ? ` (${group})` : ""}: ${figure(row.estimate)}`;
   const bounds = [row.lower, row.upper, row.level];
   const absent = (value) => value === void 0 || value === null;
   if (bounds.every(absent)) return { status: "shown", text: `${lead}.` };
   if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
-    return refuse8(`the interval of ${name} is incomplete`);
+    return refuse5(`the interval of ${name} is incomplete`);
   }
   const percent = Number((row.level * 100).toPrecision(12));
   return {
@@ -480,31 +456,12 @@ function formatEstimate(estimate) {
     text: `${lead}, ${percent}% confidence interval ${figure(row.lower)} to ${figure(row.upper)}.`
   };
 }
-function formatMedian(estimate) {
-  const row = estimate && typeof estimate === "object" ? estimate : {};
-  const refuse8 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
-  const name = text(row.name);
-  if (!name) return refuse8("it has no name");
-  const absent = (value) => value === void 0 || value === null;
-  for (const part of ["estimate", "lower", "upper"]) {
-    if (!absent(row[part]) && !isNumber(row[part])) return refuse8(`${name} is not a number`);
-  }
-  if (!(row.level > 0 && row.level < 1)) return refuse8(`the interval of ${name} has no level`);
-  const said2 = (value) => absent(value) ? "not reached" : figure(value);
-  const group = text(row.group);
-  const percent = Number((row.level * 100).toPrecision(12));
-  const interval = absent(row.lower) && absent(row.upper) ? "not reached" : `${said2(row.lower)} to ${said2(row.upper)}`;
-  return {
-    status: "shown",
-    text: `${name}${group ? ` (${group})` : ""}: ${said2(row.estimate)}, ${percent}% confidence interval ${interval}.`
-  };
-}
 function formatComparison(comparison) {
   const row = comparison && typeof comparison === "object" ? comparison : {};
   const groups = [text(row.group_1), text(row.group_2)];
   const n = [row.n_1, row.n_2];
-  const named2 = groups.every(Boolean);
-  const counted = named2 && n.every(isCount);
+  const named = groups.every(Boolean);
+  const counted = named && n.every(isCount);
   const parts = read({
     status: row.status,
     method: row.method,
@@ -513,12 +470,12 @@ function formatComparison(comparison) {
     reason: row.reason,
     counts: counted ? { [groups[0]]: n[0], [groups[1]]: n[1] } : void 0
   });
-  const pair = { groups: named2 ? groups : null, n: counted ? n : null };
-  const shown2 = named2 && parts.status === "shown";
-  const result = named2 ? parts.text : refused("the comparison does not name its two groups").text;
+  const pair = { groups: named ? groups : null, n: counted ? n : null };
+  const shown2 = named && parts.status === "shown";
+  const result = named ? parts.text : refused("the comparison does not name its two groups").text;
   return {
-    status: named2 ? parts.status : "refused",
-    text: named2 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
+    status: named ? parts.status : "refused",
+    text: named ? `${groups[0]} and ${groups[1]}: ${result}` : result,
     result,
     ...pair,
     method: shown2 ? parts.method : null,
@@ -559,15 +516,15 @@ function formatGroup(row) {
     counts: counted ? given2.counts : void 0
   });
   if (parts.status !== "shown") return whole(parts.status, parts.text);
-  const refuse8 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-  if (!isNumber(given2.estimate)) return refuse8("the group\u2019s estimate is not a number");
+  const refuse5 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+  if (!isNumber(given2.estimate)) return refuse5("the group\u2019s estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse8("the interval of the group\u2019s estimate is incomplete");
+      return refuse5("the interval of the group\u2019s estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -596,9 +553,9 @@ function formatPair(row) {
   const names = [text(given2.x), text(given2.y)];
   const pair = names.every(Boolean) ? names : null;
   const counted = isCount(given2.counts);
-  const whole = (status, said2) => ({
+  const whole = (status, said) => ({
     status,
-    text: said2,
+    text: said,
     pair,
     n: counted ? given2.counts : null,
     estimate: null,
@@ -606,8 +563,8 @@ function formatPair(row) {
     bounds: null,
     level: null
   });
-  const refuse8 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-  if (!pair) return refuse8("the row does not name its two variables");
+  const refuse5 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+  if (!pair) return refuse5("the row does not name its two variables");
   const counts = counted ? `n = ${given2.counts}` : null;
   const reason = text(given2.reason);
   if (given2.status === "error") {
@@ -619,15 +576,15 @@ function formatPair(row) {
       withCounts(SAYS_NOT_COMPUTED.test(reason) ? reason : `Not computed, ${reason}`, counts)
     );
   }
-  if (!counted) return refuse8("the pair does not give the number of complete pairs it used");
-  if (!isNumber(given2.estimate)) return refuse8("the pair\u2019s estimate is not a number");
+  if (!counted) return refuse5("the pair does not give the number of complete pairs it used");
+  if (!isNumber(given2.estimate)) return refuse5("the pair\u2019s estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse8("the interval of the pair\u2019s estimate is incomplete");
+      return refuse5("the interval of the pair\u2019s estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -648,8 +605,8 @@ function formatPair(row) {
 function formatScreenRow(row, groups = null) {
   const given2 = row && typeof row === "object" ? row : {};
   const biomarker = text(given2.biomarker);
-  const named2 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
-  const twoCounts = named2 && isCount(given2.n_1) && isCount(given2.n_2);
+  const named = Array.isArray(groups) && groups.length === 2 && groups.every(text);
+  const twoCounts = named && isCount(given2.n_1) && isCount(given2.n_2);
   const counts = twoCounts ? { [groups[0]]: given2.n_1, [groups[1]]: given2.n_2 } : isCount(given2.counts) ? given2.counts : void 0;
   const n = formatCounts(counts);
   const none = {
@@ -681,24 +638,24 @@ function formatScreenRow(row, groups = null) {
     counts
   });
   if (raw.status !== "shown") return whole(raw.status, raw.text);
-  const refuse8 = (what) => whole("refused", `Row not shown: ${what}.`);
+  const refuse5 = (what) => whole("refused", `Row not shown: ${what}.`);
   const adjustment = adjustmentName(given2.adjustment);
-  if (!adjustment) return refuse8("the row does not name the adjustment of its p-value");
+  if (!adjustment) return refuse5("the row does not name the adjustment of its p-value");
   if (!isCount(given2.adjusted_over) || given2.adjusted_over < 1) {
-    return refuse8("the row does not say how many rows its p-value was adjusted across");
+    return refuse5("the row does not say how many rows its p-value was adjusted across");
   }
   const p = given2.p_value;
   if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
-    return refuse8("the adjusted p-value is not a number between 0 and 1");
+    return refuse5("the adjusted p-value is not a number between 0 and 1");
   }
-  if (!isNumber(given2.estimate)) return refuse8("the estimate is not a number");
+  if (!isNumber(given2.estimate)) return refuse5("the estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse8("the interval of the estimate is incomplete");
+      return refuse5("the interval of the estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -732,130 +689,15 @@ function formatScreenRow(row, groups = null) {
 var core_exports = {};
 __export(core_exports, {
   BASELINE_STATS: () => BASELINE_STATS,
-  CUTS: () => CUTS,
   DEFAULT_SETTINGS: () => DEFAULT_SETTINGS,
   DROPPED: () => DROPPED,
   UNUSED: () => UNUSED,
   VALUE_TYPES: () => VALUE_TYPES,
-  cutGroup: () => cutGroup,
-  cutLabels: () => cutLabels,
-  cutPoints: () => cutPoints,
-  cutWords: () => cutWords,
   frame: () => frame,
   label: () => label,
   variable: () => variable,
   visits: () => visits
 });
-
-// src/core/cut.js
-var CUTS = Object.freeze(["median", "tertiles", "quartiles"]);
-var PROBS = { median: [0.5], tertiles: [1 / 3, 2 / 3], quartiles: [1 / 4, 2 / 4, 3 / 4] };
-var isMissing = (value) => typeof value !== "number" || !Number.isFinite(value);
-function quantile7(sorted2, p) {
-  const index = 1 + (sorted2.length - 1) * p;
-  const lo = Math.floor(index);
-  const hi = Math.ceil(index);
-  const below = sorted2[lo - 1];
-  const above = sorted2[hi - 1];
-  if (!(index > lo) || above === below) return below;
-  const h = index - lo;
-  return (1 - h) * below + h * above;
-}
-function roundHalfEven(value) {
-  const floor = Math.floor(value);
-  const rest = value - floor;
-  if (rest > 0.5) return floor + 1;
-  if (rest < 0.5) return floor;
-  return floor % 2 === 0 ? floor : floor + 1;
-}
-function powDi(x, n) {
-  let base = x;
-  let power = 1;
-  let left = Math.abs(n);
-  for (; ; ) {
-    if (left % 2 === 1) power *= base;
-    left = Math.floor(left / 2);
-    if (left === 0) break;
-    base *= base;
-  }
-  return n < 0 ? 1 / power : power;
-}
-var MAX10E = 308;
-function signif(x, digits) {
-  if (x === 0 || !Number.isFinite(x)) return x;
-  const sign = x < 0 ? -1 : 1;
-  const size = Math.abs(x);
-  const l10 = Math.log10(size);
-  let e10 = digits - 1 - Math.floor(l10);
-  if (Math.abs(l10) < MAX10E - 2) {
-    let p102 = 1;
-    if (e10 > MAX10E) {
-      p102 = powDi(10, e10 - MAX10E);
-      e10 = MAX10E;
-    }
-    if (e10 > 0) {
-      const scale2 = powDi(10, e10);
-      return sign * (roundHalfEven(size * scale2 * p102) / scale2) / p102;
-    }
-    const scale = powDi(10, -e10);
-    return sign * (roundHalfEven(size / scale) * scale);
-  }
-  const e2 = digits + (e10 > 0 ? 1 : 6);
-  const p10 = powDi(10, e2);
-  const P10 = powDi(10, e10 - e2);
-  let scaled = size * p10 * P10;
-  if (MAX10E - l10 >= powDi(10, -digits)) scaled += 0.5;
-  return sign * (Math.floor(scaled) / p10) / P10;
-}
-function writePoint(point) {
-  let rounded = signif(point, 4);
-  if (!Number.isFinite(rounded)) rounded = point;
-  if (rounded === 0) return "0";
-  const sign = rounded < 0 ? "-" : "";
-  const size = Math.abs(rounded);
-  if (Number.isInteger(size)) return sign + BigInt(size).toString();
-  const [mantissa, exponent] = size.toExponential(3).split("e");
-  const digits = mantissa.replace(".", "").replace(/0+$/, "");
-  const place = Number(exponent) + 1;
-  if (place <= 0) return `${sign}0.${"0".repeat(-place)}${digits}`;
-  if (place >= digits.length) return sign + digits + "0".repeat(place - digits.length);
-  return `${sign}${digits.slice(0, place)}.${digits.slice(place)}`;
-}
-function boundLabels(points) {
-  if (!points.length) return [];
-  const bounds = points.map(writePoint);
-  return [
-    `\u2264 ${bounds[0]}`,
-    ...bounds.slice(1).map((bound, index) => `> ${bounds[index]}, \u2264 ${bound}`),
-    `> ${bounds[bounds.length - 1]}`
-  ];
-}
-function cutLabels(points) {
-  return [...new Set(boundLabels(points))];
-}
-function cutPoints(values, cut) {
-  const present4 = values.filter((value) => !isMissing(value)).sort((a, b) => a - b);
-  const typed = Array.isArray(cut);
-  let asked;
-  if (typed) asked = [...cut];
-  else asked = present4.length ? PROBS[cut].map((p) => quantile7(present4, p)) : [];
-  const points = asked.filter((point, index) => asked.indexOf(point) === index);
-  const labels = cutLabels(points);
-  return {
-    cut: typed ? [...cut] : cut,
-    n: present4.length,
-    asked,
-    points,
-    repeated: points.length < asked.length,
-    merged: points.length > 0 && labels.length < points.length + 1,
-    labels
-  };
-}
-function cutGroup(value, points) {
-  if (isMissing(value)) return null;
-  const labels = boundLabels(points);
-  return cutLabels(points).indexOf(labels[points.filter((point) => point < value).length]);
-}
 
 // src/core/variable.js
 var VALUE_TYPES = Object.freeze([
@@ -881,11 +723,14 @@ function variable(spec) {
   const unknown = Object.keys(spec).filter((key) => key !== "kind" && !KEYS.includes(key));
   if (unknown.length) {
     refuse(
-      `the variable ${written} has a key that is not known: ${unknown.join(", ")}. A variable takes ${KEYS.join(", ")}.`
+      `the variable ${written} has a key that is not known: ${unknown.join(", ")}. A variable takes ${KEYS.filter((key) => key !== "cut").join(", ")}.`
     );
   }
-  const cut = given(spec.cut) ? readCut(spec.cut, written) : null;
-  const done = (read2) => Object.freeze(cut === null ? read2 : { ...read2, cut });
+  if (given(spec.cut)) {
+    refuse(
+      `the variable ${written} asks for a cut, and the cut rule is not available yet: it arrives with cross-tabulation. Until then a group comes from a column.`
+    );
+  }
   const hasMeasure = given(spec.measure);
   const hasColumn2 = given(spec.col);
   if (hasMeasure === hasColumn2) {
@@ -905,12 +750,7 @@ function variable(spec) {
         `the variable ${written}: \`type\` can only be 'number', to read the column as a number.`
       );
     }
-    if (cut !== null && spec.type !== "number") {
-      refuse(
-        `the variable ${written} cuts a column, so it must be read as a number: add \`type: 'number'\`.`
-      );
-    }
-    return done({ kind: "column", col: spec.col, type: spec.type ?? null });
+    return Object.freeze({ kind: "column", col: spec.col, type: spec.type ?? null });
   }
   if (!isText(spec.measure)) {
     refuse(`the variable ${written}: \`measure\` must be the name of a biomarker.`);
@@ -932,66 +772,24 @@ function variable(spec) {
         `the variable ${written} is a baseline value, which is read at the baseline visits named in settings: it takes no \`visit\`.`
       );
     }
-    return done({ kind: "measure", measure: spec.measure, visit: null, value });
+    return Object.freeze({ kind: "measure", measure: spec.measure, visit: null, value });
   }
   if (!isText(spec.visit)) {
     refuse(`the variable ${written} must name its visit: \`visit\` is missing or empty.`);
   }
-  return done({ kind: "measure", measure: spec.measure, visit: spec.visit, value });
-}
-function readCut(cut, written) {
-  if (typeof cut === "string" && CUTS.includes(cut)) return cut;
-  if (!Array.isArray(cut)) {
-    refuse(
-      `the variable ${written}: \`cut\` must be ${CUTS.map((name) => `'${name}'`).join(", ")} or a list of cut points in ascending order, and it is ${JSON.stringify(cut)}.`
-    );
-  }
-  if (!cut.length) {
-    refuse(`the variable ${written}: \`cut\` is an empty list: give one cut point or more.`);
-  }
-  for (const point of cut) {
-    if (typeof point !== "number" || !Number.isFinite(point)) {
-      refuse(
-        `the variable ${written}: a cut point must be a finite number, and ${typeof point === "number" ? String(point) : JSON.stringify(point)} is not one.`
-      );
-    }
-  }
-  for (let index = 1; index < cut.length; index += 1) {
-    if (!(cut[index] > cut[index - 1])) {
-      refuse(
-        `the variable ${written}: the cut points must be in ascending order, each greater than the one before: ${cut[index - 1]} then ${cut[index]}.`
-      );
-    }
-  }
-  for (let index = 1; index < cut.length; index += 1) {
-    const bound = writePoint(cut[index]);
-    if (bound === writePoint(cut[index - 1])) {
-      refuse(
-        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both written ${bound} to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits.`
-      );
-    }
-  }
-  return Object.freeze([...cut]);
+  return Object.freeze({ kind: "measure", measure: spec.measure, visit: spec.visit, value });
 }
 var WORDS = {
   change: "change from baseline",
   fold_change: "fold change from baseline",
   percent_change: "percent change from baseline"
 };
-var listed = (items) => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
-function cutWords(cut) {
-  return Array.isArray(cut) ? `cut at ${listed(cut.map(writePoint))}` : `cut at the ${cut}`;
-}
 function label(spec) {
   const read2 = variable(spec);
-  let words;
-  if (read2.kind === "column") words = read2.col;
-  else if (read2.value === "baseline") words = `${read2.measure} at baseline`;
-  else {
-    const at = `${read2.measure} at ${read2.visit}`;
-    words = read2.value === "raw" ? at : `${at}, ${WORDS[read2.value]}`;
-  }
-  return read2.cut === void 0 ? words : `${words}, ${cutWords(read2.cut)}`;
+  if (read2.kind === "column") return read2.col;
+  if (read2.value === "baseline") return `${read2.measure} at baseline`;
+  const at = `${read2.measure} at ${read2.visit}`;
+  return read2.value === "raw" ? at : `${at}, ${WORDS[read2.value]}`;
 }
 
 // src/core/reasons.js
@@ -1152,7 +950,7 @@ function frame(tables, variables, settings) {
     refuse3("frame() takes the variables as an object, each under the name of its field.");
   }
   const idCol = config.id_col;
-  const named2 = Object.entries(variables).map(([name, spec]) => {
+  const named = Object.entries(variables).map(([name, spec]) => {
     if (name.trim() === "" || name !== name.trim()) {
       refuse3("a variable needs a name with no space at either end: it is the name of its field.");
     }
@@ -1162,10 +960,10 @@ function frame(tables, variables, settings) {
     return { name, variable: variable(spec) };
   });
   const required = new Set(
-    config.required === null ? named2.map(({ name }) => name) : config.required
+    config.required === null ? named.map(({ name }) => name) : config.required
   );
   for (const name of required) {
-    if (!named2.some((entry) => entry.name === name)) {
+    if (!named.some((entry) => entry.name === name)) {
       refuse3(`\`required\` names \`${name}\`, which is not one of the variables.`);
     }
   }
@@ -1175,7 +973,7 @@ function frame(tables, variables, settings) {
     unusedCounts.set(key, (unusedCounts.get(key) || 0) + n);
   };
   needColumn(results, idCol, "id_col", "results");
-  const measures = named2.filter(({ variable: variable2 }) => variable2.kind === "measure");
+  const measures = named.filter(({ variable: variable2 }) => variable2.kind === "measure");
   const needsBaseline = measures.some(({ variable: variable2 }) => variable2.value !== "raw");
   if (measures.length) {
     needColumn(results, config.measure_col, "measure_col", "results");
@@ -1187,7 +985,7 @@ function frame(tables, variables, settings) {
     needColumn(participantTable, participantIdCol, "participant_id_col", "participant");
   }
   const columnSource = /* @__PURE__ */ new Map();
-  for (const { variable: variable2 } of named2) {
+  for (const { variable: variable2 } of named) {
     if (variable2.kind !== "column") continue;
     if (participantTable && hasColumn(participantTable, variable2.col)) {
       columnSource.set(variable2.col, "participants");
@@ -1307,7 +1105,7 @@ function frame(tables, variables, settings) {
     const source = participantRow.get(id) || (resultRows.get(id) || [])[0];
     const record = { [idCol]: source[participantRow.has(id) ? participantIdCol : idCol] };
     let leftOut = null;
-    for (const { name, variable: variable2 } of named2) {
+    for (const { name, variable: variable2 } of named) {
       const found = variable2.kind === "measure" ? measureValue(id, variable2) : columnValue(id, variable2);
       if ("value" in found) {
         record[name] = found.value;
@@ -1330,7 +1128,7 @@ function frame(tables, variables, settings) {
   if (notInTable) {
     dropped.push({ reason: DROPPED.NOT_IN_PARTICIPANT_TABLE, variable: null, n: notInTable });
   }
-  for (const { name } of named2) {
+  for (const { name } of named) {
     for (const reason of reasons) {
       const n = droppedCounts.get(`${name}\0${reason}`);
       if (n) dropped.push({ reason, variable: name, n });
@@ -1346,7 +1144,7 @@ function frame(tables, variables, settings) {
   return {
     data,
     id_col: idCol,
-    variables: Object.fromEntries(named2.map(({ name, variable: variable2 }) => [name, variable2])),
+    variables: Object.fromEntries(named.map(({ name, variable: variable2 }) => [name, variable2])),
     participants: ids.length + notInTable,
     dropped,
     unused: unusedList,
@@ -1354,338 +1152,418 @@ function frame(tables, variables, settings) {
   };
 }
 
-// src/output.js
-var output_exports = {};
-__export(output_exports, {
-  FILTER_OPERATORS: () => FILTER_OPERATORS,
-  SPECIFICATION_FORMAT: () => SPECIFICATION_FORMAT,
-  SPECIFICATION_VERSION: () => SPECIFICATION_VERSION,
-  TITLE_DEFAULTS: () => TITLE_DEFAULTS,
-  automaticFootnote: () => automaticFootnote,
-  countsText: () => countsText,
-  fillParts: () => fillParts,
-  fillText: () => fillText,
-  parseCsv: () => parseCsv,
-  placeholdersIn: () => placeholdersIn,
-  readSpecification: () => readChartSpecification,
-  toCsv: () => toCsv
+// src/shared/chartHost.js
+var PALETTE = [
+  "#2563eb",
+  "#059669",
+  "#d97706",
+  "#9333ea",
+  "#dc2626",
+  "#0891b2",
+  "#65a30d",
+  "#db2777",
+  "#4b5563",
+  "#ca8a04"
+];
+var VALUE_LABELS = Object.freeze({
+  raw: "Result",
+  baseline: "Baseline",
+  change: "Change from baseline",
+  fold_change: "Fold change from baseline",
+  percent_change: "Percent change from baseline"
 });
+var SCALE_LABELS = Object.freeze({ linear: "Linear", log: "Logarithmic" });
+var hexToRgba = (hex, alpha) => {
+  const value = hex.replace("#", "");
+  const part = (at) => parseInt(value.slice(at, at + 2), 16);
+  return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
+};
+var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
+var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
+function findKit(chart) {
+  const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
+  if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
+    throw new Error(
+      `bio.viz: ${chart} is built from safety.viz's kit, and \`SafetyViz.kit\` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart.`
+    );
+  }
+  return kit;
+}
+function applyStyles(id, styles) {
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = styles;
+  document.head.append(style);
+}
+var lineStyles = (root) => `
+${root} .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
+${root} .bv-statistic:empty{display:none}
+${root} .bv-statistic p{margin:0 0 .3rem}
+${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
+${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
+${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
+${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
+${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
+${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
+${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
+${root} .bv-stat-method{display:block;color:#52616f}
+${root} .bv-panel-canvas{height:300px;position:relative}
+${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
+${root} .sv-listing table{table-layout:fixed}
+${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
+${root} .sv-rail{max-width:100%;overflow-x:auto}
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
+function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
+  const { kit } = chart;
+  Object.assign(
+    chart,
+    kit.renderShell(chart.element, {
+      moduleClass,
+      onToggle: () => chart.resize()
+    })
+  );
+  applyStyles(styleId, styles);
+  chart.statLine = kit.createElement("div", "bv-statistic");
+  chart.statLine.setAttribute("role", "status");
+  chart.footnote.after(chart.statLine);
+  chart.host = {
+    settings: {
+      profile: chart.settings.profile,
+      id_col: chart.settings.id_col,
+      page_size: chart.settings.page_size,
+      details: []
+    },
+    root: chart.root,
+    railWrap: chart.railWrap,
+    listingWrap: chart.listingWrap,
+    currentTableData: [],
+    listingSearch: "",
+    listingSort: null,
+    listingSelectedId: null,
+    page: 1,
+    profileRows: [],
+    onListingRowClick: (row) => selectParticipant(chart, row[chart.settings.id_col])
+  };
+  chart.listingWrap.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest && event.target.closest("button");
+      if (!button || button.textContent !== "Export: CSV") return;
+      event.stopPropagation();
+      event.preventDefault();
+      downloadListing(chart, listingFile);
+    },
+    true
+  );
+  if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
+    chart.sidebarToggle.click();
+  }
+}
+function checkTables(tables, settings) {
+  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
+    const column = settings[key];
+    if (tables.results.length && !tables.results.some((row) => column in row)) {
+      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
+    }
+  }
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  if (tables.participants != null && tables.participants.length && !tables.participants.some((row) => participantIdCol in row)) {
+    throw new TypeError(
+      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
+    );
+  }
+}
+function readGiven(chart, data, settings = chart.settings) {
+  const tables = Array.isArray(data) ? { results: data } : data || {};
+  try {
+    if (!isRecordTable(tables.results)) {
+      throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
+    }
+    if (tables.participants != null && !isRecordTable(tables.participants)) {
+      throw new TypeError(
+        "bio.viz: `participants` must be an array of records, one object per row."
+      );
+    }
+    checkTables(tables, settings);
+  } catch (error) {
+    chart.destroyCharts();
+    chart.element.innerHTML = "";
+    chart.element.append(chart.kit.createElement("div", "sv-warning", error.message));
+    throw error;
+  }
+  return {
+    results: tables.results,
+    participants: tables.participants && tables.participants.length ? tables.participants : null
+  };
+}
+function drawSafely(chart, draw) {
+  chart.footnote.classList.remove("bv-failure");
+  try {
+    draw();
+  } catch (error) {
+    if (chart.desk) chart.desk.begin();
+    chart.asked = [];
+    chart.model = null;
+    if ("answer" in chart) chart.answer = null;
+    chart.destroyCharts();
+    clearListing(chart);
+    for (const wrap of [
+      chart.notes,
+      chart.multiplesWrap,
+      chart.listingWrap,
+      chart.gridWrap,
+      chart.screenWrap
+    ]) {
+      if (wrap) wrap.innerHTML = "";
+    }
+    if (chart.chartWrap) chart.chartWrap.classList.add("sv-hidden");
+    chart.statLine.textContent = "";
+    chart.statLine.dataset.state = "empty";
+    const message = String(error && error.message || error).replace(/^bio\.viz: /, "");
+    chart.footnote.textContent = `This chart could not be drawn: ${message}`;
+    chart.footnote.classList.add("bv-failure");
+    console.error(error);
+  }
+}
+function syncHost(chart) {
+  chart.host.settings.profile = chart.settings.profile;
+  chart.host.settings.id_col = chart.settings.id_col;
+  chart.host.settings.page_size = chart.settings.page_size;
+}
+function addFilterControls(chart, { addSection, addControl }, onChange) {
+  const { kit, state } = chart;
+  if (!chart.filterSpecs.length) return;
+  const filters = addSection("Filters");
+  const idCol = chart.settings.participant_id_col || chart.settings.id_col;
+  const drawn = chart.filterSpecs.filter((spec) => spec.value_col !== idCol);
+  kit.reconcileFilters(
+    state.filters,
+    drawn,
+    (spec) => [
+      ...new Set(
+        chart.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
+      )
+    ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }))
+  ).forEach(({ spec, values, selected }) => {
+    const control = kit.renderFilterControl({
+      spec,
+      values,
+      selected,
+      onChange: (next) => {
+        state.filters[spec.value_col] = next;
+        onChange();
+      }
+    });
+    control.dataset.filter = spec.value_col;
+    addControl(spec.label, control, filters);
+  });
+}
+function filtersForScope(chart) {
+  return chart.filterSpecs.map((spec) => ({ label: spec.label, selection: chart.state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
+    label: label2,
+    values: (Array.isArray(selection) ? selection : [selection]).map(String)
+  })).filter(({ values }) => values.length);
+}
+function statTable({ caption, head, rows }, kit) {
+  const table = kit.createElement("table", "bv-stat-pairs");
+  table.append(kit.createElement("caption", null, caption));
+  const header = document.createElement("tr");
+  head.forEach((title) => {
+    const cell = kit.createElement("th", null, title);
+    cell.scope = "col";
+    header.append(cell);
+  });
+  const thead = document.createElement("thead");
+  thead.append(header);
+  const tbody = document.createElement("tbody");
+  rows.forEach((row) => {
+    const line = document.createElement("tr");
+    line.dataset.status = row.status;
+    const lead = kit.createElement("th", null, row.head);
+    lead.scope = "row";
+    if (row.sub) lead.append(kit.createElement("span", "bv-stat-method", row.sub));
+    line.append(lead, ...row.cells.map((cell) => kit.createElement("td", null, cell)));
+    tbody.append(line);
+  });
+  table.append(thead, tbody);
+  return table;
+}
+function writeStatistic(kit, line, description) {
+  line.dataset.state = description.state;
+  line.innerHTML = "";
+  line.append(kit.createElement("p", "bv-stat-result", description.text));
+  description.estimates.forEach(
+    (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
+  );
+  if (description.table) line.append(statTable(description.table, kit));
+  description.remarks.forEach(({ kind, text: text2 }) => {
+    const remark = kit.createElement("p", "bv-stat-remark", text2);
+    remark.dataset.kind = kind;
+    line.append(remark);
+  });
+  if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
+}
+function showListing(chart, { columns, rows }) {
+  const { host, settings } = chart;
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  const byId = new Map(
+    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+  );
+  host.settings.details = columns;
+  host.currentTableData = rows.map((row) => ({
+    ...byId.get(String(row[settings.id_col])) || {},
+    ...row
+  }));
+  host.listingSearch = "";
+  host.listingSort = null;
+  host.page = 1;
+  chart.kit.renderListing(host);
+}
+function selectParticipant(chart, id) {
+  const { host } = chart;
+  host.listingSelectedId = id == null ? null : String(id);
+  if (host.currentTableData.length) chart.kit.renderListing(host);
+  chart.root.dispatchEvent(
+    new CustomEvent("participantsSelected", {
+      detail: { data: id == null ? [] : [String(id)] },
+      bubbles: true
+    })
+  );
+}
+function clearListing(chart) {
+  const { host } = chart;
+  host.currentTableData = [];
+  host.listingSelectedId = null;
+  chart.listingWrap.innerHTML = "";
+  chart.kit.resetProfileRail(host);
+}
+function downloadCsv(kit, rows, columns, file) {
+  const blob = new Blob([kit.buildCsv(rows, columns)], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+function downloadListing(chart, file) {
+  const { host, kit } = chart;
+  let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
+  if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
+  downloadCsv(kit, rows, host.settings.details, file);
+}
+function railColumns(settings) {
+  return {
+    id_col: settings.id_col,
+    measure_col: settings.measure_col,
+    value_col: settings.value_col,
+    unit_col: settings.unit_col,
+    visit_col: settings.visit_col,
+    visitn_col: settings.visit_order_col,
+    studyday_col: settings.studyday_col,
+    normal_col_high: settings.normal_col_high,
+    normal_col_low: settings.normal_col_low
+  };
+}
+function railSettings(chart, axisType) {
+  const { settings } = chart;
+  const details = settings.profile_details || chart.categories.filter((entry) => entry.table !== "results" || !chart.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
+  const rail = {
+    ...railColumns(settings),
+    details,
+    // Every biomarker is a measure the rail shows, not only the four liver
+    // tests it was made for.
+    measure_values: Object.fromEntries(chart.measures.map((measure) => [measure, measure])),
+    axis_type: axisType === "log" ? "log" : "linear",
+    on_clear: () => selectParticipant(chart, null)
+  };
+  if (settings.normal_col_high) return rail;
+  const none = { relative_uln: null, relative_baseline: null };
+  return {
+    ...rail,
+    display: "relative_baseline",
+    display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
+    cuts: { defaults: none, TB: none, ALP: none }
+  };
+}
+function buildProfileFeed(chart, settingsOf) {
+  const { settings, host, kit } = chart;
+  host.profileRows = [];
+  if (!settings.profile) return;
+  const participantIdCol = settings.participant_id_col || settings.id_col;
+  const byId = new Map(
+    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
+  );
+  const ranged = Boolean(settings.normal_col_high);
+  const feed = chart.tables.results.map((row) => ({
+    ...byId.get(String(row[settings.id_col])) || {},
+    ...row,
+    ...ranged ? {} : { __bv_no_reference_range: 1 }
+  }));
+  host.profileRows = kit.buildProfileRows(feed, {
+    ...railColumns(settings),
+    normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
+  });
+  kit.mountProfileRail(host, settingsOf);
+}
+function renderPager(kit, page, count, go) {
+  const pager = kit.createElement("div", "bv-overview-pager");
+  pager.append(kit.createElement("span", "bv-overview-count", count));
+  if (page.pages === 1) return pager;
+  const button = (label2, to, name) => {
+    const made = kit.createElement("button", null, label2);
+    made.type = "button";
+    made.dataset.go = name;
+    made.disabled = to < 0 || to >= page.pages;
+    made.onclick = () => go(to);
+    return made;
+  };
+  pager.append(
+    button("Previous", page.page - 1, "previous"),
+    kit.createElement("span", "bv-overview-page", `Page ${page.page + 1} of ${page.pages}`),
+    button("Next", page.page + 1, "next")
+  );
+  return pager;
+}
+function mountToolbar(chart) {
+  const { kit, settings } = chart;
+  if (!chart.toolbar) {
+    chart.toolbar = kit.createElement("div", "bv-toolbar");
+    chart.notes.before(chart.toolbar);
+  }
+  chart.toolbar.innerHTML = "";
+  if (settings.back) {
+    const back = kit.createElement("button", "bv-back", settings.back.label);
+    back.type = "button";
+    back.onclick = () => settings.back.action(chart);
+    chart.toolbar.append(back);
+  }
+  return chart.toolbar;
+}
+var toolbarStyles = (C3) => `${C3} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
+${C3} .bv-toolbar:empty{display:none}
+${C3} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${C3} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
+${C3} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
 
-// src/shared/titles.js
+// src/shared/settings.js
 var isText3 = (value) => typeof value === "string" && value.trim() !== "";
+var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 var refuse4 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
-var VERSION = true ? "0.1.0" : "unbuilt";
-var DEVELOPMENT = true ? true : true;
-var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
-var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
-var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
-function checkDownloads(settings) {
-  if (typeof settings.downloads !== "boolean") refuse4("`downloads` must be true or false.");
-  const scale = settings.png_scale;
-  if (typeof scale !== "number" || !Number.isFinite(scale) || scale < 1 || scale > 4) {
-    refuse4("`png_scale` must be a number from 1 to 4: image pixels per CSS pixel.");
-  }
-}
-var PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
-function fillText(template, values = {}) {
-  return fillParts(template, values).map((part) => part.text).join("");
-}
-function fillParts(template, values = {}) {
-  const text2 = String(template);
-  const parts = [];
-  const push = (piece, value) => {
-    if (piece === "") return;
-    const last = parts[parts.length - 1];
-    if (!value && last && !last.value) last.text += piece;
-    else parts.push({ text: piece, value });
-  };
-  let at = 0;
-  for (const match of text2.matchAll(PLACEHOLDER)) {
-    push(text2.slice(at, match.index), false);
-    const [written, name] = match;
-    if (Object.prototype.hasOwnProperty.call(values, name)) {
-      const value = values[name];
-      push(value === null || value === void 0 ? "" : String(value), true);
-    } else push(written, false);
-    at = match.index + written.length;
-  }
-  push(text2.slice(at), false);
-  return parts;
-}
-var placeholdersIn = (template) => [
-  ...new Set([...String(template).matchAll(PLACEHOLDER)].map((match) => match[1]))
-];
-function checkTitles(settings) {
-  for (const key of ["title", "subtitle"]) {
-    if (settings[key] !== null && typeof settings[key] !== "string") {
-      refuse4(`\`${key}\` must be text, which may hold placeholders such as {n}, or null for none.`);
-    }
-  }
-  const { footnotes } = settings;
-  if (footnotes === null) return;
-  const list = Array.isArray(footnotes) ? footnotes : [footnotes];
-  if (!list.every((entry) => typeof entry === "string")) {
-    refuse4("`footnotes` must be text, or a list of texts, or null for none.");
-  }
-  settings.footnotes = list.filter((entry) => entry.trim() !== "");
-}
-var NOTHING_ASKED = "No statistic was asked of R.";
-var STILL_WAITING = "Statistics: waiting for R.";
-var dateDrawn = (when = /* @__PURE__ */ new Date()) => when.toISOString().slice(0, 10);
-var countOf = (count) => {
-  if (typeof count === "number") return Number.isFinite(count) ? count : null;
-  if (typeof count === "string" && /^\s*-?\d+(\.\d+)?\s*$/.test(count)) return Number(count);
-  return null;
-};
-function countsText(counts, of = "groups") {
-  const one = countOf(counts);
-  if (one !== null) return `n = ${one}`;
-  if (counts === null || typeof counts !== "object" || Array.isArray(counts)) return null;
-  const entries = [];
-  for (const [group, count] of Object.entries(counts)) {
-    const read2 = countOf(count);
-    if (read2 !== null) entries.push([group, read2]);
-  }
-  if (!entries.length) return null;
-  if (entries.length <= 4)
-    return entries.map(([group, count]) => `${group} n = ${count}`).join(", ");
-  let least = Infinity;
-  let most = -Infinity;
-  for (const [, count] of entries) {
-    if (count < least) least = count;
-    if (count > most) most = count;
-  }
-  return `${least === most ? `n = ${least}` : `n = ${least} to ${most}`} across ${entries.length} ${of}`;
-}
-var ADJUSTMENT_NAMES = Object.freeze({
-  BH: "Benjamini-Hochberg",
-  fdr: "Benjamini-Hochberg",
-  BY: "Benjamini-Yekutieli",
-  holm: "Holm",
-  hochberg: "Hochberg",
-  hommel: "Hommel",
-  bonferroni: "Bonferroni"
-});
-function methodsOf(value) {
-  const methods = [];
-  const adjustments = [];
-  const take = (entry) => {
-    if (!entry || typeof entry !== "object") return;
-    if (isText3(entry.method) && !methods.includes(entry.method)) methods.push(entry.method);
-    if (isText3(entry.adjustment) && entry.adjustment !== "none") {
-      const said2 = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
-      if (!adjustments.includes(said2)) adjustments.push(said2);
-    }
-  };
-  take(value);
-  for (const list of Object.values(value)) {
-    if (Array.isArray(list)) list.forEach(take);
-  }
-  return { methods, adjustments };
-}
-function sourceText(answer) {
-  if (answer.form === "browser") return "computed by R in this browser";
-  if (answer.form !== "precomputed") return "computed by R";
-  const by = answer.computedBy;
-  if (!by || !isText3(by.r_version)) return "stored with the page";
-  const gsmBio = isText3(by.gsm_bio_version) ? ` with gsm.bio ${by.gsm_bio_version}` : "";
-  const when = isText3(by.computed_at) && /^\d{4}-\d{2}-\d{2}/.test(by.computed_at) ? ` on ${by.computed_at.slice(0, 10)}` : "";
-  return `computed by R ${by.r_version}${gsmBio}${when}, stored with the page`;
-}
-function answerText(answer, of) {
-  const value = answer.value && typeof answer.value === "object" ? answer.value : {};
-  const { methods, adjustments } = methodsOf(value);
-  const [first, ...rest] = methods;
-  const method = !first ? "no statistic" : rest.length ? `${first}, with ${rest.join(" and ")}` : first;
-  const counts = countsText(value.counts, of);
-  return (counts ? `${method} (${counts})` : method) + (adjustments.length ? `, p-values adjusted by ${adjustments.join(" and ")}` : "");
-}
-function automaticFootnote({ date, version: version2, asked = [], of }) {
-  const drawn = `Drawn on ${date} by bio.viz ${version2}.`;
-  if (!asked.length) return `${drawn} ${NOTHING_ASKED}`;
-  if (asked.some((entry) => !entry.answer)) return `${drawn} ${STILL_WAITING}`;
-  const answers = asked.map((entry) => entry.answer);
-  const ok = answers.filter((answer) => answer.status === "ok");
-  if (!ok.length) {
-    const failed2 = answers.find((answer) => answer.status === "error");
-    return failed2 ? `${drawn} Statistics: R reported an error.` : `${drawn} Statistics: unavailable, as the line under the chart says.`;
-  }
-  const sources = [...new Set(ok.map(sourceText))];
-  const said2 = ok.map((answer) => answerText(answer, of)).join("; ");
-  const missing = answers.length - ok.length;
-  return `${drawn} Statistics: ${said2}; ${sources.join("; ")}.` + (missing ? ` ${missing} of ${answers.length} could not be computed.` : "");
-}
-
-// src/shared/csv.js
-var NEEDS_QUOTES = /[",\r\n]/;
-function csvField(value) {
-  if (value === null || value === void 0) return "";
-  let text2;
-  if (typeof value === "number") {
-    text2 = Number.isNaN(value) ? "NaN" : value === Infinity ? "Inf" : value === -Infinity ? "-Inf" : String(value);
-  } else if (typeof value === "boolean") text2 = value ? "TRUE" : "FALSE";
-  else text2 = String(value);
-  return NEEDS_QUOTES.test(text2) ? `"${text2.replace(/"/g, '""')}"` : text2;
-}
-function toCsv(rows, columns) {
-  const lines = [columns.map((column) => csvField(column.label)).join(",")];
-  for (const row of rows) {
-    lines.push(columns.map((column) => csvField(row[column.value_col])).join(","));
-  }
-  return `${lines.join("\r\n")}\r
-`;
-}
-function parseCsv(text2) {
-  const records = [];
-  let record = [];
-  let field = "";
-  let quoted = false;
-  let index = 0;
-  const end = () => {
-    record.push(field);
-    field = "";
-  };
-  while (index < text2.length) {
-    const char = text2[index];
-    if (quoted) {
-      if (char === '"' && text2[index + 1] === '"') {
-        field += '"';
-        index += 2;
-        continue;
-      }
-      if (char === '"') quoted = false;
-      else field += char;
-      index += 1;
-      continue;
-    }
-    if (char === '"') quoted = true;
-    else if (char === ",") end();
-    else if (char === "\r" && text2[index + 1] === "\n") {
-      end();
-      records.push(record);
-      record = [];
-      index += 2;
-      continue;
-    } else if (char === "\n") {
-      end();
-      records.push(record);
-      record = [];
-    } else field += char;
-    index += 1;
-  }
-  if (field !== "" || record.length) {
-    end();
-    records.push(record);
-  }
-  return records;
-}
-var isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-var OWN = ["asked", "function", "part", "item"];
-var refuse5 = (message) => {
-  throw new TypeError(`bio.viz: ${message}`);
-};
-function scalars(value, prefix, out = {}) {
-  const put = (name, entry) => {
-    if (Object.prototype.hasOwnProperty.call(out, name)) {
-      refuse5(`R\u2019s answer has two members written \`${name}\` in the statistics file.`);
-    }
-    out[name] = entry;
-  };
-  if (Array.isArray(value)) {
-    if (value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
-      if (value.length)
-        put(prefix, value.map((entry) => entry === null ? "NA" : String(entry)).join(" | "));
-      return out;
-    }
-    value.forEach((entry, at) => {
-      const name = `${prefix}/${at + 1}`;
-      if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
-      else put(name, entry);
-    });
-    return out;
-  }
-  for (const [key, entry] of Object.entries(value)) {
-    const name = prefix ? `${prefix}/${key}` : key;
-    if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
-    else put(name, entry);
-  }
-  return out;
-}
-function membersOf(object, parts) {
-  const out = {};
-  for (const [key, entry] of Object.entries(object)) {
-    if (OWN.includes(key) || key === "data" || key.startsWith("data/")) {
-      refuse5(`R\u2019s answer has a member \`${key}\`, which the statistics file names itself.`);
-    }
-    if (parts && Array.isArray(entry) && entry.some(isObject)) continue;
-    if (isObject(entry) || Array.isArray(entry)) scalars(entry, key, out);
-    else out[key] = entry;
-  }
-  return out;
-}
-function statisticsTable(asked) {
-  const rows = [];
-  asked.forEach((entry, index) => {
-    const answer = entry.answer;
-    if (!answer || answer.status !== "ok" || !isObject(answer.value)) return;
-    const about = {
-      asked: index + 1,
-      function: entry.name,
-      ...isObject(entry.dataId) || Array.isArray(entry.dataId) ? scalars(entry.dataId, "data") : { data: entry.dataId }
-    };
-    const value = answer.value;
-    rows.push({ ...about, part: "result", ...membersOf(value, true) });
-    for (const [key, list] of Object.entries(value)) {
-      if (!Array.isArray(list) || !list.some(isObject)) continue;
-      list.forEach((part, at) => {
-        if (isObject(part))
-          rows.push({ ...about, part: key, item: at + 1, ...membersOf(part, false) });
-      });
-    }
-  });
-  const order2 = [];
-  const seen = /* @__PURE__ */ new Set();
-  for (const row of rows) {
-    for (const key of Object.keys(row)) {
-      if (!seen.has(key)) {
-        seen.add(key);
-        order2.push(key);
-      }
-    }
-  }
-  return { columns: order2.map((key) => ({ value_col: key, label: key })), rows };
-}
-
-// src/group-comparison/configure.js
-var configure_exports = {};
-__export(configure_exports, {
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS2,
-  MARKS: () => MARKS,
-  TESTS: () => TESTS,
-  Y_SCALES: () => Y_SCALES,
-  coreSettings: () => coreSettings,
-  fieldSpec: () => fieldSpec,
-  syncSettings: () => syncSettings
-});
-
-// src/shared/settings.js
-var isText4 = (value) => typeof value === "string" && value.trim() !== "";
-var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-var refuse6 = (message) => {
-  throw new TypeError(`bio.viz: ${message}`);
-};
 function fieldSpec(value, setting) {
-  if (isText4(value)) return { value_col: value, label: value };
-  if (isPlainObject4(value) && isText4(value.value_col)) {
+  if (isText3(value)) return { value_col: value, label: value };
+  if (isPlainObject4(value) && isText3(value.value_col)) {
     return {
       ...value,
       value_col: value.value_col,
-      label: isText4(value.label) ? value.label : value.value_col
+      label: isText3(value.label) ? value.label : value.value_col
     };
   }
-  return refuse6(
+  return refuse4(
     `\`${setting}\` holds something that is not a column name or { value_col, label }.`
   );
 }
@@ -1694,17 +1572,17 @@ function fieldList(value, setting) {
   const list = Array.isArray(value) ? value : [value];
   return list.map((entry) => fieldSpec(entry, setting));
 }
-function textList2(value, setting, { empty = false } = {}) {
+function textList2(value, setting) {
   if (value === null || value === void 0) return null;
   const list = Array.isArray(value) ? value : [value];
-  if (!list.length && !empty || !list.every((entry) => isText4(entry) || typeof entry === "number")) {
-    refuse6(`\`${setting}\` must be a name, or a list of names.`);
+  if (!list.length || !list.every((entry) => isText3(entry) || typeof entry === "number")) {
+    refuse4(`\`${setting}\` must be a name, or a list of names.`);
   }
   return [...new Set(list.map(String))];
 }
 var columnOrNull = (settings, key) => {
-  if (settings[key] !== null && !isText4(settings[key])) {
-    refuse6(`\`${key}\` must be the name of a column, or null.`);
+  if (settings[key] !== null && !isText3(settings[key])) {
+    refuse4(`\`${key}\` must be the name of a column, or null.`);
   }
 };
 function coreSettings(settings) {
@@ -1721,12 +1599,12 @@ function coreSettings(settings) {
 }
 function layOver(defaults, overrides, chart) {
   if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
-    refuse6(`${chart} takes its settings as an object.`);
+    refuse4(`${chart} takes its settings as an object.`);
   }
   const given2 = overrides || {};
   for (const key of Object.keys(given2)) {
     if (!(key in defaults)) {
-      refuse6(
+      refuse4(
         `\`${key}\` is not a setting of ${chart}. Its settings are ${Object.keys(defaults).join(", ")}.`
       );
     }
@@ -1739,433 +1617,40 @@ function layOver(defaults, overrides, chart) {
 }
 function checkShared(settings, baselineStats) {
   for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-    if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
+    if (!isText3(settings[key])) refuse4(`\`${key}\` must be the name of a column.`);
   }
   if (!baselineStats.includes(settings.baseline_stat)) {
-    refuse6(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
+    refuse4(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
   }
   if ("profile" in settings && typeof settings.profile !== "boolean") {
-    refuse6("`profile` must be true or false.");
+    refuse4("`profile` must be true or false.");
   }
-  if (settings.waiting_note !== null && !isText4(settings.waiting_note)) {
-    refuse6("`waiting_note` must be a sentence, or null for none.");
+  if (settings.waiting_note !== null && !isText3(settings.waiting_note)) {
+    refuse4("`waiting_note` must be a sentence, or null for none.");
   }
   if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
-    refuse6("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
+    refuse4("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
   }
-  checkTitles(settings);
-  checkDownloads(settings);
 }
 function checkBack(settings) {
-  if (settings.back !== null && (!isPlainObject4(settings.back) || !isText4(settings.back.label) || typeof settings.back.action !== "function")) {
-    refuse6("`back` must be { label, action }, a sentence and a function, or null for none.");
+  if (settings.back !== null && (!isPlainObject4(settings.back) || !isText3(settings.back.label) || typeof settings.back.action !== "function")) {
+    refuse4("`back` must be { label, action }, a sentence and a function, or null for none.");
   }
 }
 function variableSetting(value, setting) {
   if (value === null || value === void 0) return null;
   if (!isPlainObject4(value)) {
-    refuse6(
+    refuse4(
       `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
     );
   }
   const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
-  if (read2.cut !== void 0) {
-    refuse6(
-      `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave \`cut\` out.`
-    );
-  }
   return read2.kind === "column" ? { col: read2.col } : {
     measure: read2.measure,
     value: read2.value,
     ...read2.visit === null ? {} : { visit: read2.visit }
   };
 }
-
-// src/shared/cut.js
-function writtenCut(spec) {
-  const read2 = variable(spec);
-  const cut = Array.isArray(read2.cut) ? [...read2.cut] : read2.cut;
-  if (read2.kind === "column") return { col: read2.col, type: read2.type, cut };
-  return read2.value === "baseline" ? { measure: read2.measure, value: read2.value, cut } : { measure: read2.measure, visit: read2.visit, value: read2.value, cut };
-}
-function checkGrouping(settings, key) {
-  const value = settings[key];
-  if (!isPlainObject4(value)) return;
-  if (value.cut === void 0 || value.cut === null) {
-    refuse6(
-      `\`${key}\` is a variable with no cut. A biomarker or a number makes groups only when it is cut: add \`cut: 'median'\`, 'tertiles', 'quartiles' or the cut points.`
-    );
-  }
-  settings[key] = writtenCut(value);
-}
-var isCut = (by) => isPlainObject4(by);
-function cutOf({ results, participants }, spec, settings) {
-  const made = frame(
-    { results, participants: participants || void 0 },
-    { v: spec },
-    { ...coreSettings(settings), required: [] }
-  );
-  return {
-    spec: writtenCut(spec),
-    ...cutPoints(
-      made.data.map((record) => record.v),
-      spec.cut
-    )
-  };
-}
-function groupLabel(value, cut) {
-  const index = cutGroup(value, cut.points);
-  return index === null ? null : cut.labels[index];
-}
-var listed2 = (items) => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
-function cutNote(spec, cut) {
-  const plain5 = writtenCut(spec);
-  delete plain5.cut;
-  const words = label(plain5);
-  if (Array.isArray(cut.cut)) return `${words} is cut at ${listed2(cut.points.map(writePoint))}.`;
-  if (!cut.n) return `${words} has no value to cut, so it makes no groups.`;
-  const asked = cut.asked.map(writePoint);
-  const sentence2 = `${words} is cut at its ${cut.cut}, ${listed2(asked)}, worked out on the ${cut.n} participant${cut.n === 1 ? "" : "s"} with a value.`;
-  const said2 = [sentence2];
-  if (cut.repeated) {
-    said2.push(
-      `The points repeat, so they make ${cut.points.length + 1} groups, not ${cut.asked.length + 1}.`
-    );
-  }
-  if (cut.merged) {
-    said2.push(
-      `The points differ only past four significant digits, so groups with the same bounds are one, as R\u2019s cut() makes them: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
-    );
-  }
-  return said2.join(" ");
-}
-
-// src/group-comparison/configure.js
-var MARKS = Object.freeze(["box", "violin", "points"]);
-var Y_SCALES = Object.freeze(["linear", "log"]);
-var TESTS = Object.freeze(["t", "wilcoxon", "anova", "kruskal", "none"]);
-var DEFAULT_SETTINGS2 = Object.freeze({
-  // Columns of the results table, and of the participant table.
-  id_col: "USUBJID",
-  measure_col: "TEST",
-  value_col: "STRESN",
-  visit_col: "VISIT",
-  visit_order_col: "VISITNUM",
-  unit_col: "STRESU",
-  participant_id_col: null,
-  // How a baseline is found (the core's rules).
-  baseline_visits: null,
-  baseline_stat: "mean",
-  // What the chart opens on.
-  start_value: null,
-  visits: null,
-  value_type: "raw",
-  group_by: null,
-  levels: null,
-  color_by: null,
-  panel_by: null,
-  mark: "box",
-  y_scale: "linear",
-  // What the controls offer.
-  measures: null,
-  groups: null,
-  max_levels: 12,
-  filters: null,
-  // The overview of every biomarker: the most drawn at a time.
-  overview_limit: 12,
-  // The page of the overview it opens on, from 0 (#71 review).
-  page: 0,
-  // The listing of participants.
-  details: null,
-  page_size: 10,
-  // The statistics line.
-  connection: null,
-  statistic: "Analyze_GroupDifference",
-  test: "t",
-  pairwise: false,
-  waiting_note: null,
-  // A way back, when another chart opened this one in its place.
-  back: null,
-  // safety.viz's participant profile.
-  profile: true,
-  profile_details: null,
-  studyday_col: null,
-  normal_col_high: null,
-  normal_col_low: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
-});
-function syncSettings(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
-  checkShared(settings, BASELINE_STATS);
-  checkBack(settings);
-  for (const key of [
-    "visit_order_col",
-    "unit_col",
-    "participant_id_col",
-    "start_value",
-    "color_by",
-    "studyday_col",
-    "normal_col_high",
-    "normal_col_low"
-  ]) {
-    columnOrNull(settings, key);
-  }
-  for (const key of ["group_by", "panel_by"]) {
-    if (isCut(settings[key])) checkGrouping(settings, key);
-    else columnOrNull(settings, key);
-  }
-  if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
-  }
-  if (!MARKS.includes(settings.mark)) refuse6(`\`mark\` must be one of ${MARKS.join(", ")}.`);
-  if (!Y_SCALES.includes(settings.y_scale)) {
-    refuse6(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
-  }
-  for (const key of ["page_size", "max_levels", "overview_limit"]) {
-    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse6(`\`${key}\` must be a whole number, one or more.`);
-    }
-  }
-  if (!Number.isInteger(settings.page) || settings.page < 0) {
-    refuse6("`page` must be a whole number, from 0: the page of the overview it opens on.");
-  }
-  if (!TESTS.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS.join(", ")}.`);
-  if (typeof settings.pairwise !== "boolean") refuse6("`pairwise` must be true or false.");
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
-  }
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.visits = textList2(settings.visits, "visits", { empty: true });
-  settings.levels = textList2(settings.levels, "levels", { empty: true });
-  settings.measures = textList2(settings.measures, "measures");
-  settings.groups = fieldList(settings.groups, "groups");
-  settings.filters = fieldList(settings.filters, "filters");
-  settings.details = fieldList(settings.details, "details");
-  settings.profile_details = fieldList(settings.profile_details, "profile_details");
-  return settings;
-}
-
-// src/association-scatter/configure.js
-var configure_exports2 = {};
-__export(configure_exports2, {
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS3,
-  FITS: () => FITS,
-  METHODS: () => METHODS,
-  SCALES: () => SCALES,
-  syncSettings: () => syncSettings2
-});
-var SCALES = Object.freeze(["linear", "log"]);
-var FITS = Object.freeze(["none", "identity", "linear", "smooth"]);
-var METHODS = Object.freeze(["pearson", "spearman"]);
-var DEFAULT_SETTINGS3 = Object.freeze({
-  // Columns of the results table, and of the participant table.
-  id_col: "USUBJID",
-  measure_col: "TEST",
-  value_col: "STRESN",
-  visit_col: "VISIT",
-  visit_order_col: "VISITNUM",
-  unit_col: "STRESU",
-  participant_id_col: null,
-  // How a baseline is found (the core's rules).
-  baseline_visits: null,
-  baseline_stat: "mean",
-  // What the chart opens on: the variable on each axis.
-  x: null,
-  y: null,
-  color_by: null,
-  panel_by: null,
-  x_scale: "linear",
-  y_scale: "linear",
-  fit: "none",
-  // What the controls offer.
-  measures: null,
-  numbers: null,
-  groups: null,
-  max_levels: 12,
-  filters: null,
-  // The listing of participants.
-  details: null,
-  page_size: 10,
-  // The statistics line.
-  connection: null,
-  statistic: "Analyze_Correlation",
-  method: "pearson",
-  fit_statistic: "Analyze_Fit",
-  waiting_note: null,
-  // A way back, when another chart opened this one.
-  back: null,
-  // safety.viz's participant profile.
-  profile: true,
-  profile_details: null,
-  studyday_col: null,
-  normal_col_high: null,
-  normal_col_low: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
-});
-function syncSettings2(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
-  checkShared(settings, BASELINE_STATS);
-  for (const key of [
-    "visit_order_col",
-    "unit_col",
-    "participant_id_col",
-    "color_by",
-    "panel_by",
-    "studyday_col",
-    "normal_col_high",
-    "normal_col_low"
-  ]) {
-    columnOrNull(settings, key);
-  }
-  for (const key of ["x_scale", "y_scale"]) {
-    if (!SCALES.includes(settings[key])) {
-      refuse6(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
-    }
-  }
-  if (!FITS.includes(settings.fit)) refuse6(`\`fit\` must be one of ${FITS.join(", ")}.`);
-  if (!METHODS.includes(settings.method)) {
-    refuse6(`\`method\` must be one of ${METHODS.join(", ")}.`);
-  }
-  for (const key of ["page_size", "max_levels"]) {
-    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse6(`\`${key}\` must be a whole number, one or more.`);
-    }
-  }
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
-  }
-  if (settings.fit_statistic !== null && !isText4(settings.fit_statistic)) {
-    refuse6(
-      "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
-    );
-  }
-  checkBack(settings);
-  settings.x = variableSetting(settings.x, "x");
-  settings.y = variableSetting(settings.y, "y");
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.measures = textList2(settings.measures, "measures");
-  settings.numbers = fieldList(settings.numbers, "numbers");
-  settings.groups = fieldList(settings.groups, "groups");
-  settings.filters = fieldList(settings.filters, "filters");
-  settings.details = fieldList(settings.details, "details");
-  settings.profile_details = fieldList(settings.profile_details, "profile_details");
-  return settings;
-}
-
-// src/correlation-matrix/configure.js
-var configure_exports3 = {};
-__export(configure_exports3, {
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS4,
-  METHODS: () => METHODS2,
-  MODES: () => MODES,
-  SCATTER_LIMIT: () => SCATTER_LIMIT,
-  VIEWS: () => VIEWS,
-  syncSettings: () => syncSettings3
-});
-var MODES = Object.freeze(["biomarkers", "visits"]);
-var VIEWS = Object.freeze(["grid", "scatters"]);
-var METHODS2 = Object.freeze(["pearson", "spearman"]);
-var SCATTER_LIMIT = 6;
-var DEFAULT_SETTINGS4 = Object.freeze({
-  // Columns of the results table, and of the participant table.
-  id_col: "USUBJID",
-  measure_col: "TEST",
-  value_col: "STRESN",
-  visit_col: "VISIT",
-  visit_order_col: "VISITNUM",
-  unit_col: "STRESU",
-  participant_id_col: null,
-  // How a baseline is found (the core's rules).
-  baseline_visits: null,
-  baseline_stat: "mean",
-  // What the chart opens on.
-  mode: "biomarkers",
-  visit: null,
-  biomarkers: null,
-  measure: null,
-  visits: null,
-  value_type: "raw",
-  view: "grid",
-  // The most variables drawn at a time.
-  limit: 12,
-  // What the controls offer.
-  measures: null,
-  max_levels: 12,
-  filters: null,
-  // The statistics.
-  connection: null,
-  statistic: "Analyze_CorrelationMatrix",
-  method: "pearson",
-  min_pairs: null,
-  waiting_note: null,
-  // The association scatter a cell opens.
-  scatter: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
-});
-function syncSettings3(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS4, overrides, "the correlation matrix");
-  checkShared(settings, BASELINE_STATS);
-  for (const key of ["visit_order_col", "unit_col", "participant_id_col"]) {
-    columnOrNull(settings, key);
-  }
-  for (const [key, what] of [
-    ["visit", "a visit"],
-    ["measure", "a biomarker"]
-  ]) {
-    if (settings[key] !== null && !isText4(settings[key])) {
-      refuse6(`\`${key}\` must be the name of ${what}, or null.`);
-    }
-  }
-  if (!MODES.includes(settings.mode)) refuse6(`\`mode\` must be one of ${MODES.join(", ")}.`);
-  if (!VIEWS.includes(settings.view)) refuse6(`\`view\` must be one of ${VIEWS.join(", ")}.`);
-  if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
-  }
-  if (!METHODS2.includes(settings.method)) {
-    refuse6(`\`method\` must be one of ${METHODS2.join(", ")}.`);
-  }
-  if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-    refuse6("`max_levels` must be a whole number, one or more.");
-  }
-  if (!Number.isInteger(settings.limit) || settings.limit < 2) {
-    refuse6("`limit` must be a whole number, two or more.");
-  }
-  if (settings.min_pairs !== null && !(typeof settings.min_pairs === "number" && Number.isFinite(settings.min_pairs) && settings.min_pairs > 0)) {
-    refuse6("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
-  }
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no coefficients.");
-  }
-  if (settings.scatter !== null && !isPlainObject4(settings.scatter)) {
-    refuse6("`scatter` must be an object of settings for the association scatter, or null.");
-  }
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.biomarkers = textList2(settings.biomarkers, "biomarkers", { empty: true });
-  settings.visits = textList2(settings.visits, "visits", { empty: true });
-  settings.measures = textList2(settings.measures, "measures");
-  settings.filters = fieldList(settings.filters, "filters");
-  return settings;
-}
-
-// src/biomarker-screen/configure.js
-var configure_exports4 = {};
-__export(configure_exports4, {
-  ADJUSTMENTS: () => ADJUSTMENTS2,
-  COMPARISONS: () => COMPARISONS,
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS5,
-  METHODS: () => METHODS3,
-  SORTS: () => SORTS,
-  syncSettings: () => syncSettings4
-});
 
 // src/shared/tables.js
 var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
@@ -2174,10 +1659,10 @@ function levelsOf(values) {
   return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
 }
 function listMeasures(results, settings) {
-  const present4 = levelsOf(results.map((row) => row[settings.measure_col]));
-  if (!settings.measures) return present4;
-  const listed3 = settings.measures.filter((measure) => present4.includes(measure));
-  return listed3.length ? listed3 : present4;
+  const present3 = levelsOf(results.map((row) => row[settings.measure_col]));
+  if (!settings.measures) return present3;
+  const listed = settings.measures.filter((measure) => present3.includes(measure));
+  return listed.length ? listed : present3;
 }
 function unitOf(results, settings, measure) {
   if (!settings.unit_col) return null;
@@ -2246,17 +1731,13 @@ function categoryColumns({ results, participants }, settings) {
 function filterColumns({ participants }, settings, categories) {
   if (!participants || !participants.length) return [];
   if (settings.filters) {
-    const id = settings.participant_id_col || settings.id_col;
-    return settings.filters.filter(
-      (spec) => Object.hasOwn(participants[0], spec.value_col) && spec.value_col !== id
-    );
+    return settings.filters.filter((spec) => spec.value_col in participants[0]);
   }
   return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
 }
 function listVisits(results, settings) {
   const config = coreSettings(settings);
   const all = visits(results, config);
-  if (Array.isArray(settings.visits) && !settings.visits.length) return { all, start: [] };
   const asked = (settings.visits || []).filter((visit) => all.includes(visit));
   return { all, start: asked.length ? asked : all };
 }
@@ -2347,129 +1828,11 @@ function numberColumns({ results, participants }, settings) {
   return columns;
 }
 
-// src/shared/outcomes.js
-var OUTCOME_DEFAULTS = Object.freeze({
-  outcome_id_col: null,
-  endpoint_col: "PARAMCD",
-  endpoint_label_col: "PARAM",
-  time_col: "AVAL",
-  censor_col: "CNSR",
-  event_col: null,
-  endpoint: null
-});
-var LEFT_OUT = Object.freeze({
-  NO_OUTCOME: "No outcome for the endpoint",
-  SEVERAL_OUTCOMES: "More than one outcome row for the endpoint",
-  MISSING_OUTCOME: "Time or flag is missing or not a number",
-  NOT_A_FLAG: "Flag is not 0 or 1",
-  NEGATIVE_TIME: "Time is negative"
-});
-function flaggedSettings(given2) {
-  const settings = given2 || {};
-  return settings.event_col !== void 0 && settings.event_col !== null && !("censor_col" in settings) ? { ...settings, censor_col: null } : settings;
-}
-function laidOver(current, given2) {
-  return { ...current, ...flaggedSettings(given2) };
-}
-function checkOutcomeSettings(settings) {
-  for (const key of ["outcome_id_col", "endpoint_label_col", "censor_col", "event_col"]) {
-    columnOrNull(settings, key);
-  }
-  for (const key of ["endpoint_col", "time_col"]) {
-    if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
-  }
-  if (settings.censor_col === null === (settings.event_col === null)) {
-    refuse6(
-      "Name exactly one of `censor_col` (1 = censored, as ADaM\u2019s CNSR) and `event_col` (1 = event); give the other as null."
-    );
-  }
-  if (settings.endpoint !== null && !isText4(settings.endpoint)) {
-    refuse6("`endpoint` must be the name of an endpoint, or null for the first.");
-  }
-}
-function flagOf(settings) {
-  return settings.censor_col !== null ? { col: settings.censor_col, field: "censor" } : { col: settings.event_col, field: "event" };
-}
-function checkOutcomes(outcomes, settings) {
-  if (!outcomes.length) return;
-  const flag = flagOf(settings);
-  const needed = [
-    ["endpoint_col", settings.endpoint_col],
-    [
-      settings.outcome_id_col ? "outcome_id_col" : "id_col",
-      settings.outcome_id_col || settings.id_col
-    ],
-    ["time_col", settings.time_col],
-    [flag.field === "censor" ? "censor_col" : "event_col", flag.col]
-  ];
-  for (const [key, column] of needed) {
-    if (!outcomes.some((row) => column in row)) {
-      refuse6(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
-    }
-  }
-}
-function listEndpoints(outcomes, settings) {
-  return levelsOf(outcomes.map((row) => row[settings.endpoint_col])).map((endpoint) => {
-    const labelled = settings.endpoint_label_col ? outcomes.find(
-      (row) => String(row[settings.endpoint_col]) === endpoint && !isBlank2(row[settings.endpoint_label_col])
-    ) : null;
-    return {
-      endpoint,
-      label: labelled ? String(labelled[settings.endpoint_label_col]) : endpoint
-    };
-  });
-}
-var OUTCOME_UNUSED = Object.freeze({
-  NO_PARTICIPANT: "Outcome row for no such participant"
-});
-var numberOf = (value) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (typeof value === "boolean") return value ? 1 : 0;
-  if (value === "TRUE" || value === "true") return 1;
-  if (value === "FALSE" || value === "false") return 0;
-  if (typeof value !== "string" || value.trim() === "") return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-};
-function outcomesOf(outcomes, settings, endpoint, known = null) {
-  const idCol = settings.outcome_id_col || settings.id_col;
-  const flag = flagOf(settings);
-  const byId = /* @__PURE__ */ new Map();
-  let strangers = 0;
-  for (const row of outcomes) {
-    if (String(row[settings.endpoint_col]) !== endpoint) continue;
-    if (isBlank2(row[idCol]) || known && !known.has(String(row[idCol]))) {
-      strangers += 1;
-      continue;
-    }
-    const id = String(row[idCol]);
-    byId.set(id, [...byId.get(id) || [], row]);
-  }
-  const outcomeOf = (id) => {
-    const found = byId.get(String(id)) || [];
-    if (!found.length) return { reason: LEFT_OUT.NO_OUTCOME };
-    if (found.length > 1) return { reason: LEFT_OUT.SEVERAL_OUTCOMES };
-    const time = numberOf(found[0][settings.time_col]);
-    const flagged = numberOf(found[0][flag.col]);
-    if (time === null || flagged === null) return { reason: LEFT_OUT.MISSING_OUTCOME };
-    if (flagged !== 0 && flagged !== 1) return { reason: LEFT_OUT.NOT_A_FLAG };
-    if (time < 0) return { reason: LEFT_OUT.NEGATIVE_TIME };
-    return {
-      time,
-      flag: flagged,
-      event: flag.field === "censor" ? flagged === 0 : flagged === 1
-    };
-  };
-  outcomeOf.strangers = strangers;
-  return outcomeOf;
-}
-
-// src/biomarker-screen/configure.js
-var COMPARISONS = Object.freeze(["difference", "correlation", "hazard"]);
-var METHODS3 = Object.freeze(["pearson", "spearman"]);
-var ADJUSTMENTS2 = Object.freeze(["BH", "holm"]);
-var SORTS = Object.freeze(["estimate", "name", "adjusted"]);
-var DEFAULT_SETTINGS5 = Object.freeze({
+// src/group-comparison/configure.js
+var MARKS = Object.freeze(["box", "violin", "points"]);
+var Y_SCALES = Object.freeze(["linear", "log"]);
+var TESTS = Object.freeze(["t", "wilcoxon", "anova", "kruskal", "none"]);
+var DEFAULT_SETTINGS2 = Object.freeze({
   // Columns of the results table, and of the participant table.
   id_col: "USUBJID",
   measure_col: "TEST",
@@ -2481,1505 +1844,93 @@ var DEFAULT_SETTINGS5 = Object.freeze({
   // How a baseline is found (the core's rules).
   baseline_visits: null,
   baseline_stat: "mean",
-  // What the chart opens on: every biomarker, at one visit, with one value type.
-  comparison: "difference",
-  visit: null,
+  // What the chart opens on.
+  start_value: null,
+  visits: null,
   value_type: "raw",
-  // A difference: the column of groups, and the two groups, first minus second.
   group_by: null,
   levels: null,
-  // A correlation: the variable every biomarker is correlated with.
-  with: null,
-  method: "pearson",
-  // A hazard ratio: the outcomes table's columns, read either way round, and
-  // the endpoint the rows are of. Each biomarker is cut at its median, high
-  // against low, as R's Analyze_Screen cuts it.
-  outcome_id_col: OUTCOME_DEFAULTS.outcome_id_col,
-  endpoint_col: OUTCOME_DEFAULTS.endpoint_col,
-  endpoint_label_col: OUTCOME_DEFAULTS.endpoint_label_col,
-  time_col: OUTCOME_DEFAULTS.time_col,
-  censor_col: OUTCOME_DEFAULTS.censor_col,
-  event_col: OUTCOME_DEFAULTS.event_col,
-  endpoint: OUTCOME_DEFAULTS.endpoint,
-  // Across the rows.
-  adjustment: "BH",
-  sort: "estimate",
-  // The most rows on a page.
-  limit: 20,
-  // The page of rows it opens on, from 0 (#71 review).
-  page: 0,
+  color_by: null,
+  panel_by: null,
+  mark: "box",
+  y_scale: "linear",
   // What the controls offer.
   measures: null,
   groups: null,
-  numbers: null,
   max_levels: 12,
   filters: null,
-  // The statistics.
+  // The overview of every biomarker: the most drawn at a time.
+  overview_limit: 12,
+  // The listing of participants.
+  details: null,
+  page_size: 10,
+  // The statistics line.
   connection: null,
-  statistic: "Analyze_Screen",
+  statistic: "Analyze_GroupDifference",
+  test: "t",
+  pairwise: false,
   waiting_note: null,
-  // The charts a row opens, and settings laid under what the screen carries across.
-  group_comparison: null,
-  association_scatter: null,
-  stratified_survival: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
+  // A way back, when another chart opened this one in its place.
+  back: null,
+  // safety.viz's participant profile.
+  profile: true,
+  profile_details: null,
+  studyday_col: null,
+  normal_col_high: null,
+  normal_col_low: null
 });
-function syncSettings4(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS5, flaggedSettings(overrides), "the biomarker screen");
+function syncSettings(overrides) {
+  const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
   checkShared(settings, BASELINE_STATS);
-  checkOutcomeSettings(settings);
-  for (const key of ["visit_order_col", "unit_col", "participant_id_col", "group_by"]) {
+  checkBack(settings);
+  for (const key of [
+    "visit_order_col",
+    "unit_col",
+    "participant_id_col",
+    "start_value",
+    "group_by",
+    "color_by",
+    "panel_by",
+    "studyday_col",
+    "normal_col_high",
+    "normal_col_low"
+  ]) {
     columnOrNull(settings, key);
-  }
-  if (settings.visit !== null && !isText4(settings.visit)) {
-    refuse6("`visit` must be the name of a visit, or null.");
-  }
-  if (!COMPARISONS.includes(settings.comparison)) {
-    refuse6(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
   }
   if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+    refuse4(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
   }
-  if (!METHODS3.includes(settings.method)) {
-    refuse6(`\`method\` must be one of ${METHODS3.join(", ")}.`);
+  if (!MARKS.includes(settings.mark)) refuse4(`\`mark\` must be one of ${MARKS.join(", ")}.`);
+  if (!Y_SCALES.includes(settings.y_scale)) {
+    refuse4(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
   }
-  if (!ADJUSTMENTS2.includes(settings.adjustment)) {
-    refuse6(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
-  }
-  if (!SORTS.includes(settings.sort)) refuse6(`\`sort\` must be one of ${SORTS.join(", ")}.`);
-  if (!Number.isInteger(settings.page) || settings.page < 0) {
-    refuse6("`page` must be a whole number, from 0: the page of rows it opens on.");
-  }
-  if (!Number.isInteger(settings.limit) || settings.limit < 1) {
-    refuse6("`limit` must be a whole number, one or more.");
-  }
-  if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-    refuse6("`max_levels` must be a whole number, one or more.");
-  }
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no statistics.");
-  }
-  for (const key of ["group_comparison", "association_scatter", "stratified_survival"]) {
-    if (settings[key] !== null && !isPlainObject4(settings[key])) {
-      refuse6(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
+  for (const key of ["page_size", "max_levels", "overview_limit"]) {
+    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
+      refuse4(`\`${key}\` must be a whole number, one or more.`);
     }
   }
+  if (!TESTS.includes(settings.test)) refuse4(`\`test\` must be one of ${TESTS.join(", ")}.`);
+  if (typeof settings.pairwise !== "boolean") refuse4("`pairwise` must be true or false.");
+  if (settings.statistic !== null && !isText3(settings.statistic)) {
+    refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
+  }
+  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+  settings.visits = textList2(settings.visits, "visits");
   settings.levels = textList2(settings.levels, "levels");
-  if (settings.levels && settings.levels.length !== 2) {
-    refuse6("`levels` must name two groups, the first and the second, or be null.");
-  }
-  settings.with = variableSetting(settings.with, "with");
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.measures = textList2(settings.measures, "measures");
-  settings.groups = fieldList(settings.groups, "groups");
-  settings.numbers = fieldList(settings.numbers, "numbers");
-  settings.filters = fieldList(settings.filters, "filters");
-  return settings;
-}
-
-// src/cross-tab/configure.js
-var configure_exports5 = {};
-__export(configure_exports5, {
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS6,
-  PERCENTS: () => PERCENTS,
-  TESTS: () => TESTS2,
-  syncSettings: () => syncSettings5
-});
-var PERCENTS = Object.freeze(["row", "col", "none"]);
-var TESTS2 = Object.freeze(["chisq", "fisher", "none"]);
-var DEFAULT_SETTINGS6 = Object.freeze({
-  // Columns of the results table, and of the participant table.
-  id_col: "USUBJID",
-  measure_col: "TEST",
-  value_col: "STRESN",
-  visit_col: "VISIT",
-  visit_order_col: "VISITNUM",
-  unit_col: "STRESU",
-  participant_id_col: null,
-  // How a baseline is found (the core's rules).
-  baseline_visits: null,
-  baseline_stat: "mean",
-  // What the chart opens on: the table's two variables, each a column or a cut
-  // variable, and what the percentages are of.
-  row_by: null,
-  col_by: null,
-  percent: "row",
-  // Cut variables the Rows and Columns controls offer beside the columns.
-  cuts: null,
-  // What the controls offer.
-  measures: null,
-  groups: null,
-  max_levels: 12,
-  filters: null,
-  // The listing of participants.
-  details: null,
-  page_size: 10,
-  // The statistics line.
-  connection: null,
-  statistic: "Analyze_Contingency",
-  test: "chisq",
-  waiting_note: null,
-  // A way back, when another chart opened this one in its place.
-  back: null,
-  // safety.viz's participant profile.
-  profile: true,
-  profile_details: null,
-  studyday_col: null,
-  normal_col_high: null,
-  normal_col_low: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
-});
-function syncSettings5(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS6, overrides, "the cross-tabulation");
-  checkShared(settings, BASELINE_STATS);
-  checkBack(settings);
-  for (const key of [
-    "visit_order_col",
-    "unit_col",
-    "participant_id_col",
-    "studyday_col",
-    "normal_col_high",
-    "normal_col_low"
-  ]) {
-    columnOrNull(settings, key);
-  }
-  for (const key of ["row_by", "col_by"]) {
-    if (isCut(settings[key])) checkGrouping(settings, key);
-    else columnOrNull(settings, key);
-  }
-  if (settings.cuts !== null) {
-    if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
-    settings.cuts = settings.cuts.map((spec, index) => {
-      const holder = { [`cuts[${index}]`]: spec };
-      if (!isCut(spec)) {
-        refuse6(
-          `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
-        );
-      }
-      checkGrouping(holder, `cuts[${index}]`);
-      return holder[`cuts[${index}]`];
-    });
-  }
-  if (!PERCENTS.includes(settings.percent)) {
-    refuse6(`\`percent\` must be one of ${PERCENTS.join(", ")}.`);
-  }
-  if (!TESTS2.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS2.join(", ")}.`);
-  for (const key of ["page_size", "max_levels"]) {
-    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse6(`\`${key}\` must be a whole number, one or more.`);
-    }
-  }
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
-  }
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.measures = textList2(settings.measures, "measures");
   settings.groups = fieldList(settings.groups, "groups");
   settings.filters = fieldList(settings.filters, "filters");
   settings.details = fieldList(settings.details, "details");
   settings.profile_details = fieldList(settings.profile_details, "profile_details");
   return settings;
-}
-
-// src/stratified-survival/configure.js
-var configure_exports6 = {};
-__export(configure_exports6, {
-  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS7,
-  flagOf: () => flagOf,
-  syncSettings: () => syncSettings6
-});
-var DEFAULT_SETTINGS7 = Object.freeze({
-  // Columns of the results table, and of the participant table.
-  id_col: "USUBJID",
-  measure_col: "TEST",
-  value_col: "STRESN",
-  visit_col: "VISIT",
-  visit_order_col: "VISITNUM",
-  unit_col: "STRESU",
-  participant_id_col: null,
-  // How a baseline is found (the core's rules).
-  baseline_visits: null,
-  baseline_stat: "mean",
-  // Columns of the outcomes table: one row per participant and endpoint, with
-  // the time and a flag, either way round: censored (ADaM's CNSR, 1 =
-  // censored) or an event (1 = event). Exactly one of the two is named. And
-  // the endpoint the chart opens on: null means the first.
-  outcome_id_col: OUTCOME_DEFAULTS.outcome_id_col,
-  endpoint_col: OUTCOME_DEFAULTS.endpoint_col,
-  endpoint_label_col: OUTCOME_DEFAULTS.endpoint_label_col,
-  time_col: OUTCOME_DEFAULTS.time_col,
-  censor_col: OUTCOME_DEFAULTS.censor_col,
-  event_col: OUTCOME_DEFAULTS.event_col,
-  endpoint: OUTCOME_DEFAULTS.endpoint,
-  // The groups, a column or a cut variable. Null means the first category column.
-  group_by: null,
-  // Cut variables the Group control offers beside the columns.
-  cuts: null,
-  // The times the at-risk strip counts at. Null means the axis's ticks.
-  at_risk_times: null,
-  // What the controls offer.
-  measures: null,
-  groups: null,
-  max_levels: 12,
-  filters: null,
-  // The listing of participants.
-  details: null,
-  page_size: 10,
-  // The statistics line.
-  connection: null,
-  statistic: "Analyze_Survival",
-  waiting_note: null,
-  // A way back, when another chart opened this one in its place.
-  back: null,
-  // safety.viz's participant profile.
-  profile: true,
-  profile_details: null,
-  studyday_col: null,
-  normal_col_high: null,
-  normal_col_low: null,
-  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS,
-  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
-  ...DOWNLOAD_DEFAULTS
-});
-function syncSettings6(overrides) {
-  const settings = layOver(
-    DEFAULT_SETTINGS7,
-    flaggedSettings(overrides),
-    "the stratified survival chart"
-  );
-  checkShared(settings, BASELINE_STATS);
-  checkBack(settings);
-  checkOutcomeSettings(settings);
-  for (const key of [
-    "visit_order_col",
-    "unit_col",
-    "participant_id_col",
-    "studyday_col",
-    "normal_col_high",
-    "normal_col_low"
-  ]) {
-    columnOrNull(settings, key);
-  }
-  if (isCut(settings.group_by)) checkGrouping(settings, "group_by");
-  else columnOrNull(settings, "group_by");
-  if (settings.cuts !== null) {
-    if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
-    settings.cuts = settings.cuts.map((spec, index) => {
-      const holder = { [`cuts[${index}]`]: spec };
-      if (!isCut(spec)) {
-        refuse6(
-          `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
-        );
-      }
-      checkGrouping(holder, `cuts[${index}]`);
-      return holder[`cuts[${index}]`];
-    });
-  }
-  if (settings.at_risk_times !== null) {
-    const times = settings.at_risk_times;
-    if (!Array.isArray(times) || !times.length || !times.every((time) => typeof time === "number" && Number.isFinite(time) && time >= 0) || times.some((time, index) => index > 0 && !(time > times[index - 1]))) {
-      refuse6("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
-    }
-    settings.at_risk_times = [...times];
-  }
-  for (const key of ["page_size", "max_levels"]) {
-    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse6(`\`${key}\` must be a whole number, one or more.`);
-    }
-  }
-  if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
-  }
-  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.measures = textList2(settings.measures, "measures");
-  settings.groups = fieldList(settings.groups, "groups");
-  settings.filters = fieldList(settings.filters, "filters");
-  settings.details = fieldList(settings.details, "details");
-  settings.profile_details = fieldList(settings.profile_details, "profile_details");
-  return settings;
-}
-
-// src/shared/png.js
-var PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
-var crcTable = null;
-function crc32(bytes) {
-  if (!crcTable) {
-    crcTable = new Uint32Array(256);
-    for (let n = 0; n < 256; n += 1) {
-      let c = n;
-      for (let k = 0; k < 8; k += 1) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-      crcTable[n] = c >>> 0;
-    }
-  }
-  let crc = 4294967295;
-  for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ crc >>> 8;
-  return (crc ^ 4294967295) >>> 0;
-}
-var utf8 = (text2) => new TextEncoder().encode(text2);
-function chunk(type, data) {
-  const body = new Uint8Array(4 + data.length);
-  body.set(utf8(type), 0);
-  body.set(data, 4);
-  const out = new Uint8Array(12 + data.length);
-  const view = new DataView(out.buffer);
-  view.setUint32(0, data.length);
-  out.set(body, 4);
-  view.setUint32(8 + data.length, crc32(body));
-  return out;
-}
-function itxt(keyword, text2) {
-  const head = utf8(keyword);
-  const value = utf8(text2);
-  const data = new Uint8Array(head.length + 5 + value.length);
-  data.set(head, 0);
-  data.set([0, 0, 0, 0, 0], head.length);
-  data.set(value, head.length + 5);
-  return chunk("iTXt", data);
-}
-function phys(perMetre) {
-  const data = new Uint8Array(9);
-  const view = new DataView(data.buffer);
-  view.setUint32(0, perMetre);
-  view.setUint32(4, perMetre);
-  data[8] = 1;
-  return chunk("pHYs", data);
-}
-var CSS_PIXELS_PER_INCH = 96;
-function pngChunks(png, { scale, text: text2 }) {
-  for (let i = 0; i < PNG_SIGNATURE.length; i += 1) {
-    if (png[i] !== PNG_SIGNATURE[i]) throw new Error("bio.viz: not a PNG.");
-  }
-  const afterHeader = 8 + 25;
-  const extra = [
-    phys(Math.round(scale * CSS_PIXELS_PER_INCH / 0.0254)),
-    ...Object.entries(text2).filter(([, value]) => typeof value === "string" && value !== "").map(([keyword, value]) => itxt(keyword, value))
-  ];
-  const size = extra.reduce((total, part) => total + part.length, png.length);
-  const out = new Uint8Array(size);
-  out.set(png.subarray(0, afterHeader), 0);
-  let at = afterHeader;
-  for (const part of extra) {
-    out.set(part, at);
-    at += part.length;
-  }
-  out.set(png.subarray(afterHeader), at);
-  return out;
-}
-var HEIGHTS = /* @__PURE__ */ new Set(["height", "block-size", "max-height", "max-block-size"]);
-var OVERFLOWS = /* @__PURE__ */ new Set([
-  "overflow",
-  "overflow-x",
-  "overflow-y",
-  "overflow-block",
-  "overflow-inline"
-]);
-var holdsText = (element) => /\S/.test(element.textContent || "");
-function copyStyles(from, to) {
-  const style = getComputedStyle(from);
-  const reflow = from.tagName !== "CANVAS" && from.tagName !== "IMG" && holdsText(from);
-  let text2 = "";
-  for (let i = 0; i < style.length; i += 1) {
-    const name = style[i];
-    if (reflow && HEIGHTS.has(name)) continue;
-    if (OVERFLOWS.has(name)) continue;
-    text2 += `${name}:${style.getPropertyValue(name)};`;
-  }
-  to.setAttribute("style", `${text2}overflow:visible;`);
-}
-function copyTree(from, to) {
-  if (from.nodeType !== 1) return;
-  copyStyles(from, to);
-  if (from.tagName === "CANVAS") return;
-  const a = from.children;
-  const b = to.children;
-  for (let i = 0; i < a.length; i += 1) copyTree(a[i], b[i]);
-}
-async function drawFrame(frame2, { leaveOut, scale, text: text2 }) {
-  const copy2 = frame2.cloneNode(true);
-  copyTree(frame2, copy2);
-  const canvases = frame2.querySelectorAll("canvas");
-  const copies = copy2.querySelectorAll("canvas");
-  canvases.forEach((canvas2, i) => {
-    const picture = document.createElement("img");
-    picture.setAttribute("style", copies[i].getAttribute("style") || "");
-    picture.width = canvas2.clientWidth;
-    picture.height = canvas2.clientHeight;
-    picture.src = canvas2.width && canvas2.height ? canvas2.toDataURL("image/png") : "";
-    copies[i].replaceWith(picture);
-  });
-  const all = [...frame2.querySelectorAll("*")];
-  const copied = [...copy2.querySelectorAll("*")];
-  const dropped = all.map((element, i) => element.tagName !== "CANVAS" && leaveOut(element) ? copied[i] : null).filter(Boolean);
-  dropped.forEach((element) => element.remove());
-  copy2.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
-  const width = Math.ceil(frame2.getBoundingClientRect().width);
-  copy2.style.width = `${width}px`;
-  copy2.style.height = "auto";
-  copy2.style.minHeight = "0";
-  copy2.style.margin = "0";
-  copy2.style.background = "#ffffff";
-  const holder = document.createElement("div");
-  holder.setAttribute(
-    "style",
-    `position:absolute;left:-100000px;top:0;width:${width}px;background:#fff`
-  );
-  holder.append(copy2);
-  document.body.append(holder);
-  await Promise.all(
-    [...copy2.querySelectorAll("img")].map(
-      (picture) => picture.complete ? null : new Promise((done) => picture.onload = picture.onerror = done)
-    )
-  );
-  const height = Math.ceil(copy2.getBoundingClientRect().height);
-  const holderBox = holder.getBoundingClientRect();
-  let right = width;
-  for (const element of copy2.querySelectorAll("*")) {
-    const box = element.getBoundingClientRect();
-    if (box.width && box.height) right = Math.max(right, Math.ceil(box.right - holderBox.left));
-  }
-  const drawnWidth = right;
-  holder.remove();
-  const markup = new XMLSerializer().serializeToString(copy2);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${drawnWidth}" height="${height}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div></foreignObject></svg>`;
-  const image = new Image();
-  await new Promise((done, fail) => {
-    image.onload = done;
-    image.onerror = () => fail(
-      new Error("bio.viz: the chart could not be drawn as a picture, as the browser read it.")
-    );
-    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  });
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(drawnWidth * scale);
-  canvas.height = Math.round(height * scale);
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.scale(scale, scale);
-  context.drawImage(image, 0, 0, drawnWidth, height);
-  const written = await new Promise((done, fail) => {
-    try {
-      canvas.toBlob(
-        (blob) => blob ? done(blob) : fail(
-          new Error(
-            "bio.viz: the picture could not be written, which a browser does when it is too large. Try a smaller png_scale."
-          )
-        ),
-        "image/png"
-      );
-    } catch (error) {
-      fail(new Error(`bio.viz: the picture could not be read back (${error.message}).`));
-    }
-  });
-  const bytes = pngChunks(new Uint8Array(await written.arrayBuffer()), { scale, text: text2 });
-  return {
-    blob: new Blob([bytes], { type: "image/png" }),
-    width: canvas.width,
-    height: canvas.height
-  };
-}
-
-// src/shared/specification.js
-var SPECIFICATION_FORMAT = "bio.viz specification";
-var SPECIFICATION_VERSION = 1;
-var FILTER_OPERATORS = Object.freeze(["in"]);
-var PAGE_SETTINGS = Object.freeze(["connection", "back"]);
-var NO_COLUMN = Object.freeze(["__proto__", "constructor", "prototype"]);
-var MOST_NESTED = 64;
-var refuse7 = (message) => {
-  throw new TypeError(`bio.viz: ${message}`);
-};
-var isPlainObject5 = (value) => value !== null && typeof value === "object" && !Array.isArray(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
-var isText5 = (value) => typeof value === "string" && value.trim() !== "";
-function notData(value, where) {
-  if (value === null || typeof value === "boolean" || typeof value === "string") return null;
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? null : `${where} is ${String(value)}, which is not a number JSON holds`;
-  }
-  if (Array.isArray(value)) {
-    for (let i = 0; i < value.length; i += 1) {
-      const found = notData(value[i], `${where}[${i}]`);
-      if (found) return found;
-    }
-    return null;
-  }
-  if (isPlainObject5(value)) {
-    for (const [key, entry] of Object.entries(value)) {
-      const found = notData(entry, `${where}.${key}`);
-      if (found) return found;
-    }
-    return null;
-  }
-  const kind = typeof value === "function" ? "a function" : value === void 0 ? "undefined" : `a ${typeof value === "object" ? value.constructor?.name || "object" : typeof value}`;
-  return `${where} is ${kind}, which is not data: a specification holds only text, numbers, true, false, null, lists and objects`;
-}
-var copy = (value) => JSON.parse(JSON.stringify(value));
-function snapshot(value, where = "the specification", depth = 0) {
-  if (value === null || typeof value !== "object") return value;
-  if (depth > MOST_NESTED) {
-    refuse7(
-      `the specification is nested more than ${MOST_NESTED} deep, which no chart\u2019s settings are.`
-    );
-  }
-  const array = Array.isArray(value);
-  if (!array && !isPlainObject5(value)) {
-    const problem = notData(value, where);
-    if (problem) refuse7(`${problem}.`);
-  }
-  const descriptors = Object.getOwnPropertyDescriptors(value);
-  const read2 = (key, descriptor, at) => {
-    if ("get" in descriptor || "set" in descriptor) {
-      refuse7(
-        `${at} is a getter or a setter, which is not data: a specification holds only text, numbers, true, false, null, lists and objects.`
-      );
-    }
-    return snapshot(descriptor.value, at, depth + 1);
-  };
-  if (array) {
-    const length = descriptors.length ? descriptors.length.value : 0;
-    const out2 = [];
-    for (let i = 0; i < length; i += 1) {
-      const descriptor = descriptors[i];
-      out2.push(descriptor ? read2(i, descriptor, `${where}[${i}]`) : void 0);
-    }
-    return out2;
-  }
-  const out = {};
-  for (const [key, descriptor] of Object.entries(descriptors)) {
-    if (!descriptor.enumerable) continue;
-    Object.defineProperty(out, key, {
-      value: read2(key, descriptor, `${where}.${key}`),
-      enumerable: true,
-      writable: true,
-      configurable: true
-    });
-  }
-  return out;
-}
-function writeSpecification({ chart, version: version2, settings, filters = [] }) {
-  const written = {};
-  for (const [key, value] of Object.entries(settings)) {
-    if (PAGE_SETTINGS.includes(key) || notData(value, key)) continue;
-    written[key] = copy(value);
-  }
-  return {
-    format: SPECIFICATION_FORMAT,
-    format_version: SPECIFICATION_VERSION,
-    bio_viz_version: version2,
-    chart,
-    settings: written,
-    filters: filters.map(({ column, values }) => ({
-      column,
-      operator: "in",
-      values: values.map((entry) => typeof entry === "number" ? entry : String(entry))
-    }))
-  };
-}
-function readSpecification(specification, charts) {
-  let spec = specification;
-  if (typeof spec !== "string") spec = snapshot(spec);
-  if (typeof spec === "string") {
-    try {
-      spec = JSON.parse(spec);
-    } catch (error) {
-      refuse7(`a specification given as text must be JSON: ${error.message}.`);
-    }
-  }
-  if (!isPlainObject5(spec))
-    refuse7("a specification is an object: { format, chart, settings, filters }.");
-  const problem = notData(spec, "the specification");
-  if (problem) refuse7(`${problem}.`);
-  if (spec.format !== SPECIFICATION_FORMAT) {
-    refuse7(
-      `this is not a bio.viz specification: its \`format\` must be "${SPECIFICATION_FORMAT}".`
-    );
-  }
-  if (spec.format_version !== SPECIFICATION_VERSION) {
-    refuse7(
-      `this specification is of format version ${JSON.stringify(spec.format_version)}, and this version of bio.viz reads version ${SPECIFICATION_VERSION}.`
-    );
-  }
-  const known = ["format", "format_version", "bio_viz_version", "chart", "settings", "filters"];
-  const extra = Object.keys(spec).filter((key) => !known.includes(key));
-  if (extra.length) {
-    refuse7(`a specification has no \`${extra[0]}\`: it holds ${known.join(", ")}.`);
-  }
-  if (!isText5(spec.bio_viz_version)) {
-    refuse7("a specification\u2019s `bio_viz_version` is text, the version that wrote it.");
-  }
-  if (!isText5(spec.chart) || !Object.prototype.hasOwnProperty.call(charts, spec.chart)) {
-    refuse7(
-      `this specification names the chart ${JSON.stringify(spec.chart)}, which bio.viz does not have. Its charts are ${Object.keys(charts).join(", ")}.`
-    );
-  }
-  const defaults = charts[spec.chart];
-  const settings = spec.settings === void 0 ? {} : spec.settings;
-  if (!isPlainObject5(settings)) refuse7("a specification\u2019s `settings` is an object of settings.");
-  const unknown = Object.keys(settings).filter(
-    (key) => !Object.prototype.hasOwnProperty.call(defaults, key) || PAGE_SETTINGS.includes(key)
-  );
-  if (unknown.length) {
-    const names = unknown.map((key) => `\`${key}\``).join(", ");
-    refuse7(
-      `this specification of the ${spec.chart} chart${isText5(spec.bio_viz_version) ? `, written by bio.viz ${spec.bio_viz_version},` : ""} holds ${names}, which ${unknown.length === 1 ? "is not a setting" : "are not settings"} of that chart in this version.`
-    );
-  }
-  if ("filters" in settings && settings.filters !== null && !Array.isArray(settings.filters)) {
-    refuse7("the setting `filters` of a specification is a list of filters, or null.");
-  }
-  for (const [key, value] of Object.entries(settings)) {
-    if (typeof value === "string" && NO_COLUMN.includes(value)) {
-      refuse7(`\`${key}\` names \`${value}\`, which is no column\u2019s name.`);
-    }
-  }
-  const filters = spec.filters === void 0 ? [] : spec.filters;
-  if (!Array.isArray(filters))
-    refuse7("a specification\u2019s `filters` is a list of { column, operator, values }.");
-  const read2 = copy(settings);
-  filters.forEach((filter, index) => {
-    const where = `filter ${index + 1}`;
-    if (!isPlainObject5(filter)) refuse7(`${where} must be { column, operator, values }.`);
-    const keys = Object.keys(filter).filter(
-      (key) => !["column", "operator", "values"].includes(key)
-    );
-    if (keys.length)
-      refuse7(`${where} has \`${keys[0]}\`: a filter is { column, operator, values }.`);
-    if (!isText5(filter.column)) refuse7(`${where} must name its column.`);
-    if (NO_COLUMN.includes(filter.column)) {
-      refuse7(`${where} is on \`${filter.column}\`, which is no column\u2019s name.`);
-    }
-    const before = filters.findIndex((other) => other && other.column === filter.column);
-    if (before < index) {
-      refuse7(
-        `${where} is on ${filter.column}, which filter ${before + 1} is already on: a column is filtered once.`
-      );
-    }
-    if (!FILTER_OPERATORS.includes(filter.operator)) {
-      refuse7(
-        `${where}, on ${filter.column}, has the operator ${JSON.stringify(filter.operator)}; the operators are ${FILTER_OPERATORS.map((entry) => `"${entry}"`).join(", ")}: in, the values it lets through.`
-      );
-    }
-    if (!Array.isArray(filter.values) || !filter.values.every((value) => typeof value === "string" || typeof value === "number")) {
-      refuse7(
-        `${where}, on ${filter.column}, must list the values it lets through: text or numbers.`
-      );
-    }
-    const twice = filter.values.map(String).find((value, at2, all) => all.indexOf(value) !== at2);
-    if (twice !== void 0) {
-      refuse7(`${where}, on ${filter.column}, names ${twice} twice: a value is listed once.`);
-    }
-    const specs = Array.isArray(read2.filters) ? read2.filters : read2.filters ? [read2.filters] : [];
-    const at = specs.findIndex(
-      (entry) => typeof entry === "string" ? entry === filter.column : entry && entry.value_col === filter.column
-    );
-    const values = filter.values.map(String);
-    const started = {
-      ...at >= 0 && typeof specs[at] === "object" ? specs[at] : { value_col: filter.column },
-      start: values.length === 1 ? values[0] : values,
-      ...values.length !== 1 ? { multiple: true } : {}
-    };
-    if (at >= 0) specs[at] = started;
-    else specs.push(started);
-    read2.filters = specs;
-  });
-  return {
-    chart: spec.chart,
-    settings: read2,
-    version: spec.bio_viz_version,
-    filters: filters.map(({ column, values }) => ({ column, values: values.map(String) }))
-  };
-}
-
-// src/shared/chartHost.js
-var PALETTE = [
-  "#2563eb",
-  "#059669",
-  "#d97706",
-  "#9333ea",
-  "#dc2626",
-  "#0891b2",
-  "#65a30d",
-  "#db2777",
-  "#4b5563",
-  "#ca8a04"
-];
-var VALUE_LABELS = Object.freeze({
-  raw: "Result",
-  baseline: "Baseline",
-  change: "Change from baseline",
-  fold_change: "Fold change from baseline",
-  percent_change: "Percent change from baseline"
-});
-var SCALE_LABELS = Object.freeze({ linear: "Linear", log: "Logarithmic" });
-var hexToRgba = (hex, alpha) => {
-  const value = hex.replace("#", "");
-  const part = (at) => parseInt(value.slice(at, at + 2), 16);
-  return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha})`;
-};
-var shown = (value) => Number.isFinite(value) ? String(Number(value.toPrecision(4))) : "";
-var isRecordTable = (table) => Array.isArray(table) && table.every((row) => row !== null && typeof row === "object" && !Array.isArray(row));
-function findKit(chart) {
-  const kit = globalThis.SafetyViz && globalThis.SafetyViz.kit;
-  if (!kit || typeof kit.renderShell !== "function" || typeof kit.Chart !== "function") {
-    throw new Error(
-      `bio.viz: ${chart} is built from safety.viz's kit, and \`SafetyViz.kit\` was not found. Load safety.viz's bundle on the page before bio.viz makes a chart.`
-    );
-  }
-  return kit;
-}
-function applyStyles(id, styles) {
-  if (document.getElementById(id)) return;
-  const style = document.createElement("style");
-  style.id = id;
-  style.textContent = styles;
-  document.head.append(style);
-}
-var lineStyles = (root) => `
-${root} .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
-${root} .bv-statistic:empty{display:none}
-${root} .bv-statistic p{margin:0 0 .3rem}
-${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
-${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
-${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
-${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
-${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
-${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
-${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
-${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
-${root} .bv-stat-method{display:block;color:#52616f}
-${root} .bv-panel-canvas{height:300px;position:relative}
-${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
-${root} .sv-listing table{table-layout:fixed}
-${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
-${root} .sv-rail{max-width:100%;overflow-x:auto}
-${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}
-${root} .bv-titles{margin:0 0 .6rem;max-width:100%}
-${root} .bv-titles:empty{display:none}
-${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
-${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
-${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
-${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}
-${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:.6rem 0 0;font-size:.8rem;color:#52616f}
-${root} .bv-downloads[hidden]{display:none}
-${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
-${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
-${root} .bv-notices{margin:0 0 .6rem;padding:.4rem .6rem;border-left:3px solid #d97706;background:#fff8eb;font-size:.8rem;color:#5c3b00}
-${root} .bv-notices:empty{display:none}
-${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
-function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
-  const { kit } = chart;
-  Object.assign(
-    chart,
-    kit.renderShell(chart.element, {
-      moduleClass,
-      onToggle: () => chart.resize()
-    })
-  );
-  applyStyles(styleId, styles);
-  chart.statLine = kit.createElement("div", "bv-statistic");
-  chart.statLine.setAttribute("role", "status");
-  chart.footnote.after(chart.statLine);
-  chart.footnote.classList.add("bv-no-picture");
-  chart.listingWrap.classList.add("bv-no-picture");
-  chart.titleBlock = kit.createElement("div", "bv-titles");
-  chart.main.prepend(chart.titleBlock);
-  chart.notices = [];
-  chart.noticeBlock = kit.createElement("div", "bv-notices bv-no-picture");
-  chart.noticeBlock.setAttribute("role", "status");
-  chart.titleBlock.after(chart.noticeBlock);
-  chart.footBlock = kit.createElement("div", "bv-foot");
-  chart.listingWrap.before(chart.footBlock);
-  chart.module = moduleClass.replace(/^bv-/, "");
-  mountDownloads(chart);
-  chart.host = {
-    settings: {
-      profile: chart.settings.profile,
-      id_col: chart.settings.id_col,
-      page_size: chart.settings.page_size,
-      details: []
-    },
-    root: chart.root,
-    railWrap: chart.railWrap,
-    listingWrap: chart.listingWrap,
-    currentTableData: [],
-    listingSearch: "",
-    listingSort: null,
-    listingSelectedId: null,
-    page: 1,
-    profileRows: [],
-    onListingRowClick: (row) => selectParticipant(chart, row[chart.settings.id_col])
-  };
-  chart.listingWrap.addEventListener(
-    "click",
-    (event) => {
-      const button = event.target.closest && event.target.closest("button");
-      if (!button || button.textContent !== "Export: CSV") return;
-      event.stopPropagation();
-      event.preventDefault();
-      downloadListing(chart, listingFile);
-    },
-    true
-  );
-  if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 600px)").matches) {
-    chart.sidebarToggle.click();
-  }
-}
-function checkTables(tables, settings) {
-  for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-    const column = settings[key];
-    if (tables.results.length && !tables.results.some((row) => column in row)) {
-      throw new TypeError(`bio.viz: the results table has no column \`${column}\` (\`${key}\`).`);
-    }
-  }
-  const participantIdCol = settings.participant_id_col || settings.id_col;
-  if (tables.participants != null && tables.participants.length && !tables.participants.some((row) => participantIdCol in row)) {
-    throw new TypeError(
-      `bio.viz: the participant table has no column \`${participantIdCol}\`, which names the participant (\`participant_id_col\`, or \`id_col\` when that is not set).`
-    );
-  }
-  if (!tables.results.length) return;
-  const cuts = GROUPINGS.map((key) => [key, settings[key]]);
-  (Array.isArray(settings.cuts) ? settings.cuts : []).forEach(
-    (spec, index) => cuts.push([`cuts[${index}]`, spec])
-  );
-  for (const [key, spec] of cuts) {
-    if (!spec || typeof spec !== "object" || Array.isArray(spec)) continue;
-    if (typeof spec.measure === "string") {
-      if (!tables.results.some((row) => row[settings.measure_col] === spec.measure)) {
-        throw new TypeError(
-          `bio.viz: \`${key}\` cuts the biomarker ${spec.measure}, which the results table does not have.`
-        );
-      }
-    } else if (typeof spec.col === "string") {
-      const has = (rows) => Boolean(rows) && rows.some((row) => spec.col in row);
-      if (!has(tables.results) && !has(tables.participants)) {
-        throw new TypeError(
-          `bio.viz: \`${key}\` cuts the column ${spec.col}, which neither the results table nor the participant table has.`
-        );
-      }
-    }
-  }
-}
-var GROUPINGS = ["group_by", "panel_by", "row_by", "col_by"];
-function readGiven(chart, data, settings = chart.settings) {
-  const tables = Array.isArray(data) ? { results: data } : data || {};
-  try {
-    if (!isRecordTable(tables.results)) {
-      throw new TypeError("bio.viz: `results` must be an array of records, one object per row.");
-    }
-    if (tables.participants != null && !isRecordTable(tables.participants)) {
-      throw new TypeError(
-        "bio.viz: `participants` must be an array of records, one object per row."
-      );
-    }
-    checkTables(tables, settings);
-  } catch (error) {
-    chart.destroyCharts();
-    chart.element.innerHTML = "";
-    chart.element.append(chart.kit.createElement("div", "sv-warning", error.message));
-    throw error;
-  }
-  return {
-    results: tables.results,
-    participants: tables.participants && tables.participants.length ? tables.participants : null
-  };
-}
-function readOutcomesGiven(chart, outcomes, settings) {
-  if (outcomes === void 0 || outcomes === null) return null;
-  try {
-    if (!isRecordTable(outcomes)) {
-      throw new TypeError("bio.viz: `outcomes` must be an array of records, one object per row.");
-    }
-    checkOutcomes(outcomes, settings);
-  } catch (error) {
-    chart.destroyCharts();
-    chart.element.innerHTML = "";
-    chart.element.append(chart.kit.createElement("div", "sv-warning", error.message));
-    throw error;
-  }
-  return outcomes.length ? outcomes : null;
-}
-function drawSafely(chart, draw) {
-  chart.footnote.classList.remove("bv-failure");
-  try {
-    draw();
-    writeTitles(chart);
-  } catch (error) {
-    if (chart.desk) chart.desk.begin();
-    chart.asked = [];
-    chart.model = null;
-    if ("answer" in chart) chart.answer = null;
-    chart.destroyCharts();
-    clearListing(chart);
-    for (const wrap of [
-      chart.notes,
-      chart.multiplesWrap,
-      chart.listingWrap,
-      chart.gridWrap,
-      chart.screenWrap
-    ]) {
-      if (wrap) wrap.innerHTML = "";
-    }
-    if (chart.chartWrap) chart.chartWrap.classList.add("sv-hidden");
-    chart.statLine.textContent = "";
-    chart.statLine.dataset.state = "empty";
-    const message = String(error && error.message || error).replace(/^bio\.viz: /, "");
-    chart.footnote.textContent = `This chart could not be drawn: ${message}`;
-    chart.footnote.classList.add("bv-failure");
-    console.error(error);
-    writeTitles(chart);
-  }
-}
-function sharedPlaceholders(chart) {
-  const filters = chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
-  return {
-    date: dateDrawn(),
-    version: VERSION_SAID,
-    filters: filters.length ? filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ") : "none"
-  };
-}
-function placeholderValues(chart) {
-  let own = {};
-  try {
-    own = typeof chart.placeholders === "function" ? chart.placeholders() || {} : {};
-  } catch (error) {
-    console.error("bio.viz: the chart\u2019s placeholders could not be read.", error);
-    own = {};
-  }
-  return { ...sharedPlaceholders(chart), ...own };
-}
-function titlesOf(chart) {
-  const parts = partsOf(chart);
-  const joined = (runs) => runs === null ? null : runs.map((run) => run.text).join("");
-  return {
-    title: joined(parts.title),
-    subtitle: joined(parts.subtitle),
-    footnotes: parts.footnotes.map(joined)
-  };
-}
-function partsOf(chart) {
-  const { settings } = chart;
-  const values = placeholderValues(chart);
-  const filled = (template) => typeof template !== "string" || template.trim() === "" ? null : fillParts(template, values);
-  return {
-    title: filled(settings.title),
-    subtitle: filled(settings.subtitle),
-    footnotes: [
-      ...(settings.footnotes || []).map(filled).filter(Boolean),
-      [
-        {
-          text: automaticFootnote({
-            date: values.date,
-            version: VERSION_SAID,
-            asked: chart.asked || [],
-            of: chart.footnoteCounts
-          }),
-          value: false
-        }
-      ]
-    ]
-  };
-}
-function writeRuns(kit, element, runs) {
-  for (const run of runs) {
-    if (run.value) {
-      const isolated = document.createElement("bdi");
-      isolated.textContent = run.text;
-      element.append(isolated);
-    } else element.append(document.createTextNode(run.text));
-  }
-}
-function writeTitles(chart) {
-  if (!chart.titleBlock || !chart.footBlock) return;
-  const { kit } = chart;
-  const said2 = partsOf(chart);
-  chart.titleBlock.innerHTML = "";
-  if (said2.title !== null) {
-    const title = kit.createElement("div", "bv-title");
-    title.setAttribute("role", "heading");
-    title.setAttribute("aria-level", "2");
-    writeRuns(kit, title, said2.title);
-    chart.titleBlock.append(title);
-  }
-  if (said2.subtitle !== null) {
-    const subtitle = kit.createElement("p", "bv-subtitle");
-    writeRuns(kit, subtitle, said2.subtitle);
-    chart.titleBlock.append(subtitle);
-  }
-  chart.footBlock.innerHTML = "";
-  said2.footnotes.forEach((runs, index) => {
-    const line = kit.createElement("p", "bv-foot-line");
-    writeRuns(kit, line, runs);
-    if (index === said2.footnotes.length - 1) line.dataset.automatic = "true";
-    chart.footBlock.append(line);
-  });
-  syncDownloads(chart);
-  writeNotices(chart);
-}
-var SETTING_NAMES = Object.freeze({
-  row_by: "Rows",
-  col_by: "Columns",
-  group_by: "Groups",
-  color_by: "Colour",
-  panel_by: "Panels",
-  start_value: "Biomarker",
-  measure: "Biomarker",
-  biomarkers: "Biomarkers",
-  visit: "Visit",
-  visits: "Visits",
-  endpoint: "Endpoint",
-  comparison: "Compare",
-  x: "X axis",
-  y: "Y axis",
-  with: "With"
-});
-var said = (value) => typeof value === "string" ? value : Array.isArray(value) && value.every((entry) => typeof entry === "string") ? value.join(", ") : JSON.stringify(value);
-function noticesOf(chart) {
-  const { requested, settings } = chart;
-  if (!requested) return [];
-  const notices = [];
-  const view = typeof chart.viewSettings === "function" ? chart.viewSettings() : {};
-  for (const key of Object.keys(view)) {
-    if (!Object.hasOwn(requested.settings, key)) continue;
-    const asked = settings[key];
-    if (asked === null || asked === void 0) continue;
-    const drawn = view[key];
-    if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
-    const name = SETTING_NAMES[key] || `\`${key}\``;
-    notices.push({
-      kind: "setting",
-      name: key,
-      asked,
-      drawn,
-      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === void 0 ? "none" : said(drawn)}.`
-    });
-  }
-  const id = settings.participant_id_col || settings.id_col;
-  for (const filter of requested.filters || []) {
-    const spec = (chart.filterSpecs || []).find((entry) => entry.value_col === filter.column);
-    if (!spec) {
-      notices.push({
-        kind: "filter",
-        name: filter.column,
-        asked: filter.values,
-        drawn: null,
-        said: filter.column === id ? `Filter ${filter.column}: the participant id is not a filter.` : `Filter ${filter.column}: the participant table has no such column, so it is not a filter.`
-      });
-      continue;
-    }
-    const now = (chart.state.filters || {})[filter.column];
-    const drawn = now === null || now === void 0 || now === "" ? null : (Array.isArray(now) ? now : [now]).map(String);
-    if (drawn !== null && JSON.stringify(drawn) === JSON.stringify(filter.values)) continue;
-    const missing = filter.values.filter((value) => !(drawn || []).includes(value));
-    notices.push({
-      kind: "filter",
-      name: filter.column,
-      asked: filter.values,
-      drawn,
-      said: `Filter ${filter.column}: ${missing.join(", ")} ${missing.length === 1 ? "is not one of its values" : "are not among its values"}, so it is at ${drawn === null ? "All" : drawn.join(", ")}.`
-    });
-  }
-  return notices;
-}
-function writeNotices(chart) {
-  if (!chart.noticeBlock) return;
-  if (chart.requested && !chart.noticed && chart.tables && chart.tables.results.length) {
-    chart.noticed = true;
-    chart.notices = noticesOf(chart);
-  }
-  chart.noticeBlock.textContent = chart.notices.length ? `Not drawn as the specification asks: ${chart.notices.map((notice) => notice.said).join(" ")}` : "";
-}
-var DOWNLOAD_LABELS = Object.freeze({
-  png: "PNG",
-  statistics: "Statistics (CSV)",
-  table: "Table (CSV)"
-});
-var slug = (text2) => String(text2).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => whole.length <= 60 ? whole : kept).replace(/-+$/g, "");
-function downloadName(chart, kind) {
-  const values = placeholderValues(chart);
-  const view = (chart.viewFields || []).map((name) => values[name]).filter((value) => value !== null && value !== void 0 && String(value).trim() !== "").join(" ");
-  const base = ["bio.viz", chart.module, slug(view)].filter(Boolean).join("-");
-  return kind === "png" ? `${base}.png` : `${base}-${kind}.csv`;
-}
-async function downloadFile(chart, kind) {
-  const name = downloadName(chart, kind);
-  if (kind === "statistics") {
-    const { columns, rows } = statisticsTable(chart.asked || []);
-    return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
-  }
-  if (kind === "table") {
-    const { columns, rows } = typeof chart.tableOf === "function" ? chart.tableOf() : { columns: [], rows: [] };
-    return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
-  }
-  if (kind === "png") {
-    const said2 = titlesOf(chart);
-    const scale = chart.settings.png_scale;
-    const charts = (chart.charts || []).filter(
-      (made) => made && made.options && typeof made.resize === "function"
-    );
-    const ratios = charts.map((made) => made.options.devicePixelRatio);
-    const sharpen = (ratio) => charts.forEach((made, i) => {
-      made.options.devicePixelRatio = ratio === null ? ratios[i] : ratio;
-      made.resize();
-    });
-    sharpen(Math.max(scale, globalThis.devicePixelRatio || 1));
-    try {
-      const { blob } = await drawFrame(chart.main, {
-        scale,
-        // What a reader works the chart with is marked to be left out.
-        leaveOut: (element) => element.classList.contains("bv-no-picture"),
-        text: {
-          Title: [said2.title, said2.subtitle].filter(Boolean).join(" \u2014 "),
-          Description: said2.footnotes.join("\n"),
-          Software: `bio.viz ${VERSION_SAID}`
-        }
-      });
-      return { name, blob };
-    } finally {
-      sharpen(null);
-    }
-  }
-  throw new TypeError(
-    `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
-  );
-}
-function mountDownloads(chart) {
-  const { kit } = chart;
-  chart.downloadBar = kit.createElement("div", "bv-downloads bv-no-picture");
-  chart.downloadBar.append(kit.createElement("span", "bv-downloads-label", "Download:"));
-  chart.downloadButtons = {};
-  for (const [kind, label2] of Object.entries(DOWNLOAD_LABELS)) {
-    const button = kit.createElement("button", null, label2);
-    button.type = "button";
-    button.dataset.download = kind;
-    button.onclick = async () => {
-      button.disabled = true;
-      sayFailure(chart, null);
-      try {
-        const { name, blob } = await downloadFile(chart, kind);
-        saveFile(blob, name);
-      } catch (error) {
-        sayFailure(
-          chart,
-          `The ${kind === "png" ? "PNG" : `${kind} file`} could not be made: ${String(error && error.message || error).replace(/^bio\.viz: /, "")}`
-        );
-        console.error(error);
-      } finally {
-        syncDownloads(chart);
-      }
-    };
-    chart.downloadButtons[kind] = button;
-    chart.downloadBar.append(button);
-  }
-  chart.footBlock.after(chart.downloadBar);
-  chart.fileOf = (kind) => downloadFile(chart, kind);
-}
-function sayFailure(chart, said2) {
-  const old = chart.downloadBar.querySelector(".bv-download-error");
-  if (old) old.remove();
-  if (!said2) return;
-  const line = chart.kit.createElement("p", "bv-download-error", said2);
-  line.setAttribute("role", "alert");
-  chart.downloadBar.append(line);
-}
-function syncDownloads(chart) {
-  if (!chart.downloadBar) return;
-  chart.downloadBar.hidden = !chart.settings.downloads;
-  const answered = (chart.asked || []).some(
-    (entry) => entry.answer && entry.answer.status === "ok"
-  );
-  const table = typeof chart.tableOf === "function" ? chart.tableOf() : { rows: [] };
-  const { png, statistics } = chart.downloadButtons;
-  if (!(chart.asked || []).length) statistics.remove();
-  else if (!statistics.isConnected) png.after(statistics);
-  const waiting = (chart.asked || []).some((entry) => !entry.answer);
-  statistics.disabled = !answered;
-  statistics.title = answered ? "" : waiting ? "Waiting for R\u2019s answer." : "R returned no statistics for this view.";
-  if (!statistics.title) statistics.removeAttribute("title");
-  chart.downloadButtons.table.disabled = !table.rows.length;
-  chart.downloadButtons.png.disabled = false;
-}
-function syncHost(chart) {
-  chart.host.settings.profile = chart.settings.profile;
-  chart.host.settings.id_col = chart.settings.id_col;
-  chart.host.settings.page_size = chart.settings.page_size;
-}
-function addFilterControls(chart, { addSection, addControl }, onChange) {
-  const { kit, state } = chart;
-  if (!chart.filterSpecs.length) return;
-  const filters = addSection("Filters");
-  const idCol = chart.settings.participant_id_col || chart.settings.id_col;
-  const drawn = chart.filterSpecs.filter((spec) => spec.value_col !== idCol);
-  kit.reconcileFilters(
-    state.filters,
-    drawn,
-    (spec) => [
-      ...new Set(
-        chart.tables.participants.map((row) => row[spec.value_col]).filter((entry) => entry !== void 0 && entry !== null && entry !== "").map(String)
-      )
-    ].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }))
-  ).forEach(({ spec, values, selected }) => {
-    const control = kit.renderFilterControl({
-      spec,
-      values,
-      selected,
-      onChange: (next) => {
-        state.filters[spec.value_col] = next;
-        onChange();
-      }
-    });
-    control.dataset.filter = spec.value_col;
-    addControl(spec.label, control, filters);
-  });
-}
-function filtersForScope(chart) {
-  return chart.filterSpecs.map((spec) => ({ label: spec.label, selection: chart.state.filters[spec.value_col] })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ label: label2, selection }) => ({
-    label: label2,
-    values: (Array.isArray(selection) ? selection : [selection]).map(String)
-  })).filter(({ values }) => values.length);
-}
-function statTable({ caption, head, rows }, kit) {
-  const table = kit.createElement("table", "bv-stat-pairs");
-  table.append(kit.createElement("caption", null, caption));
-  const header = document.createElement("tr");
-  head.forEach((title) => {
-    const cell = kit.createElement("th", null, title);
-    cell.scope = "col";
-    header.append(cell);
-  });
-  const thead = document.createElement("thead");
-  thead.append(header);
-  const tbody = document.createElement("tbody");
-  rows.forEach((row) => {
-    const line = document.createElement("tr");
-    line.dataset.status = row.status;
-    const lead = kit.createElement("th", null, row.head);
-    lead.scope = "row";
-    if (row.sub) lead.append(kit.createElement("span", "bv-stat-method", row.sub));
-    line.append(lead, ...row.cells.map((cell) => kit.createElement("td", null, cell)));
-    tbody.append(line);
-  });
-  table.append(thead, tbody);
-  return table;
-}
-function writeStatistic(kit, line, description) {
-  line.dataset.state = description.state;
-  line.innerHTML = "";
-  line.append(kit.createElement("p", "bv-stat-result", description.text));
-  description.estimates.forEach(
-    (said2) => line.append(kit.createElement("p", "bv-stat-estimate", said2))
-  );
-  if (description.table) line.append(statTable(description.table, kit));
-  description.remarks.forEach(({ kind, text: text2 }) => {
-    const remark = kit.createElement("p", "bv-stat-remark", text2);
-    remark.dataset.kind = kind;
-    line.append(remark);
-  });
-  if (description.scope) line.append(kit.createElement("p", "bv-stat-scope", description.scope));
-}
-function showListing(chart, { columns, rows }) {
-  const { host, settings } = chart;
-  const participantIdCol = settings.participant_id_col || settings.id_col;
-  const byId = new Map(
-    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-  );
-  host.settings.details = columns;
-  host.currentTableData = rows.map((row) => ({
-    ...byId.get(String(row[settings.id_col])) || {},
-    ...row
-  }));
-  host.listingSearch = "";
-  host.listingSort = null;
-  host.page = 1;
-  chart.kit.renderListing(host);
-}
-function selectParticipant(chart, id) {
-  const { host } = chart;
-  host.listingSelectedId = id == null ? null : String(id);
-  if (host.currentTableData.length) chart.kit.renderListing(host);
-  chart.root.dispatchEvent(
-    new CustomEvent("participantsSelected", {
-      detail: { data: id == null ? [] : [String(id)] },
-      bubbles: true
-    })
-  );
-}
-function clearListing(chart) {
-  const { host } = chart;
-  host.currentTableData = [];
-  host.listingSelectedId = null;
-  chart.listingWrap.innerHTML = "";
-  chart.kit.resetProfileRail(host);
-}
-function downloadCsv(kit, rows, columns, file) {
-  saveFile(new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }), file);
-}
-function saveFile(blob, name) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
-}
-function downloadListing(chart, file) {
-  const { host, kit } = chart;
-  let rows = kit.searchRows([...host.currentTableData], host.settings.details, host.listingSearch);
-  if (host.listingSort) rows = kit.sortRows(rows, host.listingSort);
-  downloadCsv(kit, rows, host.settings.details, file);
-}
-function railColumns(settings) {
-  return {
-    id_col: settings.id_col,
-    measure_col: settings.measure_col,
-    value_col: settings.value_col,
-    unit_col: settings.unit_col,
-    visit_col: settings.visit_col,
-    visitn_col: settings.visit_order_col,
-    studyday_col: settings.studyday_col,
-    normal_col_high: settings.normal_col_high,
-    normal_col_low: settings.normal_col_low
-  };
-}
-function railSettings(chart, axisType) {
-  const { settings } = chart;
-  const details = settings.profile_details || chart.categories.filter((entry) => entry.table !== "results" || !chart.tables.participants).map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
-  const rail = {
-    ...railColumns(settings),
-    details,
-    // Every biomarker is a measure the rail shows, not only the four liver
-    // tests it was made for.
-    measure_values: Object.fromEntries(chart.measures.map((measure) => [measure, measure])),
-    axis_type: axisType === "log" ? "log" : "linear",
-    on_clear: () => selectParticipant(chart, null)
-  };
-  if (settings.normal_col_high) return rail;
-  const none = { relative_uln: null, relative_baseline: null };
-  return {
-    ...rail,
-    display: "relative_baseline",
-    display_options: [{ value: "relative_baseline", label: "Multiple of first result" }],
-    cuts: { defaults: none, TB: none, ALP: none }
-  };
-}
-function buildProfileFeed(chart, settingsOf) {
-  const { settings, host, kit } = chart;
-  host.profileRows = [];
-  if (!settings.profile) return;
-  const participantIdCol = settings.participant_id_col || settings.id_col;
-  const byId = new Map(
-    (chart.tables.participants || []).map((row) => [String(row[participantIdCol]), row])
-  );
-  const ranged = Boolean(settings.normal_col_high);
-  const feed = chart.tables.results.map((row) => ({
-    ...byId.get(String(row[settings.id_col])) || {},
-    ...row,
-    ...ranged ? {} : { __bv_no_reference_range: 1 }
-  }));
-  host.profileRows = kit.buildProfileRows(feed, {
-    ...railColumns(settings),
-    normal_col_high: ranged ? settings.normal_col_high : "__bv_no_reference_range"
-  });
-  kit.mountProfileRail(host, settingsOf);
-}
-function renderPager(kit, page, count, go) {
-  const pager = kit.createElement("div", "bv-overview-pager");
-  pager.append(kit.createElement("span", "bv-overview-count", count));
-  if (page.pages === 1) return pager;
-  const button = (label2, to, name) => {
-    const made = kit.createElement("button", "bv-no-picture", label2);
-    made.type = "button";
-    made.dataset.go = name;
-    made.disabled = to < 0 || to >= page.pages;
-    made.onclick = () => go(to);
-    return made;
-  };
-  pager.append(
-    button("Previous", page.page - 1, "previous"),
-    kit.createElement("span", "bv-overview-page", `Page ${page.page + 1} of ${page.pages}`),
-    button("Next", page.page + 1, "next")
-  );
-  return pager;
-}
-function mountToolbar(chart) {
-  const { kit, settings } = chart;
-  if (!chart.toolbar) {
-    chart.toolbar = kit.createElement("div", "bv-toolbar bv-no-picture");
-    chart.notes.before(chart.toolbar);
-  }
-  chart.toolbar.innerHTML = "";
-  if (settings.back) {
-    const back = kit.createElement("button", "bv-back", settings.back.label);
-    back.type = "button";
-    back.onclick = () => settings.back.action(chart);
-    chart.toolbar.append(back);
-  }
-  return chart.toolbar;
-}
-var toolbarStyles = (C5) => `${C5} .bv-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem}
-${C5} .bv-toolbar:empty{display:none}
-${C5} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-${C5} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
-${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
-function specificationOf(chart) {
-  const settings = {
-    ...chart.settings,
-    ...typeof chart.viewSettings === "function" ? chart.viewSettings() : {}
-  };
-  const specs = chart.filterSpecs || [];
-  if (specs.length || settings.filters !== null) {
-    settings.filters = specs.map((spec) => ({
-      value_col: spec.value_col,
-      label: spec.label,
-      ...spec.all === false ? { all: false } : {},
-      ...spec.multiple ? { multiple: true } : {}
-    }));
-  }
-  const filters = specs.map((spec) => ({
-    column: spec.value_col,
-    selection: (chart.state.filters || {})[spec.value_col]
-  })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ column, selection }) => ({
-    column,
-    values: (Array.isArray(selection) ? selection : [selection]).map(String)
-  }));
-  return writeSpecification({ chart: chart.module, version: VERSION, settings, filters });
-}
-function startFilters(chart) {
-  const state = chart.kit.initFilterState(chart.filterSpecs);
-  for (const spec of chart.settings.filters || []) {
-    if (spec && spec.multiple && Array.isArray(spec.start) && !spec.start.length && Object.hasOwn(state, spec.value_col)) {
-      state[spec.value_col] = [];
-    }
-  }
-  return state;
-}
-function cutsOffered(options, drawn) {
-  const written = new Set(drawn.map((entry) => JSON.stringify(entry)));
-  const cuts = [];
-  for (const { spec } of options || []) {
-    const key = JSON.stringify(spec);
-    if (written.has(key) || cuts.some((entry) => JSON.stringify(entry) === key)) continue;
-    cuts.push(spec);
-  }
-  return cuts.length ? cuts : null;
 }
 
 // src/shared/statisticLine.js
 var WAITING = "Statistics: waiting for R\u2026";
 var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
-var sentence = (state, said2) => ({
+var sentence = (state, said) => ({
   state,
-  text: said2,
+  text: said,
   estimates: [],
   remarks: [],
   scope: null
@@ -4011,8 +1962,8 @@ var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value
   (entry) => typeof entry === "string" && entry.trim() !== ""
 );
 var remarksOf = (value) => [
-  ...texts(value.warnings).map((said2) => ({ kind: "warning", text: `R warned: ${said2}` })),
-  ...texts(value.notes).map((said2) => ({ kind: "note", text: `R\u2019s note: ${said2}` }))
+  ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
+  ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
 ];
 function failureOf(result) {
   if (result && result.status === "unavailable") {
@@ -4030,11 +1981,11 @@ function createDesk({
   connection,
   note = null,
   describe: describe2,
-  waiting = (said2) => sentence("waiting", said2)
+  waiting = (said) => sentence("waiting", said)
 }) {
   let current = 0;
   let retired = false;
-  const withNote = (said2) => note && !hasAnswered(connection) ? `${said2} ${note}` : said2;
+  const withNote = (said) => note && !hasAnswered(connection) ? `${said} ${note}` : said;
   return {
     idle: withNote,
     retire() {
@@ -4102,20 +2053,16 @@ function statisticRequest({ name, test, pairwise, settings, state, panel }) {
     ...Object.keys(filters).length ? { filters } : {},
     ...state.yScale === "log" ? { positive_only: true } : {}
   };
-  const args = {
-    strValueCol: "y",
-    strGroupCol: "x",
-    strMethod: test,
-    // Pairs exist only among more than two groups.
-    bPairwise: Boolean(pairwise) && groups.length > 2
-  };
-  if (isCut(state.groupBy)) {
-    args.chrGroups = [...new Set(panel.cells.filter((cell) => cell.n).map((cell) => cell.level))];
-  }
   return {
     name,
     data: panel.records,
-    args,
+    args: {
+      strValueCol: "y",
+      strGroupCol: "x",
+      strMethod: test,
+      // Pairs exist only among more than two groups.
+      bPairwise: Boolean(pairwise) && groups.length > 2
+    },
     dataId,
     rows: panel.records.length
   };
@@ -4147,7 +2094,7 @@ function pairsOf(value) {
     }))
   };
 }
-var plain = (state, said2) => ({ ...sentence(state, said2), pairs: null });
+var plain = (state, said) => ({ ...sentence(state, said), pairs: null });
 function describeAnswer(result, context = {}) {
   if (result && result.status === "ok") {
     const value = result.value && typeof result.value === "object" ? result.value : {};
@@ -4171,25 +2118,24 @@ function noTestText(groups, several) {
   return `${lead}none is drawn.`;
 }
 function scopeText({ group, n, panel, color, filters = [] }) {
-  const named2 = group.includes(",") ? `${group},` : group;
-  const said2 = [
-    `This test compares the levels of ${named2} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+  const said = [
+    `This test compares the levels of ${group} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
-    said2.push("Each panel has a test of its own, and they are not adjusted for one another.");
+    said.push("Each panel has a test of its own, and they are not adjusted for one another.");
   }
   if (color) {
-    said2.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
+    said.push(`Colour by ${color} is not part of it: each level of ${group} is tested whole.`);
   }
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(" ");
 }
 function createStatisticDesk({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeAnswer,
-    waiting: (said2) => plain("waiting", said2)
+    waiting: (said) => plain("waiting", said)
   });
 }
 
@@ -4334,7 +2280,6 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
       visitsNotDrawn: [],
       extent: null,
       filtered: kept ? kept.length : null,
-      cuts: {},
       // No row to frame, as against rows that frame to no panel.
       noRows: true
     };
@@ -4345,44 +2290,27 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
   const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
-  const cuts = {};
-  for (const [field, by] of [
-    ["x", state.groupBy],
-    ["panel", state.panelBy]
-  ]) {
-    if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
-  }
-  const grouping3 = (by) => isCut(by) ? by : { col: by };
   const variablesFor = (visit) => ({
     y: yOf(visit),
-    ...state.groupBy ? { x: grouping3(state.groupBy) } : {},
+    ...state.groupBy ? { x: { col: state.groupBy } } : {},
     ...state.colorBy ? { color: { col: state.colorBy } } : {},
-    ...state.panelBy ? { panel: grouping3(state.panelBy) } : {}
+    ...state.panelBy ? { panel: { col: state.panelBy } } : {}
   });
-  const grouped = (record) => {
-    const out = { ...record };
-    for (const [field, cut] of Object.entries(cuts)) out[field] = groupLabel(record[field], cut);
-    return out;
-  };
-  const cutLevels = (cut, field, records) => cut.labels.filter((group) => records.some((record) => record[field] === group));
   const framed = visitList.map((visit) => {
     const made = frame(
       { results: rows, participants: kept || void 0 },
       variablesFor(visit),
       config
     );
-    const data = made.data.map(grouped);
-    const all = state.groupBy ? data : data.map((record) => ({ ...record, x: EVERYONE }));
+    const all = state.groupBy ? made.data : made.data.map((record) => ({ ...record, x: EVERYONE }));
     const positive = state.yScale === "log" ? all.filter((record) => record.y > 0) : all;
     return { visit, made, data: positive, nonPositive: made.data.length - positive.length };
   });
   const everyRecord = framed.flatMap((entry) => entry.data);
-  const levels = cuts.x ? cutLevels(cuts.x, "x", everyRecord) : levelsOf(everyRecord.map((record) => record.x));
-  const shownLevels = state.levels && !cuts.x ? levels.filter((level) => state.levels.includes(level)) : levels;
+  const levels = levelsOf(everyRecord.map((record) => record.x));
+  const shownLevels = state.levels ? levels.filter((level) => state.levels.includes(level)) : levels;
   const colors = state.colorBy ? levelsOf(everyRecord.map((record) => record.color)) : [null];
-  let panelLevels = [null];
-  if (cuts.panel) panelLevels = cutLevels(cuts.panel, "panel", everyRecord);
-  else if (state.panelBy) panelLevels = levelsOf(everyRecord.map((record) => record.panel));
+  const panelLevels = state.panelBy ? levelsOf(everyRecord.map((record) => record.panel)) : [null];
   const { offsets, halfWidth } = slots(colors.length);
   const logged = state.yScale === "log";
   const panels = [];
@@ -4451,9 +2379,7 @@ function buildPanels({ results, participants }, settings, state, options = {}) {
     // The baseline visit that was chosen and not drawn, when there is one.
     visitsNotDrawn: needsVisit ? asked.filter((visit) => !drawnVisits.includes(visit)) : [],
     extent: values.length ? [Math.min(...values), Math.max(...values)] : null,
-    filtered: kept ? kept.length : null,
-    // How each cut variable was cut, for the footnote: `x`, `panel`.
-    cuts
+    filtered: kept ? kept.length : null
   };
 }
 var VALUE_WORDS = {
@@ -4494,7 +2420,6 @@ function buildOverview(tables, settings, state, measures, options = {}) {
 
 // src/group-comparison.js
 var NONE = "";
-var CUT_KEY = "bv-cut:";
 var OVERVIEW = "bv_overview";
 var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
 var STYLE_ID = "bio-viz-group-comparison-styles";
@@ -4647,24 +2572,13 @@ var GroupComparison = class {
     this.measures = results.length ? listMeasures(results, this.settings) : [];
     this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
     this.categories = results.length ? categoryColumns(this.tables, this.settings) : [];
-    this.cutOptions = [];
-    for (const by of [this.settings.group_by, this.settings.panel_by]) {
-      if (!isCut(by)) continue;
-      const written = JSON.stringify(by);
-      if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
-      this.cutOptions.push({
-        key: `${CUT_KEY}${this.cutOptions.length}`,
-        spec: by,
-        label: label(by)
-      });
-    }
     this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
       (spec) => this.kit.normalizeFilterSpec(spec)
     );
-    const named2 = this.settings.start_value;
-    if (results.length && named2 !== null && !this.measures.includes(named2)) {
+    const named = this.settings.start_value;
+    if (results.length && named !== null && !this.measures.includes(named)) {
       console.warn(
-        `The initial biomarker [${named2}] does not exist. Defaulting to the all-biomarkers overview.`
+        `The initial biomarker [${named}] does not exist. Defaulting to the all-biomarkers overview.`
       );
     }
   }
@@ -4679,56 +2593,25 @@ var GroupComparison = class {
     this.buildControls();
     this.render();
   }
-  // The key a cut variable is held under in the Group and Panel controls.
-  cutKey(by) {
-    const written = JSON.stringify(by);
-    return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
-  }
-  // Whether a Group or Panel control can hold a value: a column offered, or a
-  // cut variable the settings name.
-  offers(value) {
-    return this.categories.some((entry) => entry.value_col === value) || this.cutOptions.some((entry) => entry.key === value);
-  }
-  // A Group or Panel control's value as the core takes it: a column's name, or
-  // the cut variable.
-  groupingOf(value) {
-    const found = this.cutOptions.find((entry) => entry.key === value);
-    return found ? found.spec : value;
-  }
-  // The state with the group and the panel as the drawing takes them.
-  drawingState(state = this.state) {
-    return {
-      ...state,
-      groupBy: this.groupingOf(state.groupBy),
-      panelBy: this.groupingOf(state.panelBy)
-    };
-  }
   // What the chart opens on: the settings, where the tables have what they name.
   seedState() {
     const { settings, categories, measures } = this;
     const has = (column) => categories.some((entry) => entry.value_col === column);
-    let groupBy = NONE;
-    if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
-    else if (has(settings.group_by)) groupBy = settings.group_by;
-    else if (categories.length) groupBy = categories[0].value_col;
-    let panelBy = NONE;
-    if (isCut(settings.panel_by)) panelBy = this.cutKey(settings.panel_by);
-    else if (has(settings.panel_by)) panelBy = settings.panel_by;
     return {
       // No biomarker named, or one the table does not have: the overview.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: settings.page,
+      page: 0,
       visits: [...this.visits.start],
       valueType: settings.value_type,
-      groupBy,
+      groupBy: has(settings.group_by) ? settings.group_by : categories.length ? categories[0].value_col : NONE,
       levels: settings.levels,
       colorBy: has(settings.color_by) ? settings.color_by : NONE,
-      panelBy,
+      panelBy: has(settings.panel_by) ? settings.panel_by : NONE,
       mark: settings.mark,
       yScale: settings.y_scale,
       test: settings.test,
       pairwise: settings.pairwise,
-      filters: startFilters(this)
+      filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -4740,15 +2623,11 @@ var GroupComparison = class {
     }
     this.state.visits = this.state.visits.filter((visit) => this.visits.all.includes(visit));
     if (!this.state.visits.length) this.state.visits = opening.visits;
-    if (this.state.groupBy && !this.offers(this.state.groupBy)) {
-      this.state.groupBy = opening.groupBy;
-    }
+    if (this.state.groupBy && !has(this.state.groupBy)) this.state.groupBy = opening.groupBy;
     if (this.state.colorBy && !has(this.state.colorBy)) this.state.colorBy = NONE;
-    if (this.state.panelBy && !this.offers(this.state.panelBy)) this.state.panelBy = NONE;
+    if (this.state.panelBy && !has(this.state.panelBy)) this.state.panelBy = NONE;
   }
   labelOf(column) {
-    const cut = this.cutOptions.find((entry) => entry.key === column);
-    if (cut) return cut.label;
     const found = this.categories.find((entry) => entry.value_col === column);
     return found ? found.label : column;
   }
@@ -4808,13 +2687,12 @@ var GroupComparison = class {
       addControl("Visit", visits2, value);
     }
     const columns = this.categories.map((entry) => [entry.value_col, entry.label]);
-    const cuts = this.cutOptions.map((entry) => [entry.key, entry.label]);
     const group = addSection("Groups");
-    if (columns.length || cuts.length) {
+    if (columns.length) {
       select(
         "group-by",
         "Group by",
-        [...columns, ...cuts],
+        columns,
         state.groupBy,
         (next) => {
           state.groupBy = next;
@@ -4823,23 +2701,17 @@ var GroupComparison = class {
         },
         group
       );
-      if (isCut(this.groupingOf(state.groupBy))) {
-        group.append(
-          kit.createElement("small", "bv-control-note", "Every group a cut makes is drawn.")
-        );
-      } else {
-        const levels = this.levelsOffered();
-        const picker = kit.multiSelect({
-          values: levels,
-          selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
-          onChange: (next) => {
-            state.levels = next;
-            redraw(false);
-          }
-        });
-        picker.dataset.control = "levels";
-        addControl("Levels", picker, group);
-      }
+      const levels = this.levelsOffered();
+      const picker = kit.multiSelect({
+        values: levels,
+        selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
+        onChange: (next) => {
+          state.levels = next;
+          redraw(false);
+        }
+      });
+      picker.dataset.control = "levels";
+      addControl("Levels", picker, group);
       const optional = [[NONE, "None"], ...columns];
       select(
         "color-by",
@@ -4855,7 +2727,7 @@ var GroupComparison = class {
       const panelBy = select(
         "panel-by",
         "Panel by",
-        [...optional, ...cuts],
+        optional,
         state.panelBy,
         (next) => {
           state.panelBy = next;
@@ -4948,7 +2820,7 @@ var GroupComparison = class {
         this.tables,
         this.settings,
         {
-          ...this.drawingState(),
+          ...this.state,
           levels: null,
           colorBy: NONE,
           panelBy: NONE,
@@ -5023,7 +2895,7 @@ var GroupComparison = class {
       this.drawOverview();
       return;
     }
-    const model = buildPanels(this.tables, this.settings, this.drawingState(), {
+    const model = buildPanels(this.tables, this.settings, this.state, {
       filterMatches: this.kit.filterMatches
     });
     this.model = model;
@@ -5034,10 +2906,7 @@ var GroupComparison = class {
       this.footnote.textContent = nothingDrawn(model);
       return;
     }
-    this.footnote.textContent = [
-      this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`,
-      ...this.cutNotes(model)
-    ].join(" ");
+    this.footnote.textContent = this.state.mark === "points" ? "Click a point to list its participant and open their profile." : `Click a ${this.state.mark} to list its participants.`;
     const title = yTitle(results, this.settings, this.state);
     const domain = this.domain(model);
     if (model.panels.length === 1) {
@@ -5082,7 +2951,7 @@ var GroupComparison = class {
     const { kit, state, settings } = this;
     const page = overviewPage(this.measures, settings.overview_limit, state.page);
     state.page = page.page;
-    const rows = buildOverview(this.tables, settings, this.drawingState(), page.measures, {
+    const rows = buildOverview(this.tables, settings, state, page.measures, {
       filterMatches: kit.filterMatches
     });
     this.overview = { ...page, rows };
@@ -5096,10 +2965,7 @@ var GroupComparison = class {
       this.footnote.textContent = rows.length ? nothingDrawn(rows[0].model, rows) : NOTHING_AFTER_BASELINE;
       return;
     }
-    this.footnote.textContent = [
-      "Click a biomarker to view it alone, with a test under each visit.",
-      ...this.cutNotes(drawn[0].model)
-    ].join(" ");
+    this.footnote.textContent = "Click a biomarker to view it alone, with a test under each visit.";
     const colors = drawn[0].model.colors;
     if (colors.length > 1 || colors[0] !== null) {
       const legend = kit.createElement("p", "bv-legend");
@@ -5237,7 +3103,7 @@ var GroupComparison = class {
   // what is clicked.
   drawPanel(canvas, panel, model, { title, domain, compact = false }) {
     const { state } = this;
-    const groupLabel2 = state.groupBy ? this.labelOf(state.groupBy) : "";
+    const groupLabel = state.groupBy ? this.labelOf(state.groupBy) : "";
     const coloured = model.colors.length > 1 || model.colors[0] !== null;
     const datasets = model.colors.map((color, colorIndex) => {
       const hex = this.colorOf(colorIndex);
@@ -5254,7 +3120,7 @@ var GroupComparison = class {
         cells.map((cell) => ({ x: cell.x, y: cell.stats.median, cell }))
       );
       return {
-        label: color === null ? groupLabel2 || "All participants" : color,
+        label: color === null ? groupLabel || "All participants" : color,
         data,
         showLine: false,
         backgroundColor: hexToRgba(hex, 0.55),
@@ -5293,7 +3159,7 @@ var GroupComparison = class {
             min: -0.5,
             max: model.shownLevels.length - 0.5,
             grid: { display: false },
-            title: { display: Boolean(groupLabel2) && !compact, text: groupLabel2 },
+            title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
             ticks: {
               autoSkip: false,
               // A panel turns its labels when they would run together, as a
@@ -5472,7 +3338,7 @@ var GroupComparison = class {
       test,
       pairwise: this.state.pairwise,
       settings: this.settings,
-      state: this.drawingState(),
+      state: this.state,
       panel
     });
     const asked = {
@@ -5488,7 +3354,6 @@ var GroupComparison = class {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
-        writeTitles(this);
         show(description);
       },
       { scope: this.scope(panel, model) }
@@ -5514,85 +3379,6 @@ var GroupComparison = class {
         }))
       }
     });
-  }
-  /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    return {
-      start_value: state.measure ?? null,
-      visits: [...state.visits],
-      value_type: state.valueType,
-      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null,
-      levels: state.levels ?? null,
-      color_by: state.colorBy || null,
-      panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
-      mark: state.mark,
-      y_scale: state.yScale,
-      test: state.test,
-      pairwise: state.pairwise,
-      page: state.page || 0
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, state, settings } = this;
-    if (!model || !model.panels) return { columns: [], rows: [] };
-    const visits2 = model.panels.some((panel) => panel.visit !== null && panel.visit !== void 0);
-    const columns = [{ value_col: settings.id_col, label: "Participant" }];
-    if (visits2) columns.push({ value_col: "visit", label: "Visit" });
-    if (state.groupBy) columns.push({ value_col: "x", label: this.labelOf(state.groupBy) });
-    if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
-    if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
-    columns.push({
-      value_col: "y",
-      label: `${state.measure}, ${VALUE_LABELS[state.valueType] || state.valueType}`
-    });
-    const rows = model.panels.flatMap(
-      (panel) => panel.records.map((record) => ({ ...record, visit: panel.visit }))
-    );
-    return { columns, rows };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["measure", "visits", "group"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model, overview } = this;
-    const panels = model ? model.panels : overview ? overview.rows.flatMap((row) => row.model.panels) : [];
-    const ids = /* @__PURE__ */ new Set();
-    for (const panel of panels) {
-      for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
-    }
-    return {
-      measure: state.measure ?? "every biomarker",
-      visits: (state.visits || []).join(", "),
-      value: VALUE_LABELS[state.valueType] || state.valueType,
-      group: state.groupBy ? this.labelOf(state.groupBy) : "",
-      n: model || overview ? ids.size : ""
-    };
   }
   /**
    * What the chart has asked R for the panels now drawn, and what R answered:
@@ -5642,10 +3428,6 @@ var GroupComparison = class {
     if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
     columns.push({ value_col: "y", label: "Value" });
     return columns;
-  }
-  // How each cut variable on the chart was cut, a sentence each.
-  cutNotes(model) {
-    return ["x", "panel"].filter((field) => model.cuts && model.cuts[field]).map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
   }
   showListing(panel, cell, records) {
     this.clearSelection();
@@ -5707,6 +3489,104 @@ function groupComparison(element, settings) {
   return new GroupComparison(element, settings);
 }
 
+// src/association-scatter/configure.js
+var SCALES = Object.freeze(["linear", "log"]);
+var FITS = Object.freeze(["none", "identity", "linear", "smooth"]);
+var METHODS = Object.freeze(["pearson", "spearman"]);
+var DEFAULT_SETTINGS3 = Object.freeze({
+  // Columns of the results table, and of the participant table.
+  id_col: "USUBJID",
+  measure_col: "TEST",
+  value_col: "STRESN",
+  visit_col: "VISIT",
+  visit_order_col: "VISITNUM",
+  unit_col: "STRESU",
+  participant_id_col: null,
+  // How a baseline is found (the core's rules).
+  baseline_visits: null,
+  baseline_stat: "mean",
+  // What the chart opens on: the variable on each axis.
+  x: null,
+  y: null,
+  color_by: null,
+  panel_by: null,
+  x_scale: "linear",
+  y_scale: "linear",
+  fit: "none",
+  // What the controls offer.
+  measures: null,
+  numbers: null,
+  groups: null,
+  max_levels: 12,
+  filters: null,
+  // The listing of participants.
+  details: null,
+  page_size: 10,
+  // The statistics line.
+  connection: null,
+  statistic: "Analyze_Correlation",
+  method: "pearson",
+  fit_statistic: "Analyze_Fit",
+  waiting_note: null,
+  // A way back, when another chart opened this one.
+  back: null,
+  // safety.viz's participant profile.
+  profile: true,
+  profile_details: null,
+  studyday_col: null,
+  normal_col_high: null,
+  normal_col_low: null
+});
+function syncSettings2(overrides) {
+  const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
+  checkShared(settings, BASELINE_STATS);
+  for (const key of [
+    "visit_order_col",
+    "unit_col",
+    "participant_id_col",
+    "color_by",
+    "panel_by",
+    "studyday_col",
+    "normal_col_high",
+    "normal_col_low"
+  ]) {
+    columnOrNull(settings, key);
+  }
+  for (const key of ["x_scale", "y_scale"]) {
+    if (!SCALES.includes(settings[key])) {
+      refuse4(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
+    }
+  }
+  if (!FITS.includes(settings.fit)) refuse4(`\`fit\` must be one of ${FITS.join(", ")}.`);
+  if (!METHODS.includes(settings.method)) {
+    refuse4(`\`method\` must be one of ${METHODS.join(", ")}.`);
+  }
+  for (const key of ["page_size", "max_levels"]) {
+    if (!Number.isInteger(settings[key]) || settings[key] < 1) {
+      refuse4(`\`${key}\` must be a whole number, one or more.`);
+    }
+  }
+  if (settings.statistic !== null && !isText3(settings.statistic)) {
+    refuse4("`statistic` must be the name of an R function, or null for no statistics line.");
+  }
+  if (settings.fit_statistic !== null && !isText3(settings.fit_statistic)) {
+    refuse4(
+      "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
+    );
+  }
+  checkBack(settings);
+  settings.x = variableSetting(settings.x, "x");
+  settings.y = variableSetting(settings.y, "y");
+  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+  settings.measures = textList2(settings.measures, "measures");
+  settings.numbers = fieldList(settings.numbers, "numbers");
+  settings.groups = fieldList(settings.groups, "groups");
+  settings.filters = fieldList(settings.filters, "filters");
+  settings.details = fieldList(settings.details, "details");
+  settings.profile_details = fieldList(settings.profile_details, "profile_details");
+  return settings;
+}
+
 // src/shared/variables.js
 function axisOf(spec) {
   if (spec.col !== void 0 && spec.col !== null) return { kind: "column", col: spec.col };
@@ -5743,7 +3623,7 @@ function axisOffered(axis, { measures, visits: visits2, numbers }) {
 function openingAxes(settings, offered) {
   const { measures, visits: visits2, numbers } = offered;
   const missing = [];
-  const named2 = (key) => {
+  const named = (key) => {
     if (!settings[key]) return null;
     const axis = axisOf(settings[key]);
     if (axisOffered(axis, offered)) return axis;
@@ -5752,8 +3632,8 @@ function openingAxes(settings, offered) {
   };
   const at = (measure, visit) => ({ kind: "measure", measure, value: "raw", visit });
   const first = measures.length && visits2.length ? at(measures[0], visits2[0]) : numbers.length ? { kind: "column", col: numbers[0].value_col } : null;
-  const x = named2("x") || first;
-  let y = named2("y");
+  const x = named("x") || first;
+  let y = named("y");
   if (!y && x) {
     if (measures.length > 1 && visits2.length) y = at(measures[1], visits2[0]);
     else if (measures.length && visits2.length > 1) y = at(measures[0], visits2[1]);
@@ -5956,7 +3836,7 @@ function correlationRequest({ name, method, settings, state, panel }) {
     rows: panel.records.length
   };
 }
-var plain2 = (state, said2) => ({ ...sentence(state, said2), table: null });
+var plain2 = (state, said) => ({ ...sentence(state, said), table: null });
 function groupsTable(value, { color, name }) {
   const rows = Array.isArray(value.rows) ? value.rows.filter((row) => row && "group" in row) : [];
   if (!rows.length) return null;
@@ -6035,21 +3915,21 @@ function scaleText({ xScale, yScale, x, y, method }) {
   return `${which}: R was given ${given2}. ${ON_A_LOGARITHM[method] || ""}`.trim();
 }
 function scopeText2({ n, panel, color, filters = [] }) {
-  const said2 = [
+  const said = [
     `This coefficient is of the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
-    said2.push(
+    said.push(
       "Each panel has a coefficient of its own, and they are not adjusted for one another."
     );
   }
   if (color) {
-    said2.push(
+    said.push(
       `It takes every level of ${color} together; the table gives each level its own, and they are not adjusted for one another.`
     );
   }
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(" ");
 }
 function fitRequest({ name, fit, settings, state, panel }) {
   return {
@@ -6190,7 +4070,7 @@ function createStatisticDesk2({ connection, note = null }) {
     connection,
     note,
     describe: (result, context) => isFit(context) ? describeFit(result, context) : describeCorrelation(result, context),
-    waiting: (said2, context) => plain2("waiting", isFit(context) ? said2.replace(/^Statistics/, "Fitted line") : said2)
+    waiting: (said, context) => plain2("waiting", isFit(context) ? said.replace(/^Statistics/, "Fitted line") : said)
   });
 }
 
@@ -6393,7 +4273,7 @@ var AssociationScatter = class {
       yScale: settings.y_scale,
       fit: settings.fit,
       method: settings.method,
-      filters: startFilters(this)
+      filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -6434,14 +4314,14 @@ var AssociationScatter = class {
       const axis = state[key];
       if (!axis) return;
       const section = addSection(title);
-      const named2 = (text2) => `${title}: ${text2}`;
+      const named = (text2) => `${title}: ${text2}`;
       const variables = [
         ...this.measures.map((measure) => [`m:${measure}`, measure]),
         ...this.numbers.map((entry) => [`c:${entry.value_col}`, `${entry.label} (participant)`])
       ];
       select(
         `${key}-variable`,
-        named2("Variable"),
+        named("Variable"),
         variables,
         axis.kind === "column" ? `c:${axis.col}` : `m:${axis.measure}`,
         (next) => {
@@ -6459,7 +4339,7 @@ var AssociationScatter = class {
       if (axis.kind === "measure") {
         select(
           `${key}-value`,
-          named2("Value"),
+          named("Value"),
           VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
           axis.value,
           (next) => {
@@ -6472,7 +4352,7 @@ var AssociationScatter = class {
         if (axis.value !== "baseline") {
           select(
             `${key}-visit`,
-            named2("Visit"),
+            named("Visit"),
             this.visits.map((visit) => [visit, visit]),
             axis.visit,
             (next) => {
@@ -6485,7 +4365,7 @@ var AssociationScatter = class {
       }
       select(
         `${key}-scale`,
-        named2("Scale"),
+        named("Scale"),
         SCALES.map((scale) => [scale, SCALE_LABELS[scale]]),
         state[`${key}Scale`],
         (next) => {
@@ -6892,7 +4772,6 @@ var AssociationScatter = class {
         request2,
         (description, answer) => {
           if (answer) asked2.answer = answer;
-          writeTitles(this);
           show(coefficient2, description);
         },
         {
@@ -6920,7 +4799,6 @@ var AssociationScatter = class {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
-        writeTitles(this);
         chart.$fit = answer ? fitCurves(answer, state) : null;
         chart.draw();
         show(fit, description);
@@ -6938,68 +4816,6 @@ var AssociationScatter = class {
         scale: scaleOf(state.fit)
       }
     );
-  }
-  /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    return {
-      ...state.x ? { x: settingOf(state.x) } : {},
-      ...state.y ? { y: settingOf(state.y) } : {},
-      color_by: state.colorBy || null,
-      panel_by: state.panelBy || null,
-      x_scale: state.xScale,
-      y_scale: state.yScale,
-      fit: state.fit,
-      method: state.method
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, state, settings } = this;
-    if (!model || !model.panels) return { columns: [], rows: [] };
-    const columns = [
-      { value_col: settings.id_col, label: "Participant" },
-      { value_col: "x", label: this.titleOf(state.x) },
-      { value_col: "y", label: this.titleOf(state.y) }
-    ];
-    if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
-    if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
-    return { columns, rows: model.panels.flatMap((panel) => panel.records) };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["y", "x"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model } = this;
-    return {
-      x: state.x ? this.titleOf(state.x) : "",
-      y: state.y ? this.titleOf(state.y) : "",
-      n: model ? model.drawn : ""
-    };
   }
   /**
    * What the chart has asked R for the panels now drawn, and what R answered:
@@ -7278,6 +5094,91 @@ function associationScatter(element, settings) {
   return new AssociationScatter(element, settings);
 }
 
+// src/correlation-matrix/configure.js
+var MODES = Object.freeze(["biomarkers", "visits"]);
+var VIEWS = Object.freeze(["grid", "scatters"]);
+var METHODS2 = Object.freeze(["pearson", "spearman"]);
+var SCATTER_LIMIT = 6;
+var DEFAULT_SETTINGS4 = Object.freeze({
+  // Columns of the results table, and of the participant table.
+  id_col: "USUBJID",
+  measure_col: "TEST",
+  value_col: "STRESN",
+  visit_col: "VISIT",
+  visit_order_col: "VISITNUM",
+  unit_col: "STRESU",
+  participant_id_col: null,
+  // How a baseline is found (the core's rules).
+  baseline_visits: null,
+  baseline_stat: "mean",
+  // What the chart opens on.
+  mode: "biomarkers",
+  visit: null,
+  biomarkers: null,
+  measure: null,
+  visits: null,
+  value_type: "raw",
+  view: "grid",
+  // The most variables drawn at a time.
+  limit: 12,
+  // What the controls offer.
+  measures: null,
+  max_levels: 12,
+  filters: null,
+  // The statistics.
+  connection: null,
+  statistic: "Analyze_CorrelationMatrix",
+  method: "pearson",
+  min_pairs: null,
+  waiting_note: null,
+  // The association scatter a cell opens.
+  scatter: null
+});
+function syncSettings3(overrides) {
+  const settings = layOver(DEFAULT_SETTINGS4, overrides, "the correlation matrix");
+  checkShared(settings, BASELINE_STATS);
+  for (const key of ["visit_order_col", "unit_col", "participant_id_col"]) {
+    columnOrNull(settings, key);
+  }
+  for (const [key, what] of [
+    ["visit", "a visit"],
+    ["measure", "a biomarker"]
+  ]) {
+    if (settings[key] !== null && !isText3(settings[key])) {
+      refuse4(`\`${key}\` must be the name of ${what}, or null.`);
+    }
+  }
+  if (!MODES.includes(settings.mode)) refuse4(`\`mode\` must be one of ${MODES.join(", ")}.`);
+  if (!VIEWS.includes(settings.view)) refuse4(`\`view\` must be one of ${VIEWS.join(", ")}.`);
+  if (!VALUE_TYPES.includes(settings.value_type)) {
+    refuse4(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+  }
+  if (!METHODS2.includes(settings.method)) {
+    refuse4(`\`method\` must be one of ${METHODS2.join(", ")}.`);
+  }
+  if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
+    refuse4("`max_levels` must be a whole number, one or more.");
+  }
+  if (!Number.isInteger(settings.limit) || settings.limit < 2) {
+    refuse4("`limit` must be a whole number, two or more.");
+  }
+  if (settings.min_pairs !== null && !(typeof settings.min_pairs === "number" && Number.isFinite(settings.min_pairs) && settings.min_pairs > 0)) {
+    refuse4("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
+  }
+  if (settings.statistic !== null && !isText3(settings.statistic)) {
+    refuse4("`statistic` must be the name of an R function, or null for no coefficients.");
+  }
+  if (settings.scatter !== null && !isPlainObject4(settings.scatter)) {
+    refuse4("`scatter` must be an object of settings for the association scatter, or null.");
+  }
+  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+  settings.biomarkers = textList2(settings.biomarkers, "biomarkers");
+  settings.visits = textList2(settings.visits, "visits");
+  settings.measures = textList2(settings.measures, "measures");
+  settings.filters = fieldList(settings.filters, "filters");
+  return settings;
+}
+
 // src/correlation-matrix/structureData.js
 var RELATIVE3 = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
 var VALUE_WORDS2 = {
@@ -7300,7 +5201,7 @@ function matrixVariables(settings, state, offered, results = []) {
     notDrawn,
     message
   });
-  const named2 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
+  const named = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
   if (state.mode === "visits") {
     const heading2 = `${state.measure}: ${VALUE_WORDS2[value].toLowerCase()}, visit against visit`;
     if (value === "baseline") {
@@ -7313,7 +5214,7 @@ function matrixVariables(settings, state, offered, results = []) {
     const chosen2 = state.visits ? offered.visits.filter((visit) => state.visits.includes(visit)) : offered.visits;
     const drawn = chosen2.filter((visit) => !flat(visit));
     return {
-      variables: named2(
+      variables: named(
         drawn.slice(0, settings.limit).map((visit) => ({
           label: visit,
           axis: { kind: "measure", measure: state.measure, value, visit }
@@ -7339,7 +5240,7 @@ function matrixVariables(settings, state, offered, results = []) {
   }
   const chosen = state.biomarkers ? offered.measures.filter((measure) => state.biomarkers.includes(measure)) : offered.measures;
   return {
-    variables: named2(
+    variables: named(
       chosen.slice(0, settings.limit).map((measure) => ({
         label: measure,
         axis: {
@@ -7435,7 +5336,7 @@ function markOf(estimate) {
     color: negative ? `hsl(18, 82%, ${lightness}%)` : `hsl(217, 78%, ${lightness}%)`
   };
 }
-function numberOf2(estimate) {
+function numberOf(estimate) {
   const fixed = estimate.toFixed(2);
   return (fixed === "-0.00" ? "0.00" : fixed).replace("-", "\u2212");
 }
@@ -7477,7 +5378,7 @@ function matrixRequest({ name, method, minPairs, settings, state, model }) {
     rows: model.records.length
   };
 }
-var plain3 = (state, said2) => ({ ...sentence(state, said2), table: null, pairs: null });
+var plain3 = (state, said) => ({ ...sentence(state, said), table: null, pairs: null });
 function pairsOf2(value) {
   const rows = Array.isArray(value && value.rows) ? value.rows : [];
   const pairs = /* @__PURE__ */ new Map();
@@ -7528,22 +5429,22 @@ function cellText(pair, labels, name) {
   const lead = `${labels.row} and ${labels.column}`;
   if (!pair) return `${lead}.`;
   const { formatted, warning } = pair;
-  const said2 = formatted.status === "shown" ? `${lead}: ${name} ${formatted.text}` : `${lead}: ${formatted.text}`;
-  return warning ? `${said2} R warned: ${warning}.` : said2;
+  const said = formatted.status === "shown" ? `${lead}: ${name} ${formatted.text}` : `${lead}: ${formatted.text}`;
+  return warning ? `${said} R warned: ${warning}.` : said;
 }
 function scopeText3({ n, filters = [] }) {
-  const said2 = [
+  const said = [
     `${n} participant${n === 1 ? " is" : "s are"} in the frame. A cell is of the ones who have both of its values, so each cell has its own count, and the cells are not adjusted for one another.`
   ];
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(" ");
 }
 function createStatisticDesk3({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeMatrix,
-    waiting: (said2) => plain3("waiting", said2)
+    waiting: (said) => plain3("waiting", said)
   });
 }
 
@@ -7747,7 +5648,6 @@ var CorrelationMatrix = class {
   seedState() {
     const { settings, measures, visits: visits2 } = this;
     const among = (chosen, list) => {
-      if (Array.isArray(chosen) && !chosen.length) return [];
       const kept = (chosen || []).filter((entry) => list.includes(entry));
       return kept.length ? kept : null;
     };
@@ -7763,7 +5663,7 @@ var CorrelationMatrix = class {
       view: settings.view,
       method: settings.method,
       minPairs: settings.min_pairs,
-      filters: startFilters(this)
+      filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -8025,7 +5925,6 @@ var CorrelationMatrix = class {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
-        writeTitles(this);
         writeStatistic(kit, this.statLine, description);
         this.pairs = description.pairs;
         this.fillGrid();
@@ -8153,9 +6052,9 @@ var CorrelationMatrix = class {
       const labels = { row: row.label, column: column.label };
       button.innerHTML = "";
       button.dataset.status = pair ? pair.formatted.status : "empty";
-      const said2 = `${cellText(pair, labels, name)} Open the scatter.`;
-      button.setAttribute("aria-label", said2);
-      button.title = said2;
+      const said = `${cellText(pair, labels, name)} Open the scatter.`;
+      button.setAttribute("aria-label", said);
+      button.title = said;
       const mini = scatters && button.dataset.side === "mark";
       if (mini) {
         const wrap = kit.createElement("span", "bv-mini");
@@ -8172,7 +6071,7 @@ var CorrelationMatrix = class {
         button.append(none);
         return;
       }
-      button.append(kit.createElement("span", "bv-num", numberOf2(pair.estimate)));
+      button.append(kit.createElement("span", "bv-num", numberOf(pair.estimate)));
       button.append(this.mark(pair.estimate));
     });
     const answer = this.asked[0] && this.asked[0].answer;
@@ -8237,7 +6136,7 @@ var CorrelationMatrix = class {
       const item = kit.createElement("span", "bv-key-item");
       const box = kit.createElement("span", "bv-key-mark");
       box.append(this.mark(value));
-      item.append(box, document.createTextNode(numberOf2(value)));
+      item.append(box, document.createTextNode(numberOf(value)));
       key.append(item);
     });
     key.append(
@@ -8341,7 +6240,7 @@ var CorrelationMatrix = class {
         `Every pair, with its count: ${rows.length}, in the order R returned them`
       )
     );
-    const tools = kit.createElement("div", "bv-pairs-tools bv-no-picture");
+    const tools = kit.createElement("div", "bv-pairs-tools");
     const download = kit.createElement("button", null, "Download: CSV");
     download.type = "button";
     download.onclick = () => downloadCsv(
@@ -8391,74 +6290,6 @@ var CorrelationMatrix = class {
       details.append(note);
     });
     this.listingWrap.append(details);
-  }
-  /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    return {
-      mode: state.mode,
-      visit: state.visit,
-      biomarkers: state.biomarkers ? [...state.biomarkers] : null,
-      measure: state.measure,
-      visits: state.visits ? [...state.visits] : null,
-      value_type: state.valueType,
-      view: state.view,
-      method: state.method,
-      min_pairs: state.minPairs
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, settings } = this;
-    if (!model || !model.records || !model.variables) return { columns: [], rows: [] };
-    return {
-      columns: [
-        { value_col: settings.id_col, label: "Participant" },
-        ...model.variables.map((variable2) => ({ value_col: variable2.name, label: variable2.label }))
-      ],
-      rows: model.records
-    };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["heading"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model } = this;
-    return {
-      heading: model && model.heading ? model.heading : "",
-      variables: model && model.variables ? model.variables.length : "",
-      visit: state.visit ?? "",
-      value: VALUE_LABELS[state.valueType] || state.valueType || "",
-      n: model && model.records ? model.records.length : ""
-    };
-  }
-  /** What R's counts are of, for the footnote the chart writes. */
-  get footnoteCounts() {
-    return "variables";
   }
   /**
    * What the chart has asked R for the grid now drawn, and what R answered: one
@@ -8596,1301 +6427,122 @@ function correlationMatrix(element, settings) {
   return new CorrelationMatrix(element, settings);
 }
 
-// src/stratified-survival/drag.js
-var dropPoint = (value) => Number(writePoint(value));
-function movePoints(points, index, value, { drop = false, min = -Infinity, max = Infinity } = {}) {
-  if (!Number.isFinite(value) || index < 0 || index >= points.length) return null;
-  const inside = Math.min(max, Math.max(min, value));
-  const point = drop ? Math.min(max, Math.max(min, dropPoint(inside))) : inside;
-  const below = index > 0 ? points[index - 1] : -Infinity;
-  const above = index < points.length - 1 ? points[index + 1] : Infinity;
-  if (!(point > below && point < above)) return null;
-  const written = writePoint(point);
-  if (index > 0 && writePoint(below) === written || index < points.length - 1 && writePoint(above) === written) {
-    return null;
+// src/biomarker-screen/configure.js
+var COMPARISONS = Object.freeze(["difference", "correlation"]);
+var METHODS3 = Object.freeze(["pearson", "spearman"]);
+var ADJUSTMENTS2 = Object.freeze(["BH", "holm"]);
+var SORTS = Object.freeze(["estimate", "name", "adjusted"]);
+var DEFAULT_SETTINGS5 = Object.freeze({
+  // Columns of the results table, and of the participant table.
+  id_col: "USUBJID",
+  measure_col: "TEST",
+  value_col: "STRESN",
+  visit_col: "VISIT",
+  visit_order_col: "VISITNUM",
+  unit_col: "STRESU",
+  participant_id_col: null,
+  // How a baseline is found (the core's rules).
+  baseline_visits: null,
+  baseline_stat: "mean",
+  // What the chart opens on: every biomarker, at one visit, with one value type.
+  comparison: "difference",
+  visit: null,
+  value_type: "raw",
+  // A difference: the column of groups, and the two groups, first minus second.
+  group_by: null,
+  levels: null,
+  // A correlation: the variable every biomarker is correlated with.
+  with: null,
+  method: "pearson",
+  // Across the rows.
+  adjustment: "BH",
+  sort: "estimate",
+  // The most rows on a page.
+  limit: 20,
+  // What the controls offer.
+  measures: null,
+  groups: null,
+  numbers: null,
+  max_levels: 12,
+  filters: null,
+  // The statistics.
+  connection: null,
+  statistic: "Analyze_Screen",
+  waiting_note: null,
+  // The charts a row opens, and settings laid under what the screen carries across.
+  group_comparison: null,
+  association_scatter: null
+});
+function syncSettings4(overrides) {
+  const settings = layOver(DEFAULT_SETTINGS5, overrides, "the biomarker screen");
+  checkShared(settings, BASELINE_STATS);
+  for (const key of ["visit_order_col", "unit_col", "participant_id_col", "group_by"]) {
+    columnOrNull(settings, key);
   }
-  return points.map((each, i) => i === index ? point : each);
-}
-
-// src/stratified-survival/statistic.js
-var ONE_GROUP = "Statistics: no test. The log-rank test compares two or more groups, and one is drawn.";
-var keyOrder = (by, levels) => isCut(by) ? [...levels].reverse() : sorted(levels);
-var readsBaseline = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
-function survivalRequest({ name, settings, state, model }) {
-  const filters = filtersInForce(state.filters);
-  const { field } = flagOf(settings);
-  const baseline = readsBaseline(state.groupBy);
-  return {
-    name,
-    data: model.records.map((record) => ({
-      [settings.id_col]: record[settings.id_col],
-      time: record.time,
-      group: record.group,
-      [field]: record.flag
-    })),
-    args: {
-      strTimeCol: "time",
-      strGroupCol: "group",
-      ...field === "censor" ? { strCensorCol: "censor" } : { strEventCol: "event" },
-      chrGroups: keyOrder(state.groupBy, model.levels)
-    },
-    dataId: {
-      chart: "stratified-survival",
-      endpoint: state.endpoint,
-      group_by: state.groupBy,
-      ...baseline && settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
-      ...baseline ? { baseline_stat: settings.baseline_stat } : {},
-      ...Object.keys(filters).length ? { filters } : {}
-    },
-    rows: model.records.length
-  };
-}
-function describeAnswer2(result, context = {}) {
-  if (result && result.status === "ok") {
-    const value = result.value && typeof result.value === "object" ? result.value : {};
-    const formatted = formatStatistic(value);
-    const described = sentence(formatted.status, formatted.text);
-    if (formatted.status === "shown") {
-      const rows = (Array.isArray(value.estimates) ? value.estimates : []).filter(
-        (row) => row && typeof row === "object"
-      );
-      const order2 = context.levels || [];
-      const place = (row) => {
-        const at = order2.indexOf(row.group);
-        return at < 0 ? order2.length : at;
-      };
-      const medians = rows.filter((row) => row.name === "Median");
-      medians.sort((a, b) => place(a) - place(b));
-      described.estimates = [
-        ...medians.map((row) => formatMedian(row).text),
-        ...rows.filter((row) => row.name !== "Median").map(
-          (row) => formatEstimate(
-            // For a cut, R's first group is the higher: the ratio says so.
-            row.name === "Hazard ratio" && context.highOverLow ? { ...row, name: "Hazard ratio, high over low" } : row
-          ).text
-        )
-      ];
-    }
-    described.remarks = remarksOf(value);
-    described.scope = context.scope || null;
-    return described;
+  if (settings.visit !== null && !isText3(settings.visit)) {
+    refuse4("`visit` must be the name of a visit, or null.");
   }
-  const failure = failureOf(result);
-  return sentence(failure.state, failure.text);
-}
-function scopeText4({ n, endpoint, filters = [] }) {
-  const said2 = [`This test is of the ${n} participant${n === 1 ? "" : "s"} drawn, on ${endpoint}.`];
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
-}
-function createStatisticDesk4({ connection, note = null }) {
-  return createDesk({ connection, note, describe: describeAnswer2 });
-}
-
-// src/stratified-survival/structureData.js
-var grouping = (by) => isCut(by) ? by : { col: by };
-function timeTicks(last) {
-  if (!(last > 0)) return [0];
-  const rough = last / 5;
-  const power = 10 ** Math.floor(Math.log10(rough));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((candidate) => candidate >= rough);
-  const ticks = [];
-  for (let i = 0; i * step <= last * (1 + 1e-12); i += 1) {
-    ticks.push(Number((i * step).toPrecision(12)));
+  if (!COMPARISONS.includes(settings.comparison)) {
+    refuse4(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
   }
-  return ticks;
-}
-function histogramOf(values, count = 24) {
-  if (!values.length) return [];
-  const low = Math.min(...values);
-  const high = Math.max(...values);
-  if (low === high) return [{ from: low, to: high, n: values.length }];
-  const width = (high - low) / count;
-  const bars = Array.from({ length: count }, (_, i) => ({
-    from: low + i * width,
-    to: i === count - 1 ? high : low + (i + 1) * width,
-    n: 0
-  }));
-  for (const value of values) {
-    bars[Math.min(count - 1, Math.floor((value - low) / width))].n += 1;
+  if (!VALUE_TYPES.includes(settings.value_type)) {
+    refuse4(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
   }
-  return bars;
-}
-function buildSurvival({ results, participants, outcomes }, settings, state, { kmEstimate, filterMatches }) {
-  const config = coreSettings(settings);
-  const idCol = config.id_col;
-  const { participants: kept, results: rows } = keepFiltered(
-    { results, participants },
-    settings,
-    state.filters,
-    filterMatches
-  );
-  const empty = {
-    records: [],
-    levels: [],
-    curves: [],
-    times: [0],
-    cut: null,
-    values: [],
-    bars: [],
-    participants: kept ? kept.length : 0,
-    dropped: [],
-    unused: [],
-    filtered: kept ? kept.length : null,
-    last: 0
-  };
-  if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
-  const participantIdCol = settings.participant_id_col || idCol;
-  const known = new Set(
-    (participants || results).map((row) => row[participants ? participantIdCol : idCol]).filter((id) => !isBlank2(id)).map(String)
-  );
-  const outcomeOf = outcomesOf(outcomes, settings, state.endpoint, known);
-  const strangers = outcomeOf.strangers;
-  const hasOutcome = (id) => !isBlank2(id) && !outcomeOf(id).reason;
-  const cut = isCut(state.groupBy) ? cutOf(
-    kept ? {
-      results: rows,
-      participants: kept.filter((row) => hasOutcome(row[participantIdCol]))
-    } : { results: rows.filter((row) => hasOutcome(row[idCol])), participants: null },
-    state.groupBy,
-    settings
-  ) : null;
-  const made = frame(
-    { results: rows, participants: kept || void 0 },
-    { group: grouping(state.groupBy) },
-    config
-  );
-  const left = /* @__PURE__ */ new Map();
-  const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
-  const records = [];
-  const values = [];
-  for (const record of made.data) {
-    const id = String(record[idCol]);
-    const outcome = outcomeOf(id);
-    if (outcome.reason) {
-      leave(outcome.reason);
-      continue;
-    }
-    if (cut) values.push(record.group);
-    records.push({
-      [idCol]: id,
-      group: cut ? groupLabel(record.group, cut) : String(record.group),
-      // The value a cut was made from, for the table download (#70 review).
-      ...cut ? { value: record.group } : {},
-      time: outcome.time,
-      flag: outcome.flag,
-      event: outcome.event
-    });
+  if (!METHODS3.includes(settings.method)) {
+    refuse4(`\`method\` must be one of ${METHODS3.join(", ")}.`);
   }
-  const levels = cut ? cut.labels.filter((label2) => records.some((record) => record.group === label2)) : levelsOf(records.map((record) => record.group));
-  const last = records.reduce((most, record) => Math.max(most, record.time), 0);
-  const times = settings.at_risk_times || timeTicks(last);
-  const curves = levels.map((level) => {
-    const members = records.filter((record) => record.group === level);
-    const estimate = kmEstimate(
-      members.map((record) => ({ id: record[idCol], time: record.time, event: record.event }))
-    );
-    return {
-      level,
-      n: members.length,
-      events: members.filter((record) => record.event).length,
-      estimate,
-      risk: estimate.riskTableAt(times)
-    };
-  });
-  return {
-    ...empty,
-    records,
-    levels,
-    curves,
-    times,
-    cut,
-    values,
-    bars: cut ? histogramOf(values) : [],
-    participants: made.participants,
-    dropped: [...made.dropped, ...[...left].map(([reason, n]) => ({ reason, n }))],
-    unused: [
-      ...made.unused,
-      ...strangers ? [{ reason: OUTCOME_UNUSED.NO_PARTICIPANT, n: strangers }] : []
-    ],
-    last
-  };
-}
-function atRisk(model, level, time) {
-  return model.records.filter((record) => record.group === level && record.time >= time);
-}
-
-// src/stratified-survival.js
-var MODULE_CLASS3 = "bv-stratified-survival";
-var STYLE_ID4 = "bio-viz-stratified-survival-styles";
-var C2 = `.${MODULE_CLASS3}`;
-var STYLES4 = `${lineStyles(C2)}
-${toolbarStyles(C2)}
-${C2} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
-${C2} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
-${C2} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
-${C2} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
-${C2} .bv-risk th,${C2} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right;white-space:nowrap}
-${C2} .bv-risk thead th{background:#f6f8fa;font-weight:600;padding:.2rem .5rem}
-${C2} .bv-risk tbody th{text-align:left;background:#f6f8fa}
-${C2} .bv-risk button{display:block;width:100%;margin:0;border:0;background:transparent;padding:.25rem .5rem;font:inherit;text-align:inherit;color:inherit;cursor:pointer}
-${C2} .bv-risk button:hover{background:#f4f8fc}
-${C2} .bv-risk button:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
-${C2} .bv-swatch{display:inline-block;width:.7rem;height:.7rem;margin-right:.35rem;border-radius:2px;vertical-align:-1px}
-${C2} .bv-hist{margin:0 0 .6rem}
-${C2} .bv-hist-canvas{height:150px;position:relative;touch-action:pan-y}
-${C2} .bv-cut-handle{position:absolute;width:18px;margin-left:-9px;cursor:ew-resize;border-radius:3px}
-${C2} .bv-cut-handle:focus-visible{outline:2px solid #0b62a4;outline-offset:0}
-${C2} .bv-hist-canvas canvas{cursor:ew-resize}
-${C2} .bv-hist-canvas canvas:focus-visible{outline:2px solid #0b62a4;outline-offset:2px}
-${C2} .bv-cut-counts{margin:.25rem 0 0;font-size:.8rem;color:#52616f}
-${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}`;
-var HINT2 = "Click a curve, or a count of the at-risk strip, to list its participants and open a participant\u2019s profile.";
-var DRAG_HINT = "Drag a cut line on the histogram to move it: the curves follow, and R is asked when it is let go.";
-var MOVING = "Statistics: R is asked when the cut line is let go. The curves are drawn for the cut where it is now.";
-var NEEDS_OUTCOMES = "This chart needs an outcomes table: give `outcomes`, one row per participant and endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.";
-var CUT_KEY2 = "bv-cut:";
-var MOVED_KEY = "bv-cut:moved";
-var GRIP = 10;
-var TOUCH_GRIP = 24;
-var BUDGE = 3;
-var SETTLE = 400;
-var uncutLabel = (spec) => {
-  const plain5 = { ...spec };
-  delete plain5.cut;
-  return label(plain5);
-};
-var StratifiedSurvival = class {
-  constructor(element, settings) {
-    this.kit = findKit("the stratified survival chart");
-    this.element = typeof element === "string" ? document.querySelector(element) : element;
-    if (!this.element) {
-      throw new Error(`bio.viz: stratified survival target not found: ${element}`);
-    }
-    this.settings = syncSettings6(settings);
-    this.tables = { results: [], participants: null, outcomes: null };
-    this.charts = [];
-    this.model = null;
-    this.measures = [];
-    this.categories = [];
-    this.cutOptions = [];
-    this.endpoints = [];
-    this.filterSpecs = [];
-    this.state = {};
-    this.asked = [];
-    this.drag = null;
-    this.connect();
-    this.renderShell();
+  if (!ADJUSTMENTS2.includes(settings.adjustment)) {
+    refuse4(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
   }
-  // The connection the statistics line asks: the one given in settings, or one
-  // with no R attached, which answers that statistics are unavailable.
-  connect() {
-    if (this.desk) this.desk.retire();
-    this.connection = this.settings.connection || createConnection();
-    this.desk = createStatisticDesk4({
-      connection: this.connection,
-      note: this.settings.waiting_note
-    });
+  if (!SORTS.includes(settings.sort)) refuse4(`\`sort\` must be one of ${SORTS.join(", ")}.`);
+  if (!Number.isInteger(settings.limit) || settings.limit < 1) {
+    refuse4("`limit` must be a whole number, one or more.");
   }
-  renderShell() {
-    mountShell(this, {
-      moduleClass: MODULE_CLASS3,
-      styleId: STYLE_ID4,
-      styles: STYLES4,
-      listingFile: "bio.viz-stratified-survival-listing.csv"
-    });
-    const { kit } = this;
-    this.riskWrap = kit.createElement("div", "bv-risk-wrap");
-    this.histWrap = kit.createElement("div", "bv-hist");
-    this.histBox = kit.createElement("div", "bv-hist-canvas");
-    this.histCanvas = document.createElement("canvas");
-    this.histCanvas.tabIndex = 0;
-    this.histBox.append(this.histCanvas);
-    this.cutCounts = kit.createElement("p", "bv-cut-counts");
-    this.histWrap.append(this.histBox, this.cutCounts);
-    this.chartWrap.after(this.riskWrap);
-    this.riskWrap.after(this.histWrap);
-    this.listenToHistogram();
-    this.canvas.addEventListener("click", (event) => {
-      const level = this.curveAt(event);
-      if (level !== null) this.listGroup(level);
-    });
-    mountToolbar(this);
+  if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
+    refuse4("`max_levels` must be a whole number, one or more.");
   }
-  /**
-   * Load the tables and draw: the same as `setData`.
-   * @param {{results: object[], participants?: object[], outcomes?: object[]}} data
-   * @returns {StratifiedSurvival} The chart, for chaining.
-   */
-  init(data) {
-    return this.setData(data);
+  if (settings.statistic !== null && !isText3(settings.statistic)) {
+    refuse4("`statistic` must be the name of an R function, or null for no statistics.");
   }
-  /**
-   * Replace the tables and draw again. The controls are rebuilt from the new
-   * tables and return to what the settings open on.
-   * @param {{results: object[], participants?: object[], outcomes?: object[]}} data
-   *   The tables: the results table, the participant table when there is one,
-   *   and the outcomes table. A bare array is taken as the results table.
-   * @param {object} [settings] Settings to change with the tables, when the new
-   *   tables need them. The tables are checked against these.
-   * @returns {StratifiedSurvival} The chart, for chaining.
-   */
-  setData(data, settings) {
-    const next = settings === void 0 || settings === null ? this.settings : syncSettings6(laidOver(this.settings, settings));
-    const given2 = Array.isArray(data) ? { results: data } : data || {};
-    const read2 = readGiven(this, given2, next);
-    const outcomes = readOutcomesGiven(this, given2.outcomes, next);
-    this.tables = { ...read2, outcomes };
-    if (next !== this.settings) this.setSettings(settings);
-    this.readTables();
-    this.state = this.seedState();
-    this.buildProfileFeed();
-    this.buildControls();
-    this.render();
-    return this;
-  }
-  /**
-   * Lay new settings over the current ones and draw again. A setting that says
-   * what the chart opens on (`endpoint`, `group_by`, `filters`) moves its
-   * control.
-   * @param {object} settings The settings to change.
-   * @returns {StratifiedSurvival} The chart, for chaining.
-   */
-  setSettings(settings) {
-    const given2 = settings || {};
-    const next = syncSettings6(laidOver(this.settings, given2));
-    checkTables(this.tables, next);
-    if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
-    this.settings = next;
-    syncHost(this);
-    if ("back" in given2) mountToolbar(this);
-    if ("connection" in given2 || "waiting_note" in given2) this.connect();
-    this.readTables();
-    const opening = this.seedState();
-    const moved = { endpoint: "endpoint", group_by: "groupBy", filters: "filters" };
-    for (const [setting, key] of Object.entries(moved)) {
-      if (setting in given2) this.state[key] = opening[key];
-    }
-    this.repairState(opening);
-    this.buildProfileFeed();
-    this.kit.syncProfileRail(this.host, () => this.railSettings());
-    this.buildControls();
-    this.render();
-    return this;
-  }
-  // What the controls can offer, read from the tables and the settings.
-  readTables() {
-    const { results, outcomes } = this.tables;
-    const { settings } = this;
-    this.measures = results.length ? listMeasures(results, settings) : [];
-    this.categories = results.length ? categoryColumns(this.tables, settings) : [];
-    this.filterSpecs = filterColumns(this.tables, settings, this.categories).map(
-      (spec) => this.kit.normalizeFilterSpec(spec)
-    );
-    this.endpoints = outcomes ? listEndpoints(outcomes, settings) : [];
-    const moved = this.cutOptions.find((entry) => entry.key === MOVED_KEY);
-    this.cutOptions = [];
-    for (const by of [settings.group_by, ...settings.cuts || []]) {
-      if (!isCut(by)) continue;
-      const written = JSON.stringify(by);
-      if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
-      this.cutOptions.push({
-        key: `${CUT_KEY2}${this.cutOptions.length}`,
-        spec: by,
-        label: label(by)
-      });
-    }
-    if (moved) this.cutOptions.push(moved);
-  }
-  cutKey(by) {
-    const written = JSON.stringify(by);
-    return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
-  }
-  offers(value) {
-    return this.categories.some((entry) => entry.value_col === value) || this.cutOptions.some((entry) => entry.key === value);
-  }
-  // The Group control's value as the chart takes it: a column's name, or the
-  // cut variable.
-  groupingOf(value) {
-    const found = this.cutOptions.find((entry) => entry.key === value);
-    return found ? found.spec : value;
-  }
-  labelOf(value) {
-    const cut = this.cutOptions.find((entry) => entry.key === value);
-    if (cut) return cut.label;
-    const found = this.categories.find((entry) => entry.value_col === value);
-    return found ? found.label : value;
-  }
-  endpointLabel(endpoint) {
-    const found = this.endpoints.find((entry) => entry.endpoint === endpoint);
-    return found ? found.label : endpoint;
-  }
-  // The state with the groups as the chart takes them.
-  drawingState(state = this.state) {
-    return { ...state, groupBy: this.groupingOf(state.groupBy) };
-  }
-  // What the chart opens on: the settings, where the tables have what they
-  // name; otherwise the first endpoint and the first category column.
-  seedState() {
-    const { settings, categories, endpoints } = this;
-    const has = (column) => categories.some((entry) => entry.value_col === column);
-    let groupBy = categories[0] ? categories[0].value_col : null;
-    if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
-    else if (has(settings.group_by)) groupBy = settings.group_by;
-    const named2 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
-    return {
-      endpoint: named2 ? named2.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
-      groupBy,
-      filters: startFilters(this)
-    };
-  }
-  repairState(opening) {
-    if (!this.offers(this.state.groupBy)) this.state.groupBy = opening.groupBy;
-    if (!this.endpoints.some((entry) => entry.endpoint === this.state.endpoint)) {
-      this.state.endpoint = opening.endpoint;
+  for (const key of ["group_comparison", "association_scatter"]) {
+    if (settings[key] !== null && !isPlainObject4(settings[key])) {
+      refuse4(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
     }
   }
-  // ---- Controls ---------------------------------------------------------------
-  buildControls() {
-    const { kit, state } = this;
-    this.controls.innerHTML = "";
-    const { addSection, addControl, addReset } = kit.controlBuilders(this.controls);
-    const redraw = () => this.render();
-    const select = (name, labelText, options2, selected, onChange, parent) => {
-      const input = document.createElement("select");
-      input.dataset.control = name;
-      input.setAttribute("aria-label", labelText);
-      options2.forEach(([value, text2]) => kit.option(input, value, text2, value === selected));
-      input.onchange = () => onChange(input.value);
-      return addControl(labelText, input, parent);
-    };
-    const view = addSection("View");
-    if (this.endpoints.length) {
-      select(
-        "endpoint",
-        "Endpoint",
-        this.endpoints.map((entry) => [entry.endpoint, entry.label]),
-        state.endpoint,
-        (next) => {
-          state.endpoint = next;
-          redraw();
-        },
-        view
-      );
-    }
-    const options = [
-      ...this.categories.map((entry) => [entry.value_col, entry.label]),
-      ...this.cutOptions.map((entry) => [entry.key, entry.label])
-    ];
-    if (options.length) {
-      select(
-        "group-by",
-        "Groups",
-        options,
-        state.groupBy,
-        (next) => {
-          state.groupBy = next;
-          this.buildControls();
-          redraw();
-        },
-        view
-      );
-      if (isCut(this.groupingOf(state.groupBy))) {
-        view.append(kit.createElement("small", "bv-control-note", DRAG_HINT));
-      }
-    } else {
-      view.append(
-        kit.createElement(
-          "p",
-          "sv-warning bv-no-groups",
-          "No column can make a group. Give a participant table, or carry a column on the results rows."
-        )
-      );
-    }
-    addFilterControls(this, { addSection, addControl }, () => redraw());
-    addReset(() => {
-      this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
-      this.state = this.seedState();
-      this.buildControls();
-      this.render();
-    });
+  settings.levels = textList2(settings.levels, "levels");
+  if (settings.levels && settings.levels.length !== 2) {
+    refuse4("`levels` must name two groups, the first and the second, or be null.");
   }
-  // ---- Drawing ----------------------------------------------------------------
-  /**
-   * Draw everything again from the tables, the settings and the controls, and
-   * ask R again. The curves, the strip, the histogram, the line and the listing
-   * are cleared first: nothing stays on screen that describes another view.
-   * @returns {void}
-   */
-  render() {
-    drawSafely(this, () => this.draw());
-  }
-  // Everything render() draws. drawSafely says so in the element when it fails.
-  draw({ ask = true } = {}) {
-    const round = this.desk.begin();
-    this.asked = [];
-    this.destroyCharts();
-    this.clearSelection();
-    this.notes.innerHTML = "";
-    this.riskWrap.innerHTML = "";
-    this.multiplesWrap.innerHTML = "";
-    this.cutCounts.textContent = "";
-    this.clearHandles();
-    this.histWrap.classList.add("sv-hidden");
-    this.statLine.textContent = "";
-    this.statLine.dataset.state = "empty";
-    this.chartWrap.classList.add("sv-hidden");
-    this.model = null;
-    const { kit, settings, state } = this;
-    if (!this.tables.outcomes) {
-      this.footnote.textContent = NEEDS_OUTCOMES;
-      return;
-    }
-    if (!this.tables.results.length) {
-      this.footnote.textContent = "No results to draw.";
-      return;
-    }
-    if (!state.groupBy) {
-      this.footnote.textContent = "Choose the groups.";
-      return;
-    }
-    const drawing = this.viewState();
-    const model = buildSurvival(this.tables, settings, drawing, {
-      kmEstimate: kit.kmEstimate,
-      filterMatches: kit.filterMatches
-    });
-    this.model = model;
-    this.updateNotes(model);
-    if (model.filtered === 0) {
-      this.footnote.textContent = NOBODY_PASSES;
-      return;
-    }
-    if (!model.records.length) {
-      this.footnote.textContent = "No participant has a group and an outcome for the endpoint.";
-      return;
-    }
-    this.drawCurves(model);
-    this.drawRisk(model);
-    this.drawHistogram(model);
-    this.footnote.textContent = [HINT2, ...this.cutNotes(model)].join(" ");
-    if (!settings.statistic) return;
-    const show = (description) => writeStatistic(kit, this.statLine, description);
-    if (!ask) {
-      show({ state: "none", text: this.desk.idle(MOVING), estimates: [], remarks: [] });
-      return;
-    }
-    if (model.levels.length < 2) {
-      show({ state: "none", text: ONE_GROUP, estimates: [], remarks: [] });
-      return;
-    }
-    const request = survivalRequest({ name: settings.statistic, settings, state: drawing, model });
-    const asked = {
-      name: request.name,
-      args: request.args,
-      dataId: request.dataId,
-      rows: request.rows,
-      answer: null
-    };
-    this.asked.push(asked);
-    round.ask(
-      request,
-      (description, answer) => {
-        if (answer) asked.answer = answer;
-        writeTitles(this);
-        show(description);
-      },
-      {
-        scope: scopeText4({
-          n: model.records.length,
-          endpoint: this.endpointLabel(state.endpoint),
-          filters: filtersForScope(this)
-        }),
-        levels: model.levels,
-        highOverLow: isCut(drawing.groupBy)
-      }
-    );
-  }
-  // The view the chart draws: the controls, with a cut line held where it is.
-  viewState() {
-    const drawing = this.drawingState();
-    if (this.drag && this.drag.points && isCut(drawing.groupBy)) {
-      return { ...drawing, groupBy: { ...drawing.groupBy, cut: [...this.drag.points] } };
-    }
-    return drawing;
-  }
-  // Above the curves: who is drawn, and who was left out.
-  updateNotes(model) {
-    const { kit } = this;
-    const add = (text2, warning) => this.notes.append(kit.createElement("span", warning ? "sv-warning" : null, text2));
-    if (model.participants) {
-      add(`${model.records.length} of ${model.participants} participants drawn.`);
-    }
-    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
-    model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
-      (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
-    );
-    if (model.filtered !== null && model.filtered < this.tables.participants.length) {
-      add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
-    }
-  }
-  cutNotes(model) {
-    if (!model.cut) return [];
-    const said2 = [cutNote(model.cut.spec, model.cut)];
-    if (!Array.isArray(model.cut.cut)) {
-      said2.push(
-        "Only participants with an outcome for the endpoint are cut, as R\u2019s Analyze_Screen cuts them."
-      );
-    }
-    return said2;
-  }
-  colorOf(index) {
-    return PALETTE[index % PALETTE.length];
-  }
-  // The curves: each group's estimate as steps from 1 at time 0, to its last
-  // time, with a mark at each censored time.
-  drawCurves(model) {
-    const { kit, state } = this;
-    this.chartWrap.classList.remove("sv-hidden");
-    const datasets = [];
-    model.curves.forEach((curve, index) => {
-      const color = this.colorOf(index);
-      const steps = [
-        { x: 0, y: 1 },
-        ...curve.estimate.points.map((p) => ({ x: p.time, y: p.surv }))
-      ];
-      const final = steps[steps.length - 1];
-      if (curve.estimate.maxTime > final.x) steps.push({ x: curve.estimate.maxTime, y: final.y });
-      datasets.push({
-        label: `${curve.level} (n = ${curve.n})`,
-        level: curve.level,
-        kind: "curve",
-        data: steps,
-        stepped: "after",
-        borderColor: color,
-        backgroundColor: color,
-        borderWidth: 2,
-        pointRadius: 0,
-        pointHitRadius: 6,
-        fill: false
-      });
-      datasets.push({
-        label: `${curve.level}: censored`,
-        level: curve.level,
-        kind: "censor",
-        data: curve.estimate.censorTimes.map((mark) => ({ x: mark.time, y: mark.surv })),
-        showLine: false,
-        pointStyle: "line",
-        rotation: 90,
-        pointRadius: 5,
-        pointBorderWidth: 1.5,
-        borderColor: color,
-        backgroundColor: color
-      });
-    });
-    const chart = new kit.Chart(this.canvas.getContext("2d"), {
-      type: "line",
-      data: { datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        parsing: false,
-        interaction: { mode: "nearest", intersect: false },
-        plugins: {
-          legend: {
-            position: "bottom",
-            // A curve and its censor marks are one: the legend names them
-            // and hides neither.
-            onClick: () => {
-            },
-            labels: { filter: (item) => datasets[item.datasetIndex].kind === "curve" },
-            title: { display: true, text: this.labelOf(state.groupBy) }
-          },
-          tooltip: {
-            filter: (item) => datasets[item.datasetIndex].kind === "curve",
-            callbacks: {
-              label: (item) => `${datasets[item.datasetIndex].level}: ${Number(item.raw.y.toPrecision(4))} at ${Number(item.raw.x.toPrecision(4))}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            type: "linear",
-            min: 0,
-            max: model.times[model.times.length - 1] >= model.last ? model.times[model.times.length - 1] : model.last,
-            afterBuildTicks: (axis) => {
-              axis.ticks = model.times.map((value) => ({ value }));
-            },
-            title: { display: true, text: this.endpointLabel(state.endpoint) }
-          },
-          y: {
-            min: 0,
-            max: 1,
-            title: { display: true, text: "Kaplan\u2013Meier estimate" }
-          }
-        }
-      }
-    });
-    this.canvas.setAttribute(
-      "aria-label",
-      `Kaplan\u2013Meier curves by ${this.labelOf(state.groupBy)}: ` + model.curves.map((curve) => `${curve.level}, ${curve.n} participants, ${curve.events} events`).join("; ")
-    );
-    this.charts.push(chart);
-    this.curvesChart = chart;
-  }
-  // The group whose curve passes within a few pixels of a pointer event, or
-  // null: the curve's height at that time is its last step at or before it.
-  curveAt(event) {
-    const chart = this.curvesChart;
-    if (!chart || !this.model) return null;
-    const box = this.canvas.getBoundingClientRect();
-    const x = event.clientX - box.left;
-    const y = event.clientY - box.top;
-    const { left, right, top, bottom } = chart.chartArea;
-    if (x < left || x > right || y < top - 6 || y > bottom + 6) return null;
-    const time = chart.scales.x.getValueForPixel(x);
-    let best = null;
-    let nearest = 8;
-    for (const curve of this.model.curves) {
-      if (time > curve.estimate.maxTime) continue;
-      const step = [...curve.estimate.points].reverse().find((point) => point.time <= time);
-      const away = Math.abs(chart.scales.y.getPixelForValue(step ? step.surv : 1) - y);
-      if (away <= nearest) {
-        nearest = away;
-        best = curve.level;
-      }
-    }
-    return best;
-  }
-  // The at-risk strip: for each group, how many are at risk at each time of
-  // the axis. A group's name lists its participants, and a count lists the
-  // participants it counts.
-  drawRisk(model) {
-    const { kit } = this;
-    const table = kit.createElement("table", "bv-risk");
-    table.append(kit.createElement("caption", null, "Number at risk"));
-    const head = kit.createElement("thead");
-    const top = kit.createElement("tr");
-    const corner = kit.createElement("th", null, this.labelOf(this.state.groupBy));
-    corner.scope = "col";
-    top.append(corner);
-    model.times.forEach((time) => {
-      const th = kit.createElement("th", null, String(time));
-      th.scope = "col";
-      top.append(th);
-    });
-    head.append(top);
-    table.append(head);
-    const body = kit.createElement("tbody");
-    model.curves.forEach((curve, index) => {
-      const tr = kit.createElement("tr");
-      const th = kit.createElement("th");
-      th.scope = "row";
-      const name = kit.createElement("button");
-      name.type = "button";
-      name.dataset.group = curve.level;
-      const swatch = kit.createElement("span", "bv-swatch");
-      swatch.style.background = this.colorOf(index);
-      name.append(swatch, document.createTextNode(curve.level));
-      name.setAttribute("aria-label", `${curve.level}: ${curve.n} participants. List them.`);
-      name.onclick = () => this.listGroup(curve.level);
-      th.append(name);
-      tr.append(th);
-      curve.risk.forEach((cell) => {
-        const td = kit.createElement("td");
-        const button = kit.createElement("button", null, String(cell.atRisk));
-        button.type = "button";
-        button.dataset.group = curve.level;
-        button.dataset.time = String(cell.time);
-        button.setAttribute(
-          "aria-label",
-          `${curve.level}, at risk at ${cell.time}: ${cell.atRisk}. List them.`
-        );
-        button.onclick = () => this.listAtRisk(curve.level, cell.time);
-        td.append(button);
-        tr.append(td);
-      });
-      body.append(tr);
-    });
-    table.append(body);
-    this.riskWrap.append(table);
-  }
-  // The histogram of a cut variable's values, with a line at each cut point
-  // and how many values fall in each group.
-  drawHistogram(model) {
-    if (!model.cut || !model.bars.length) return;
-    const { kit } = this;
-    this.histWrap.classList.remove("sv-hidden");
-    const points = model.cut.points;
-    const low = model.bars[0].from;
-    const high = model.bars[model.bars.length - 1].to;
-    const lines = {
-      id: "bvCutLines",
-      afterDatasetsDraw: (chart2) => {
-        const { ctx, chartArea, scales } = chart2;
-        ctx.save();
-        ctx.strokeStyle = "#1f2933";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 3]);
-        points.forEach((point) => {
-          const x = scales.x.getPixelForValue(point);
-          ctx.beginPath();
-          ctx.moveTo(x, chartArea.top);
-          ctx.lineTo(x, chartArea.bottom);
-          ctx.stroke();
-        });
-        ctx.restore();
-      }
-    };
-    const chart = new kit.Chart(this.histCanvas.getContext("2d"), {
-      type: "bar",
-      data: {
-        datasets: [
-          {
-            label: "Participants",
-            data: model.bars.map((bar) => ({ x: (bar.from + bar.to) / 2, y: bar.n })),
-            backgroundColor: hexToRgba("#52616f", 0.45),
-            borderColor: "#52616f",
-            borderWidth: 1,
-            barPercentage: 1,
-            categoryPercentage: 1
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        parsing: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-          x: {
-            type: "linear",
-            min: low,
-            max: high,
-            offset: false,
-            title: { display: true, text: uncutLabel(model.cut.spec) }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 },
-            title: { display: true, text: "Participants" }
-          }
-        }
-      },
-      plugins: [lines]
-    });
-    this.charts.push(chart);
-    this.histChart = chart;
-    const counts = model.cut.labels.map(
-      (label2, index) => `${label2}: ${model.values.filter((value) => cutGroup(value, points) === index).length}`
-    );
-    this.cutCounts.textContent = `Values each side of the cut: ${counts.join(" \xB7 ")}.`;
-    this.histCanvas.setAttribute(
-      "aria-label",
-      `Histogram of ${uncutLabel(model.cut.spec)}, cut at ${points.map((point) => writePoint(point)).join(" and ")}.`
-    );
-    this.drawHandles(chart, model);
-  }
-  // A slider over each cut line, for the keyboard: it takes the focus, says
-  // where its line is and how far it can go, and its arrow keys move the line.
-  drawHandles(chart, model) {
-    const { kit } = this;
-    this.clearHandles();
-    const points = model.cut.points;
-    const { min, max } = this.cutRange(model);
-    const { top, bottom } = chart.chartArea;
-    points.forEach((point, index) => {
-      const handle = kit.createElement("div", "bv-cut-handle");
-      handle.tabIndex = 0;
-      handle.dataset.index = String(index);
-      handle.setAttribute("role", "slider");
-      handle.setAttribute(
-        "aria-label",
-        `${uncutLabel(model.cut.spec)}: cut point ${index + 1} of ${points.length}`
-      );
-      handle.setAttribute("aria-orientation", "horizontal");
-      handle.setAttribute("aria-valuemin", String(index > 0 ? points[index - 1] : min));
-      handle.setAttribute(
-        "aria-valuemax",
-        String(index < points.length - 1 ? points[index + 1] : max)
-      );
-      handle.setAttribute("aria-valuenow", String(point));
-      handle.setAttribute("aria-valuetext", writePoint(point));
-      handle.style.left = `${chart.scales.x.getPixelForValue(point)}px`;
-      handle.style.top = `${top}px`;
-      handle.style.height = `${bottom - top}px`;
-      handle.addEventListener("keydown", (event) => this.keyCut(event, index));
-      handle.addEventListener("keyup", () => this.settleCut());
-      handle.addEventListener("blur", () => {
-        if (!this.redrawing) this.keyIndex = null;
-      });
-      this.histBox.append(handle);
-      if (this.keyIndex === index) handle.focus();
-    });
-  }
-  // Takes the sliders away, as a redraw does, without letting their focus go.
-  clearHandles() {
-    this.redrawing = true;
-    this.histBox.querySelectorAll(".bv-cut-handle").forEach((handle) => handle.remove());
-    this.redrawing = false;
-  }
-  // The least and the greatest value cut: a line stays between them.
-  cutRange(model = this.model) {
-    if (!model || !model.bars.length) return { min: -Infinity, max: Infinity };
-    return { min: model.bars[0].from, max: model.bars[model.bars.length - 1].to };
-  }
-  // ---- Moving a cut line ---------------------------------------------------------
-  listenToHistogram() {
-    const canvas = this.histCanvas;
-    const box = this.histBox;
-    const valueAt = (event) => {
-      const chart = this.histChart;
-      if (!chart) return null;
-      const box2 = canvas.getBoundingClientRect();
-      return chart.scales.x.getValueForPixel(event.clientX - box2.left);
-    };
-    box.addEventListener("pointerdown", (event) => {
-      const chart = this.histChart;
-      if (!chart || !this.model || !this.model.cut) return;
-      const x = event.clientX - canvas.getBoundingClientRect().left;
-      const points = this.model.cut.points;
-      let nearest = -1;
-      let distance = Infinity;
-      points.forEach((point, index) => {
-        const away = Math.abs(chart.scales.x.getPixelForValue(point) - x);
-        if (away < distance) {
-          distance = away;
-          nearest = index;
-        }
-      });
-      const grip = event.pointerType === "touch" ? TOUCH_GRIP : GRIP;
-      if (nearest < 0 || distance > grip) return;
-      event.preventDefault();
-      if (box.setPointerCapture) box.setPointerCapture(event.pointerId);
-      this.holdCut(nearest);
-      this.drag.grab = { x: event.clientX, offset: points[nearest] - valueAt(event), moved: false };
-    });
-    box.addEventListener("pointermove", (event) => {
-      if (!this.drag || !this.drag.grab) return;
-      const { grab } = this.drag;
-      if (!grab.moved && Math.abs(event.clientX - grab.x) < BUDGE) return;
-      const value = valueAt(event);
-      if (value === null) return;
-      grab.moved = true;
-      this.moveCut(this.drag.index, value + grab.offset);
-      if (this.drag) this.drag.grab = grab;
-    });
-    const letGo = () => {
-      if (!this.drag || !this.drag.grab) return;
-      const { index, points, grab } = this.drag;
-      if (!grab.moved) {
-        this.drag = null;
-        return;
-      }
-      this.dropCut(index, points[index]);
-    };
-    box.addEventListener("pointerup", letGo);
-    box.addEventListener("pointercancel", letGo);
-  }
-  // A key on a line's slider: the arrows move it by one bar of the histogram,
-  // Page Up and Page Down by five, Home and End to as far as it can go. The
-  // curves follow at once; R is asked once the keys have rested.
-  keyCut(event, index) {
-    if (!this.model || !this.model.cut || !this.model.bars.length) return;
-    const [first] = this.model.bars;
-    const bar = first.to - first.from;
-    const points = this.drag ? this.drag.points : this.model.cut.points;
-    const { min, max } = this.cutRange();
-    const steps = {
-      ArrowLeft: -bar,
-      ArrowDown: -bar,
-      ArrowRight: bar,
-      ArrowUp: bar,
-      PageDown: -5 * bar,
-      PageUp: 5 * bar
-    };
-    let target;
-    if (event.key in steps) target = points[index] + steps[event.key];
-    else if (event.key === "Home") target = index > 0 ? points[index - 1] : min;
-    else if (event.key === "End") target = index < points.length - 1 ? points[index + 1] : max;
-    else return;
-    event.preventDefault();
-    clearTimeout(this.settleTimer);
-    this.keyIndex = index;
-    if (this.drag && this.drag.index !== index) this.drag = null;
-    const below = index > 0 ? points[index - 1] : -Infinity;
-    const above = index < points.length - 1 ? points[index + 1] : Infinity;
-    const room = Math.max(below, Math.min(above, target));
-    const nudge = (above - below) * 1e-9 || 1e-9;
-    const placed = room <= below ? below + nudge : room >= above ? above - nudge : room;
-    this.moveCut(index, placed);
-  }
-  // The keys have stopped: after a short rest, the line is let go where it is.
-  settleCut() {
-    clearTimeout(this.settleTimer);
-    if (!this.drag || this.drag.grab) return;
-    const { index } = this.drag;
-    this.settleTimer = setTimeout(() => {
-      if (!this.drag || this.drag.grab || this.drag.index !== index) return;
-      this.dropCut(index, this.drag.points[index]);
-    }, SETTLE);
-  }
-  // Take hold of a cut line: the line stops showing R's answer for the old cut.
-  holdCut(index) {
-    if (!this.model || !this.model.cut) return;
-    this.drag = { index, points: [...this.model.cut.points], model: this.model };
-  }
-  /**
-   * Move a cut line, as dragging it does: the curves, the strip and the
-   * histogram follow at once, and R is not asked until the line is let go.
-   * @param {number} index Which cut point.
-   * @param {number} value Where it is now, on the variable's scale.
-   * @returns {?number[]} The cut points drawn, or null when the line cannot go
-   *   there.
-   */
-  moveCut(index, value) {
-    if (!this.drag) this.holdCut(index);
-    if (!this.drag) return null;
-    const points = movePoints(this.drag.points, index, value, this.cutRange(this.drag.model));
-    if (!points) return null;
-    this.drag = { ...this.drag, index, points };
-    drawSafely(this, () => this.draw({ ask: false }));
-    return points;
-  }
-  /**
-   * Let a cut line go, as dropping it does: the cut becomes typed points, the
-   * moved one where its label writes it, the Group control holds it, and R is
-   * asked for the new groups.
-   * @param {number} index Which cut point.
-   * @param {number} value Where it was let go, on the variable's scale.
-   * @returns {?number[]} The typed points, or null when the line cannot go there.
-   */
-  dropCut(index, value) {
-    const from = this.drag ? this.drag.points : this.model && this.model.cut && this.model.cut.points;
-    const range = this.cutRange(this.drag ? this.drag.model : this.model);
-    this.drag = null;
-    clearTimeout(this.settleTimer);
-    const spec = this.groupingOf(this.state.groupBy);
-    const points = from && isCut(spec) ? movePoints(from, index, value, { drop: true, ...range }) : null;
-    if (!points) {
-      this.render();
-      return null;
-    }
-    const typed = { ...spec, cut: points };
-    this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
-    const named2 = this.cutOptions.find(
-      (entry) => JSON.stringify(entry.spec) === JSON.stringify(typed)
-    );
-    if (named2) {
-      this.state.groupBy = named2.key;
-    } else {
-      this.cutOptions.push({ key: MOVED_KEY, spec: typed, label: label(typed) });
-      this.state.groupBy = MOVED_KEY;
-    }
-    this.buildControls();
-    this.render();
-    return points;
-  }
-  // ---- Listing and participant profile -------------------------------------------
-  /**
-   * List the participants of one group, as a click on its curve does.
-   * @param {string} level The group.
-   * @returns {Array<object>} The participants listed.
-   */
-  listGroup(level) {
-    if (!this.model) return [];
-    const records = this.model.records.filter((record) => record.group === String(level));
-    this.showRecords(records, `${this.labelOf(this.state.groupBy)} ${level}`);
-    this.listed = { group: String(level), time: null };
-    return records;
-  }
-  /**
-   * List the participants of a group at risk at a time, as a click on a count
-   * of the at-risk strip does.
-   * @param {string} level The group.
-   * @param {number} time The time.
-   * @returns {Array<object>} The participants listed.
-   */
-  listAtRisk(level, time) {
-    if (!this.model) return [];
-    const records = atRisk(this.model, String(level), Number(time));
-    this.showRecords(records, `${this.labelOf(this.state.groupBy)} ${level}, at risk at ${time}`);
-    this.listed = { group: String(level), time: Number(time) };
-    return records;
-  }
-  showRecords(records, what) {
-    this.clearSelection();
-    showListing(this, {
-      columns: this.listingColumns(),
-      rows: records.map((record) => ({
-        ...record,
-        outcome: record.event ? "Event" : "Censored"
-      }))
-    });
-    this.footnote.textContent = `${what}: ${records.length} participant${records.length === 1 ? "" : "s"} listed. Click a row to open the participant's profile.`;
-  }
-  listingColumns() {
-    if (this.settings.details) return this.settings.details;
-    return [
-      { value_col: this.settings.id_col, label: "Participant" },
-      { value_col: "group", label: this.labelOf(this.state.groupBy) },
-      { value_col: "time", label: "Time" },
-      { value_col: "outcome", label: "Outcome" }
-    ];
-  }
-  select(id) {
-    selectParticipant(this, id);
-  }
-  clearSelection() {
-    this.listed = null;
-    clearListing(this);
-  }
-  buildProfileFeed() {
-    buildProfileFeed(this, () => this.railSettings());
-  }
-  railSettings() {
-    return railSettings(this, "linear");
-  }
-  /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    const group = state.groupBy ? this.groupingOf(state.groupBy) : null;
-    return {
-      endpoint: state.endpoint,
-      group_by: group,
-      // Every cut the Groups control offers stays offered, the one a moved line
-      // left among them (#71 review).
-      cuts: cutsOffered(this.cutOptions, [group])
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, state, settings } = this;
-    if (!model || !model.records) return { columns: [], rows: [] };
-    const valued = model.cut ? (({ cut, ...variable2 }) => variable2)(model.cut.spec) : null;
-    return {
-      columns: [
-        { value_col: settings.id_col, label: "Participant" },
-        { value_col: "group", label: this.labelOf(state.groupBy) },
-        ...valued ? [{ value_col: "value", label: label(valued) }] : [],
-        { value_col: "time", label: "Time" },
-        { value_col: "event", label: "Event" }
-      ],
-      rows: model.records
-    };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["endpoint", "group"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model } = this;
-    return {
-      endpoint: state.endpoint ? this.endpointLabel(state.endpoint) : "",
-      group: state.groupBy ? this.labelOf(state.groupBy) : "",
-      n: model && model.records ? model.records.length : ""
-    };
-  }
-  /**
-   * What the chart has asked R for the view now drawn, and what R answered:
-   * one entry, or none when nothing is asked. The request is exactly what the
-   * connection was given, so it is the key a stored result must carry.
-   * @returns {Array<{name: string, args: object, dataId: object, rows: number,
-   *   answer: ?object}>}
-   */
-  statistics() {
-    return structuredClone(this.asked);
-  }
-  // ---- Lifecycle --------------------------------------------------------------
-  /**
-   * Fit the curves and the histogram to their containers.
-   * @returns {void}
-   */
-  resize() {
-    this.charts.forEach((chart) => chart.resize());
-  }
-  destroyCharts() {
-    this.charts.forEach((chart) => chart.destroy());
-    this.charts = [];
-    this.curvesChart = null;
-    this.histChart = null;
-  }
-  /**
-   * Take the chart down: its curves, its histogram, its participant rail and
-   * everything in its element. A destroyed chart cannot be used again.
-   * @returns {void}
-   */
-  destroy() {
-    this.desk.begin();
-    this.destroyCharts();
-    this.kit.unmountProfileRail(this.host);
-    this.element.innerHTML = "";
-  }
-};
-function stratifiedSurvival(element, settings) {
-  return new StratifiedSurvival(element, settings);
+  settings.with = variableSetting(settings.with, "with");
+  settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
+  settings.measures = textList2(settings.measures, "measures");
+  settings.groups = fieldList(settings.groups, "groups");
+  settings.numbers = fieldList(settings.numbers, "numbers");
+  settings.filters = fieldList(settings.filters, "filters");
+  return settings;
 }
 
 // src/biomarker-screen/statistic.js
 var COMPARISON_LABELS = Object.freeze({
   difference: "Difference between two groups",
-  correlation: "Correlation with one variable",
-  hazard: "Hazard ratio, high against low"
+  correlation: "Correlation with one variable"
 });
-var HAZARD_GROUPS = Object.freeze(["High", "Low"]);
 var METHOD_LABELS3 = Object.freeze({ pearson: "Pearson", spearman: "Spearman" });
 var ADJUSTMENT_LABELS = Object.freeze({ BH: "Benjamini-Hochberg", holm: "Holm" });
 var ESTIMATE_NAMES = Object.freeze({
   difference: "Standardised difference (Hedges\u2019 g)",
-  correlation: { pearson: "Pearson\u2019s r", spearman: "Spearman\u2019s rho" },
-  hazard: "Hazard ratio, High / Low"
+  correlation: { pearson: "Pearson\u2019s r", spearman: "Spearman\u2019s rho" }
 });
 function screenRequest({ name, settings, state, model }) {
   const filters = filtersInForce(state.filters);
   const difference = state.comparison === "difference";
-  const hazard = state.comparison === "hazard";
-  const flag = hazard ? flagOf(settings).field : null;
-  const of = () => {
-    if (difference) return { strGroupCol: state.groupBy, chrGroups: [...state.levels] };
-    if (hazard) {
-      return {
-        strTimeCol: "time",
-        ...flag === "censor" ? { strCensorCol: "censor" } : { strEventCol: "event" }
-      };
-    }
-    return { strWithCol: model.extra, strCorMethod: state.method };
-  };
   return {
     name,
     data: model.records,
     args: {
       chrCols: model.rows.map((row) => row.name),
       strComparison: state.comparison,
-      ...of(),
+      ...difference ? { strGroupCol: state.groupBy, chrGroups: [...state.levels] } : { strWithCol: model.extra, strCorMethod: state.method },
       strPAdjust: state.adjustment
     },
     dataId: {
@@ -9900,15 +6552,13 @@ function screenRequest({ name, settings, state, model }) {
       ...settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
       baseline_stat: settings.baseline_stat,
       // What the column correlated with is: its name in the frame is a label.
-      ...state.comparison === "correlation" ? { with: settingOf(state.with) } : {},
-      // What the rows' outcome is: the endpoint of the outcomes table.
-      ...hazard ? { endpoint: state.endpoint } : {},
+      ...difference ? {} : { with: settingOf(state.with) },
       ...Object.keys(filters).length ? { filters } : {}
     },
     rows: model.records.length
   };
 }
-var plain4 = (state, said2) => ({ ...sentence(state, said2), table: null, rows: null });
+var plain4 = (state, said) => ({ ...sentence(state, said), table: null, rows: null });
 function rowsOf(value, groups = null) {
   const rows = Array.isArray(value && value.rows) ? value.rows : [];
   const number = (given2) => typeof given2 === "number" && Number.isFinite(given2) ? given2 : null;
@@ -9975,19 +6625,19 @@ function describeScreen(result, context = {}) {
   described.scope = context.scope || null;
   return described;
 }
-function scopeText5({ n, filters = [] }) {
-  const said2 = [
+function scopeText4({ n, filters = [] }) {
+  const said = [
     `${n} participant${n === 1 ? " is" : "s are"} in the frame. A row is of the ones who have its biomarker, so each row has its own counts.`
   ];
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(" ");
 }
-function createStatisticDesk5({ connection, note = null }) {
+function createStatisticDesk4({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeScreen,
-    waiting: (said2) => plain4("waiting", said2)
+    waiting: (said) => plain4("waiting", said)
   });
 }
 
@@ -10019,8 +6669,7 @@ function screenRows(settings, state, offered, results = []) {
   const baseline = RELATIVE4.has(value) ? config.baseline_visits || visits(results, config).slice(0, 1) : [];
   const at = value === "baseline" ? "" : ` at ${state.visit}`;
   const words = `${VALUE_WORDS3[value]}${at}`;
-  const endpoint = (offered.endpoints || []).find((entry) => entry.endpoint === state.endpoint);
-  const heading = state.comparison === "difference" ? `${words}: ${state.levels.length === 2 ? `${state.levels[0]} against ${state.levels[1]}` : "two groups"}, standardised difference` : state.comparison === "hazard" ? `${words}: hazard ratio, high against low, on ${endpoint ? endpoint.label : "an endpoint"}` : `${words}: correlation with ${state.with ? variableName(state.with) : "a variable"}`;
+  const heading = state.comparison === "difference" ? `${words}: ${state.levels.length === 2 ? `${state.levels[0]} against ${state.levels[1]}` : "two groups"}, standardised difference` : `${words}: correlation with ${state.with ? variableName(state.with) : "a variable"}`;
   const none = (message) => ({ rows: [], heading, left: null, message });
   if (baseline.length === 1 && baseline[0] === state.visit) {
     return none(
@@ -10033,9 +6682,6 @@ function screenRows(settings, state, offered, results = []) {
     if (state.levels.length !== 2) {
       return none("The column of groups has fewer than two groups: a difference compares two.");
     }
-  } else if (state.comparison === "hazard") {
-    if (!endpoint)
-      return none("Choose an endpoint: a hazard ratio is of an endpoint of the outcomes table.");
   } else if (!state.with) {
     return none("Choose the variable every biomarker is correlated with.");
   }
@@ -10052,7 +6698,7 @@ function screenRows(settings, state, offered, results = []) {
   if (!rows.length) return { rows, heading, left, message: "No biomarker to screen." };
   return { rows, heading, left, message: null };
 }
-function buildScreen({ results, participants, outcomes = null }, settings, state, offered, options = {}) {
+function buildScreen({ results, participants }, settings, state, offered, options = {}) {
   const { participants: kept, results: rows } = keepFiltered(
     { results, participants },
     settings,
@@ -10060,17 +6706,13 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
     options.filterMatches
   );
   const drawn = screenRows(settings, state, offered, results);
-  const hazard = state.comparison === "hazard";
-  const extra = state.comparison === "difference" ? { name: state.groupBy, variable: state.groupBy ? { col: state.groupBy } : null } : hazard ? { name: null, variable: null } : {
+  const extra = state.comparison === "difference" ? { name: state.groupBy, variable: state.groupBy ? { col: state.groupBy } : null } : {
     name: state.with ? variableName(state.with) : null,
     variable: state.with ? variableOf(state.with) : null
   };
-  const outcomeFields = hazard ? ["time", flagOf(settings).field] : [];
   const model = {
     ...drawn,
     extra: extra.name,
-    outcomeFields,
-    outcomeGaps: [],
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
@@ -10080,11 +6722,7 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
     filtered: kept ? kept.length : null
   };
   if (drawn.message || !rows.length) return model;
-  const names = [
-    settings.id_col,
-    ...drawn.rows.map((row) => row.name),
-    ...hazard ? outcomeFields : [extra.name]
-  ];
+  const names = [settings.id_col, ...drawn.rows.map((row) => row.name), extra.name];
   const twice = names.find((name, index) => names.indexOf(name) !== index);
   if (twice !== void 0) {
     return {
@@ -10101,44 +6739,27 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
       ...Object.fromEntries(
         fields.map((field, index) => [field.key, variableOf(drawn.rows[index].axis)])
       ),
-      ...extra.variable ? { [extraKey]: extra.variable } : {}
+      [extraKey]: extra.variable
     },
     // None is required: a participant with some of the biomarkers is in the
     // frame, and R counts who each row has.
     { ...coreSettings(settings), required: [] }
   );
-  const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
-  const named2 = made.data.map((record) => {
-    const row = {
-      [settings.id_col]: record[settings.id_col],
-      ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]]))
-    };
-    if (!hazard) return { ...row, [extra.name]: record[extraKey] };
-    const outcome = outcomeOf(record[settings.id_col]);
-    return {
-      ...row,
-      time: outcome.reason ? null : outcome.time,
-      [outcomeFields[1]]: outcome.reason ? null : outcome.flag
-    };
-  });
-  const records = named2.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
-  const gaps = /* @__PURE__ */ new Map();
-  if (hazard) {
-    for (const record of records) {
-      const outcome = outcomeOf(record[settings.id_col]);
-      if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
-    }
-  }
+  const named = made.data.map((record) => ({
+    [settings.id_col]: record[settings.id_col],
+    ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]])),
+    [extra.name]: record[extraKey]
+  }));
+  const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
   return {
     ...model,
     records,
     participants: made.participants,
-    empty: named2.length - records.length,
+    empty: named.length - records.length,
     // With no biomarker required, who is left out is who the participant table
     // does not have.
     dropped: made.dropped,
     unused: made.unused,
-    outcomeGaps: [...gaps].map(([reason, n]) => ({ reason, n })),
     baselineVisits: made.baseline_visits
   };
 }
@@ -10161,18 +6782,6 @@ function sortRows(rows, sort) {
 }
 function axisRange(rows, comparison) {
   const values = rows.flatMap((row) => [row.estimate, row.lower, row.upper]).filter((value) => typeof value === "number" && Number.isFinite(value));
-  if (comparison === "hazard") {
-    const positive = values.filter((value) => value > 0);
-    const least = Math.min(1, ...positive);
-    const most = Math.max(1, ...positive);
-    let min = 0.5;
-    while (min > least) min /= 2;
-    let max = 2;
-    while (max < most) max *= 2;
-    const ticks2 = [];
-    for (let at = min; at <= max; at *= 2) ticks2.push(at);
-    return { min, max, ticks: ticks2, log: true, reference: 1 };
-  }
   if (comparison === "correlation") {
     return { min: -1, max: 1, ticks: [-1, -0.5, 0, 0.5, 1] };
   }
@@ -10183,56 +6792,49 @@ function axisRange(rows, comparison) {
   for (let at = -end; at <= end + 1e-9; at += step) ticks.push(Number(at.toFixed(2)));
   return { min: -end, max: end, ticks };
 }
-var placeOf = (value, { min, max, log = false }) => {
-  const at = log ? (Math.log2(value) - Math.log2(min)) / (Math.log2(max) - Math.log2(min)) : (value - min) / (max - min);
-  return Math.min(100, Math.max(0, at * 100));
-};
+var placeOf = (value, { min, max }) => Math.min(100, Math.max(0, (value - min) / (max - min) * 100));
 
 // src/biomarker-screen.js
-var MODULE_CLASS4 = "bv-biomarker-screen";
-var STYLE_ID5 = "bio-viz-biomarker-screen-styles";
-var C3 = `.${MODULE_CLASS4}`;
-var STYLES5 = `${lineStyles(C3)}
-${C3} .bv-screen{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
-${C3} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;font-weight:600;color:#1f2933}
-${C3} .bv-screen-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
-${C3} .bv-screen-names{margin:.2rem 0 0;font-size:.85rem;color:#52616f}
-${C3} .bv-screen-head,${C3} .bv-screen-row{display:grid;grid-template-columns:minmax(5.5rem,9rem) minmax(8rem,1fr) 11.8rem 5.4rem 5.8rem 5.6rem;align-items:center;gap:0 .6rem}
-${C3} .bv-screen-head{font-size:.75rem;font-weight:600;color:#52616f;border-bottom:2px solid #d8dee4;padding:0 .4rem .3rem}
-${C3} .bv-screen-row{appearance:none;width:100%;margin:0;border:0;border-bottom:1px solid #e3e8ee;background:#fff;padding:.35rem .4rem;font:inherit;font-size:.85rem;color:#1f2933;text-align:left;cursor:pointer;font-variant-numeric:tabular-nums}
-${C3} .bv-screen-row:hover{background:#f4f8fc}
-${C3} .bv-screen-row:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
-${C3} .bv-screen-name{font-weight:600;overflow-wrap:anywhere}
-${C3} .bv-track{position:relative;height:1.3rem}
-${C3} .bv-ticks{position:relative;height:1rem}
-${C3} .bv-tick{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
-${C3} .bv-zero{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed #7b8794}
-${C3} .bv-interval{position:absolute;top:50%;height:2px;margin-top:-1px;background:#0b62a4}
-${C3} .bv-estimate{position:absolute;top:50%;width:.6rem;height:.6rem;margin:-.3rem 0 0 -.3rem;border-radius:50%;background:#0b62a4}
-${C3} .bv-screen-row[data-status=withheld] .bv-screen-value,${C3} .bv-screen-row[data-status=error] .bv-screen-value,${C3} .bv-screen-row[data-status=refused] .bv-screen-value{grid-column:3 / span 4;color:#52616f}
-${C3} .bv-screen-tools{margin:.6rem 0 0}
-${C3} .bv-screen-tools button,${C3} .bv-overview-pager button{font:inherit;font-size:.8rem;padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-${C3} .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
-${C3} .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem;font-size:.85rem;color:#1f2933}
-${C3} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
-${C3} .bv-narrow{display:none}
+var MODULE_CLASS3 = "bv-biomarker-screen";
+var STYLE_ID4 = "bio-viz-biomarker-screen-styles";
+var C2 = `.${MODULE_CLASS3}`;
+var STYLES4 = `${lineStyles(C2)}
+${C2} .bv-screen{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
+${C2} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;font-weight:600;color:#1f2933}
+${C2} .bv-screen-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
+${C2} .bv-screen-names{margin:.2rem 0 0;font-size:.85rem;color:#52616f}
+${C2} .bv-screen-head,${C2} .bv-screen-row{display:grid;grid-template-columns:minmax(5.5rem,9rem) minmax(8rem,1fr) 11.8rem 5.4rem 5.8rem 5.6rem;align-items:center;gap:0 .6rem}
+${C2} .bv-screen-head{font-size:.75rem;font-weight:600;color:#52616f;border-bottom:2px solid #d8dee4;padding:0 .4rem .3rem}
+${C2} .bv-screen-row{appearance:none;width:100%;margin:0;border:0;border-bottom:1px solid #e3e8ee;background:#fff;padding:.35rem .4rem;font:inherit;font-size:.85rem;color:#1f2933;text-align:left;cursor:pointer;font-variant-numeric:tabular-nums}
+${C2} .bv-screen-row:hover{background:#f4f8fc}
+${C2} .bv-screen-row:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
+${C2} .bv-screen-name{font-weight:600;overflow-wrap:anywhere}
+${C2} .bv-track{position:relative;height:1.3rem}
+${C2} .bv-ticks{position:relative;height:1rem}
+${C2} .bv-tick{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+${C2} .bv-zero{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed #7b8794}
+${C2} .bv-interval{position:absolute;top:50%;height:2px;margin-top:-1px;background:#0b62a4}
+${C2} .bv-estimate{position:absolute;top:50%;width:.6rem;height:.6rem;margin:-.3rem 0 0 -.3rem;border-radius:50%;background:#0b62a4}
+${C2} .bv-screen-row[data-status=withheld] .bv-screen-value,${C2} .bv-screen-row[data-status=error] .bv-screen-value,${C2} .bv-screen-row[data-status=refused] .bv-screen-value{grid-column:3 / span 4;color:#52616f}
+${C2} .bv-screen-tools{margin:.6rem 0 0}
+${C2} .bv-screen-tools button,${C2} .bv-overview-pager button{font:inherit;font-size:.8rem;padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${C2} .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
+${C2} .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .6rem;font-size:.85rem;color:#1f2933}
+${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
+${C2} .bv-narrow{display:none}
 @media (max-width:600px){
-${C3} .bv-narrow{display:inline;color:#52616f}
-${C3} .bv-screen{padding:.5rem}
-${C3} .bv-screen-head{grid-template-columns:1fr;padding:0 .2rem .3rem}
-${C3} .bv-screen-head > :not(.bv-ticks){display:none}
-${C3} .bv-screen-row{grid-template-columns:1fr;gap:.15rem .6rem;padding:.45rem .2rem}
-${C3} .bv-screen-row[data-status] .bv-screen-value{grid-column:auto}
-${C3} .bv-screen-row .bv-screen-p,${C3} .bv-screen-row .bv-screen-n{font-size:.8rem}
-${C3}.sv-collapsed .sv-sidebar-title{display:inline}
-${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
+${C2} .bv-narrow{display:inline;color:#52616f}
+${C2} .bv-screen{padding:.5rem}
+${C2} .bv-screen-head{grid-template-columns:1fr;padding:0 .2rem .3rem}
+${C2} .bv-screen-head > :not(.bv-ticks){display:none}
+${C2} .bv-screen-row{grid-template-columns:1fr;gap:.15rem .6rem;padding:.45rem .2rem}
+${C2} .bv-screen-row[data-status] .bv-screen-value{grid-column:auto}
+${C2} .bv-screen-row .bv-screen-p,${C2} .bv-screen-row .bv-screen-n{font-size:.8rem}
+${C2}.sv-collapsed .sv-sidebar-title{display:inline}
+${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 var BACK2 = "Back to the biomarker screen";
-var NO_OUTCOMES = "A hazard ratio needs an outcomes table: give `outcomes`, one row per participant and endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.";
-var HAZARD_NOTE = "Each biomarker is cut at its median, as R\u2019s Analyze_Screen cuts it, a value on the median low: the hazard ratio is the high group\u2019s hazard over the low group\u2019s.";
-var OPEN_HINT = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ";
-var HINT3 = OPEN_HINT + "share one axis without units, with nought marked.";
-var HAZARD_HINT = OPEN_HINT + "share one logarithmic axis without units, with 1, no difference, marked.";
+var HINT2 = "Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates share one axis without units, with nought marked.";
 var COLUMN = "c:";
 var MEASURE = "m:";
 var BiomarkerScreen = class {
@@ -10241,9 +6843,8 @@ var BiomarkerScreen = class {
     this.element = typeof element === "string" ? document.querySelector(element) : element;
     if (!this.element) throw new Error(`bio.viz: biomarker screen target not found: ${element}`);
     this.settings = syncSettings4(settings);
-    this.tables = { results: [], participants: null, outcomes: null };
+    this.tables = { results: [], participants: null };
     this.model = null;
-    this.endpoints = [];
     this.measures = [];
     this.visits = [];
     this.categories = [];
@@ -10261,7 +6862,7 @@ var BiomarkerScreen = class {
   connect() {
     if (this.desk) this.desk.retire();
     this.connection = this.settings.connection || createConnection();
-    this.desk = createStatisticDesk5({
+    this.desk = createStatisticDesk4({
       connection: this.connection,
       note: this.settings.waiting_note
     });
@@ -10269,9 +6870,9 @@ var BiomarkerScreen = class {
   renderShell() {
     const { kit } = this;
     mountShell(this, {
-      moduleClass: MODULE_CLASS4,
-      styleId: STYLE_ID5,
-      styles: STYLES5,
+      moduleClass: MODULE_CLASS3,
+      styleId: STYLE_ID4,
+      styles: STYLES4,
       listingFile: "bio.viz-biomarker-screen-rows.csv"
     });
     this.chartWrap.classList.add("sv-hidden");
@@ -10300,18 +6901,10 @@ var BiomarkerScreen = class {
    */
   setData(data, settings) {
     this.close();
-    const given2 = Array.isArray(data) ? { results: data } : data || {};
     if (settings === void 0 || settings === null) {
-      this.tables = {
-        ...readGiven(this, given2),
-        outcomes: readOutcomesGiven(this, given2.outcomes, this.settings)
-      };
+      this.tables = readGiven(this, data);
     } else {
-      const next = syncSettings4(laidOver(this.settings, settings));
-      this.tables = {
-        ...readGiven(this, given2, next),
-        outcomes: readOutcomesGiven(this, given2.outcomes, next)
-      };
+      this.tables = readGiven(this, data, syncSettings4({ ...this.settings, ...settings }));
       this.setSettings(settings);
     }
     this.readTables();
@@ -10330,9 +6923,8 @@ var BiomarkerScreen = class {
    */
   setSettings(settings) {
     const given2 = settings || {};
-    const next = syncSettings4(laidOver(this.settings, given2));
+    const next = syncSettings4({ ...this.settings, ...given2 });
     checkTables(this.tables, next);
-    if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
     this.close();
     this.settings = next;
     if ("connection" in given2 || "waiting_note" in given2) this.connect();
@@ -10346,7 +6938,6 @@ var BiomarkerScreen = class {
       levels: ["levels"],
       with: ["with"],
       method: ["method"],
-      endpoint: ["endpoint"],
       adjustment: ["adjustment"],
       sort: ["sort", "page"],
       filters: ["filters"]
@@ -10370,12 +6961,6 @@ var BiomarkerScreen = class {
     this.filterSpecs = filterColumns(this.tables, settings, this.categories).map(
       (spec) => this.kit.normalizeFilterSpec(spec)
     );
-    this.endpoints = this.tables.outcomes ? listEndpoints(this.tables.outcomes, settings) : [];
-    if (this.tables.outcomes && settings.endpoint !== null && !this.endpoints.some((entry) => entry.endpoint === settings.endpoint)) {
-      console.warn(
-        `The initial endpoint [${settings.endpoint}] does not exist. Defaulting to the first.`
-      );
-    }
     if (results.length && settings.visit !== null && !this.visits.includes(settings.visit)) {
       console.warn(
         `The initial visit [${settings.visit}] does not exist. Defaulting to the first.`
@@ -10383,12 +6968,7 @@ var BiomarkerScreen = class {
     }
   }
   offered() {
-    return { measures: this.measures, visits: this.visits, endpoints: this.endpoints };
-  }
-  // The comparisons the Compare control offers: a hazard ratio only with an
-  // outcomes table to compare on.
-  comparisons() {
-    return COMPARISONS.filter((entry) => entry !== "hazard" || this.endpoints.length);
+    return { measures: this.measures, visits: this.visits };
   }
   // The columns of groups a difference can compare: the category columns with
   // two groups or more.
@@ -10408,11 +6988,8 @@ var BiomarkerScreen = class {
     const groupBy = columns.includes(settings.group_by) ? settings.group_by : columns[0] ?? null;
     const given2 = settings.with ? axisOf(settings.with) : null;
     const fallback = this.numbers.length ? axisOf({ col: this.numbers[0].value_col }) : this.measures.length && visits2.length ? axisOf({ measure: this.measures[0], value: "raw", visit: visits2[0] }) : null;
-    const endpoint = this.endpoints.some((entry) => entry.endpoint === settings.endpoint) ? settings.endpoint : this.endpoints[0] ? this.endpoints[0].endpoint : null;
-    this.pageFromSettings = true;
     return {
-      comparison: this.comparisons().includes(settings.comparison) ? settings.comparison : "difference",
-      endpoint,
+      comparison: settings.comparison,
       visit: visits2.includes(settings.visit) ? settings.visit : visits2[0] ?? null,
       valueType: settings.value_type,
       groupBy,
@@ -10421,8 +6998,8 @@ var BiomarkerScreen = class {
       method: settings.method,
       adjustment: settings.adjustment,
       sort: settings.sort,
-      page: settings.page,
-      filters: startFilters(this)
+      page: 0,
+      filters: this.kit.initFilterState(this.filterSpecs)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -10434,10 +7011,6 @@ var BiomarkerScreen = class {
     if (!columns.includes(state.groupBy)) state.groupBy = opening.groupBy;
     state.levels = groupsOf2(this.tables, state.groupBy, state.levels).levels;
     if (!this.hasVariable(state.with)) state.with = opening.with;
-    if (!this.comparisons().includes(state.comparison)) state.comparison = "difference";
-    if (!this.endpoints.some((entry) => entry.endpoint === state.endpoint)) {
-      state.endpoint = opening.endpoint;
-    }
   }
   // ---- Controls ---------------------------------------------------------------
   buildControls() {
@@ -10460,7 +7033,7 @@ var BiomarkerScreen = class {
     select(
       "comparison",
       "Compare",
-      this.comparisons().map((entry) => [entry, COMPARISON_LABELS[entry]]),
+      COMPARISONS.map((entry) => [entry, COMPARISON_LABELS[entry]]),
       state.comparison,
       (next) => {
         state.comparison = next;
@@ -10468,9 +7041,6 @@ var BiomarkerScreen = class {
       },
       screen
     );
-    if (!this.endpoints.length) {
-      screen.append(kit.createElement("small", "bv-control-note bv-no-outcomes", NO_OUTCOMES));
-    }
     select(
       "value-type",
       "Value",
@@ -10532,19 +7102,6 @@ var BiomarkerScreen = class {
           "The difference is the first group\u2019s mean less the second\u2019s, in pooled standard deviations: swap the groups to turn the axis round."
         )
       );
-    } else if (state.comparison === "hazard") {
-      select(
-        "endpoint",
-        "Endpoint",
-        this.endpoints.map((entry) => [entry.endpoint, entry.label]),
-        state.endpoint,
-        (next) => {
-          state.endpoint = next;
-          redraw(true);
-        },
-        screen
-      );
-      screen.append(kit.createElement("small", "bv-control-note", HAZARD_NOTE));
     } else {
       const options = [
         ...this.numbers.map((spec) => [`${COLUMN}${spec.value_col}`, spec.label]),
@@ -10646,8 +7203,7 @@ var BiomarkerScreen = class {
     const round = this.desk.begin();
     this.asked = [];
     this.answer = null;
-    if (this.pageFromSettings) this.pageFromSettings = false;
-    else this.state.page = 0;
+    this.state.page = 0;
     this.notes.innerHTML = "";
     this.screenWrap.innerHTML = "";
     this.screenWrap.hidden = true;
@@ -10677,7 +7233,7 @@ var BiomarkerScreen = class {
       this.footnote.textContent = "No participant has a value for any biomarker of this screen.";
       return;
     }
-    this.footnote.textContent = state.comparison === "hazard" ? HAZARD_HINT : HINT3;
+    this.footnote.textContent = HINT2;
     this.drawRows();
     if (!settings.statistic) return;
     const request = screenRequest({ name: settings.statistic, settings, state, model });
@@ -10693,14 +7249,13 @@ var BiomarkerScreen = class {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
-        writeTitles(this);
         writeStatistic(kit, this.statLine, description);
         this.answer = description;
         this.drawRows();
       },
       {
-        groups: state.comparison === "difference" ? state.levels : state.comparison === "hazard" ? [...HAZARD_GROUPS] : null,
-        scope: scopeText5({ n: model.records.length, filters: filtersForScope(this) })
+        groups: state.comparison === "difference" ? state.levels : null,
+        scope: scopeText4({ n: model.records.length, filters: filtersForScope(this) })
       }
     );
   }
@@ -10720,12 +7275,6 @@ var BiomarkerScreen = class {
     if (model.filtered !== null && model.filtered < this.tables.participants.length) {
       add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
     }
-    (model.outcomeGaps || []).forEach(
-      (entry) => add(
-        `${entry.n} with no outcome to use: ${entry.reason}. R leaves them out of every row.`,
-        true
-      )
-    );
     if (model.left) add(model.left);
     if (model.baselineVisits && state.valueType !== "raw") {
       add(`Baseline visit: ${model.baselineVisits.join(", ")}.`);
@@ -10734,10 +7283,6 @@ var BiomarkerScreen = class {
   // The estimate's name, as the axis and the caption call it.
   estimateName() {
     const { state } = this;
-    if (state.comparison === "hazard") {
-      const endpoint = this.endpoints.find((entry) => entry.endpoint === state.endpoint);
-      return `${ESTIMATE_NAMES.hazard}, on ${endpoint ? endpoint.label : state.endpoint}`;
-    }
     return state.comparison === "difference" ? `${ESTIMATE_NAMES.difference}, ${state.levels[0]} less ${state.levels[1]}` : `${ESTIMATE_NAMES.correlation[state.method]} with ${variableName(state.with)}`;
   }
   // The screen: its heading, and either the rows R returned, sorted and paged,
@@ -10778,18 +7323,15 @@ var BiomarkerScreen = class {
       kit.createElement(
         "p",
         "bv-screen-caption",
-        `Each row: ${this.estimateName()}${level ? `, with its ${level} confidence interval` : ""}` + (range.log ? " on one logarithmic axis, with 1, no difference, marked. " : " on one axis without units. ") + (method ? `p: ${method}, unadjusted, and adjusted by ${adjustment} across the ${over} biomarker${over === 1 ? "" : "s"} with a p-value. Exploratory, adjusted (${adjustment}).` : "")
+        `Each row: ${this.estimateName()}${level ? `, with its ${level} confidence interval` : ""} on one axis without units. ` + (method ? `p: ${method}, unadjusted, and adjusted by ${adjustment} across the ${over} biomarker${over === 1 ? "" : "s"} with a p-value. Exploratory, adjusted (${adjustment}).` : "")
       )
     );
     wrap.append(pager());
     const head = kit.createElement("div", "bv-screen-head");
     head.setAttribute("aria-hidden", "true");
     const ticks = kit.createElement("div", "bv-ticks");
-    const every = range.ticks.length > 7 ? 2 : 1;
-    const anchor = Math.max(range.ticks.indexOf(range.reference ?? 0), 0);
-    range.ticks.forEach((tick, index) => {
-      if ((index - anchor) % every !== 0) return;
-      const label2 = kit.createElement("span", "bv-tick", shown(tick).replace("-", "\u2212"));
+    range.ticks.forEach((tick) => {
+      const label2 = kit.createElement("span", "bv-tick", String(tick).replace("-", "\u2212"));
       const at = placeOf(tick, range);
       label2.style.left = `${at}%`;
       if (at === 0) label2.style.transform = "none";
@@ -10808,7 +7350,7 @@ var BiomarkerScreen = class {
     const list = kit.createElement("div", "bv-screen-rows");
     page.items.forEach((row) => list.append(this.rowOf(row, range)));
     wrap.append(list);
-    const tools = kit.createElement("div", "bv-screen-tools bv-no-picture");
+    const tools = kit.createElement("div", "bv-screen-tools");
     const download = kit.createElement("button", null, "Download: CSV");
     download.type = "button";
     download.onclick = () => this.download(sorted2);
@@ -10824,18 +7366,14 @@ var BiomarkerScreen = class {
     button.type = "button";
     button.dataset.biomarker = row.biomarker;
     button.dataset.status = formatted.status;
-    const opens = {
-      difference: "the group comparison",
-      correlation: "the association scatter",
-      hazard: "the stratified survival chart"
-    }[this.state.comparison];
+    const opens = this.state.comparison === "difference" ? "the group comparison" : "the association scatter";
     const outside = row.inAdjustment ? "" : " Not in the adjustment.";
     button.setAttribute("aria-label", `${formatted.text}${outside} Open in ${opens}.`);
     button.onclick = () => this.openRow(row.biomarker);
     button.append(kit.createElement("span", "bv-screen-name", row.biomarker));
     const track = kit.createElement("span", "bv-track");
     const zero = kit.createElement("span", "bv-zero");
-    zero.style.left = `${placeOf(range.reference ?? 0, range)}%`;
+    zero.style.left = `${placeOf(0, range)}%`;
     track.append(zero);
     if (formatted.status === "shown" && row.estimate !== null) {
       if (row.lower !== null && row.upper !== null) {
@@ -10882,12 +7420,11 @@ var BiomarkerScreen = class {
   // What the counts column holds: each group's, for a difference, or the one count.
   countsHeading() {
     const { state } = this;
-    if (state.comparison === "hazard") return `n, ${HAZARD_GROUPS.join(" / ")}`;
     return state.comparison === "difference" && state.levels.length === 2 ? `n, ${state.levels[0]} / ${state.levels[1]}` : "n";
   }
   // A row's counts, as R gave them.
   countsOf(row) {
-    if (this.state.comparison !== "correlation" && row.groupCounts)
+    if (this.state.comparison === "difference" && row.groupCounts)
       return row.groupCounts.join(" / ");
     return row.n === null ? "" : String(row.n);
   }
@@ -10918,84 +7455,6 @@ var BiomarkerScreen = class {
     );
   }
   /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    return {
-      comparison: state.comparison,
-      endpoint: state.endpoint,
-      visit: state.visit,
-      value_type: state.valueType,
-      group_by: state.groupBy,
-      levels: state.levels ? [...state.levels] : null,
-      with: state.with ? settingOf(state.with) : null,
-      method: state.method,
-      adjustment: state.adjustment,
-      sort: state.sort,
-      page: state.page || 0
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, settings } = this;
-    if (!model || !model.records || !model.rows) return { columns: [], rows: [] };
-    const OUTCOME = { time: "Time", censor: "Censored", event: "Event" };
-    return {
-      columns: [
-        { value_col: settings.id_col, label: "Participant" },
-        ...model.rows.map((row) => ({ value_col: row.name, label: row.name })),
-        ...model.extra ? [{ value_col: model.extra, label: model.extra }] : [],
-        ...(model.outcomeFields || []).map((field) => ({
-          value_col: field,
-          label: OUTCOME[field] || field
-        }))
-      ],
-      rows: model.records
-    };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["heading"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model } = this;
-    const endpoint = this.endpoints.find((entry) => entry.endpoint === state.endpoint);
-    return {
-      heading: model && model.heading ? model.heading : "",
-      comparison: COMPARISON_LABELS[state.comparison] || "",
-      visit: state.visit ?? "",
-      endpoint: state.comparison === "hazard" && endpoint ? endpoint.label : "",
-      biomarkers: model && model.rows ? model.rows.length : "",
-      n: model && model.records ? model.records.length : ""
-    };
-  }
-  /** What R's counts are of, for the footnote the chart writes. */
-  get footnoteCounts() {
-    return "biomarkers";
-  }
-  /**
    * What the chart has asked R for the screen now drawn, and what R answered:
    * one entry, or none when nothing is drawn. The request is exactly what the
    * connection was given, so it is the key a stored result must carry to be
@@ -11011,10 +7470,9 @@ var BiomarkerScreen = class {
   /**
    * Open a biomarker's single chart in place of the screen, as a click on its
    * row does: the group comparison for a difference, at the same visit, value,
-   * groups and test; the association scatter for a correlation, against the
-   * same variable with the same method; or the stratified survival chart for a
-   * hazard ratio, the biomarker cut at its median on the same endpoint; with the
-   * same connection and filters, and a way back.
+   * groups and test, or the association scatter for a correlation, against the
+   * same variable with the same method; with the same connection and filters,
+   * and a way back.
    * @param {string} biomarker The biomarker, by its name.
    * @returns {object} The chart that was opened.
    */
@@ -11052,24 +7510,7 @@ var BiomarkerScreen = class {
       filters,
       back: { label: BACK2, action: () => this.close() }
     };
-    const outcomes = Object.fromEntries(
-      Object.keys(OUTCOME_DEFAULTS).map((key) => [key, settings[key]])
-    );
-    const chart = state.comparison === "hazard" ? stratifiedSurvival(holder, {
-      ...carried,
-      ...outcomes,
-      ...settings.stratified_survival || {},
-      // What the screen carries across: the biomarker at its visit and
-      // value, cut at its median, the endpoint, the connection and filters.
-      group_by: {
-        measure: biomarker,
-        value: state.valueType,
-        ...state.valueType === "baseline" ? {} : { visit: state.visit },
-        cut: "median"
-      },
-      endpoint: state.endpoint,
-      ...common
-    }).init(this.tables) : state.comparison === "difference" ? groupComparison(holder, {
+    const chart = state.comparison === "difference" ? groupComparison(holder, {
       ...carried,
       ...settings.group_comparison || {},
       // What the screen carries across: the biomarker, its visit and
@@ -11117,8 +7558,7 @@ var BiomarkerScreen = class {
   }
   /**
    * The chart a row has opened, or null while the screen is shown.
-   * @returns {?object} The group comparison, the association scatter or the
-   *   stratified survival chart.
+   * @returns {?object} The group comparison or the association scatter.
    */
   opened() {
     return this.drilled ? this.drilled.chart : null;
@@ -11152,892 +7592,6 @@ var BiomarkerScreen = class {
 function biomarkerScreen(element, settings) {
   return new BiomarkerScreen(element, settings);
 }
-
-// src/cross-tab/statistic.js
-var TEST_LABELS2 = Object.freeze({
-  chisq: "Chi-square test",
-  fisher: "Fisher's exact test",
-  none: "None"
-});
-var NO_TEST_CHOSEN2 = "Statistics: no test chosen.";
-var NOT_TWO_WAY = "Statistics: no test. A test of a two-way table needs two or more categories each way.";
-var keyOrder2 = (by, levels) => isCut(by) ? [...levels] : sorted(levels);
-var readsBaseline2 = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
-function contingencyRequest({ name, test, settings, state, model }) {
-  const filters = filtersInForce(state.filters);
-  const baseline = [state.rowBy, state.colBy].some(readsBaseline2);
-  return {
-    name,
-    data: model.records,
-    args: {
-      strRowCol: "row",
-      strColCol: "col",
-      strMethod: test,
-      // The categories, in an order that depends on nothing but them: a cut's
-      // low to high, a column's by code point. The table shows a column's in
-      // the browser's own order, which is not the same in every language.
-      chrRowGroups: keyOrder2(state.rowBy, model.rowLevels),
-      chrColGroups: keyOrder2(state.colBy, model.colLevels)
-    },
-    dataId: {
-      chart: "cross-tab",
-      row_by: state.rowBy,
-      col_by: state.colBy,
-      ...baseline && settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {},
-      ...baseline ? { baseline_stat: settings.baseline_stat } : {},
-      ...Object.keys(filters).length ? { filters } : {}
-    },
-    rows: model.records.length
-  };
-}
-var present3 = (value) => value !== void 0 && value !== null;
-function named(value, names) {
-  if (!names || typeof value.reason !== "string") return value;
-  const reason = value.reason.replace(
-    /(^Not computed: |; )(row|col) = /g,
-    (_, before, field) => `${before}${names[field] || field} = `
-  );
-  return { ...value, reason };
-}
-function describeAnswer3(result, context = {}) {
-  if (result && result.status === "ok") {
-    const value = named(
-      result.value && typeof result.value === "object" ? result.value : {},
-      context.names
-    );
-    const formatted = formatStatistic(value);
-    const described = sentence(formatted.status, formatted.text);
-    if (formatted.status === "shown") {
-      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present3(row.lower) && present3(row.upper)).map((row) => formatEstimate(row).text);
-    }
-    described.remarks = remarksOf(value);
-    described.scope = context.scope || null;
-    return described;
-  }
-  const failure = failureOf(result);
-  return sentence(failure.state, failure.text);
-}
-function scopeText6({ n, filters = [] }) {
-  const said2 = [`This test is of the ${n} participant${n === 1 ? "" : "s"} in the table.`];
-  if (filters.length) said2.push(filtersSaid(filters));
-  return said2.join(" ");
-}
-function createStatisticDesk6({ connection, note = null }) {
-  return createDesk({ connection, note, describe: describeAnswer3 });
-}
-
-// src/cross-tab/structureData.js
-var grouping2 = (by) => isCut(by) ? by : { col: by };
-function buildTable({ results, participants }, settings, state, options = {}) {
-  const config = coreSettings(settings);
-  const { participants: kept, results: rows } = keepFiltered(
-    { results, participants },
-    settings,
-    state.filters,
-    options.filterMatches
-  );
-  const empty = {
-    records: [],
-    rowLevels: [],
-    colLevels: [],
-    counts: [],
-    rowTotals: [],
-    colTotals: [],
-    total: 0,
-    percents: { row: [], col: [] },
-    cuts: {},
-    cutValues: { row: null, col: null },
-    participants: kept ? kept.length : 0,
-    dropped: [],
-    unused: [],
-    filtered: kept ? kept.length : null
-  };
-  if (!rows.length || !state.rowBy || !state.colBy) return empty;
-  const cuts = {};
-  for (const [field, by] of [
-    ["row", state.rowBy],
-    ["col", state.colBy]
-  ]) {
-    if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
-  }
-  const made = frame(
-    { results: rows, participants: kept || void 0 },
-    { row: grouping2(state.rowBy), col: grouping2(state.colBy) },
-    config
-  );
-  const cutValues = { row: null, col: null };
-  for (const field of ["row", "col"]) if (cuts[field]) cutValues[field] = {};
-  const records = made.data.map((record) => {
-    const out = { [config.id_col]: record[config.id_col] };
-    for (const field of ["row", "col"]) {
-      out[field] = cuts[field] ? groupLabel(record[field], cuts[field]) : String(record[field]);
-      if (cuts[field]) cutValues[field][record[config.id_col]] = record[field];
-    }
-    return out;
-  });
-  const levelsFor = (field) => cuts[field] ? cuts[field].labels.filter((label2) => records.some((record) => record[field] === label2)) : levelsOf(records.map((record) => record[field]));
-  const rowLevels = levelsFor("row");
-  const colLevels = levelsFor("col");
-  const counts = rowLevels.map(
-    (row) => colLevels.map(
-      (col) => records.filter((record) => record.row === row && record.col === col).length
-    )
-  );
-  const sum2 = (values) => values.reduce((total, value) => total + value, 0);
-  const rowTotals = counts.map(sum2);
-  const colTotals = colLevels.map((_, j) => sum2(counts.map((row) => row[j])));
-  return {
-    ...empty,
-    records,
-    cutValues,
-    rowLevels,
-    colLevels,
-    counts,
-    rowTotals,
-    colTotals,
-    total: sum2(rowTotals),
-    percents: {
-      row: counts.map((row, i) => row.map((n) => 100 * n / rowTotals[i])),
-      col: counts.map((row) => row.map((n, j) => 100 * n / colTotals[j]))
-    },
-    cuts,
-    participants: made.participants,
-    dropped: made.dropped,
-    unused: made.unused
-  };
-}
-var percentText = (value) => `${value.toFixed(1)}%`;
-
-// src/cross-tab.js
-var MODULE_CLASS5 = "bv-cross-tab";
-var STYLE_ID6 = "bio-viz-cross-tab-styles";
-var C4 = `.${MODULE_CLASS5}`;
-var STYLES6 = `${lineStyles(C4)}
-${toolbarStyles(C4)}
-${C4} .bv-crosstab-wrap{margin:0 0 .8rem;max-width:100%;overflow-x:auto}
-${C4} .bv-crosstab{border-collapse:collapse;font-size:.85rem;color:#1f2933;font-variant-numeric:tabular-nums}
-${C4} .bv-crosstab caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .4rem}
-${C4} .bv-crosstab th,${C4} .bv-crosstab td{border:1px solid #d8dee4;padding:.3rem .55rem;text-align:right;vertical-align:top}
-${C4} .bv-crosstab thead th,${C4} .bv-crosstab tbody th{background:#f6f8fa;font-weight:600}
-${C4} .bv-crosstab tbody th,${C4} .bv-crosstab .bv-corner{text-align:left}
-${C4} .bv-crosstab .bv-total{background:#fbfcfd;font-weight:600}
-${C4} .bv-crosstab td.bv-cell{padding:0}
-${C4} .bv-cell button{display:block;width:100%;margin:0;border:0;background:transparent;padding:.3rem .55rem;font:inherit;text-align:right;color:inherit;cursor:pointer}
-${C4} .bv-cell button:hover{background:#f4f8fc}
-${C4} .bv-cell button:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
-${C4} .bv-percent{display:block;font-size:.75rem;color:#52616f}
-${C4} .bv-chart-wrap{height:var(--bv-bars-height,220px);position:relative}
-${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}`;
-var HINT4 = "Click a count to list its participants and open a participant\u2019s profile. The bars are the same table, as percentages.";
-var CUT_KEY3 = "bv-cut:";
-var PERCENT_LABELS = Object.freeze({
-  row: "Of each row",
-  col: "Of each column",
-  none: "None"
-});
-var CrossTab = class {
-  constructor(element, settings) {
-    this.kit = findKit("the cross-tabulation");
-    this.element = typeof element === "string" ? document.querySelector(element) : element;
-    if (!this.element) throw new Error(`bio.viz: cross-tabulation target not found: ${element}`);
-    this.settings = syncSettings5(settings);
-    this.tables = { results: [], participants: null };
-    this.charts = [];
-    this.model = null;
-    this.measures = [];
-    this.categories = [];
-    this.cutOptions = [];
-    this.filterSpecs = [];
-    this.state = {};
-    this.asked = [];
-    this.connect();
-    this.renderShell();
-  }
-  // The connection the statistics line asks: the one given in settings, or one
-  // with no R attached, which answers that statistics are unavailable.
-  connect() {
-    if (this.desk) this.desk.retire();
-    this.connection = this.settings.connection || createConnection();
-    this.desk = createStatisticDesk6({
-      connection: this.connection,
-      note: this.settings.waiting_note
-    });
-  }
-  renderShell() {
-    mountShell(this, {
-      moduleClass: MODULE_CLASS5,
-      styleId: STYLE_ID6,
-      styles: STYLES6,
-      listingFile: "bio.viz-cross-tab-listing.csv"
-    });
-    this.tableWrap = this.kit.createElement("div", "bv-crosstab-wrap");
-    this.chartWrap.before(this.tableWrap);
-    mountToolbar(this);
-  }
-  /**
-   * Load the tables and draw: the same as `setData`.
-   * @param {{results: object[], participants?: object[]}} data The tables.
-   * @returns {CrossTab} The chart, for chaining.
-   */
-  init(data) {
-    return this.setData(data);
-  }
-  /**
-   * Replace the tables and draw again. The controls are rebuilt from the new
-   * tables and return to what the settings open on.
-   * @param {{results: object[], participants?: object[]}} data The tables: the
-   *   results table, and the participant table when there is one. A bare array
-   *   is taken as the results table.
-   * @param {object} [settings] Settings to change with the tables, when the new
-   *   tables need them: a participant table whose id column has another name
-   *   comes with `participant_id_col`. The tables are checked against these.
-   * @returns {CrossTab} The chart, for chaining.
-   */
-  setData(data, settings) {
-    if (settings === void 0 || settings === null) {
-      this.tables = readGiven(this, data);
-    } else {
-      this.tables = readGiven(this, data, syncSettings5({ ...this.settings, ...settings }));
-      this.setSettings(settings);
-    }
-    this.readTables();
-    this.state = this.seedState();
-    this.buildProfileFeed();
-    this.buildControls();
-    this.render();
-    return this;
-  }
-  /**
-   * Lay new settings over the current ones and draw again. A setting that says
-   * what the chart opens on (`row_by`, `col_by`, `percent`, `test`, `filters`)
-   * moves its control.
-   * @param {object} settings The settings to change.
-   * @returns {CrossTab} The chart, for chaining.
-   */
-  setSettings(settings) {
-    const given2 = settings || {};
-    const next = syncSettings5({ ...this.settings, ...given2 });
-    checkTables(this.tables, next);
-    this.settings = next;
-    syncHost(this);
-    if ("back" in given2) mountToolbar(this);
-    if ("connection" in given2 || "waiting_note" in given2) this.connect();
-    this.readTables();
-    const opening = this.seedState();
-    const moved = {
-      row_by: "rowBy",
-      col_by: "colBy",
-      percent: "percent",
-      test: "test",
-      filters: "filters"
-    };
-    for (const [setting, key] of Object.entries(moved)) {
-      if (setting in given2) this.state[key] = opening[key];
-    }
-    this.repairState(opening);
-    this.buildProfileFeed();
-    this.kit.syncProfileRail(this.host, () => this.railSettings());
-    this.buildControls();
-    this.render();
-    return this;
-  }
-  // What the controls can offer, read from the tables and the settings.
-  readTables() {
-    const { results } = this.tables;
-    const { settings } = this;
-    this.measures = results.length ? listMeasures(results, settings) : [];
-    this.categories = results.length ? categoryColumns(this.tables, settings) : [];
-    this.filterSpecs = filterColumns(this.tables, settings, this.categories).map(
-      (spec) => this.kit.normalizeFilterSpec(spec)
-    );
-    this.cutOptions = [];
-    for (const by of [settings.row_by, settings.col_by, ...settings.cuts || []]) {
-      if (!isCut(by)) continue;
-      const written = JSON.stringify(by);
-      if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
-      this.cutOptions.push({
-        key: `${CUT_KEY3}${this.cutOptions.length}`,
-        spec: by,
-        label: label(by)
-      });
-    }
-  }
-  cutKey(by) {
-    const written = JSON.stringify(by);
-    return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
-  }
-  // Whether a Rows or Columns control can hold a value: a column offered, or a
-  // cut variable the settings name.
-  offers(value) {
-    return this.categories.some((entry) => entry.value_col === value) || this.cutOptions.some((entry) => entry.key === value);
-  }
-  // A control's value as the table takes it: a column's name, or the cut variable.
-  groupingOf(value) {
-    const found = this.cutOptions.find((entry) => entry.key === value);
-    return found ? found.spec : value;
-  }
-  labelOf(value) {
-    const cut = this.cutOptions.find((entry) => entry.key === value);
-    if (cut) return cut.label;
-    const found = this.categories.find((entry) => entry.value_col === value);
-    return found ? found.label : value;
-  }
-  // The state with the rows and the columns as the table takes them.
-  drawingState(state = this.state) {
-    return { ...state, rowBy: this.groupingOf(state.rowBy), colBy: this.groupingOf(state.colBy) };
-  }
-  // What the chart opens on: the settings, where the tables have what they
-  // name; otherwise the first two category columns.
-  seedState() {
-    const { settings, categories } = this;
-    const has = (column) => categories.some((entry) => entry.value_col === column);
-    const opening = (by, fallback) => {
-      if (isCut(by)) return this.cutKey(by);
-      if (has(by)) return by;
-      return fallback;
-    };
-    const rowBy = opening(settings.row_by, categories[0] ? categories[0].value_col : null);
-    const other = categories.find((entry) => entry.value_col !== rowBy);
-    const colBy = opening(settings.col_by, other ? other.value_col : null);
-    return {
-      rowBy,
-      colBy,
-      percent: settings.percent,
-      test: settings.test,
-      filters: startFilters(this)
-    };
-  }
-  // After the tables or the settings change, a control may hold something that
-  // is no longer offered; it returns to what the chart opens on.
-  repairState(opening) {
-    if (!this.offers(this.state.rowBy)) this.state.rowBy = opening.rowBy;
-    if (!this.offers(this.state.colBy)) this.state.colBy = opening.colBy;
-  }
-  // ---- Controls ---------------------------------------------------------------
-  buildControls() {
-    const { kit, state } = this;
-    this.controls.innerHTML = "";
-    const { addSection, addControl, addReset } = kit.controlBuilders(this.controls);
-    const redraw = () => this.render();
-    const select = (name, labelText, options2, selected, onChange, parent) => {
-      const input = document.createElement("select");
-      input.dataset.control = name;
-      input.setAttribute("aria-label", labelText);
-      options2.forEach(([value, text2]) => kit.option(input, value, text2, value === selected));
-      input.onchange = () => onChange(input.value);
-      return addControl(labelText, input, parent);
-    };
-    const options = [
-      ...this.categories.map((entry) => [entry.value_col, entry.label]),
-      ...this.cutOptions.map((entry) => [entry.key, entry.label])
-    ];
-    const table = addSection("Table");
-    if (options.length) {
-      select(
-        "row-by",
-        "Rows",
-        options,
-        state.rowBy,
-        (next) => {
-          state.rowBy = next;
-          redraw();
-        },
-        table
-      );
-      select(
-        "col-by",
-        "Columns",
-        options,
-        state.colBy,
-        (next) => {
-          state.colBy = next;
-          redraw();
-        },
-        table
-      );
-    } else {
-      table.append(
-        kit.createElement(
-          "p",
-          "sv-warning bv-no-groups",
-          "No column can make a category. Give a participant table, or carry a column on the results rows."
-        )
-      );
-    }
-    select(
-      "percent",
-      "Percentages",
-      PERCENTS.map((entry) => [entry, PERCENT_LABELS[entry]]),
-      state.percent,
-      (next) => {
-        state.percent = next;
-        drawSafely(this, () => this.redrawPercentages());
-      },
-      table
-    );
-    if (this.settings.statistic) {
-      const statistics = addSection("Statistics");
-      select(
-        "test",
-        "Test",
-        TESTS2.map((entry) => [entry, TEST_LABELS2[entry]]),
-        state.test,
-        (next) => {
-          state.test = next;
-          redraw();
-        },
-        statistics
-      );
-    }
-    addFilterControls(this, { addSection, addControl }, () => redraw());
-    addReset(() => {
-      this.state = this.seedState();
-      this.buildControls();
-      this.render();
-    });
-  }
-  // ---- Drawing ----------------------------------------------------------------
-  /**
-   * Draw everything again from the tables, the settings and the controls, and
-   * ask R again. The table, the bars, the line and the listing are cleared
-   * first: nothing stays on screen that describes another table.
-   * @returns {void}
-   */
-  render() {
-    drawSafely(this, () => this.draw());
-  }
-  // Everything render() draws. drawSafely says so in the element when it fails.
-  draw() {
-    const round = this.desk.begin();
-    this.asked = [];
-    this.destroyCharts();
-    this.clearSelection();
-    this.notes.innerHTML = "";
-    this.tableWrap.innerHTML = "";
-    this.multiplesWrap.innerHTML = "";
-    this.statLine.textContent = "";
-    this.statLine.dataset.state = "empty";
-    this.chartWrap.classList.add("sv-hidden");
-    this.model = null;
-    const { kit, settings, state } = this;
-    if (!this.tables.results.length) {
-      this.footnote.textContent = "No results to draw.";
-      return;
-    }
-    if (!state.rowBy || !state.colBy) {
-      this.footnote.textContent = "Choose the rows and the columns of the table.";
-      return;
-    }
-    const drawing = this.drawingState();
-    const model = buildTable(this.tables, settings, drawing, { filterMatches: kit.filterMatches });
-    this.model = model;
-    this.updateNotes(model);
-    if (model.filtered === 0) {
-      this.footnote.textContent = NOBODY_PASSES;
-      return;
-    }
-    if (!model.total) {
-      this.footnote.textContent = "No participant has a category each way.";
-      return;
-    }
-    this.drawTable(model);
-    this.drawBars(model);
-    this.footnote.textContent = [HINT4, ...this.cutNotes(model)].join(" ");
-    if (!settings.statistic) return;
-    const show = (description) => writeStatistic(kit, this.statLine, description);
-    if (state.test === "none") {
-      show({ state: "none", text: this.desk.idle(NO_TEST_CHOSEN2), estimates: [], remarks: [] });
-      return;
-    }
-    if (model.rowLevels.length < 2 || model.colLevels.length < 2) {
-      show({ state: "none", text: NOT_TWO_WAY, estimates: [], remarks: [] });
-      return;
-    }
-    const request = contingencyRequest({
-      name: settings.statistic,
-      test: state.test,
-      settings,
-      state: drawing,
-      model
-    });
-    const asked = {
-      name: request.name,
-      args: request.args,
-      dataId: request.dataId,
-      rows: request.rows,
-      answer: null
-    };
-    this.asked.push(asked);
-    round.ask(
-      request,
-      (description, answer) => {
-        if (answer) asked.answer = answer;
-        writeTitles(this);
-        show(description);
-      },
-      {
-        scope: scopeText6({ n: model.total, filters: filtersForScope(this) }),
-        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) }
-      }
-    );
-  }
-  // The table and the bars again, with the percentages of the rows or the
-  // columns, from the table already worked out. Nothing else changes: the
-  // statistics line keeps R's answer for this table, and R is not asked again.
-  redrawPercentages() {
-    if (!this.model || !this.model.total) {
-      this.render();
-      return;
-    }
-    this.destroyCharts();
-    this.clearSelection();
-    this.tableWrap.innerHTML = "";
-    this.multiplesWrap.innerHTML = "";
-    this.drawTable(this.model);
-    this.drawBars(this.model);
-    this.footnote.textContent = [HINT4, ...this.cutNotes(this.model)].join(" ");
-  }
-  // Above the table: who is in it, and what was left out of it.
-  updateNotes(model) {
-    const { kit } = this;
-    const add = (text2, warning) => this.notes.append(kit.createElement("span", warning ? "sv-warning" : null, text2));
-    if (model.participants) {
-      add(`${model.total} of ${model.participants} participants in the table.`);
-    }
-    model.dropped.forEach((entry) => add(`${entry.n} left out: ${entry.reason}.`, true));
-    model.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT).forEach(
-      (entry) => add(`${entry.n} row${entry.n === 1 ? "" : "s"} not used: ${entry.reason}.`, true)
-    );
-    if (model.filtered !== null && model.filtered < this.tables.participants.length) {
-      add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
-    }
-  }
-  // How each cut variable was cut, a sentence each.
-  cutNotes(model) {
-    return ["row", "col"].filter((field) => model.cuts[field]).map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
-  }
-  // The two-way table: a count in each cell, with its percentage when one is
-  // chosen, the row and the column totals, and the grand total. A cell is a
-  // button that lists its participants.
-  drawTable(model) {
-    const { kit, state } = this;
-    const rowLabel = this.labelOf(state.rowBy);
-    const colLabel = this.labelOf(state.colBy);
-    const table = kit.createElement("table", "bv-crosstab");
-    table.append(kit.createElement("caption", null, `${rowLabel} by ${colLabel}`));
-    const head = kit.createElement("thead");
-    const top = kit.createElement("tr");
-    const corner = kit.createElement("th", "bv-corner", `${rowLabel} \\ ${colLabel}`);
-    corner.scope = "col";
-    top.append(corner);
-    model.colLevels.forEach((level) => {
-      const th = kit.createElement("th", null, level);
-      th.scope = "col";
-      top.append(th);
-    });
-    const totalHead = kit.createElement("th", "bv-total", "Total");
-    totalHead.scope = "col";
-    top.append(totalHead);
-    head.append(top);
-    table.append(head);
-    const percentOf = (i, j) => state.percent === "row" ? model.percents.row[i][j] : state.percent === "col" ? model.percents.col[i][j] : null;
-    const body = kit.createElement("tbody");
-    model.rowLevels.forEach((row, i) => {
-      const tr = kit.createElement("tr");
-      const th = kit.createElement("th", null, row);
-      th.scope = "row";
-      tr.append(th);
-      model.colLevels.forEach((col, j) => {
-        const td = kit.createElement("td", "bv-cell");
-        const button = kit.createElement("button");
-        button.type = "button";
-        button.dataset.row = row;
-        button.dataset.col = col;
-        const n = model.counts[i][j];
-        const percent = percentOf(i, j);
-        button.append(document.createTextNode(String(n)));
-        if (percent !== null)
-          button.append(kit.createElement("span", "bv-percent", percentText(percent)));
-        button.setAttribute(
-          "aria-label",
-          `${rowLabel} ${row}, ${colLabel} ${col}: ${n} participant${n === 1 ? "" : "s"}${percent === null ? "" : `, ${percentText(percent)} of the ${state.percent === "row" ? "row" : "column"}`}. List them.`
-        );
-        button.onclick = () => this.listCell(row, col);
-        td.append(button);
-        tr.append(td);
-      });
-      tr.append(kit.createElement("td", "bv-total", String(model.rowTotals[i])));
-      body.append(tr);
-    });
-    table.append(body);
-    const foot = kit.createElement("tfoot");
-    const totals = kit.createElement("tr");
-    const label2 = kit.createElement("th", "bv-total", "Total");
-    label2.scope = "row";
-    totals.append(label2);
-    model.colTotals.forEach((n) => totals.append(kit.createElement("td", "bv-total", String(n))));
-    totals.append(kit.createElement("td", "bv-total", String(model.total)));
-    foot.append(totals);
-    table.append(foot);
-    this.tableWrap.append(table);
-  }
-  // The stacked bars: the same table as percentages, each row's split by the
-  // columns, or, with column percentages, each column's split by the rows.
-  drawBars(model) {
-    const { kit, state } = this;
-    const byColumns = state.percent === "col";
-    const bars = byColumns ? model.colLevels : model.rowLevels;
-    const parts = byColumns ? model.rowLevels : model.colLevels;
-    const share = (bar, part) => byColumns ? model.percents.col[part][bar] : model.percents.row[bar][part];
-    this.chartWrap.classList.remove("sv-hidden");
-    this.chartWrap.style.setProperty(
-      "--bv-bars-height",
-      `${Math.max(140, 56 + bars.length * 44)}px`
-    );
-    const chart = new kit.Chart(this.canvas.getContext("2d"), {
-      type: "bar",
-      data: {
-        labels: bars,
-        datasets: parts.map((part, p) => ({
-          label: part,
-          data: bars.map((_, b) => share(b, p)),
-          backgroundColor: hexToRgba(PALETTE[p % PALETTE.length], 0.75),
-          borderColor: PALETTE[p % PALETTE.length],
-          borderWidth: 1
-        }))
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        plugins: {
-          legend: {
-            position: "bottom",
-            title: {
-              display: true,
-              text: this.labelOf(byColumns ? state.rowBy : state.colBy)
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: (item) => `${item.dataset.label}: ${percentText(item.raw)}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            stacked: true,
-            min: 0,
-            max: 100,
-            title: {
-              display: true,
-              text: `Percentage of each ${byColumns ? "column" : "row"}`
-            }
-          },
-          y: {
-            stacked: true,
-            title: { display: true, text: this.labelOf(byColumns ? state.colBy : state.rowBy) }
-          }
-        }
-      }
-    });
-    this.canvas.setAttribute(
-      "aria-label",
-      `Stacked bars, percentage of each ${byColumns ? "column" : "row"}: ` + bars.map(
-        (bar, b) => `${bar}: ${parts.map((part, p) => `${part} ${percentText(share(b, p))}`).join(", ")}`
-      ).join("; ")
-    );
-    this.charts.push(chart);
-  }
-  // ---- Listing and participant profile -------------------------------------------
-  /**
-   * List the participants of one cell, as a click on its count does.
-   * @param {string} row The cell's row category.
-   * @param {string} col The cell's column category.
-   * @returns {Array<object>} The participants listed.
-   */
-  listCell(row, col) {
-    if (!this.model) return [];
-    const records = this.model.records.filter(
-      (record) => record.row === String(row) && record.col === String(col)
-    );
-    this.clearSelection();
-    showListing(this, { columns: this.listingColumns(), rows: records });
-    this.listed = { row: String(row), col: String(col) };
-    this.footnote.textContent = `${this.labelOf(this.state.rowBy)} ${row}, ${this.labelOf(this.state.colBy)} ${col}: ${records.length} participant${records.length === 1 ? "" : "s"} listed. Click a row to open the participant's profile.`;
-    return records;
-  }
-  listingColumns() {
-    if (this.settings.details) return this.settings.details;
-    return [
-      { value_col: this.settings.id_col, label: "Participant" },
-      { value_col: "row", label: this.labelOf(this.state.rowBy) },
-      { value_col: "col", label: this.labelOf(this.state.colBy) }
-    ];
-  }
-  // Select one participant, or none: mark the listing's row and raise
-  // safety.viz's selection event, which the participant rail opens on.
-  select(id) {
-    selectParticipant(this, id);
-  }
-  // Empties the listing and the rail without raising an event.
-  clearSelection() {
-    this.listed = null;
-    clearListing(this);
-  }
-  buildProfileFeed() {
-    buildProfileFeed(this, () => this.railSettings());
-  }
-  railSettings() {
-    return railSettings(this, "linear");
-  }
-  /**
-   * What the controls now read, as the settings the chart would open on with
-   * them: the part of its specification the controls hold (#68).
-   * @returns {object}
-   */
-  viewSettings() {
-    const { state } = this;
-    const row = this.groupingOf(state.rowBy);
-    const col = this.groupingOf(state.colBy);
-    return {
-      row_by: row,
-      col_by: col,
-      // Every cut the Rows and Columns controls offer stays offered (#71 review).
-      cuts: cutsOffered(this.cutOptions, [row, col]),
-      percent: state.percent,
-      test: state.test
-    };
-  }
-  /**
-   * The chart's specification: its name, the bio.viz version, every setting
-   * as the controls now read, and every filter in force, as JSON data, which
-   * `BioViz.fromSpecification` makes the same chart from (#68).
-   * @returns {object}
-   */
-  specification() {
-    return specificationOf(this);
-  }
-  /**
-   * The table the chart drew from, one row per participant drawn, for the
-   * table download (#67): which field of a row each column holds, and its
-   * heading.
-   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
-   */
-  tableOf() {
-    const { model, state, settings } = this;
-    if (!model || !model.records) return { columns: [], rows: [] };
-    const columns = [{ value_col: settings.id_col, label: "Participant" }];
-    const values = model.cutValues || {};
-    for (const [field, by] of [
-      ["row", state.rowBy],
-      ["col", state.colBy]
-    ]) {
-      columns.push({ value_col: field, label: this.labelOf(by) });
-      if (values[field]) {
-        const { cut, ...variable2 } = this.groupingOf(by);
-        columns.push({ value_col: `${field}Value`, label: label(variable2) });
-      }
-    }
-    const rows = model.records.map((record) => ({
-      ...record,
-      ...values.row ? { rowValue: values.row[record[settings.id_col]] } : {},
-      ...values.col ? { colValue: values.col[record[settings.id_col]] } : {}
-    }));
-    return { columns, rows };
-  }
-  /** The placeholders a download's file name is made of, after the chart's name. */
-  get viewFields() {
-    return ["rows", "columns"];
-  }
-  /**
-   * What the title, subtitle and footnotes' placeholders hold for the view now
-   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
-   * @returns {object}
-   */
-  placeholders() {
-    const { state, model } = this;
-    return {
-      rows: state.rowBy ? this.labelOf(state.rowBy) : "",
-      columns: state.colBy ? this.labelOf(state.colBy) : "",
-      n: model ? model.total : ""
-    };
-  }
-  /**
-   * What the chart has asked R for the table now drawn, and what R answered:
-   * one entry, or none when nothing is asked. The request is exactly what the
-   * connection was given, so it is the key a stored result must carry.
-   * @returns {Array<{name: string, args: object, dataId: object, rows: number,
-   *   answer: ?object}>}
-   */
-  statistics() {
-    return structuredClone(this.asked);
-  }
-  // ---- Lifecycle --------------------------------------------------------------
-  /**
-   * Fit the bars to their container, for a page that changes the container's
-   * size without resizing the window.
-   * @returns {void}
-   */
-  resize() {
-    this.charts.forEach((chart) => chart.resize());
-  }
-  destroyCharts() {
-    this.charts.forEach((chart) => chart.destroy());
-    this.charts = [];
-  }
-  /**
-   * Take the chart down: its bars, its participant rail and everything in its
-   * element. A destroyed chart cannot be used again; make a new one.
-   * @returns {void}
-   */
-  destroy() {
-    this.desk.begin();
-    this.destroyCharts();
-    this.kit.unmountProfileRail(this.host);
-    this.element.innerHTML = "";
-  }
-};
-function crossTab(element, settings) {
-  return new CrossTab(element, settings);
-}
-
-// src/specification.js
-var CHARTS = {
-  "group-comparison": { ...configure_exports, make: groupComparison },
-  "association-scatter": { ...configure_exports2, make: associationScatter },
-  "correlation-matrix": { ...configure_exports3, make: correlationMatrix },
-  "biomarker-screen": { ...configure_exports4, make: biomarkerScreen },
-  "cross-tab": { ...configure_exports5, make: crossTab },
-  "stratified-survival": { ...configure_exports6, make: stratifiedSurvival }
-};
-var CHART_SETTINGS = Object.freeze(
-  Object.fromEntries(Object.entries(CHARTS).map(([name, entry]) => [name, entry.DEFAULT_SETTINGS]))
-);
-function readChecked(specification) {
-  const read2 = readSpecification(specification, CHART_SETTINGS);
-  CHARTS[read2.chart].syncSettings(JSON.parse(JSON.stringify(read2.settings)));
-  return read2;
-}
-function fromSpecification(element, specification, page = {}) {
-  const read2 = readChecked(specification);
-  const { chart, settings } = read2;
-  const given2 = page === null || page === void 0 ? {} : page;
-  const others = Object.keys(given2).filter((key) => !PAGE_SETTINGS.includes(key));
-  if (others.length) {
-    throw new TypeError(
-      `bio.viz: fromSpecification takes the page's ${PAGE_SETTINGS.join(" and ")} beside the specification, and \`${others[0]}\` is not one: give it in the specification's settings.`
-    );
-  }
-  const made = CHARTS[chart].make(element, { ...settings, ...given2 });
-  made.requested = { settings: read2.settings, filters: read2.filters };
-  return made;
-}
-var readChartSpecification = (specification) => {
-  const { chart, settings, version: version2 } = readChecked(specification);
-  return { chart, settings, version: version2 };
-};
 
 // src/data/portfolio.json
 var portfolio_default = {
@@ -12302,107 +7856,6 @@ var portfolio_default = {
           domain: "subject",
           column: "USUBJID",
           required: false
-        },
-        outcome_id_col: {
-          domain: "bds",
-          column: null,
-          required: false
-        },
-        endpoint_col: {
-          domain: "bds",
-          column: "PARAMCD",
-          required: true
-        },
-        endpoint_label_col: {
-          domain: "bds",
-          column: "PARAM",
-          required: false
-        },
-        time_col: {
-          domain: "bds",
-          column: "AVAL",
-          required: true
-        },
-        censor_col: {
-          domain: "bds",
-          column: "CNSR",
-          required: true
-        },
-        event_col: {
-          domain: "bds",
-          column: null,
-          required: false
-        }
-      }
-    },
-    "cross-tab": {
-      library: "bio.viz",
-      export: "crossTab",
-      title: "Cross-tabulation",
-      group: "biomarkers",
-      domains: ["bds"],
-      optionalDomains: ["subject"],
-      tables: {
-        results: {
-          domain: "bds",
-          required: true
-        },
-        participants: {
-          domain: "subject",
-          required: false
-        }
-      },
-      unmappedSettings: "omit",
-      settings: {
-        id_col: {
-          domain: "bds",
-          column: "USUBJID",
-          required: true
-        },
-        measure_col: {
-          domain: "bds",
-          column: "TEST",
-          required: true
-        },
-        value_col: {
-          domain: "bds",
-          column: "STRESN",
-          required: true
-        },
-        visit_col: {
-          domain: "bds",
-          column: "VISIT",
-          required: true
-        },
-        visit_order_col: {
-          domain: "bds",
-          column: "VISITNUM",
-          required: false
-        },
-        unit_col: {
-          domain: "bds",
-          column: "STRESU",
-          required: false
-        },
-        participant_id_col: {
-          domain: "subject",
-          column: "USUBJID",
-          required: false
-        },
-        studyday_col: {
-          domain: "bds",
-          column: null,
-          required: false
-        },
-        normal_col_high: {
-          domain: "bds",
-          column: null,
-          required: false
-        },
-        normal_col_low: {
-          domain: "bds",
-          column: null,
-          required: false
         }
       }
     }
@@ -12416,13 +7869,9 @@ export {
   biomarkerScreen,
   core_exports as core,
   correlationMatrix,
-  crossTab,
-  fromSpecification,
   groupComparison,
-  output_exports as output,
   portfolio_default as portfolio,
   r_exports as r,
-  stratifiedSurvival,
   version
 };
 //# sourceMappingURL=bio.viz.esm.js.map

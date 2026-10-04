@@ -267,14 +267,22 @@ describe('getting results out: what the #69 review found', () => {
     expect(say(ok(welch))).not.toMatch(/adjusted/);
   });
 
-  it('EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while the release log has an upcoming section, and never in a tagged build (#69 review)', () => {
+  it('EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while its version is released and another is upcoming, never while a release is prepared or once it is promoted, and never in a tagged build (#69 review, #75)', () => {
     expect(DEVELOPMENT).toBe(Boolean(pkg.bioviz && pkg.bioviz.development));
     expect(VERSION_SAID).toBe(
       DEVELOPMENT ? `${pkg.version} with development changes` : pkg.version
     );
+    // The package holds changes since a release exactly when that release is
+    // in the log and another is upcoming: between a release and its next
+    // release's preparation. While a release is prepared (its own section is
+    // still upcoming), once its section is promoted, and in a tagged build,
+    // the code is the release, and says only its version (#75).
     const news = readFileSync(new URL('../../../NEWS.md', import.meta.url), 'utf8');
     const upcoming = /^# bio\.viz v\S+ \(Upcoming\)$/m.test(news);
-    expect(DEVELOPMENT, 'bioviz.development in package.json follows NEWS.md').toBe(upcoming);
+    const released = news.split('\n').includes(`# bio.viz v${pkg.version}`);
+    expect(DEVELOPMENT, 'bioviz.development in package.json follows NEWS.md').toBe(
+      upcoming && released
+    );
     if ((process.env.GITHUB_REF || '').startsWith('refs/tags/')) expect(DEVELOPMENT).toBe(false);
     expect(say(ok(welch))).toMatch(
       new RegExp(`^Drawn on 2026-10-04 by bio\\.viz ${VERSION_SAID.replace(/\./g, '\\.')}\\. `)

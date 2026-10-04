@@ -27,7 +27,7 @@ Under it, the two footnotes and the chart's own:
 
 > Synthetic study from gsm.bio.
 > Filters: none.
-> Drawn on 2026-10-04 by bio.viz 0.1.0 with development changes. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
+> Drawn on 2026-10-04 by bio.viz 0.2.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
 
 ## The settings
 
@@ -69,7 +69,7 @@ The title and the subtitle are drawn at the top of the chart's own frame, above 
 
 The last footnote is the chart's, and it says three things:
 
-1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.1.0.` A build with changes made since that release says so, `bio.viz 0.1.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true on the integration branch while the release log has an upcoming section, and set false when a release is prepared; a unit test fails when the two disagree, and when a tagged build says it holds development changes.
+1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.2.0.` A build with changes made since its release says so, `bio.viz 0.2.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true between a release and the preparation of the next, when the release log holds the package's version as released and another section is upcoming; false while a release is prepared, once its section is promoted, and in a tagged build. A unit test fails when the flag and the log disagree.
 2. For every statistic printed, every method R used, the counts R used, as R returned them, and every adjustment of its p-values (`p-values adjusted by Holm`, `by Benjamini-Hochberg`); with a pairwise test, the overall test first, `Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction (…), p-values adjusted by Holm`. Its form: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
 3. Which R computed them, as the connection says: `computed by R in this browser` for R started in the page; for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page` when the connection was told the versions and the date (`computedBy`, below), and `stored with the page` when it was not; for any other form, `computed by R`.
 
@@ -142,7 +142,7 @@ BioViz.fromSpecification('#chart', saved, { connection }).init({ results, partic
 {
   "format": "bio.viz specification",
   "format_version": 1,
-  "bio_viz_version": "0.1.0",
+  "bio_viz_version": "0.2.0",
   "chart": "cross-tab",
   "settings": {
     "row_by": "ARM",
