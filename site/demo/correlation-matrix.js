@@ -16,6 +16,13 @@
   ];
   var demo = (window.BioVizDemo.correlationMatrix = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{heading}',
+      subtitle: '{variables} variables, {n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       // No mode, visit or biomarker named: every biomarker the limit allows, at
       // the first visit.
       baseline_visits: 'Baseline',

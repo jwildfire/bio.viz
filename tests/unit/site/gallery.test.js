@@ -165,6 +165,7 @@ describe('module registry', () => {
     expect(realConfig.modules.map((entry) => [entry.module, entry.kind])).toEqual([
       ['core', 'shared'],
       ['r-connection', 'shared'],
+      ['output', 'shared'],
       ['group-comparison', 'chart'],
       ['association-scatter', 'chart'],
       ['correlation-matrix', 'chart'],

@@ -43,37 +43,53 @@ A participant table is matched to the results by the participant's id, in the co
 
 ## Settings
 
-| Setting              | Default                 | What it is                                                                                                                                               |
-| -------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id_col`             | `'USUBJID'`             | The participant's id, in the results table.                                                                                                              |
-| `measure_col`        | `'TEST'`                | The biomarker's name.                                                                                                                                    |
-| `value_col`          | `'STRESN'`              | The result.                                                                                                                                              |
-| `visit_col`          | `'VISIT'`               | The visit.                                                                                                                                               |
-| `visit_order_col`    | `'VISITNUM'`            | A number that orders the visits. May be null.                                                                                                            |
-| `unit_col`           | `'STRESU'`              | The unit. May be null.                                                                                                                                   |
-| `participant_id_col` | `null`                  | The participant's id in the participant table. Null means `id_col`'s name.                                                                               |
-| `baseline_visits`    | `null`                  | The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.                                    |
-| `baseline_stat`      | `'mean'`                | How several baseline results are brought to one: `mean`, `min`, `max` or `first`.                                                                        |
-| `row_by`             | `null`                  | The table's rows: a column's name, or a cut variable (`{ measure, visit, cut }` or `{ col, type: 'number', cut }`). Null means the first column offered. |
-| `col_by`             | `null`                  | The table's columns, as `row_by` takes them. Null means the next column offered.                                                                         |
-| `percent`            | `'row'`                 | What each cell's percentage is of: `row`, `col`, or `none`.                                                                                              |
-| `cuts`               | `null`                  | Cut variables the Rows and Columns controls offer beside the columns, as a list.                                                                         |
-| `measures`           | `null`                  | The biomarkers the participant profile shows, in order. Null means every biomarker.                                                                      |
-| `groups`             | `null`                  | The columns the Rows and Columns controls offer, as `{ value_col, label }`. Null means every category column.                                            |
-| `max_levels`         | `12`                    | The most different values a column may hold and still be a category.                                                                                     |
-| `filters`            | `null`                  | The filters, as `{ value_col, label, start, all }`. Null means every category column of the participant table.                                           |
-| `details`            | `null`                  | The listing's columns. Null means the participant, the row and the column.                                                                               |
-| `page_size`          | `10`                    | The listing's rows on a page.                                                                                                                            |
-| `connection`         | `null`                  | The connection to R ([`BioViz.r.createConnection`](r-connection.md)). Null means none: the line says statistics are unavailable.                         |
-| `statistic`          | `'Analyze_Contingency'` | The R function the test is asked of. Null for no statistics line.                                                                                        |
-| `test`               | `'chisq'`               | The test: `chisq`, chi-square; `fisher`, Fisher's exact; or `none`.                                                                                      |
-| `waiting_note`       | `null`                  | A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.                                 |
-| `back`               | `null`                  | A way back, when another chart opened this one in its place: `{ label, action }`.                                                                        |
-| `profile`            | `true`                  | Whether a row of the listing opens safety.viz's participant profile.                                                                                     |
-| `profile_details`    | `null`                  | The columns the profile's header shows. Null means the category columns.                                                                                 |
-| `studyday_col`       | `null`                  | The study day, for the profile. May be null.                                                                                                             |
-| `normal_col_high`    | `null`                  | The upper limit of normal, for the profile. May be null.                                                                                                 |
-| `normal_col_low`     | `null`                  | The lower limit of normal, for the profile. May be null.                                                                                                 |
+| Setting              | Default                 | What it is                                                                                                                                                    |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`             | `'USUBJID'`             | The participant's id, in the results table.                                                                                                                   |
+| `measure_col`        | `'TEST'`                | The biomarker's name.                                                                                                                                         |
+| `value_col`          | `'STRESN'`              | The result.                                                                                                                                                   |
+| `visit_col`          | `'VISIT'`               | The visit.                                                                                                                                                    |
+| `visit_order_col`    | `'VISITNUM'`            | A number that orders the visits. May be null.                                                                                                                 |
+| `unit_col`           | `'STRESU'`              | The unit. May be null.                                                                                                                                        |
+| `participant_id_col` | `null`                  | The participant's id in the participant table. Null means `id_col`'s name.                                                                                    |
+| `baseline_visits`    | `null`                  | The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.                                         |
+| `baseline_stat`      | `'mean'`                | How several baseline results are brought to one: `mean`, `min`, `max` or `first`.                                                                             |
+| `row_by`             | `null`                  | The table's rows: a column's name, or a cut variable (`{ measure, visit, cut }` or `{ col, type: 'number', cut }`). Null means the first column offered.      |
+| `col_by`             | `null`                  | The table's columns, as `row_by` takes them. Null means the next column offered.                                                                              |
+| `percent`            | `'row'`                 | What each cell's percentage is of: `row`, `col`, or `none`.                                                                                                   |
+| `cuts`               | `null`                  | Cut variables the Rows and Columns controls offer beside the columns, as a list.                                                                              |
+| `measures`           | `null`                  | The biomarkers the participant profile shows, in order. Null means every biomarker.                                                                           |
+| `groups`             | `null`                  | The columns the Rows and Columns controls offer, as `{ value_col, label }`. Null means every category column.                                                 |
+| `max_levels`         | `12`                    | The most different values a column may hold and still be a category.                                                                                          |
+| `filters`            | `null`                  | The filters, as `{ value_col, label, start, all }`. Null means every category column of the participant table.                                                |
+| `details`            | `null`                  | The listing's columns. Null means the participant, the row and the column.                                                                                    |
+| `page_size`          | `10`                    | The listing's rows on a page.                                                                                                                                 |
+| `connection`         | `null`                  | The connection to R ([`BioViz.r.createConnection`](r-connection.md)). Null means none: the line says statistics are unavailable.                              |
+| `statistic`          | `'Analyze_Contingency'` | The R function the test is asked of. Null for no statistics line.                                                                                             |
+| `test`               | `'chisq'`               | The test: `chisq`, chi-square; `fisher`, Fisher's exact; or `none`.                                                                                           |
+| `waiting_note`       | `null`                  | A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.                                      |
+| `back`               | `null`                  | A way back, when another chart opened this one in its place: `{ label, action }`.                                                                             |
+| `profile`            | `true`                  | Whether a row of the listing opens safety.viz's participant profile.                                                                                          |
+| `profile_details`    | `null`                  | The columns the profile's header shows. Null means the category columns.                                                                                      |
+| `studyday_col`       | `null`                  | The study day, for the profile. May be null.                                                                                                                  |
+| `normal_col_high`    | `null`                  | The upper limit of normal, for the profile. May be null.                                                                                                      |
+| `normal_col_low`     | `null`                  | The lower limit of normal, for the profile. May be null.                                                                                                      |
+| `title`              | `null`                  | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none. |
+| `subtitle`           | `null`                  | The line under the title, written the same way. Null means none.                                                                                              |
+| `footnotes`          | `null`                  | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                |
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder | What it holds                                          |
+| ----------- | ------------------------------------------------------ |
+| `{rows}`    | What the rows are, as the Rows control names it.       |
+| `{columns}` | What the columns are, as the Columns control names it. |
+| `{n}`       | How many participants are in the table.                |
+| `{filters}` | The filters in force, in words, or `none`.             |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.                  |
+| `{version}` | The bio.viz version.                                   |
 
 ## What is drawn
 

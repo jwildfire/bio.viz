@@ -58,7 +58,8 @@ import {
   showListing,
   syncHost,
   toolbarStyles,
-  writeStatistic
+  writeStatistic,
+  writeTitles
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { checkOutcomes, laidOver } from './shared/outcomes.js';
@@ -495,6 +496,7 @@ class StratifiedSurvival {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         show(description);
       },
       {
@@ -1100,6 +1102,20 @@ class StratifiedSurvival {
 
   railSettings() {
     return railSettings(this, 'linear');
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      endpoint: state.endpoint ? this.endpointLabel(state.endpoint) : '',
+      group: state.groupBy ? this.labelOf(state.groupBy) : '',
+      n: model && model.records ? model.records.length : ''
+    };
   }
 
   /**

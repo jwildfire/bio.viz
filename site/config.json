@@ -32,6 +32,19 @@
       }
     },
     {
+      "module": "output",
+      "title": "Getting results out",
+      "kind": "shared",
+      "status": "available",
+      "blurb": "What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders filled from the view drawn, as text and never evaluated, and one footnote every chart writes last, with the date, the bio.viz version, and R's method and counts behind each statistic printed, naming the R and gsm.bio versions of a stored result.",
+      "matrix": "output.md",
+      "api": {
+        "doc": "output.md",
+        "surface": ["output"],
+        "source": ["src/output.js", "src/shared/titles.js"]
+      }
+    },
+    {
       "module": "group-comparison",
       "title": "Group comparison",
       "kind": "chart",

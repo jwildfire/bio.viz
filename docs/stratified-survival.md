@@ -48,42 +48,58 @@ A participant with a group and no row for the endpoint is left out and counted (
 
 ## Settings
 
-| Setting              | Default              | What it is                                                                                                                                         |
-| -------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id_col`             | `'USUBJID'`          | The participant's id, in the results table.                                                                                                        |
-| `measure_col`        | `'TEST'`             | The biomarker's name.                                                                                                                              |
-| `value_col`          | `'STRESN'`           | The result.                                                                                                                                        |
-| `visit_col`          | `'VISIT'`            | The visit.                                                                                                                                         |
-| `visit_order_col`    | `'VISITNUM'`         | A number that orders the visits. May be null.                                                                                                      |
-| `unit_col`           | `'STRESU'`           | The unit. May be null.                                                                                                                             |
-| `participant_id_col` | `null`               | The participant's id in the participant table. Null means `id_col`'s name.                                                                         |
-| `baseline_visits`    | `null`               | The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.                              |
-| `baseline_stat`      | `'mean'`             | How several baseline results are brought to one: `mean`, `min`, `max` or `first`.                                                                  |
-| `outcome_id_col`     | `null`               | The participant's id in the outcomes table. Null means `id_col`'s name.                                                                            |
-| `endpoint_col`       | `'PARAMCD'`          | The endpoint, in the outcomes table.                                                                                                               |
-| `endpoint_label_col` | `'PARAM'`            | The endpoint in words, for the Endpoint control and the time axis. May be null.                                                                    |
-| `time_col`           | `'AVAL'`             | The time to the event or to censoring.                                                                                                             |
-| `censor_col`         | `'CNSR'`             | The censor flag: 1 for censored, 0 for an event. Null when `event_col` is named; naming `event_col` alone sets it to null.                         |
-| `event_col`          | `null`               | The event flag, 1 for an event, 0 for censored, in place of `censor_col`.                                                                          |
-| `endpoint`           | `null`               | The endpoint the chart opens on. Null means the first.                                                                                             |
-| `group_by`           | `null`               | The groups: a column's name, or a cut variable (`{ measure, visit, cut }` or `{ col, type: 'number', cut }`). Null means the first column offered. |
-| `cuts`               | `null`               | Cut variables the Groups control offers beside the columns, as a list.                                                                             |
-| `at_risk_times`      | `null`               | The times the at-risk strip counts at, ascending. Null means the time axis's ticks.                                                                |
-| `measures`           | `null`               | The biomarkers the participant profile shows, in order. Null means every biomarker.                                                                |
-| `groups`             | `null`               | The columns the Groups control offers, as `{ value_col, label }`. Null means every category column.                                                |
-| `max_levels`         | `12`                 | The most different values a column may hold and still be a category.                                                                               |
-| `filters`            | `null`               | The filters, as `{ value_col, label, start, all }`. Null means every category column of the participant table.                                     |
-| `details`            | `null`               | The listing's columns. Null means the participant, the group, the time and the outcome.                                                            |
-| `page_size`          | `10`                 | The listing's rows on a page.                                                                                                                      |
-| `connection`         | `null`               | The connection to R ([`BioViz.r.createConnection`](r-connection.md)). Null means none: the line says statistics are unavailable.                   |
-| `statistic`          | `'Analyze_Survival'` | The R function the test is asked of. Null for no statistics line.                                                                                  |
-| `waiting_note`       | `null`               | A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.                           |
-| `back`               | `null`               | A way back, when another chart opened this one in its place: `{ label, action }`.                                                                  |
-| `profile`            | `true`               | Whether a row of the listing opens safety.viz's participant profile.                                                                               |
-| `profile_details`    | `null`               | The columns the profile's header shows. Null means the category columns.                                                                           |
-| `studyday_col`       | `null`               | The study day, for the profile. May be null.                                                                                                       |
-| `normal_col_high`    | `null`               | The upper limit of normal, for the profile. May be null.                                                                                           |
-| `normal_col_low`     | `null`               | The lower limit of normal, for the profile. May be null.                                                                                           |
+| Setting              | Default              | What it is                                                                                                                                                    |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`             | `'USUBJID'`          | The participant's id, in the results table.                                                                                                                   |
+| `measure_col`        | `'TEST'`             | The biomarker's name.                                                                                                                                         |
+| `value_col`          | `'STRESN'`           | The result.                                                                                                                                                   |
+| `visit_col`          | `'VISIT'`            | The visit.                                                                                                                                                    |
+| `visit_order_col`    | `'VISITNUM'`         | A number that orders the visits. May be null.                                                                                                                 |
+| `unit_col`           | `'STRESU'`           | The unit. May be null.                                                                                                                                        |
+| `participant_id_col` | `null`               | The participant's id in the participant table. Null means `id_col`'s name.                                                                                    |
+| `baseline_visits`    | `null`               | The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.                                         |
+| `baseline_stat`      | `'mean'`             | How several baseline results are brought to one: `mean`, `min`, `max` or `first`.                                                                             |
+| `outcome_id_col`     | `null`               | The participant's id in the outcomes table. Null means `id_col`'s name.                                                                                       |
+| `endpoint_col`       | `'PARAMCD'`          | The endpoint, in the outcomes table.                                                                                                                          |
+| `endpoint_label_col` | `'PARAM'`            | The endpoint in words, for the Endpoint control and the time axis. May be null.                                                                               |
+| `time_col`           | `'AVAL'`             | The time to the event or to censoring.                                                                                                                        |
+| `censor_col`         | `'CNSR'`             | The censor flag: 1 for censored, 0 for an event. Null when `event_col` is named; naming `event_col` alone sets it to null.                                    |
+| `event_col`          | `null`               | The event flag, 1 for an event, 0 for censored, in place of `censor_col`.                                                                                     |
+| `endpoint`           | `null`               | The endpoint the chart opens on. Null means the first.                                                                                                        |
+| `group_by`           | `null`               | The groups: a column's name, or a cut variable (`{ measure, visit, cut }` or `{ col, type: 'number', cut }`). Null means the first column offered.            |
+| `cuts`               | `null`               | Cut variables the Groups control offers beside the columns, as a list.                                                                                        |
+| `at_risk_times`      | `null`               | The times the at-risk strip counts at, ascending. Null means the time axis's ticks.                                                                           |
+| `measures`           | `null`               | The biomarkers the participant profile shows, in order. Null means every biomarker.                                                                           |
+| `groups`             | `null`               | The columns the Groups control offers, as `{ value_col, label }`. Null means every category column.                                                           |
+| `max_levels`         | `12`                 | The most different values a column may hold and still be a category.                                                                                          |
+| `filters`            | `null`               | The filters, as `{ value_col, label, start, all }`. Null means every category column of the participant table.                                                |
+| `details`            | `null`               | The listing's columns. Null means the participant, the group, the time and the outcome.                                                                       |
+| `page_size`          | `10`                 | The listing's rows on a page.                                                                                                                                 |
+| `connection`         | `null`               | The connection to R ([`BioViz.r.createConnection`](r-connection.md)). Null means none: the line says statistics are unavailable.                              |
+| `statistic`          | `'Analyze_Survival'` | The R function the test is asked of. Null for no statistics line.                                                                                             |
+| `waiting_note`       | `null`               | A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.                                      |
+| `back`               | `null`               | A way back, when another chart opened this one in its place: `{ label, action }`.                                                                             |
+| `profile`            | `true`               | Whether a row of the listing opens safety.viz's participant profile.                                                                                          |
+| `profile_details`    | `null`               | The columns the profile's header shows. Null means the category columns.                                                                                      |
+| `studyday_col`       | `null`               | The study day, for the profile. May be null.                                                                                                                  |
+| `normal_col_high`    | `null`               | The upper limit of normal, for the profile. May be null.                                                                                                      |
+| `normal_col_low`     | `null`               | The lower limit of normal, for the profile. May be null.                                                                                                      |
+| `title`              | `null`               | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none. |
+| `subtitle`           | `null`               | The line under the title, written the same way. Null means none.                                                                                              |
+| `footnotes`          | `null`               | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                |
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder  | What it holds                                       |
+| ------------ | --------------------------------------------------- |
+| `{endpoint}` | The endpoint, by its label.                         |
+| `{group}`    | What the groups are, as the Group control names it. |
+| `{n}`        | How many participants are drawn.                    |
+| `{filters}`  | The filters in force, in words, or `none`.          |
+| `{date}`     | The date drawn, in UTC: `2026-10-04`.               |
+| `{version}`  | The bio.viz version.                                |
 
 ## What is drawn
 

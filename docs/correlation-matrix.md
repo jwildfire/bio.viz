@@ -154,8 +154,26 @@ Every setting, with its default. The column settings and the baseline settings a
 | `min_pairs`          | `null`                        | The fewest complete pairs a cell needs to show a coefficient, a number above nought. Null leaves the minimum to R: nothing is sent, and R's own default applies. |
 | `waiting_note`       | `null`                        | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                             |
 | `scatter`            | `null`                        | Settings for the association scatter a cell opens, laid under what the grid carries across: see [a cell opens the scatter](#a-cell-opens-the-scatter).           |
+| `title`              | `null`                        | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.    |
+| `subtitle`           | `null`                        | The line under the title, written the same way. Null means none.                                                                                                 |
+| `footnotes`          | `null`                        | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                   |
 
 There is no setting that chooses a confidence level or an adjustment: those are R's. The minimum number of pairs is R's as well: the chart has a control for it because the design asks for one, and what the control holds is handed to R, which applies it. The chart never withholds a cell itself.
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder   | What it holds                                                           |
+| ------------- | ----------------------------------------------------------------------- |
+| `{heading}`   | What the grid is of, as its heading reads.                              |
+| `{variables}` | How many variables the grid has.                                        |
+| `{visit}`     | The visit of a grid of biomarkers.                                      |
+| `{value}`     | What is drawn of the value: `Result`, `Change from baseline` and so on. |
+| `{n}`         | How many participants the frame holds.                                  |
+| `{filters}`   | The filters in force, in words, or `none`.                              |
+| `{date}`      | The date drawn, in UTC: `2026-10-04`.                                   |
+| `{version}`   | The bio.viz version.                                                    |
 
 ## The controls
 

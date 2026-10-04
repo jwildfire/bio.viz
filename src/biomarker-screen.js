@@ -66,7 +66,8 @@ import {
   renderPager,
   writeStatistic,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles
 } from './shared/chartHost.js';
 import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
@@ -666,6 +667,7 @@ class BiomarkerScreen {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         writeStatistic(kit, this.statLine, description);
         // The rows are drawn only from R's own answer for the frame on screen.
         this.answer = description;
@@ -928,6 +930,29 @@ class BiomarkerScreen {
       ],
       'bio.viz-biomarker-screen-rows.csv'
     );
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    const endpoint = this.endpoints.find((entry) => entry.endpoint === state.endpoint);
+    return {
+      heading: model && model.heading ? model.heading : '',
+      comparison: COMPARISON_LABELS[state.comparison] || '',
+      visit: state.visit ?? '',
+      endpoint: state.comparison === 'hazard' && endpoint ? endpoint.label : '',
+      biomarkers: model && model.rows ? model.rows.length : '',
+      n: model && model.records ? model.records.length : ''
+    };
+  }
+
+  /** What R's counts are of, for the footnote the chart writes. */
+  get footnoteCounts() {
+    return 'biomarkers';
   }
 
   /**

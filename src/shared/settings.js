@@ -4,6 +4,7 @@
 // words a refusal is written in are the same everywhere, and are these.
 
 import { variable } from '../core/variable.js';
+import { checkTitles } from './titles.js';
 
 export const isText = (value) => typeof value === 'string' && value.trim() !== '';
 export const isPlainObject = (value) =>
@@ -109,6 +110,7 @@ export function checkShared(settings, baselineStats) {
   ) {
     refuse('`connection` must be a connection to R (BioViz.r.createConnection), or null.');
   }
+  checkTitles(settings);
 }
 
 /**

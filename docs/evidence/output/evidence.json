@@ -1,5 +1,5 @@
 {
-  "module": "cross-tab",
+  "module": "output",
   "generatedAt": "2026-10-04T08:21:12.498Z",
   "environment": {
     "os": "darwin 23.6.0",
@@ -114,171 +114,115 @@
       "screenshots": []
     },
     {
-      "test": "CT-DRAW-001: arm by response: every count, the totals and each row’s percentages are desktop R’s, and the stacked bars are the same percentages (#44)",
+      "test": "EXP-AUTO-003: the chart’s own footnote says it is waiting while R is asked and is written again when R answers in the browser; with no R it says statistics are unavailable, and a view that asks R nothing says so (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-DRAW-001"],
-      "issueRefs": [44],
-      "screenshots": ["CT-DRAW-001-arm-by-response.png"]
-    },
-    {
-      "test": "CT-DRAW-002: column percentages are each count of its column’s total, and the bars then stack each column by the rows; with none there are no percentages (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-DRAW-002"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-AUTO-003"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-DRAW-003: a biomarker cut by the shared cut rule makes the columns, low to high, with desktop R’s counts, and the footnote states the cut; the Columns control offers it (#44)",
+      "test": "EXP-DRAW-001: the group comparison draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-DRAW-003"],
-      "issueRefs": [44],
-      "screenshots": ["CT-DRAW-003-response-by-crp-median.png"]
-    },
-    {
-      "test": "CT-DROP-001: with a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence; filters that let nobody through say so; the id column and the table change together (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-DROP-001"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#44)",
+      "test": "EXP-DRAW-002: the association scatter draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-FAIL-001"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-002"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-KIT-001: the chart is built from safety.viz’s kit on the page and draws its bars with the kit’s Chart.js; without safety.viz it says what is missing (#44)",
+      "test": "EXP-DRAW-003: the correlation matrix draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-KIT-001"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-003"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-LIST-001: clicking a count lists that cell’s participants in the kit’s listing, and a row of it opens the participant’s profile (#44)",
+      "test": "EXP-DRAW-004: the biomarker screen draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-LIST-001"],
-      "issueRefs": [44],
-      "screenshots": ["CT-LIST-001-participants-of-a-cell.png"]
-    },
-    {
-      "test": "CT-LIVE-001: arm by response, by chi-square and by Fisher’s exact test, with R started in this browser: every count, statistic and p-value is desktop R’s (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-LIVE-001"],
-      "issueRefs": [44],
-      "screenshots": ["CT-LIVE-001-r-in-the-browser.png"]
-    },
-    {
-      "test": "CT-LIVE-002: response by CRP at Baseline cut at its median, by both tests, and cut at 8, where R warns of small expected counts, are desktop R’s (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-LIVE-002"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-004"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-LIVE-003: the women alone, by the filter, is desktop R’s (#44)",
+      "test": "EXP-DRAW-005: the cross tab draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-LIVE-003"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-005"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-MOBILE-001: at 390px the controls are folded away, the table fits or scrolls inside its own box, and the page does not scroll sideways (#44)",
+      "test": "EXP-DRAW-006: the stratified survival draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-MOBILE-001"],
-      "issueRefs": [44],
-      "screenshots": ["CT-MOBILE-001-the-table-on-a-phone.png"]
-    },
-    {
-      "test": "CT-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-SITE-001"],
-      "issueRefs": [44],
-      "screenshots": ["CT-SITE-001-demo-on-a-phone.png"]
-    },
-    {
-      "test": "CT-SITE-002: the gallery lists the chart with links to its live demo, its evidence page and its API reference, and the demo opens on arm by response (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-SITE-002"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-DRAW-006"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-005: with R’s answers stored in the page, the chi-square and Fisher results print with their method and counts, Fisher’s odds ratio with its interval, and the identity R wrote is the chart’s (#44)",
+      "test": "EXP-SITE-001: the association scatter demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-005"],
-      "issueRefs": [44],
-      "screenshots": ["CT-STAT-005-fisher-with-odds-ratio.png"]
-    },
-    {
-      "test": "CT-STAT-006: R’s small-expected-count warning is printed with the result for a table with an expected count below 5, and not for one without (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-006"],
-      "issueRefs": [44],
-      "screenshots": ["CT-STAT-006-small-expected-counts.png"]
-    },
-    {
-      "test": "CT-STAT-007: with no R attached the line says statistics are unavailable, the table and the bars are still drawn, and nothing is fetched (#44)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-007"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-008: the test is of the participants the filters keep, as desktop R gives it for the women alone, and the line says the filter (#44)",
+      "test": "EXP-SITE-001: the biomarker screen demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-008"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-009: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#44)",
+      "test": "EXP-SITE-001: the correlation matrix demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-009"],
-      "issueRefs": [44],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-011: a table R withholds prints R’s reason, with the table’s variables named in it, and no number (#44, #58)",
+      "test": "EXP-SITE-001: the cross-tabulation demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-011"],
-      "issueRefs": [],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-012: after a filter changes, the answer to the table no longer on screen is dropped when it arrives; the line shows the answer for the table drawn (#44, #58)",
+      "test": "EXP-SITE-001: the group comparison demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-012"],
-      "issueRefs": [],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
-      "test": "CT-STAT-013: changing what the percentages are of redraws the table and the bars and asks R nothing: the line keeps R’s answer (#44, #58)",
+      "test": "EXP-SITE-001: the stratified survival demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
       "status": "pass",
-      "requirementIds": ["CT-STAT-013"],
-      "issueRefs": [],
+      "requirementIds": ["EXP-SITE-001"],
+      "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-TXT-003: in the page a title, subtitle or footnote that holds code-like text is drawn as that text: no element is made of it, no script runs, and a placeholder inside it is filled as text (#66)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-TXT-003"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {
@@ -391,86 +335,6 @@
       "status": "pass",
       "requirementIds": ["GC-SITE-004"],
       "issueRefs": [9],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: settings CT-CFG-001: every setting has a default; the rows and the columns are each a column or a cut variable; the percentages, the test and the statistic are checked (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-CFG-001"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: the API reference CT-SITE-003: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-SITE-003"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: the table CT-DATA-001: the counts, the row and column totals and the grand total are desktop R’s table() of the same participants, for every case (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-DATA-001"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: the table CT-DATA-002: the row and the column percentages are each count of its row’s or its column’s total, as desktop R works them out (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-DATA-002"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: the table CT-DATA-003: a biomarker cut by the shared cut rule makes the rows or the columns, low to high, worked out on the participants the filters keep (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-DATA-003"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-001: R is asked once per table, with the function, the arguments, the identity and the row count desktop R’s recipe writes, and one row per participant (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-001"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-002: R’s chi-square and Fisher results are printed with their method and counts, labelled exploratory and unadjusted, and Fisher’s odds ratio with its interval (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-002"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-003: the small-expected warning is R’s, printed with the result when R gives it and not otherwise (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-003"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-004: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its table (#44)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-004"],
-      "issueRefs": [44],
-      "screenshots": []
-    },
-    {
-      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-010: a table R withholds, a category below its minimum size, prints R’s reason with the table’s variables named where R names the columns the chart gave it, and no number (#44, #58)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["CT-STAT-010"],
-      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -727,6 +591,38 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: titles and footnotes EXP-AUTO-001: the chart’s own footnote, always last, gives the date drawn, the bio.viz version, and R’s method and counts behind every statistic printed, with the R and gsm.bio versions of a stored result; while R is asked it says it is waiting (#66)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-001"],
+      "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: titles and footnotes EXP-AUTO-002: a connection told which R computed its stored results hands that record with every stored answer, and with no other; a record that is not one is refused with a sentence (#66)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-002"],
+      "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: titles and footnotes EXP-TXT-001: a placeholder is replaced by the text of its value, once, left to right; a name the chart does not have is left as written; nothing in a template or a value is evaluated, so code-like text is shown as text (#66)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-TXT-001"],
+      "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: titles and footnotes EXP-TXT-002: every chart takes `title`, `subtitle` and `footnotes`, null by default; a title or subtitle that is not text, or footnotes that are not text or a list of texts, are refused with a sentence; one footnote is a list of one (#66)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-TXT-002"],
+      "issueRefs": [66],
       "screenshots": []
     },
     {

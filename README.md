@@ -175,6 +175,22 @@ Do participants with high and low levels of this biomarker have different outcom
 
 The settings, the outcomes table, moving the cut line and what R is asked are in [docs/stratified-survival.md](docs/stratified-survival.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/stratified-survival/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/stratified-survival/) opens on event-free survival by CRP at Baseline cut at its median, where the synthetic study was planted with a survival effect.
 
+## Titles and footnotes
+
+Every chart takes a `title`, a `subtitle` and `footnotes`, written with placeholders filled from the view drawn, and adds one footnote of its own, always last: the date drawn, the bio.viz version, and R's method and counts behind each statistic, with the R and gsm.bio versions of a stored result.
+
+```js
+BioViz.crossTab('#chart', {
+  row_by: 'ARM',
+  col_by: 'RESPONSE',
+  title: '{rows} by {columns}',
+  subtitle: '{n} participants',
+  footnotes: ['Filters: {filters}.']
+}).init({ results, participants });
+```
+
+A placeholder is filled with text, and nothing in a setting is evaluated. The placeholders each chart has, and the footnote's wording, are in [docs/output.md](docs/output.md), published as the [API reference](https://jwildfire.github.io/bio.viz/dev/output/api.html).
+
 ## Naming a variable and getting one row per participant
 
 Every chart takes its variables the same way and resolves them the same way, with `BioViz.core`:

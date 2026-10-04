@@ -170,8 +170,27 @@ Every setting, with its default. The column settings and the baseline settings a
 | `group_comparison`    | `null`             | Settings for the group comparison a row of a difference opens, laid under what the screen carries across.                                                                 |
 | `association_scatter` | `null`             | Settings for the association scatter a row of a correlation opens, laid under what the screen carries across.                                                             |
 | `stratified_survival` | `null`             | Settings for the stratified survival chart a row of a hazard ratio opens, laid under what the screen carries across.                                                      |
+| `title`               | `null`             | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.             |
+| `subtitle`            | `null`             | The line under the title, written the same way. Null means none.                                                                                                          |
+| `footnotes`           | `null`             | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                            |
 
 There is no setting for a confidence level or a minimum group size: those are R's, at gsm.bio's defaults.
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder    | What it holds                                                             |
+| -------------- | ------------------------------------------------------------------------- |
+| `{heading}`    | What the rows are, as the heading above them reads.                       |
+| `{comparison}` | The comparison, as the Compare control names it.                          |
+| `{visit}`      | The visit.                                                                |
+| `{endpoint}`   | A hazard ratio's endpoint, by its label; empty for the other comparisons. |
+| `{biomarkers}` | How many biomarkers are screened.                                         |
+| `{n}`          | How many participants the frame holds.                                    |
+| `{filters}`    | The filters in force, in words, or `none`.                                |
+| `{date}`       | The date drawn, in UTC: `2026-10-04`.                                     |
+| `{version}`    | The bio.viz version.                                                      |
 
 ## The controls
 

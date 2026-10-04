@@ -78,6 +78,7 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
+      'src/shared/titles.js',
       'src/shared/variables.js'
     ]);
     const shared = everything.filter(

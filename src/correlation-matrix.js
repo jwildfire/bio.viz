@@ -60,7 +60,8 @@ import {
   readGiven,
   writeStatistic,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -602,6 +603,7 @@ class CorrelationMatrix {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         writeStatistic(kit, this.statLine, description);
         // The cells are filled only from R's own answer for the frame on screen.
         this.pairs = description.pairs;
@@ -1018,6 +1020,27 @@ class CorrelationMatrix {
       details.append(note);
     });
     this.listingWrap.append(details);
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      heading: model && model.heading ? model.heading : '',
+      variables: model && model.variables ? model.variables.length : '',
+      visit: state.visit ?? '',
+      value: VALUE_LABELS[state.valueType] || state.valueType || '',
+      n: model && model.records ? model.records.length : ''
+    };
+  }
+
+  /** What R's counts are of, for the footnote the chart writes. */
+  get footnoteCounts() {
+    return 'variables';
   }
 
   /**

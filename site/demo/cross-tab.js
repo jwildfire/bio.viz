@@ -13,6 +13,13 @@
   ];
   var demo = (window.BioVizDemo.crossTab = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{rows} by {columns}',
+      subtitle: '{n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       row_by: 'ARM',
       col_by: 'RESPONSE',
       percent: 'row',

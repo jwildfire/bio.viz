@@ -128,6 +128,9 @@ Every setting, with its default. The column settings and the baseline settings a
 | `studyday_col`       | `null`                  | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.                      |
 | `normal_col_high`    | `null`                  | A column holding the upper limit of normal of each result, when the results have one.                                                                                   |
 | `normal_col_low`     | `null`                  | A column holding the lower limit of normal.                                                                                                                             |
+| `title`              | `null`                  | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.           |
+| `subtitle`           | `null`                  | The line under the title, written the same way. Null means none.                                                                                                        |
+| `footnotes`          | `null`                  | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                          |
 
 There is no setting that chooses a confidence level, a minimum number of pairs, an adjustment or how smooth a smooth is: those are R's.
 
@@ -136,6 +139,19 @@ There is no setting that chooses a confidence level, a minimum number of pairs, 
 With `x` and `y` named, the chart opens on that pair. With neither named it opens on the first two biomarkers of the Variable control at the first visit, as their results: x the first, y the second. With one biomarker in the table, y is that biomarker at the second visit; with one visit as well, the first participant-level number; with nothing else, the same variable as x. A variable that is named and that the tables do not have gives way to these, and the chart says so in the console.
 
 `setSettings({ x, y })` opens another pair in place: the two Variable controls move, the chart is drawn again and R is asked again. It is how a page, or another chart, points this one at a pair it names.
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder | What it holds                              |
+| ----------- | ------------------------------------------ |
+| `{x}`       | The horizontal axis, as its title reads.   |
+| `{y}`       | The vertical axis, as its title reads.     |
+| `{n}`       | How many participants are drawn.           |
+| `{filters}` | The filters in force, in words, or `none`. |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.      |
+| `{version}` | The bio.viz version.                       |
 
 ## What is drawn
 

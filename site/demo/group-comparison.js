@@ -16,6 +16,13 @@
   ];
   var demo = (window.BioVizDemo.groupComparison = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{value}: {measure} by {group}',
+      subtitle: 'At {visits}',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       // No biomarker and no visit named: the overview, at every visit.
       start_value: null,
       visits: null,

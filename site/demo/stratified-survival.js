@@ -16,6 +16,13 @@
   ];
   var demo = (window.BioVizDemo.stratifiedSurvival = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{endpoint} by {group}',
+      subtitle: '{n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       endpoint: 'EFS',
       group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
       baseline_visits: 'Baseline',

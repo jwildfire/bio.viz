@@ -253,10 +253,15 @@ const footnote = (page) => root(page).locator('.sv-footnote');
 const rowAt = (page, biomarker) =>
   root(page).locator(`.bv-screen-row[data-biomarker="${biomarker}"]`);
 const drill = (page) => page.locator('#chart > .bv-screen-drill');
+// What the screen says, but its footnotes: the chart's own footnote names the
+// bio.viz version and the date (#66), which are no statistic.
 const said = (page) =>
   root(page).evaluate((chart) =>
     [
-      chart.innerText,
+      chart.innerText.replace(
+        chart.querySelector('.bv-foot') ? chart.querySelector('.bv-foot').innerText : '',
+        ''
+      ),
       ...[...chart.querySelectorAll('[aria-label], [title]')].map(
         (element) =>
           `${element.getAttribute('aria-label') || ''} ${element.getAttribute('title') || ''}`

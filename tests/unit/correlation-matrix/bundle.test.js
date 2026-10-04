@@ -82,6 +82,7 @@ describe('bundle: the correlation matrix ships, safety.viz, Chart.js and webR do
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
+      'src/shared/titles.js',
       'src/shared/variables.js'
     ]);
     const fromMatrix = reached(matrix);
