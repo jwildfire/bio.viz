@@ -72,9 +72,11 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     const everything = sourceFiles('src/shared');
     expect(everything).toEqual([
       'src/shared/chartHost.js',
+      'src/shared/csv.js',
       'src/shared/cut.js',
       'src/shared/outcomes.js',
       'src/shared/paging.js',
+      'src/shared/png.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
@@ -90,7 +92,16 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
           'src/shared/outcomes.js'
         ].includes(file)
     );
-    const reached = (files) => new Set(files.flatMap(importsOf));
+    // What a chart's files reach: what they import, and what the shared parts they
+    // import import in turn (#67: the downloads' CSV and PNG writers are reached
+    // through the shell).
+    const reached = (files) => {
+      const seen = new Set(files.flatMap(importsOf));
+      for (const file of seen) {
+        if (file.startsWith('src/shared/')) for (const next of importsOf(file)) seen.add(next);
+      }
+      return seen;
+    };
     const fromScatter = reached(scatter);
     const fromComparison = reached(comparison);
     // Neither chart imports the other.

@@ -46,6 +46,25 @@ export const VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` 
 /** The settings every chart has for its title, subtitle and footnotes. */
 export const TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
 
+/**
+ * The settings every chart has for its downloads (#67): whether the bar of
+ * downloads is shown under the chart, and the PNG's resolution in image pixels
+ * per CSS pixel.
+ */
+export const DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
+
+/**
+ * Checks `downloads` and `png_scale`.
+ * @param {object} settings The settings, laid over the defaults.
+ */
+export function checkDownloads(settings) {
+  if (typeof settings.downloads !== 'boolean') refuse('`downloads` must be true or false.');
+  const scale = settings.png_scale;
+  if (typeof scale !== 'number' || !Number.isFinite(scale) || scale < 1 || scale > 4) {
+    refuse('`png_scale` must be a number from 1 to 4: image pixels per CSS pixel.');
+  }
+}
+
 const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
 /**

@@ -2,7 +2,7 @@
 
 What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders the chart fills from the view it draws, and one footnote the chart always writes last, saying when and by what the figure was drawn and what stands behind each statistic it printed. The rules are written once, in `src/shared/titles.js`, and every chart follows them; a page or a widget that writes the same words reaches them as `BioViz.output`.
 
-The downloads (a PNG with the title and footnotes drawn in, and the statistics and the table as CSV) and the specification a chart is written to and rebuilt from come next, under the same requirement ([obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361)).
+Under the footnotes each chart offers three downloads: a PNG of the chart with its title and footnotes drawn in, the statistics R returned as CSV, and the table the chart drew from as CSV. The specification a chart is written to and rebuilt from comes next, under the same requirement ([obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361)).
 
 ## At a glance
 
@@ -90,6 +90,44 @@ const connection = BioViz.r.createConnection({
 
 See [the connection's reference](r-connection.md#createconnectionoptions).
 
+## Downloads
+
+Every chart has the two settings, with the same defaults and the same checks.
+
+| Setting     | Default | What it is                                                                                   |
+| ----------- | ------- | -------------------------------------------------------------------------------------------- |
+| `downloads` | `true`  | Whether the bar of downloads is shown under the footnotes.                                   |
+| `png_scale` | `2`     | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2, 192 pixels to the inch. |
+
+The bar has three buttons. Each saves a file named for the chart and the view, the way safety.viz's kit saves its listing (a link to the file, clicked): `bio.viz-{chart}-{view}.png`, `bio.viz-{chart}-{view}-statistics.csv` and `bio.viz-{chart}-{view}-table.csv`, where the view is a few of the chart's placeholders in lower case joined by hyphens: `bio.viz-cross-tab-arm-by-response.png`. A chart's `fileOf(kind)` makes the same file without saving it, a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`.
+
+### The PNG
+
+The chart's frame as the page draws it, from the title to the chart's own footnote: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes. What a reader works the chart with is left out: every element marked `bv-no-picture`, which the toolbar, the hint under the chart, the listing, the bar of downloads, a chart's own download buttons and the overview's pager buttons are. A chart's marks (the matrix's discs and key, the screen's zero line, intervals and dots, the bars and curves) are drawn at the size the page draws them, and text finds its own height. What scrolls sideways on the page, such as the survival chart's at-risk table on a phone, is drawn whole, and the picture is as wide as it needs to be.
+
+It is drawn at `png_scale` image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its `pHYs` chunk gives the pixels per metre. Each Chart.js canvas is drawn again at that resolution for the picture, so the plotted marks are as sharp as the text. Its text chunks (`iTXt`, UTF-8) give its `Title` (the title and subtitle), its `Description` (the footnotes, one a line, the chart's own last) and its `Software` (the bio.viz version, as the footnote says it), so the file still says what it is when it is separated from the page.
+
+When the picture cannot be made, the bar says so in a line of its own, where the reader sees it: a browser will not write a canvas larger than it allows (Safari about 16.7 million pixels, which a tall screen at `png_scale` 4 can pass), will not read one it has been given a picture from elsewhere, or cannot read the drawing. Another download, or a smaller `png_scale`, can follow.
+
+The picture is the page's drawing, not a drawing for print: anything bound for a document should come from gsm.bio's static twin of the chart, which draws a vector figure from the same settings.
+
+### The statistics
+
+The statistics R returned for the view drawn, as shown, as one table. For each answer there is a row for R's result (its `part` is `result`) and a row for each of its parts: each estimate (`estimates`), each row of a screen or a grid (`rows`), and so on, numbered by `item`. Every member R returned is a column, by its path: a nested member's names joined by a slash (`counts/Placebo`, so R's own dotted names, `p.value`, stay as they are), a list's entries by their place (`data/variables/1/measure`, the variable the grid's `v1` stands for), and a list of values alone as one field, joined by `|` (R's notes may hold a `;`). Each row also names the answer it came from (`asked`), the R function (`function`) and the data it was asked about (`data/…`, the identity a stored result is found by). A member of R's answer that would take one of those names, or two members written alike, is refused, not overwritten. Every number is R's, written as the shortest text that reads back in JavaScript as exactly the same number; R's own reader reads about one in fourteen such numbers one unit in the last place away. NaN, Inf and -Inf are written as R writes them, and a value missing as an empty field. Until R has answered there is nothing to download, and the button waits, saying so; a view whose statistics are unavailable says that instead; a view that asks R nothing, such as the group comparison's overview, offers none.
+
+### The table
+
+The table the chart drew from, one row per participant drawn, with the headings the chart's listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value; and so on, as each chart's reference says. A group or a category that is a cut biomarker has the value it was cut from beside it (`CRP at Baseline`), so the cut can be made again from the file. A number is written as it was drawn, unrounded.
+
+### CSV
+
+Every CSV file, the listing's export among them, is written by RFC 4180: records end in CRLF, and a field or a heading that holds a comma, a double quote, a carriage return or a line feed is written between double quotes with each double quote doubled. A heading that holds a comma is one heading ([bio.viz#39](https://github.com/jwildfire/bio.viz/issues/39)). An empty field is a value the participant does not have; `TRUE` and `FALSE` are written as R reads them.
+
+Values are written as they are, so a file reads back into R exactly. Two things follow for a spreadsheet:
+
+- Excel and other spreadsheets run a field that begins with `=`, `+`, `-` or `@` as a formula. A value from a table, a label or a note can begin that way; open a downloaded file with its columns imported as text, or in a reader that does not run formulas, when its contents are not your own.
+- The files are UTF-8 with no byte-order mark. Excel on Windows reads a CSV opened by a double click in the system's own code page, so `≤`, `–` and other characters come out wrong; use Data → From Text/CSV and choose UTF-8.
+
 ## The functions of `BioViz.output`
 
 The rules above, for a page or a widget that writes the same words beside a chart.
@@ -128,13 +166,21 @@ The footnote a chart writes last.
 
 R's counts as the footnote writes them: a number as `n = 200`; an object of up to four groups as `Placebo n = 95, Treatment n = 91`; five or more as `n = 179 to 186 across 12 biomarkers`, with `of` naming what they are of. A count written as text that reads as a number is read as that number. Null when R returned none.
 
+## `toCsv(rows, columns)`
+
+Rows as CSV by RFC 4180, with a heading row: `columns` is a list of `{ value_col, label }`, which field of a row each column holds and its heading. Records end in CRLF.
+
+## `parseCsv(text)`
+
+CSV read back by RFC 4180, every field as text: a list of records, the heading row first. The inverse of `toCsv`.
+
 ## `TITLE_DEFAULTS`
 
 The three settings' defaults, which every chart has: `{ title: null, subtitle: null, footnotes: null }`.
 
 ## What is not here
 
-- The downloads: the PNG with the title and footnotes drawn in, and the statistics and the table as CSV ([bio.viz#67](https://github.com/jwildfire/bio.viz/issues/67)).
+- A vector figure (SVG or PDF) from the browser: the PNG is the page's drawing. Vector figures come from gsm.bio's static twins ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)).
 - The specification a chart is written to and rebuilt from ([bio.viz#68](https://github.com/jwildfire/bio.viz/issues/68)).
 - Rich text in a title or a footnote: they are plain text. A line break, bold or a link is not drawn.
 - A footnote placed anywhere but under the chart, or the chart's own footnote turned off.

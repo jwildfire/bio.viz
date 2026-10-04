@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T10:57:59.298Z",
+  "generatedAt": "2026-10-04T12:15:42.018Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37197062715",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37197062715"
+    "id": "37201458039",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37201458039"
   },
   "records": [
     {
@@ -125,6 +125,78 @@
       "screenshots": []
     },
     {
+      "test": "EXP-DL-001: the group comparison downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-001"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-002: the association scatter downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-002"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-003: the correlation matrix downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-003"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-004: the biomarker screen downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-004"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-005: the cross tab downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-005"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-006: the stratified survival downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-006"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-007: with `downloads` false the bar is not shown; the statistics download waits for R’s answer; and `png_scale` sets the picture’s size and resolution (#67)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-007"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-008: a download that fails says so in the bar, where the reader sees it, and the next one works (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-008"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-009: the table download holds the value a cut was made from: the survival chart’s biomarker beside its group, and the cross-tabulation’s for a cut row or column; its headings, as written (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-009"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
       "test": "EXP-DRAW-001: the group comparison draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
@@ -171,6 +243,38 @@
       "requirementIds": ["EXP-DRAW-006"],
       "issueRefs": [66],
       "screenshots": ["EXP-DRAW-006-titled-and-footnoted.png"]
+    },
+    {
+      "test": "EXP-PNG-002: on a phone, the PNG draws the marks the chart draws: every disc of the correlation matrix and its colour key, and the screen’s zero line, intervals and dots, each where the page has it (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-002"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-PNG-002: on a wide page, the PNG draws the marks the chart draws: every disc of the correlation matrix and its colour key, and the screen’s zero line, intervals and dots, each where the page has it (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-002"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-PNG-003: on a phone, what scrolls sideways in the frame is drawn whole: the survival chart’s at-risk table to its last column, with no scroll bar, the picture as wide as it needs (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-003"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-PNG-004: nothing a reader works the chart with is in the picture: every control of the frame (the toolbar, the hint, the listing, the bar of downloads, a chart’s own download and pager buttons) is marked to be left out (#70 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-004"],
+      "issueRefs": [],
+      "screenshots": []
     },
     {
       "test": "EXP-SITE-001: the association scatter demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
@@ -653,6 +757,38 @@
       "screenshots": []
     },
     {
+      "test": "getting results out: the downloads EXP-CSV-001: a CSV is written by RFC 4180: CRLF between records; a field or a heading that holds a comma, a double quote, a carriage return or a line feed is quoted, with each double quote doubled; and it reads back field for field, a heading with a comma one heading (#67, #39)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-001"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-CSV-002: the statistics are R’s answer laid out as a table: a row for each answer’s result and one for each of its parts, every member R returned a column, every number R’s own, with the function asked and the data it was asked about; an answer R did not give has no rows (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-002"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-DL-007: every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4; anything else is refused with a sentence (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-007"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: the downloads EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and its title and footnotes as international text, each chunk with its CRC, written after the header so any reader finds them (#67)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-PNG-001"],
+      "issueRefs": [67],
+      "screenshots": []
+    },
+    {
       "test": "getting results out: titles and footnotes EXP-AUTO-001: the chart’s own footnote, always last, gives the date drawn, the bio.viz version, and R’s method and counts behind every statistic printed, with the R and gsm.bio versions of a stored result; while R is asked it says it is waiting (#66)",
       "suite": "unit",
       "status": "pass",
@@ -713,6 +849,22 @@
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["EXP-TXT-004"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #70 review found EXP-CSV-003: every member R returned is a column, however nested: a list of objects or of lists in the data asked about is flattened by position (a list of values alone is one field), nested names are joined by a slash, and an R member that would take an identifying column’s name, or two names that would meet, is refused, not overwritten (#70 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-003"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #70 review found EXP-CSV-004: R’s NaN, Inf and -Inf are written as R writes them, apart from a value missing; a list of values is joined by “ | ”, which R’s notes do not use (#70 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-CSV-004"],
       "issueRefs": [],
       "screenshots": []
     },

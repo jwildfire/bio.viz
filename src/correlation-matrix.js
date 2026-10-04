@@ -968,7 +968,8 @@ class CorrelationMatrix {
         `Every pair, with its count: ${rows.length}, in the order R returned them`
       )
     );
-    const tools = kit.createElement('div', 'bv-pairs-tools');
+    // A control: left out of the chart's picture (#70 review).
+    const tools = kit.createElement('div', 'bv-pairs-tools bv-no-picture');
     const download = kit.createElement('button', null, 'Download: CSV');
     download.type = 'button';
     download.onclick = () =>
@@ -1020,6 +1021,29 @@ class CorrelationMatrix {
       details.append(note);
     });
     this.listingWrap.append(details);
+  }
+
+  /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, settings } = this;
+    if (!model || !model.records || !model.variables) return { columns: [], rows: [] };
+    return {
+      columns: [
+        { value_col: settings.id_col, label: 'Participant' },
+        ...model.variables.map((variable) => ({ value_col: variable.name, label: variable.label }))
+      ],
+      rows: model.records
+    };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['heading'];
   }
 
   /**

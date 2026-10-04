@@ -831,7 +831,8 @@ test.describe('biomarker screen: pages, controls and the download', () => {
       'Biomarker,Estimate,Confidence interval,p unadjusted,p adjusted (Benjamini-Hochberg),n Placebo / Treatment,Not computed'
     );
     expect(lines).toHaveLength(13);
-    expect(lines[1]).toBe('"IL-6","0.9133","0.6111 to 1.213","p < 0.001","p < 0.001","95 / 91",""');
+    // Written by RFC 4180 (#67): a field is quoted only when it must be.
+    expect(lines[1]).toBe('IL-6,0.9133,0.6111 to 1.213,p < 0.001,p < 0.001,95 / 91,');
     const order = (await screen(page)).rows.map((row) => row.biomarker);
     expect(lines.slice(1).map((entry) => entry.split(',')[0].replaceAll('"', ''))).toEqual(order);
     expect(lines.join('\n')).not.toMatch(/\*|significan/i);

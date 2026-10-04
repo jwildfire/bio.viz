@@ -934,6 +934,30 @@ class AssociationScatter {
   }
 
   /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, state, settings } = this;
+    if (!model || !model.panels) return { columns: [], rows: [] };
+    const columns = [
+      { value_col: settings.id_col, label: 'Participant' },
+      { value_col: 'x', label: this.titleOf(state.x) },
+      { value_col: 'y', label: this.titleOf(state.y) }
+    ];
+    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
+    if (state.panelBy) columns.push({ value_col: 'panel', label: this.labelOf(state.panelBy) });
+    return { columns, rows: model.panels.flatMap((panel) => panel.records) };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['y', 'x'];
+  }
+
+  /**
    * What the title, subtitle and footnotes' placeholders hold for the view now
    * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
    * @returns {object}

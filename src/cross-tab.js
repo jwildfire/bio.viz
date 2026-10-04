@@ -715,6 +715,42 @@ class CrossTab {
   }
 
   /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, state, settings } = this;
+    if (!model || !model.records) return { columns: [], rows: [] };
+    // A cut row or column has the value it was cut from beside it, so the cut
+    // can be made again from the file (#70 review).
+    const columns = [{ value_col: settings.id_col, label: 'Participant' }];
+    const values = model.cutValues || {};
+    for (const [field, by] of [
+      ['row', state.rowBy],
+      ['col', state.colBy]
+    ]) {
+      columns.push({ value_col: field, label: this.labelOf(by) });
+      if (values[field]) {
+        const { cut, ...variable } = this.groupingOf(by);
+        columns.push({ value_col: `${field}Value`, label: variableLabel(variable) });
+      }
+    }
+    const rows = model.records.map((record) => ({
+      ...record,
+      ...(values.row ? { rowValue: values.row[record[settings.id_col]] } : {}),
+      ...(values.col ? { colValue: values.col[record[settings.id_col]] } : {})
+    }));
+    return { columns, rows };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['rows', 'columns'];
+  }
+
+  /**
    * What the title, subtitle and footnotes' placeholders hold for the view now
    * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
    * @returns {object}

@@ -15,6 +15,16 @@
     "EXP-DRAW-005": "The same for the cross-tabulation.",
     "EXP-DRAW-006": "The same for the stratified survival chart.",
     "EXP-SITE-001": "Each chart's demo on the gallery shows its title, subtitle and footnotes, every placeholder filled, with the chart's own footnote last; at 390px the page does not scroll sideways.",
+    "EXP-CSV-001": "A CSV is written by RFC 4180: records end in CRLF; a field or a heading holding a comma, a double quote, a carriage return or a line feed is quoted, each double quote doubled; it reads back field for field, and a number reads back as itself.",
+    "EXP-CSV-002": "The statistics are R's answer laid out as a table: a row for each answer's result and one for each of its parts, every member R returned a column and every number R's own, with the R function asked and the data it was asked about; an answer R did not give has no rows.",
+    "EXP-PNG-001": "A downloaded PNG carries its resolution as pixels per metre (`pHYs`) and its title, footnotes and software as UTF-8 text (`iTXt`), each chunk with its CRC, after the header.",
+    "EXP-DL-001": "The group comparison downloads a PNG of its frame at `png_scale` times its width on the page, its title and footnotes in the file; the statistics R returned as CSV, every number R's; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading; each file is named for the chart and the view.",
+    "EXP-DL-002": "The same for the association scatter.",
+    "EXP-DL-003": "The same for the correlation matrix.",
+    "EXP-DL-004": "The same for the biomarker screen.",
+    "EXP-DL-005": "The same for the cross-tabulation.",
+    "EXP-DL-006": "The same for the stratified survival chart.",
+    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing.",
     "EXP-AUTO-004": "The chart's own footnote names every method R used for what is printed, the pairwise test beside the overall one, and every adjustment of the p-values, by name.",
     "EXP-AUTO-005": "The footnote never names a released version for code that is not one: a build with changes since its release says `with development changes`; package.json's `bioviz.development` is true exactly while the release log has an upcoming section, and false in a tagged build.",
     "EXP-AUTO-006": "Counts are named for four groups and summarised for five or more, numeric text is read as a number, and many counts are summarised without spreading them; the source is the connection's form as it says, and a stored result's date is named.",
@@ -25,6 +35,13 @@
     "EXP-UPD-003": "The same for the correlation matrix.",
     "EXP-UPD-004": "The same for the biomarker screen.",
     "EXP-UPD-005": "The same for the cross-tabulation.",
-    "EXP-UPD-006": "The same for the stratified survival chart."
+    "EXP-UPD-006": "The same for the stratified survival chart.",
+    "EXP-PNG-002": "On a wide page and on a phone, the PNG draws the marks the chart draws, each where the page has it: every disc of the correlation matrix and its colour key, and the screen's zero line, intervals and dots.",
+    "EXP-PNG-003": "On a phone, what scrolls sideways in the frame is drawn whole, the survival chart's at-risk table to its last column, and the picture is as wide as it needs.",
+    "EXP-PNG-004": "Every control of a chart's frame (the toolbar, the hint, the listing, the bar of downloads, a chart's own download and pager buttons) is marked `bv-no-picture`, which the picture leaves out.",
+    "EXP-DL-008": "A download that fails says so in the bar, in a line a screen reader announces; the next download works and takes the line away.",
+    "EXP-DL-009": "The table download holds the value a cut was made from: the survival chart's biomarker beside its group, and the cross-tabulation's for a cut row or column.",
+    "EXP-CSV-003": "Every member R returned is a column, however nested: lists of objects or of lists in the data asked about are flattened by place, nested names are joined by a slash, and a member that would take an identifying column's name, or two written alike, is refused.",
+    "EXP-CSV-004": "NaN, Inf and -Inf are written as R writes them, apart from a value missing; a list of values is joined by ` | `."
   }
 }

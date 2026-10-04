@@ -17,7 +17,7 @@ import {
   textList,
   variableSetting
 } from '../shared/settings.js';
-import { TITLE_DEFAULTS } from '../shared/titles.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
 /**
  * What a row of the screen is: a difference between two groups, a correlation
@@ -89,7 +89,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   association_scatter: null,
   stratified_survival: null,
   // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**

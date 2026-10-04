@@ -15,7 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
-import { TITLE_DEFAULTS } from '../shared/titles.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
 /**
  * What the grid's variables are: several biomarkers at one visit, or one
@@ -70,7 +70,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // The association scatter a cell opens.
   scatter: null,
   // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-  ...TITLE_DEFAULTS
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**
