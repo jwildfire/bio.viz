@@ -79,14 +79,19 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
     for (const file of shared.filter((name) => name !== 'src/shared/cut.js')) {
       expect(fromScreen.has(file), file).toBe(true);
     }
+    // A hazard row opens the stratified survival chart (#62).
     const ofOthers = [...fromScreen].filter((file) =>
-      /group-comparison|association-scatter|correlation-matrix/.test(file)
+      /group-comparison|association-scatter|correlation-matrix|stratified-survival/.test(file)
     );
-    expect(ofOthers.sort()).toEqual(['src/association-scatter.js', 'src/group-comparison.js']);
+    expect(ofOthers.sort()).toEqual([
+      'src/association-scatter.js',
+      'src/group-comparison.js',
+      'src/stratified-survival.js'
+    ]);
     for (const file of sourceFiles('src/biomarker-screen')) {
       expect(
         importsOf(file).filter((target) =>
-          /group-comparison|association-scatter|correlation-matrix/.test(target)
+          /group-comparison|association-scatter|correlation-matrix|stratified-survival/.test(target)
         ),
         file
       ).toEqual([]);
@@ -122,7 +127,12 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
   });
 
   it('BS-KIT-004: the chart’s source holds no statistical inference: no arithmetic of an estimate, an interval, a p-value or an adjustment, and nothing ordered by a key R did not return (#36)', () => {
-    const code = codeOf(screen);
+    // The one logarithm is where a hazard ratio sits on its logarithmic axis
+    // (#62), in placeOf: it places R's number, and works nothing out of it.
+    const placing = codeOf(['src/biomarker-screen/structureData.js']);
+    const place = placing.slice(placing.indexOf('export const placeOf'));
+    expect(place.match(/Math\.log2\(/g)).toHaveLength(4);
+    const code = codeOf(screen).replace(/Math\.log2\((value|min|max)\)/g, 'logOf($1)');
     for (const marker of [
       /Math\.sqrt/,
       /Math\.exp\b|Math\.log|Math\.pow|\*\*/,

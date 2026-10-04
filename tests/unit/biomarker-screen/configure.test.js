@@ -8,6 +8,7 @@ import {
   syncSettings
 } from '../../../src/biomarker-screen/configure.js';
 import { DEFAULT_SETTINGS as SCATTER } from '../../../src/association-scatter/configure.js';
+import { DEFAULT_SETTINGS as SURVIVAL } from '../../../src/stratified-survival/configure.js';
 import { DEFAULT_SETTINGS as COMPARISON } from '../../../src/group-comparison/configure.js';
 import { DEFAULT_SETTINGS as CORE_DEFAULTS } from '../../../src/core/index.js';
 import { coreSettings } from '../../../src/shared/settings.js';
@@ -52,15 +53,22 @@ describe('biomarker screen: settings', () => {
       statistic: 'Analyze_Screen',
       connection: null,
       group_comparison: null,
-      association_scatter: null
+      association_scatter: null,
+      stratified_survival: null,
+      // The hazard rows read the outcomes table as the survival chart does.
+      endpoint_col: 'PARAMCD',
+      time_col: 'AVAL',
+      censor_col: 'CNSR',
+      event_col: null,
+      endpoint: null
     });
-    expect(COMPARISONS).toEqual(['difference', 'correlation']);
+    expect(COMPARISONS).toEqual(['difference', 'correlation', 'hazard']);
     expect(METHODS).toEqual(['pearson', 'spearman']);
     expect(ADJUSTMENTS).toEqual(['BH', 'holm']);
     expect(SORTS).toEqual(['estimate', 'name', 'adjusted']);
     // A setting this chart and a chart it opens both have is named the same,
     // with the same default: what it hands that chart is that chart's own.
-    for (const other of [COMPARISON, SCATTER]) {
+    for (const other of [COMPARISON, SCATTER, SURVIVAL]) {
       const both = Object.keys(DEFAULT_SETTINGS).filter((key) => key in other);
       expect(both).toEqual(
         expect.arrayContaining(['id_col', 'unit_col', 'baseline_visits', 'measures', 'filters'])
@@ -107,7 +115,10 @@ describe('biomarker screen: settings', () => {
     expect(syncSettings(settings)).toEqual(settings);
     for (const [overrides, said] of [
       [{ forest: true }, /`forest` is not a setting of the biomarker screen/],
-      [{ comparison: 'hazard' }, /`comparison` must be one of difference, correlation\./],
+      [{ comparison: 'odds' }, /`comparison` must be one of difference, correlation, hazard\./],
+      [{ event_col: 'EVENT', censor_col: 'CNSR' }, /Name exactly one of `censor_col`/],
+      [{ endpoint: 3 }, /`endpoint` must be the name of an endpoint, or null/],
+      [{ stratified_survival: 'curves' }, /`stratified_survival` must be an object of settings/],
       [{ method: 'kendall' }, /`method` must be one of pearson, spearman\./],
       [{ adjustment: 'bonferroni' }, /`adjustment` must be one of BH, holm\./],
       [{ sort: 'p' }, /`sort` must be one of estimate, name, adjusted\./],

@@ -164,15 +164,18 @@ function expectRows(
     ...(row.status === 'ok' ? {} : { estimate: null, lower: null, upper: null })
   }));
   const range = axisRange(computed, comparison);
+  const opens = {
+    difference: 'the group comparison',
+    correlation: 'the association scatter',
+    hazard: 'the stratified survival chart'
+  }[comparison];
   shown.rows.forEach((row, index) => {
     const from = expected[index];
     const formatted = formatScreenRow(from, groups);
     expect(row.status, from.biomarker).toBe(formatted.status);
-    expect(row.zero).toBeCloseTo(placeOf(0, range), 2);
+    expect(row.zero).toBeCloseTo(placeOf(range.reference ?? 0, range), 2);
     if (formatted.status === 'shown') {
-      expect(row.says).toBe(
-        `${formatted.text} Open in ${comparison === 'difference' ? 'the group comparison' : 'the association scatter'}.`
-      );
+      expect(row.says).toBe(`${formatted.text} Open in ${opens}.`);
       expect(row.value).toBe(
         `${formatted.estimate}${formatted.bounds ? ` (${formatted.bounds})` : ''}`
       );
@@ -1744,7 +1747,12 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     const comparison = expected.args.strComparison;
     const shown = await screen(page);
     expectRows(shown, actual, {
-      groups: comparison === 'difference' ? expected.args.chrGroups : null,
+      groups:
+        comparison === 'difference'
+          ? expected.args.chrGroups
+          : comparison === 'hazard'
+            ? ['High', 'Low']
+            : null,
       comparison
     });
     sideBySide.push({
@@ -1844,7 +1852,7 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     const log = await lineLog();
     expect(log[0]).toEqual([
       'waiting',
-      'Statistics: waiting for R… The first screen starts R in this browser: about 13 MB to download, once, and a few seconds.',
+      'Statistics: waiting for R… The first screen starts R in this browser and installs the survival package: about 26 MB to download, once, and a few seconds.',
       0
     ]);
     expect(log.map(([state]) => state)).toEqual(['waiting', 'shown']);
@@ -1856,7 +1864,11 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     expect(forR.filter((url) => url.endsWith('/statistics.R'))).toEqual([
       new URL('/_site/vendor/gsm.bio/statistics.R', page.url()).href
     ]);
-    expect(forR.filter((url) => new URL(url).hostname === 'repo.r-wasm.org')).toEqual([]);
+    // The survival package, which a hazard ratio calls, is installed with R
+    // (#62): it and the packages it needs come from webR's repository.
+    const fromRepo = forR.filter((url) => new URL(url).hostname === 'repo.r-wasm.org');
+    expect(fromRepo.some((url) => /\/survival_[\d.-]+\.tgz$/.test(url))).toBe(true);
+    expect(fromRepo.every((url) => url.includes('/bin/emscripten/contrib/'))).toBe(true);
     const times = await page.evaluate(() =>
       ['waiting', 'shown'].map((state) => window.__line.find((entry) => entry.state === state).at)
     );
@@ -2025,12 +2037,67 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     measured.warm = Number(((times[1] - times[0]) / 1000).toFixed(3));
   });
 
+  test('BS-HAZ-008: with R and the survival package in this browser, every hazard row, by Benjamini-Hochberg and by Holm, for the women alone and with every row too small, is desktop R’s, CRP at the top; its row opens the stratified survival chart, whose hazard ratio from the same R is the row’s, and the way back returns (#62)', async ({}, testInfo) => {
+    await reopen();
+    await setView({ comparison: 'hazard', visit: 'Baseline', value_type: 'raw', adjustment: 'BH' });
+    const bh = await holdToDesktop('hazard-baseline', testInfo);
+    expect(bh.differing).toEqual([]);
+    expect(bh.shown.rows[0].biomarker).toBe('CRP');
+    await root(page).locator('select[data-filter="SEX"]').selectOption('F');
+    expect((await holdToDesktop('hazard-baseline-women', testInfo)).differing).toEqual([]);
+    await root(page).locator('select[data-filter="SEX"]').selectOption('__all__');
+    await answered();
+    await setView({ adjustment: 'holm' });
+    const holm = await holdToDesktop('hazard-baseline-holm', testInfo);
+    expect(holm.differing).toEqual([]);
+    const crp = holm.actual.rows.find((row) => row.biomarker === 'CRP');
+    await rowAt(page, 'CRP').click();
+    await expect(drill(page).locator('.bv-back')).toBeFocused();
+    const status = drill(page).locator('.bv-statistic').first();
+    await expect(status).toHaveAttribute('data-state', 'shown', { timeout: 200_000 });
+    const [asked] = await page.evaluate(() => window.BioVizDemo.chart.opened().statistics());
+    expect(asked.answer.form).toBe('browser');
+    expect(asked.dataId.group_by).toEqual({
+      measure: 'CRP',
+      visit: 'Baseline',
+      value: 'raw',
+      cut: 'median'
+    });
+    const hazard = asked.answer.value.estimates.find((row) => row.name === 'Hazard ratio');
+    for (const member of ['estimate', 'lower', 'upper']) {
+      const scale = Math.max(Math.abs(hazard[member]), Math.abs(crp[member]));
+      expect(Math.abs(hazard[member] - crp[member]), member).toBeLessThanOrEqual(
+        TOLERANCE.relative * scale
+      );
+    }
+    expect(asked.answer.value.p_value).toBe(crp.p_unadjusted);
+    await captureEvidence(page.locator('#demo'), 'BS-HAZ-008', 'a-hazard-row-opened-with-r');
+    await drill(page).locator('.bv-back').click();
+    await expect(rowAt(page, 'CRP')).toBeFocused();
+    // Every row too small, among the four participants aged 35.
+    await page.evaluate(() => {
+      const { chart: screenChart, biomarkerScreen } = window.BioVizDemo;
+      screenChart.setSettings({
+        filters: biomarkerScreen.settings.filters.concat([{ value_col: 'AGE', label: 'Age' }]),
+        adjustment: 'BH'
+      });
+    });
+    await answered();
+    await root(page).locator('select[data-filter="AGE"]').selectOption('35');
+    const few = await holdToDesktop('hazard-baseline-age-35', testInfo);
+    expect(few.differing).toEqual([]);
+    await expect(line(page)).toHaveAttribute('data-state', 'withheld');
+  });
+
   test('BS-LIVE-006: the megabytes and seconds of the first screen, and of a screen once R has started, are measured, recorded, and are what the page tells its reader (#36)', async ({
     browser
   }, testInfo) => {
     const told = await page.evaluate(() => window.BioVizDemo.biomarkerScreen);
     expect(told.settings.waiting_note).toContain(`about ${told.megabytes} MB`);
-    expect(told.browser).toEqual({ sourceUrl: '../vendor/gsm.bio/statistics.R', packages: [] });
+    expect(told.browser).toEqual({
+      sourceUrl: '../vendor/gsm.bio/statistics.R',
+      packages: ['survival']
+    });
     expect(measured.cold.megabytes).toBeGreaterThan(5);
     expect(Math.abs(measured.cold.megabytes - told.megabytes)).toBeLessThan(1.5);
     expect(measured.warm).toBeGreaterThan(0);
@@ -2117,6 +2184,130 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     );
     expect(overflowing).toEqual([]);
     await captureEvidence(page.locator('#demo'), 'BS-LIVE-007', 'r-in-the-browser-on-a-phone');
+  });
+});
+
+test.describe('biomarker screen: the hazard rows', () => {
+  test('BS-HAZ-005: with an outcomes table the screen offers a hazard ratio, high against low: from R’s stored answer every row is drawn on a logarithmic axis with 1 marked, CRP at the top, each with High’s and Low’s counts (#62)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes' });
+    const offered = await page
+      .locator('#chart .sv-sidebar select[data-control="comparison"] option')
+      .allTextContents();
+    expect(offered).toEqual([
+      'Difference between two groups',
+      'Correlation with one variable',
+      'Hazard ratio, high against low'
+    ]);
+    await withStored(page, stored('hazard-baseline'), {
+      comparison: 'hazard',
+      visit: 'Baseline',
+      value_type: 'raw'
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const shown = await screen(page);
+    expect(shown.title).toBe(
+      'Result at Baseline: hazard ratio, high against low, on Event-free survival (months)'
+    );
+    expect(shown.caption).toMatch(
+      /^Each row: Hazard ratio, High \/ Low, on Event-free survival \(months\), with its 95% confidence interval on one logarithmic axis, with 1, no difference, marked\./
+    );
+    expect(shown.ticks).toContain('1');
+    expectRows(shown, resultOf('hazard-baseline').value, {
+      groups: ['High', 'Low'],
+      comparison: 'hazard'
+    });
+    expect(shown.rows[0].biomarker).toBe('CRP');
+    expect(await controls(page)).toMatchObject({ comparison: 'hazard', endpoint: 'EFS' });
+    await captureEvidence(root(page).locator('.bv-screen'), 'BS-HAZ-005', 'hazard-rows');
+    expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-006: without an outcomes table the screen offers only its other two comparisons and says why, and a setting asking for a hazard ratio opens on a difference (#62)', async ({
+    page
+  }) => {
+    await open(page, { settings: { comparison: 'hazard' } });
+    const offered = await page
+      .locator('#chart .sv-sidebar select[data-control="comparison"] option')
+      .allTextContents();
+    expect(offered).toEqual(['Difference between two groups', 'Correlation with one variable']);
+    await expect(root(page).locator('.bv-no-outcomes')).toHaveText(
+      'A hazard ratio needs an outcomes table: give `outcomes`, one row per participant and endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.'
+    );
+    expect(await controls(page)).toMatchObject({ comparison: 'difference' });
+    // Given an outcomes table, it is offered.
+    await page.evaluate(() =>
+      window.BioVizDemo.loadOutcomes('/site/data/synthetic-study/').then((outcomes) =>
+        window.__bs.chart.setData({ ...window.__bs.data, outcomes })
+      )
+    );
+    await expect(
+      page.locator('#chart .sv-sidebar select[data-control="comparison"] option')
+    ).toHaveCount(3);
+    await expect(root(page).locator('.bv-no-outcomes')).toHaveCount(0);
+  });
+
+  test('BS-HAZ-007: a click on a hazard row opens the stratified survival chart for that biomarker, cut at its median, on the same endpoint, with the screen’s connection and filters; its hazard ratio from stored results is the row’s; the way back returns (#62)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes' });
+    const survival = readJson('../fixtures/stratified-survival-r.json').cases.find(
+      (entry) => entry.case === 'crp-median'
+    );
+    await withStored(
+      page,
+      [
+        ...stored('hazard-baseline'),
+        {
+          name: survival.name,
+          args: survival.args,
+          dataId: survival.dataId,
+          rows: survival.rows,
+          value: survival.value
+        }
+      ],
+      { comparison: 'hazard', visit: 'Baseline', value_type: 'raw' }
+    );
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    await rowAt(page, 'CRP').click();
+    await expect(root(page)).toBeHidden();
+    const back = drill(page).locator('.bv-back');
+    await expect(back).toHaveText(BACK);
+    await expect(back).toBeFocused();
+    const now = await page.evaluate(() => {
+      const chart = window.__bs.chart.opened();
+      return {
+        survival: chart.root.classList.contains('bv-stratified-survival'),
+        connection: chart.connection === window.__bs.chart.connection,
+        group_by: chart.settings.group_by,
+        endpoint: chart.settings.endpoint,
+        filters: chart.settings.filters.map((spec) => spec.value_col),
+        asked: chart.statistics().map(({ answer }) => answer && answer.form)
+      };
+    });
+    expect(now).toMatchObject({
+      survival: true,
+      connection: true,
+      group_by: { measure: 'CRP', visit: 'Baseline', value: 'raw', cut: 'median' },
+      endpoint: 'EFS',
+      filters: expect.any(Array),
+      asked: ['precomputed']
+    });
+    const row = resultOf('hazard-baseline').value.rows.find((entry) => entry.biomarker === 'CRP');
+    const hazard = survival.value.estimates.find((entry) => entry.name === 'Hazard ratio');
+    expect([hazard.estimate, hazard.lower, hazard.upper]).toEqual([
+      row.estimate,
+      row.lower,
+      row.upper
+    ]);
+    await expect(drill(page).locator('.bv-statistic').first()).toContainText('Hazard ratio');
+    await back.click();
+    await expect(root(page)).toBeVisible();
+    await expect(rowAt(page, 'CRP')).toBeFocused();
+    expect(errors).toEqual([]);
   });
 });
 

@@ -140,7 +140,14 @@ describe('what desktop R answered, and the key it wrote', () => {
       }
     }
     expect(seen).toEqual(
-      new Set(['difference BH', 'difference holm', 'correlation BH', 'correlation holm'])
+      new Set([
+        'difference BH',
+        'difference holm',
+        'correlation BH',
+        'correlation holm',
+        'hazard BH',
+        'hazard holm'
+      ])
     );
     // Holm is never less than Benjamini-Hochberg for the same p-values.
     const [bh, holm] = ['difference-week-4-change', 'difference-week-4-change-holm'].map(

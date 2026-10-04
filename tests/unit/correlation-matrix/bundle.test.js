@@ -77,6 +77,7 @@ describe('bundle: the correlation matrix ships, safety.viz, Chart.js and webR do
     expect(shared).toEqual([
       'src/shared/chartHost.js',
       'src/shared/cut.js',
+      'src/shared/outcomes.js',
       'src/shared/paging.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
@@ -86,9 +87,11 @@ describe('bundle: the correlation matrix ships, safety.viz, Chart.js and webR do
     const fromMatrix = reached(matrix);
     // Every shared part but the paging of a long list, which a grid of at most
     // `limit` variables has no use for, and the cut that makes groups (#43),
-    // which a grid of numbers has none of, is one the grid is built from.
+    // which a grid of numbers has none of, and the reading of an outcomes
+    // table (#62), is one the grid is built from.
     for (const file of shared.filter(
-      (name) => !['src/shared/paging.js', 'src/shared/cut.js'].includes(name)
+      (name) =>
+        !['src/shared/paging.js', 'src/shared/cut.js', 'src/shared/outcomes.js'].includes(name)
     )) {
       expect(fromMatrix.has(file), file).toBe(true);
     }

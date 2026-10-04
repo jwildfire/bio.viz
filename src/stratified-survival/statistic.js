@@ -24,7 +24,7 @@ import {
   sentence,
   sorted
 } from '../shared/statisticLine.js';
-import { flagOf } from './configure.js';
+import { flagOf } from '../shared/outcomes.js';
 
 export { NOT_STORED, WAITING } from '../shared/statisticLine.js';
 

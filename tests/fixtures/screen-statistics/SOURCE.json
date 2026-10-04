@@ -1,7 +1,7 @@
 {
   "fixture": "tests/fixtures/screen-statistics",
   "derived_by": "tools/derive-screen-statistics.mjs",
-  "rule": "Each case is the gallery's biomarker screen demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id, one column per biomarker of the screen at its visit with its value type, and the column of groups or the variable correlated with, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the biomarkers is kept, with an empty cell for each value they do not have.",
+  "rule": "Each case is the gallery's biomarker screen demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id, one column per biomarker of the screen at its visit with its value type, and the column of groups, the variable correlated with, or for a hazard ratio the time and the flag of the endpoint, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the biomarkers is kept, with an empty cell for each value they do not have.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
@@ -12,12 +12,16 @@
       "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
     },
     {
+      "file": "site/data/synthetic-study/synthetic_outcomes.csv",
+      "sha256": "118343dc83ad8f8d42afa49bfe40cdc54ce65d32afac4fc4255a5f672ec0f1f0"
+    },
+    {
       "file": "site/demo/synthetic-study.js",
       "sha256": "0695f363da6abe0390d135ec31e15e3bfd2f1cbc88f09aedc9252606322fb4ff"
     },
     {
       "file": "site/demo/biomarker-screen.js",
-      "sha256": "88ee8641c572ebec8bf5b59cc422bee57347d74c982a9a79ab9389d05893f387"
+      "sha256": "f38899deb8bbc87a1ae3c3b20f53df836a2110bc2135c24ab7f91489107db0ed"
     }
   ],
   "cases": [
@@ -56,6 +60,22 @@
     {
       "case": "correlation-il-10-spearman",
       "says": "The same with Spearman’s coefficient: no interval in any row"
+    },
+    {
+      "case": "hazard-baseline",
+      "says": "Every biomarker at Baseline, as its result, cut at its median, hazard ratio of high against low on event-free survival, Benjamini-Hochberg: CRP was planted with the survival effect"
+    },
+    {
+      "case": "hazard-baseline-holm",
+      "says": "The same, adjusted by Holm"
+    },
+    {
+      "case": "hazard-baseline-women",
+      "says": "The same, with the filter Sex set to F"
+    },
+    {
+      "case": "hazard-baseline-age-35",
+      "says": "The same among the four participants aged 35: every row has a group too small"
     },
     {
       "case": "correlation-age",
@@ -100,12 +120,28 @@
       "sha256": "cbbe3732b1ada6c7ded5ea05ca9ddb7b1b047c670fc9977e0447150942cd459a"
     },
     {
+      "file": "hazard-baseline.csv",
+      "sha256": "fdf984533b80e08f0ec3008fa56e39234f6232b7e875b0f74b205ec1fba76671"
+    },
+    {
+      "file": "hazard-baseline-holm.csv",
+      "sha256": "fdf984533b80e08f0ec3008fa56e39234f6232b7e875b0f74b205ec1fba76671"
+    },
+    {
+      "file": "hazard-baseline-women.csv",
+      "sha256": "f38db886ac4d7ef541a0dec5940eb37cf591f3ce98269674e573ce4f0fabcc4b"
+    },
+    {
+      "file": "hazard-baseline-age-35.csv",
+      "sha256": "9f08dd127860a49c04abccaa36ec6d66b57451aa0934a7e8f17b6f846811a3fc"
+    },
+    {
       "file": "correlation-age.csv",
       "sha256": "e93c79d16033134f4febf034e7663af6401bedc4d88fd45df48ea985f7e0aa78"
     },
     {
       "file": "cases.csv",
-      "sha256": "52970287d2d66fab1003cc5fffd0e9e8321f73f85f5743c593a0b427ee939062"
+      "sha256": "a060f848d01c76a5ef853932c906900b2c4f4e4da7e13a7de06bd5f592589168"
     }
   ]
 }

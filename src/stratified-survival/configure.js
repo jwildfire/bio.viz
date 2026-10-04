@@ -7,6 +7,12 @@
 import { BASELINE_STATS } from '../core/settings.js';
 import { checkGrouping, isCut } from '../shared/cut.js';
 import {
+  OUTCOME_DEFAULTS,
+  checkOutcomeSettings,
+  flagOf,
+  flaggedSettings
+} from '../shared/outcomes.js';
+import {
   checkBack,
   checkShared,
   columnOrNull,
@@ -34,16 +40,16 @@ export const DEFAULT_SETTINGS = Object.freeze({
   baseline_stat: 'mean',
   // Columns of the outcomes table: one row per participant and endpoint, with
   // the time and a flag, either way round: censored (ADaM's CNSR, 1 =
-  // censored) or an event (1 = event). Exactly one of the two is named.
-  outcome_id_col: null,
-  endpoint_col: 'PARAMCD',
-  endpoint_label_col: 'PARAM',
-  time_col: 'AVAL',
-  censor_col: 'CNSR',
-  event_col: null,
-  // What the chart opens on: the endpoint, and the groups, a column or a cut
-  // variable. Null means the first endpoint, and the first category column.
-  endpoint: null,
+  // censored) or an event (1 = event). Exactly one of the two is named. And
+  // the endpoint the chart opens on: null means the first.
+  outcome_id_col: OUTCOME_DEFAULTS.outcome_id_col,
+  endpoint_col: OUTCOME_DEFAULTS.endpoint_col,
+  endpoint_label_col: OUTCOME_DEFAULTS.endpoint_label_col,
+  time_col: OUTCOME_DEFAULTS.time_col,
+  censor_col: OUTCOME_DEFAULTS.censor_col,
+  event_col: OUTCOME_DEFAULTS.event_col,
+  endpoint: OUTCOME_DEFAULTS.endpoint,
+  // The groups, a column or a cut variable. Null means the first category column.
   group_by: null,
   // Cut variables the Group control offers beside the columns.
   cuts: null,
@@ -79,42 +85,24 @@ export const DEFAULT_SETTINGS = Object.freeze({
  * @returns {object} The settings the chart reads.
  */
 export function syncSettings(overrides) {
-  const given = overrides || {};
-  // Naming an event column, and not the censor column, is the outcomes table
-  // read the other way round: the censor column's default does not stay.
-  const flagged =
-    given.event_col !== undefined && given.event_col !== null && !('censor_col' in given)
-      ? { ...given, censor_col: null }
-      : given;
-  const settings = layOver(DEFAULT_SETTINGS, flagged, 'the stratified survival chart');
+  const settings = layOver(
+    DEFAULT_SETTINGS,
+    flaggedSettings(overrides),
+    'the stratified survival chart'
+  );
   checkShared(settings, BASELINE_STATS);
   checkBack(settings);
+  checkOutcomeSettings(settings);
 
   for (const key of [
     'visit_order_col',
     'unit_col',
     'participant_id_col',
-    'outcome_id_col',
-    'endpoint_label_col',
-    'censor_col',
-    'event_col',
     'studyday_col',
     'normal_col_high',
     'normal_col_low'
   ]) {
     columnOrNull(settings, key);
-  }
-  for (const key of ['endpoint_col', 'time_col']) {
-    if (!isText(settings[key])) refuse(`\`${key}\` must be the name of a column.`);
-  }
-  if ((settings.censor_col === null) === (settings.event_col === null)) {
-    refuse(
-      'Name exactly one of `censor_col` (1 = censored, as ADaM’s CNSR) and `event_col` ' +
-        '(1 = event); give the other as null.'
-    );
-  }
-  if (settings.endpoint !== null && !isText(settings.endpoint)) {
-    refuse('`endpoint` must be the name of an endpoint, or null for the first.');
   }
   // The groups: a column, or a biomarker or a number cut into groups by the
   // shared cut rule.
@@ -163,14 +151,7 @@ export function syncSettings(overrides) {
   return settings;
 }
 
-/**
- * The flag column of the outcomes table, and which way round it is read.
- * @param {object} settings The chart's settings.
- * @returns {{col: string, field: 'censor'|'event'}} The column, and the name
- *   of the field the chart's rows and R's carry it under.
- */
-export function flagOf(settings) {
-  return settings.censor_col !== null
-    ? { col: settings.censor_col, field: 'censor' }
-    : { col: settings.event_col, field: 'event' };
-}
+// The flag column of the outcomes table, and which way round it is read: the
+// shared reading's (src/shared/outcomes.js), named here as this chart has
+// always named it.
+export { flagOf };

@@ -15,6 +15,7 @@
 // no key to sort by that R did not return.
 
 import { frame, visits as visitsInOrder } from '../core/frame.js';
+import { flagOf, outcomesOf } from '../shared/outcomes.js';
 import { coreSettings } from '../shared/settings.js';
 import { columnLevels, keepFiltered, naturally } from '../shared/tables.js';
 import { axisOf, sameAxis, variableOf } from '../shared/variables.js';
@@ -72,7 +73,8 @@ export function groupsOf(tables, column, chosen) {
  * @param {object} settings The chart's settings (syncSettings).
  * @param {object} state What the controls are set to: `comparison`, `visit`,
  *   `valueType`, `groupBy`, `levels`, `with`.
- * @param {{measures: string[], visits: string[]}} offered What the tables have.
+ * @param {{measures: string[], visits: string[], endpoints?: Array<{endpoint:
+ *   string, label: string}>}} offered What the tables have.
  * @param {object[]} [results] The results table, for the baseline visit when
  *   settings name none.
  * @returns {{rows: Array<{name: string, axis: object}>, heading: string,
@@ -88,10 +90,13 @@ export function screenRows(settings, state, offered, results = []) {
     : [];
   const at = value === 'baseline' ? '' : ` at ${state.visit}`;
   const words = `${VALUE_WORDS[value]}${at}`;
+  const endpoint = (offered.endpoints || []).find((entry) => entry.endpoint === state.endpoint);
   const heading =
     state.comparison === 'difference'
       ? `${words}: ${state.levels.length === 2 ? `${state.levels[0]} against ${state.levels[1]}` : 'two groups'}, standardised difference`
-      : `${words}: correlation with ${state.with ? variableName(state.with) : 'a variable'}`;
+      : state.comparison === 'hazard'
+        ? `${words}: hazard ratio, high against low, on ${endpoint ? endpoint.label : 'an endpoint'}`
+        : `${words}: correlation with ${state.with ? variableName(state.with) : 'a variable'}`;
   const none = (message) => ({ rows: [], heading, left: null, message });
   if (baseline.length === 1 && baseline[0] === state.visit) {
     return none(
@@ -105,6 +110,9 @@ export function screenRows(settings, state, offered, results = []) {
     if (state.levels.length !== 2) {
       return none('The column of groups has fewer than two groups: a difference compares two.');
     }
+  } else if (state.comparison === 'hazard') {
+    if (!endpoint)
+      return none('Choose an endpoint: a hazard ratio is of an endpoint of the outcomes table.');
   } else if (!state.with) {
     return none('Choose the variable every biomarker is correlated with.');
   }
@@ -127,21 +135,30 @@ export function screenRows(settings, state, offered, results = []) {
 /**
  * Everything the chart hands to R, and what it says of who is in it.
  *
- * @param {{results: object[], participants: ?object[]}} tables The tables.
+ * @param {{results: object[], participants: ?object[], outcomes?: ?object[]}} tables
+ *   The tables; the outcomes table for a hazard ratio.
  * @param {object} settings The chart's settings (syncSettings).
  * @param {object} state What the controls are set to.
- * @param {{measures: string[], visits: string[]}} offered What the tables have.
+ * @param {{measures: string[], visits: string[], endpoints?: object[]}} offered
+ *   What the tables have.
  * @param {object} [options]
  * @param {Function} [options.filterMatches] safety.viz's test of one value
  *   against one filter's selection.
  * @returns {object} The rows of the screen and the frame: `records` holds one
  *   record per participant who has at least one biomarker, with the id, one
  *   field per biomarker, and the column of groups or the variable correlated
- *   with, null where the participant has no value; `participants` is how many
+ *   with, or for a hazard ratio the time and the flag (`censor` or `event`),
+ *   null where the participant has no value; `participants` is how many
  *   were looked at, `empty` how many had none of the biomarkers, and `filtered`
  *   how many passed the filters, or null with no participant table.
  */
-export function buildScreen({ results, participants }, settings, state, offered, options = {}) {
+export function buildScreen(
+  { results, participants, outcomes = null },
+  settings,
+  state,
+  offered,
+  options = {}
+) {
   const { participants: kept, results: rows } = keepFiltered(
     { results, participants },
     settings,
@@ -149,16 +166,24 @@ export function buildScreen({ results, participants }, settings, state, offered,
     options.filterMatches
   );
   const drawn = screenRows(settings, state, offered, results);
+  const hazard = state.comparison === 'hazard';
   const extra =
     state.comparison === 'difference'
       ? { name: state.groupBy, variable: state.groupBy ? { col: state.groupBy } : null }
-      : {
-          name: state.with ? variableName(state.with) : null,
-          variable: state.with ? variableOf(state.with) : null
-        };
+      : hazard
+        ? { name: null, variable: null }
+        : {
+            name: state.with ? variableName(state.with) : null,
+            variable: state.with ? variableOf(state.with) : null
+          };
+  // For a hazard ratio, the outcome beside the biomarkers: the time and the
+  // flag, under the name the outcomes table reads it by.
+  const outcomeFields = hazard ? ['time', flagOf(settings).field] : [];
   const model = {
     ...drawn,
     extra: extra.name,
+    outcomeFields,
+    outcomeGaps: [],
     records: [],
     participants: kept ? kept.length : 0,
     empty: 0,
@@ -170,7 +195,11 @@ export function buildScreen({ results, participants }, settings, state, offered,
   if (drawn.message || !rows.length) return model;
   // A column of the frame is named by its biomarker; one named as another
   // column would be two columns of one name.
-  const names = [settings.id_col, ...drawn.rows.map((row) => row.name), extra.name];
+  const names = [
+    settings.id_col,
+    ...drawn.rows.map((row) => row.name),
+    ...(hazard ? outcomeFields : [extra.name])
+  ];
   const twice = names.find((name, index) => names.indexOf(name) !== index);
   if (twice !== undefined) {
     return {
@@ -191,17 +220,30 @@ export function buildScreen({ results, participants }, settings, state, offered,
       ...Object.fromEntries(
         fields.map((field, index) => [field.key, variableOf(drawn.rows[index].axis)])
       ),
-      [extraKey]: extra.variable
+      ...(extra.variable ? { [extraKey]: extra.variable } : {})
     },
     // None is required: a participant with some of the biomarkers is in the
     // frame, and R counts who each row has.
     { ...coreSettings(settings), required: [] }
   );
-  const named = made.data.map((record) => ({
-    [settings.id_col]: record[settings.id_col],
-    ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]])),
-    [extra.name]: record[extraKey]
-  }));
+  // Each participant's outcome for the endpoint, or nothing where there is none
+  // to use: R leaves them out of every row, and counts them.
+  const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
+  const gaps = new Map();
+  const named = made.data.map((record) => {
+    const row = {
+      [settings.id_col]: record[settings.id_col],
+      ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]]))
+    };
+    if (!hazard) return { ...row, [extra.name]: record[extraKey] };
+    const outcome = outcomeOf(record[settings.id_col]);
+    if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
+    return {
+      ...row,
+      time: outcome.reason ? null : outcome.time,
+      [outcomeFields[1]]: outcome.reason ? null : outcome.flag
+    };
+  });
   // A participant with none of the biomarkers gives no row anything: they are
   // left out of the frame, and counted.
   const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
@@ -214,6 +256,7 @@ export function buildScreen({ results, participants }, settings, state, offered,
     // does not have.
     dropped: made.dropped,
     unused: made.unused,
+    outcomeGaps: [...gaps].map(([reason, n]) => ({ reason, n })),
     baselineVisits: made.baseline_visits
   };
 }
@@ -260,16 +303,33 @@ export function sortRows(rows, sort) {
 /**
  * The one axis every row is drawn on: from the least to the greatest of the
  * estimates and interval ends R returned, with nought always on it, and room at
- * either end. It is unit-free: a standardised difference, or a coefficient.
+ * either end. It is unit-free: a standardised difference, a coefficient, or a
+ * hazard ratio, which is drawn on a logarithmic axis around 1.
  * @param {Array<{estimate: ?number, lower: ?number, upper: ?number}>} rows The rows.
- * @param {string} comparison `difference` or `correlation`.
- * @returns {{min: number, max: number, ticks: number[]}} The ends, and where
- *   the axis is labelled.
+ * @param {string} comparison `difference`, `correlation` or `hazard`.
+ * @returns {{min: number, max: number, ticks: number[], log?: boolean,
+ *   reference?: number}} The ends, and where the axis is labelled; for a hazard
+ *   ratio the axis is logarithmic, and its reference line is at 1, not 0.
  */
 export function axisRange(rows, comparison) {
   const values = rows
     .flatMap((row) => [row.estimate, row.lower, row.upper])
     .filter((value) => typeof value === 'number' && Number.isFinite(value));
+  if (comparison === 'hazard') {
+    // A ratio, on a logarithmic axis, with 1, no difference, always on it:
+    // from the power of two at or below the least ratio to the one at or
+    // above the greatest, at least a half to two.
+    const positive = values.filter((value) => value > 0);
+    const least = Math.min(1, ...positive);
+    const most = Math.max(1, ...positive);
+    let min = 0.5;
+    while (min > least) min /= 2;
+    let max = 2;
+    while (max < most) max *= 2;
+    const ticks = [];
+    for (let at = min; at <= max; at *= 2) ticks.push(at);
+    return { min, max, ticks, log: true, reference: 1 };
+  }
   if (comparison === 'correlation') {
     // A coefficient is from −1 to 1; the axis is the whole of that.
     return { min: -1, max: 1, ticks: [-1, -0.5, 0, 0.5, 1] };
@@ -289,5 +349,9 @@ export function axisRange(rows, comparison) {
  * @param {{min: number, max: number}} range The axis.
  * @returns {number} From 0 at the axis's left end to 100 at its right.
  */
-export const placeOf = (value, { min, max }) =>
-  Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+export const placeOf = (value, { min, max, log = false }) => {
+  const at = log
+    ? (Math.log2(value) - Math.log2(min)) / (Math.log2(max) - Math.log2(min))
+    : (value - min) / (max - min);
+  return Math.min(100, Math.max(0, at * 100));
+};

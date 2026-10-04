@@ -16,48 +16,14 @@
 import { frame } from '../core/frame.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 import { coreSettings } from '../shared/settings.js';
-import { isBlank, keepFiltered, levelsOf } from '../shared/tables.js';
-import { flagOf } from './configure.js';
+import { LEFT_OUT, listEndpoints, outcomesOf } from '../shared/outcomes.js';
+import { keepFiltered, levelsOf } from '../shared/tables.js';
 
-/** Why a participant with a group is not drawn, as the chart says it. */
-export const LEFT_OUT = Object.freeze({
-  NO_OUTCOME: 'No outcome for the endpoint',
-  SEVERAL_OUTCOMES: 'More than one outcome row for the endpoint',
-  MISSING_OUTCOME: 'Time or flag is missing or not a number',
-  NOT_A_FLAG: 'Flag is not 0 or 1',
-  NEGATIVE_TIME: 'Time is negative'
-});
+// Why a participant with a group is not drawn, and the endpoints of an
+// outcomes table: the shared reading's (src/shared/outcomes.js).
+export { LEFT_OUT, listEndpoints };
 
 const grouping = (by) => (isCut(by) ? by : { col: by });
-const numberOf = (value) => {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-  if (typeof value !== 'string' || value.trim() === '') return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-};
-
-/**
- * The endpoints of an outcomes table, by name with numbers as numbers, each
- * with its label where the table has one.
- * @param {object[]} outcomes The outcomes table.
- * @param {object} settings The chart's settings.
- * @returns {Array<{endpoint: string, label: string}>}
- */
-export function listEndpoints(outcomes, settings) {
-  return levelsOf(outcomes.map((row) => row[settings.endpoint_col])).map((endpoint) => {
-    const labelled = settings.endpoint_label_col
-      ? outcomes.find(
-          (row) =>
-            String(row[settings.endpoint_col]) === endpoint &&
-            !isBlank(row[settings.endpoint_label_col])
-        )
-      : null;
-    return {
-      endpoint,
-      label: labelled ? String(labelled[settings.endpoint_label_col]) : endpoint
-    };
-  });
-}
 
 /**
  * Times to count the at-risk strip at: from 0 to the last time, in steps of 1,
@@ -164,16 +130,8 @@ export function buildSurvival(
     config
   );
 
-  // The endpoint's rows of the outcomes table, by participant.
-  const outcomeId = settings.outcome_id_col || idCol;
-  const flag = flagOf(settings);
-  const byId = new Map();
-  for (const row of outcomes) {
-    if (String(row[settings.endpoint_col]) !== state.endpoint || isBlank(row[outcomeId])) continue;
-    const id = String(row[outcomeId]);
-    byId.set(id, [...(byId.get(id) || []), row]);
-  }
-
+  // Each participant's outcome for the endpoint.
+  const outcomeOf = outcomesOf(outcomes, settings, state.endpoint);
   const left = new Map();
   const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
   const records = [];
@@ -181,35 +139,17 @@ export function buildSurvival(
   for (const record of made.data) {
     const id = String(record[idCol]);
     if (cut) values.push(record.group);
-    const found = byId.get(id) || [];
-    if (!found.length) {
-      leave(LEFT_OUT.NO_OUTCOME);
-      continue;
-    }
-    if (found.length > 1) {
-      leave(LEFT_OUT.SEVERAL_OUTCOMES);
-      continue;
-    }
-    const time = numberOf(found[0][settings.time_col]);
-    const flagged = numberOf(found[0][flag.col]);
-    if (time === null || flagged === null) {
-      leave(LEFT_OUT.MISSING_OUTCOME);
-      continue;
-    }
-    if (flagged !== 0 && flagged !== 1) {
-      leave(LEFT_OUT.NOT_A_FLAG);
-      continue;
-    }
-    if (time < 0) {
-      leave(LEFT_OUT.NEGATIVE_TIME);
+    const outcome = outcomeOf(id);
+    if (outcome.reason) {
+      leave(outcome.reason);
       continue;
     }
     records.push({
       [idCol]: id,
       group: cut ? groupLabel(record.group, cut) : String(record.group),
-      time,
-      flag: flagged,
-      event: flag.field === 'censor' ? flagged === 0 : flagged === 1
+      time: outcome.time,
+      flag: outcome.flag,
+      event: outcome.event
     });
   }
 

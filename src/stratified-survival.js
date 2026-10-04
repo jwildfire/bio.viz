@@ -29,7 +29,7 @@ import { createConnection } from './r/connection.js';
 import { cutGroup } from './core/cut.js';
 import { UNUSED } from './core/reasons.js';
 import { label as variableLabel } from './core/variable.js';
-import { flagOf, syncSettings } from './stratified-survival/configure.js';
+import { syncSettings } from './stratified-survival/configure.js';
 import { movePoints } from './stratified-survival/drag.js';
 import {
   ONE_GROUP,
@@ -53,6 +53,7 @@ import {
   mountToolbar,
   railSettings,
   readGiven,
+  readOutcomesGiven,
   selectParticipant,
   showListing,
   syncHost,
@@ -60,6 +61,7 @@ import {
   writeStatistic
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
+import { checkOutcomes } from './shared/outcomes.js';
 import { refuse } from './shared/settings.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
 
@@ -109,9 +111,6 @@ const uncutLabel = (spec) => {
   delete plain.cut;
   return variableLabel(plain);
 };
-
-const isRecordTable = (rows) =>
-  Array.isArray(rows) && rows.every((row) => row !== null && typeof row === 'object');
 
 /**
  * The live chart. Made by `stratifiedSurvival()`, not directly.
@@ -205,7 +204,7 @@ class StratifiedSurvival {
         : syncSettings({ ...this.settings, ...settings });
     const given = Array.isArray(data) ? { results: data } : data || {};
     const read = readGiven(this, given, next);
-    const outcomes = this.readOutcomes(given.outcomes, next);
+    const outcomes = readOutcomesGiven(this, given.outcomes, next);
     this.tables = { ...read, outcomes };
     if (next !== this.settings) this.setSettings(settings);
     this.readTables();
@@ -214,24 +213,6 @@ class StratifiedSurvival {
     this.buildControls();
     this.render();
     return this;
-  }
-
-  // The outcomes table, checked: an array of records with the columns the
-  // settings name, or null when there is none.
-  readOutcomes(outcomes, settings) {
-    if (outcomes === undefined || outcomes === null) return null;
-    try {
-      if (!isRecordTable(outcomes)) {
-        refuse('`outcomes` must be an array of records, one object per row.');
-      }
-      checkOutcomes(outcomes, settings);
-    } catch (error) {
-      this.destroyCharts();
-      this.element.innerHTML = '';
-      this.element.append(this.kit.createElement('div', 'sv-warning', error.message));
-      throw error;
-    }
-    return outcomes.length ? outcomes : null;
   }
 
   /**
@@ -1004,27 +985,6 @@ class StratifiedSurvival {
     this.destroyCharts();
     this.kit.unmountProfileRail(this.host);
     this.element.innerHTML = '';
-  }
-}
-
-// The outcomes table must have the columns the settings name: the endpoint,
-// the participant's id, the time and the flag.
-function checkOutcomes(outcomes, settings) {
-  if (!outcomes.length) return;
-  const flag = flagOf(settings);
-  const needed = [
-    ['endpoint_col', settings.endpoint_col],
-    [
-      settings.outcome_id_col ? 'outcome_id_col' : 'id_col',
-      settings.outcome_id_col || settings.id_col
-    ],
-    ['time_col', settings.time_col],
-    [flag.field === 'censor' ? 'censor_col' : 'event_col', flag.col]
-  ];
-  for (const [key, column] of needed) {
-    if (!outcomes.some((row) => column in row)) {
-      refuse(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
-    }
   }
 }
 
