@@ -243,6 +243,7 @@ const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
 <p>A field&#39;s name is the name the caller gave its variable, so it is stable whatever the biomarker is called, and two variables on the same biomarker are told apart by their names: <code>{ week4: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39; }, change: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; } }</code>. R takes any name as a column name here; a short plain one (<code>y</code>, <code>x</code>, <code>v1</code>) is easiest to read in R&#39;s messages.</p>
 <h2 id="portfolio"><code>portfolio</code></h2>
 <p>The chart list: an object naming every chart the library offers, in <a href="https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json">safety.viz&#39;s portfolio manifest format</a>, version 2, so safety.viz&#39;s demo app can list bio.viz&#39;s charts and draw them beside its own on the files a study already has. It is <code>src/data/portfolio.json</code>, and the site publishes the same list at <code>portfolio.json</code>, with the format beside it at <code>schema/portfolio.json</code>.</p>
+<p>One chart is not in it: the <a href="../stratified-survival/api.html">stratified survival chart</a> reads an outcomes table, which no standard domain of the format holds, so the app could not hand it one (<a href="https://github.com/jwildfire/bio.viz/issues/63">#63</a>).</p>
 <pre><code class="language-js">BioViz.portfolio.version; // 2
 Object.keys(BioViz.portfolio.modules);
 // [&#39;group-comparison&#39;, &#39;association-scatter&#39;, &#39;correlation-matrix&#39;, &#39;biomarker-screen&#39;, &#39;cross-tab&#39;]</code></pre>
@@ -272,7 +273,7 @@ Object.keys(BioViz.portfolio.modules);
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/adcdb416f3b56dfafdf317c08d8148cb17969dd9"><code>adcdb41</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/381af5fd32c3c9539dd94b4e1c6cd6914476cca2"><code>381af5f</code></a>.
       </p>
       <p>
         Built in the open — follow the

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stratified survival: API reference · bio.viz</title>
+    <meta name="description" content="The interface of the bio.viz Stratified survival module: what it exports, what each call takes and what it answers." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.1.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../gallery/index.html">Gallery</a>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main ">
+<section class="hero">
+  <p class="eyebrow">API reference</p>
+  <h1>The stratified survival chart</h1>
+  <nav class="page-tabs" aria-label="Pages for this module"><a href="../gallery/index.html">Gallery</a><a href="index.html">Live demo</a><a href="evidence.html">Evidence</a><a class="current" aria-current="page" href="api.html">API reference</a></nav>
+</section>
+
+<nav class="api-toc" aria-label="On this page">
+  <h2>On this page</h2>
+  <ul><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#stratifiedsurvivalelement-settings"><code>stratifiedSurvival(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#moving-a-cut-line">Moving a cut line</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+</nav>
+
+<article class="api-body">
+<p>Do participants with high and low levels of this biomarker have different outcomes? The chart draws a Kaplan–Meier curve for each group, with a mark at each censored time and the number at risk beneath, above a small histogram of the biomarker that shows where the cut falls and how many participants land on each side. The groups are a column&#39;s, or a biomarker or a participant-level number cut by the core&#39;s shared <a href="../core/api.html#the-cut-rule">cut rule</a>. A cut&#39;s line on the histogram can be dragged: the curves follow it at once, and when it is let go the cut becomes a typed point and R is asked again. Under the curves, R&#39;s log-rank test of the groups is printed with each group&#39;s median survival and its interval and, for two groups, the hazard ratio with its interval. A click on a curve, or on a count of the at-risk strip, lists its participants, and a row of the listing opens safety.viz&#39;s participant profile.</p>
+<pre><code class="language-js">BioViz.stratifiedSurvival(&#39;#chart&#39;, {
+  endpoint: &#39;EFS&#39;,
+  group_by: { measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;median&#39; },
+  connection: BioViz.r.createConnection({
+    browser: { sourceUrl: &#39;vendor/gsm.bio/statistics.R&#39;, packages: [&#39;survival&#39;] }
+  })
+}).init({ results, participants, outcomes });</code></pre>
+<p>Experimental: the curves are safety.viz&#39;s estimator, <code>kmEstimate</code>, which awaits its clinical review.</p>
+<h2 id="what-the-page-loads">What the page loads</h2>
+<p>safety.viz&#39;s script-tag bundle first, then bio.viz&#39;s: the chart is built from safety.viz&#39;s kit, which it finds on the page as <code>SafetyViz.kit</code> when it is made. Its curves are the kit&#39;s <code>kmEstimate</code>, and they and the histogram are drawn with the kit&#39;s Chart.js. Without safety.viz on the page the chart is refused with a message saying what is missing. R in the browser needs the survival package, which gsm.bio&#39;s <code>Analyze_Survival</code> calls: give it in the connection&#39;s <code>browser.packages</code>.</p>
+<h2 id="stratifiedsurvivalelement-settings"><code>stratifiedSurvival(element, settings)</code></h2>
+<p>Makes the chart in <code>element</code>, a DOM element or a CSS selector for one, with <code>settings</code> laid over the defaults below. The controls are drawn at once; the tables are given to <code>init</code>. A setting that is not known, or a value a setting cannot take, is refused: <code>stratifiedSurvival</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> and names the setting.</p>
+<h2 id="the-tables">The tables</h2>
+<p><code>init</code> and <code>setData</code> take <code>{ results, participants, outcomes }</code>, each an array of records, one object per row. <code>results</code> and <code>participants</code> are the tables the <a href="../core/api.html">core</a> reads, and the column settings are the core&#39;s. The groups come from them: a column of the participant table, or of the results rows, or a biomarker cut at a visit.</p>
+<p><code>outcomes</code> is one row per participant and endpoint, with the time and a flag, as ADaM&#39;s time-to-event datasets hold them: by default <code>PARAMCD</code> names the endpoint, <code>PARAM</code> says it in words, <code>AVAL</code> is the time, and <code>CNSR</code> is ADaM&#39;s censor flag, 1 for censored and 0 for an event. The flag may be read the other way round, as an event flag, 1 for an event: name it with <code>event_col</code>, as gsm.bio&#39;s <code>Analyze_Survival</code> takes <code>strCensorCol</code> or <code>strEventCol</code>. Exactly one is named. An outcomes table without a column the settings name is refused, with a message that names the column. Without an outcomes table the chart draws nothing and says that it needs one, with its controls.</p>
+<p>A participant with a group and no row for the endpoint is left out and counted (<code>No outcome for the endpoint</code>), and so is one with more than one row for it, one whose time or flag is missing or not a number, one whose flag is not 0 or 1, and one whose time is below 0. A flag may also be logical, <code>true</code> or <code>false</code>, or written <code>TRUE</code> or <code>FALSE</code>, as R&#39;s <code>Analyze_Survival</code> takes one. A row of the outcomes table for a participant neither the participant table nor the results have is not used, and counted (<code>Outcome row for no such participant</code>). A participant with no group is left out and counted as the core counts it. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads <code>No participant passes the filters.</code>, the words every chart uses. If drawing fails for any other reason, the footnote says <code>This chart could not be drawn:</code> and why, nothing half drawn is left, and the controls stay.</p>
+<h2 id="the-charts-methods">The chart&#39;s methods</h2>
+<table class="doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
+<tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data, settings)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. <code>settings</code>, when given, are laid over the chart&#39;s with the tables, for tables that need them, and the tables are checked against those settings.</td></tr>
+<tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays new settings over the current ones and draws again. A setting that says what the chart opens on (<code>endpoint</code>, <code>group_by</code>, <code>filters</code>) moves its control.</td></tr>
+<tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws again from the tables, the settings and the controls, and asks R again.</td></tr>
+<tr><td data-label="Method"><code>chart.moveCut(index, value)</code></td><td data-label="What it does">Moves a cut line, as dragging it does: the curves, the at-risk strip and the histogram follow at once, and R is not asked. Returns the cut points drawn, or null when the line cannot go there.</td></tr>
+<tr><td data-label="Method"><code>chart.dropCut(index, value)</code></td><td data-label="What it does">Lets a cut line go at <code>value</code>, as dropping it does: the cut becomes typed points, the moved one as its label writes it, and R is asked. Returns the typed points, or null when the line cannot go there.</td></tr>
+<tr><td data-label="Method"><code>chart.listGroup(level)</code></td><td data-label="What it does">Lists the participants of one group, as a click on its curve does, and returns them.</td></tr>
+<tr><td data-label="Method"><code>chart.listAtRisk(level, time)</code></td><td data-label="What it does">Lists the participants of a group at risk at a time, as a click on that count of the at-risk strip does, and returns them.</td></tr>
+<tr><td data-label="Method"><code>chart.statistics()</code></td><td data-label="What it does">What the chart has asked R for the view now drawn and what R answered: <code>[{ name, args, dataId, rows, answer }]</code>, or none when nothing is asked.</td></tr>
+<tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the curves and the histogram to their containers.</td></tr>
+<tr><td data-label="Method"><code>chart.destroy()</code></td><td data-label="What it does">Takes the chart down. A destroyed chart cannot be used again.</td></tr></tbody></table>
+<h2 id="settings">Settings</h2>
+<table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>id_col</code></td><td data-label="Default"><code>&#39;USUBJID&#39;</code></td><td data-label="What it is">The participant&#39;s id, in the results table.</td></tr>
+<tr><td data-label="Setting"><code>measure_col</code></td><td data-label="Default"><code>&#39;TEST&#39;</code></td><td data-label="What it is">The biomarker&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>value_col</code></td><td data-label="Default"><code>&#39;STRESN&#39;</code></td><td data-label="What it is">The result.</td></tr>
+<tr><td data-label="Setting"><code>visit_col</code></td><td data-label="Default"><code>&#39;VISIT&#39;</code></td><td data-label="What it is">The visit.</td></tr>
+<tr><td data-label="Setting"><code>visit_order_col</code></td><td data-label="Default"><code>&#39;VISITNUM&#39;</code></td><td data-label="What it is">A number that orders the visits. May be null.</td></tr>
+<tr><td data-label="Setting"><code>unit_col</code></td><td data-label="Default"><code>&#39;STRESU&#39;</code></td><td data-label="What it is">The unit. May be null.</td></tr>
+<tr><td data-label="Setting"><code>participant_id_col</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The participant&#39;s id in the participant table. Null means <code>id_col</code>&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>baseline_visits</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.</td></tr>
+<tr><td data-label="Setting"><code>baseline_stat</code></td><td data-label="Default"><code>&#39;mean&#39;</code></td><td data-label="What it is">How several baseline results are brought to one: <code>mean</code>, <code>min</code>, <code>max</code> or <code>first</code>.</td></tr>
+<tr><td data-label="Setting"><code>outcome_id_col</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The participant&#39;s id in the outcomes table. Null means <code>id_col</code>&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>endpoint_col</code></td><td data-label="Default"><code>&#39;PARAMCD&#39;</code></td><td data-label="What it is">The endpoint, in the outcomes table.</td></tr>
+<tr><td data-label="Setting"><code>endpoint_label_col</code></td><td data-label="Default"><code>&#39;PARAM&#39;</code></td><td data-label="What it is">The endpoint in words, for the Endpoint control and the time axis. May be null.</td></tr>
+<tr><td data-label="Setting"><code>time_col</code></td><td data-label="Default"><code>&#39;AVAL&#39;</code></td><td data-label="What it is">The time to the event or to censoring.</td></tr>
+<tr><td data-label="Setting"><code>censor_col</code></td><td data-label="Default"><code>&#39;CNSR&#39;</code></td><td data-label="What it is">The censor flag: 1 for censored, 0 for an event. Null when <code>event_col</code> is named; naming <code>event_col</code> alone sets it to null.</td></tr>
+<tr><td data-label="Setting"><code>event_col</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The event flag, 1 for an event, 0 for censored, in place of <code>censor_col</code>.</td></tr>
+<tr><td data-label="Setting"><code>endpoint</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The endpoint the chart opens on. Null means the first.</td></tr>
+<tr><td data-label="Setting"><code>group_by</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The groups: a column&#39;s name, or a cut variable (<code>{ measure, visit, cut }</code> or <code>{ col, type: &#39;number&#39;, cut }</code>). Null means the first column offered.</td></tr>
+<tr><td data-label="Setting"><code>cuts</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">Cut variables the Groups control offers beside the columns, as a list.</td></tr>
+<tr><td data-label="Setting"><code>at_risk_times</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The times the at-risk strip counts at, ascending. Null means the time axis&#39;s ticks.</td></tr>
+<tr><td data-label="Setting"><code>measures</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The biomarkers the participant profile shows, in order. Null means every biomarker.</td></tr>
+<tr><td data-label="Setting"><code>groups</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The columns the Groups control offers, as <code>{ value_col, label }</code>. Null means every category column.</td></tr>
+<tr><td data-label="Setting"><code>max_levels</code></td><td data-label="Default"><code>12</code></td><td data-label="What it is">The most different values a column may hold and still be a category.</td></tr>
+<tr><td data-label="Setting"><code>filters</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The filters, as <code>{ value_col, label, start, all }</code>. Null means every category column of the participant table.</td></tr>
+<tr><td data-label="Setting"><code>details</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The listing&#39;s columns. Null means the participant, the group, the time and the outcome.</td></tr>
+<tr><td data-label="Setting"><code>page_size</code></td><td data-label="Default"><code>10</code></td><td data-label="What it is">The listing&#39;s rows on a page.</td></tr>
+<tr><td data-label="Setting"><code>connection</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The connection to R (<a href="../r-connection/api.html"><code>BioViz.r.createConnection</code></a>). Null means none: the line says statistics are unavailable.</td></tr>
+<tr><td data-label="Setting"><code>statistic</code></td><td data-label="Default"><code>&#39;Analyze_Survival&#39;</code></td><td data-label="What it is">The R function the test is asked of. Null for no statistics line.</td></tr>
+<tr><td data-label="Setting"><code>waiting_note</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.</td></tr>
+<tr><td data-label="Setting"><code>back</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">A way back, when another chart opened this one in its place: <code>{ label, action }</code>.</td></tr>
+<tr><td data-label="Setting"><code>profile</code></td><td data-label="Default"><code>true</code></td><td data-label="What it is">Whether a row of the listing opens safety.viz&#39;s participant profile.</td></tr>
+<tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The columns the profile&#39;s header shows. Null means the category columns.</td></tr>
+<tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The study day, for the profile. May be null.</td></tr>
+<tr><td data-label="Setting"><code>normal_col_high</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The upper limit of normal, for the profile. May be null.</td></tr>
+<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The lower limit of normal, for the profile. May be null.</td></tr></tbody></table>
+<h2 id="what-is-drawn">What is drawn</h2>
+<ul><li>The curves: each group&#39;s Kaplan–Meier estimate, the kit&#39;s <code>kmEstimate</code>, drawn as steps from 1 at time 0 to the group&#39;s last time, with a short upright mark at each censored time. A cut&#39;s groups run low to high, labelled with their bounds; a column&#39;s are in order of name. The legend gives each group&#39;s number of participants, and hides nothing when clicked. No confidence band is drawn, and none is worked out here: the chart reads only the estimate&#39;s steps and censored times, never the bounds <code>kmEstimate</code> also returns. A click lists a group only when it is on that group&#39;s curve, within a few pixels.</li><li>The at-risk strip: for each group, the number at risk at each time of the axis, the participants whose time is at or after it. A group&#39;s name lists its participants, and a count lists the participants it counts.</li><li>The histogram, for a cut variable: the values the cut points were worked out on, in equal bars, with a dashed line at each cut point and how many values fall in each group. Each line can be dragged with a pointer, and each is a slider of its own for the keyboard (see <a href="#moving-a-cut-line">moving a cut line</a>).</li><li>A cut&#39;s points are worked out on the participants the filters keep who have a value of the cut variable and an outcome for the endpoint: the ones the curves are drawn of, so the median cuts them in halves, as R&#39;s <code>Analyze_Screen</code> cuts a biomarker for its hazard ratio. The footnote says so.</li><li>The footnote: how to list a group, and how the variable was cut.</li></ul>
+<h2 id="moving-a-cut-line">Moving a cut line</h2>
+<p>A line is taken hold of within a few pixels of it, more with a finger, and moves by as much as the pointer moves from where it took hold: a click on or beside a line, with no drag, leaves it where it is and asks R nothing. From the keyboard, each line is a slider (<code>role=&quot;slider&quot;</code>, with its value and how far it can go): the left and right arrows move it by one bar of the histogram, Page Up and Page Down by five, Home and End as far as it can go; the curves follow each key, and R is asked once the keys have rested. While a line is held the curves, the at-risk strip and the histogram follow it at once, drawn for the cut where the line is, and the statistics line says that R is asked when the line is let go: no answer for another cut stays on screen. When it is let go the line lands on the point its label writes, four significant digits, so the point in the settings, in the key R&#39;s stored result is found by and on the label are one number. The cut becomes typed points (the median <code>2.783</code>, moved to <code>4</code>, is <code>cut: [4]</code>), the Groups control holds it, and R is asked for the new groups. A line cannot pass its neighbour, nor stop where two points would be written alike, nor leave the values it cuts: it stays between the least and the greatest. Reset returns to the cut the settings name.</p>
+<h2 id="the-statistics-line">The statistics line</h2>
+<p>R is asked once per view, with one row per participant drawn: the id, <code>time</code>, <code>group</code>, and the flag, <code>censor</code> or <code>event</code>, as the outcomes table gives it. The line says it is waiting until R answers, and a change to a control, a filter or the cut clears it and asks again; an answer to a question no longer on screen is never shown. R&#39;s log-rank result is printed with its method and counts, labelled exploratory and unadjusted. Under it, each group&#39;s median survival with its log-log interval, as R&#39;s <code>survfit()</code> gives it, a median or a bound the curve did not reach reading <code>not reached</code>; and, for two groups, the hazard ratio with its interval, Cox&#39;s: for a cut, the hazard in the higher group over the hazard in the lower. Where R does not estimate the hazard ratio, as when one group has no event, it is not printed, and R&#39;s note says why. What R said about its answer is printed as R worded it. The chart computes no test statistic, no p-value, no median and no hazard ratio. With no R attached the curves are still drawn, and the line says that statistics are unavailable.</p>
+<h3 id="what-r-is-asked">What R is asked</h3>
+<pre><code class="language-js">connection.run(&#39;Analyze_Survival&#39;, {
+  data, // one row per participant drawn: the id, time, group, censor (or event)
+  args: {
+    strTimeCol: &#39;time&#39;,
+    strGroupCol: &#39;group&#39;,
+    strCensorCol: &#39;censor&#39;, // or strEventCol: &#39;event&#39;
+    chrGroups: [&#39;&gt; 2.783&#39;, &#39;≤ 2.783&#39;] // a cut&#39;s high to low, a column&#39;s by code point
+  },
+  dataId // what the rows are: see below
+});</code></pre>
+<p>The groups R is handed are in an order that depends on nothing but them: a cut&#39;s high to low, a column&#39;s sorted by code point, as R&#39;s <code>sort(method = &quot;radix&quot;)</code> sorts them, the same in every browser and every language. The hazard ratio is the first group&#39;s hazard over the second&#39;s, so for a cut it is the higher group&#39;s over the lower&#39;s, as the biomarker screen&#39;s &quot;High / Low&quot; is; The line lists the medians in the legend&#39;s order, and names a cut&#39;s hazard ratio <code>Hazard ratio, high over low</code>.</p>
+<p><code>dataId</code> states what the rows are, so a <a href="../r-connection/api.html#stored-results">stored result</a> is found by the function&#39;s name, these arguments and this identity together:</p>
+<table class="doc-table"><thead><tr><th scope="col">Member</th><th scope="col">What it is</th><th scope="col">Left out when</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>chart</code></td><td data-label="What it is"><code>&#39;stratified-survival&#39;</code>.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>endpoint</code></td><td data-label="What it is">The endpoint.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>group_by</code></td><td data-label="What it is">The groups: the column&#39;s name, or the cut variable as the settings write it, typed points as a list.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>baseline_visits</code></td><td data-label="What it is">The setting, as a list.</td><td data-label="Left out when">the setting is null, or the cut biomarker reads no baseline</td></tr>
+<tr><td data-label="Member"><code>baseline_stat</code></td><td data-label="What it is">The setting.</td><td data-label="Left out when">the cut biomarker reads no baseline</td></tr>
+<tr><td data-label="Member"><code>filters</code></td><td data-label="What it is">An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point.</td><td data-label="Left out when">no filter is in force</td></tr></tbody></table>
+<p>A cut biomarker reads a baseline when its value is the baseline or a change from it (<code>value</code> other than <code>raw</code>). The R recipe that writes the same key is <code>survival_key</code> in <code>tools/r-survival.R</code>, which writes the expected results the tests hold this chart to: each group&#39;s curve as <code>survfit()</code> gives it, and what <code>Analyze_Survival</code> answers.</p>
+<h2 id="on-a-phone">On a phone</h2>
+<p>At 390 pixels the controls start folded away, the at-risk strip scrolls inside its own box when it is wider than the screen, and the page does not scroll sideways.</p>
+<h2 id="what-is-not-here">What is not here</h2>
+<p>No test statistic, p-value, median, hazard ratio, confidence band or adjustment is computed here: the chart draws the kit&#39;s product-limit estimate and counts who is at risk, which describe the participants, and every test and estimate printed is R&#39;s.</p>
+</article>
+
+<p class="sub" id="api-source">
+  This page is the file <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/stratified-survival.md"><code>docs/stratified-survival.md</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/381af5fd32c3c9539dd94b4e1c6cd6914476cca2"><code>381af5f</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>

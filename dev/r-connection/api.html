@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#formatgrouprow"><code>formatGroup(row)</code></a></li><li><a href="#formatpairrow"><code>formatPair(row)</code></a></li><li><a href="#formatscreenrowrow-groups"><code>formatScreenRow(row, groups)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#createconnectionoptions"><code>createConnection(options)</code></a></li><li><a href="#connectionrunname--data-args-dataid-"><code>connection.run(name, { data, args, dataId })</code></a></li><li><a href="#what-r-receives-and-returns">What R receives and returns</a></li><li><a href="#stored-results">Stored results</a></li><li><a href="#the-browser-form">The browser form</a></li><li><a href="#webr_version-and-webr_base_url"><code>WEBR_VERSION</code> and <code>WEBR_BASE_URL</code></a></li><li><a href="#formatstatisticstatistic"><code>formatStatistic(statistic)</code></a></li><li><a href="#formatestimateestimate"><code>formatEstimate(estimate)</code></a></li><li><a href="#formatmedianestimate"><code>formatMedian(estimate)</code></a></li><li><a href="#formatcomparisoncomparison"><code>formatComparison(comparison)</code></a></li><li><a href="#formatgrouprow"><code>formatGroup(row)</code></a></li><li><a href="#formatpairrow"><code>formatPair(row)</code></a></li><li><a href="#formatscreenrowrow-groups"><code>formatScreenRow(row, groups)</code></a></li><li><a href="#checked-against-real-r">Checked against real R</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -166,6 +166,13 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="status"><code>shown</code></td><td data-label="When">The estimate has a name and a number, and R gave no interval.</td><td data-label="text"><code>Mean (Placebo): 0.02473.</code></td></tr>
 <tr><td data-label="status"><code>refused</code></td><td data-label="When">It has no name, no finite number, or an interval with a part missing.</td><td data-label="text"><code>Estimate not shown: the interval of Difference in means is incomplete.</code></td></tr></tbody></table>
 <p>Each number is printed to four significant figures, without trailing zeros, and is otherwise R&#39;s: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, <code>0.95</code> as <code>95%</code>.</p>
+<h2 id="formatmedianestimate"><code>formatMedian(estimate)</code></h2>
+<p>Formats one median survival time R returned: a row of <code>estimates</code> from gsm.bio&#39;s <code>Analyze_Survival</code>, named <code>Median</code>. It reads <code>name</code>, <code>group</code>, <code>estimate</code>, and the interval as <code>lower</code>, <code>upper</code> and <code>level</code>. R gives no median, or no bound, where the curve or its band did not fall to one half, and says so in its note; that part reads <code>not reached</code>.</p>
+<table class="doc-table"><thead><tr><th scope="col"><code>status</code></th><th scope="col">When</th><th scope="col"><code>text</code></th></tr></thead>
+<tbody><tr><td data-label="status"><code>shown</code></td><td data-label="When">The median has a name and a level, and each part is a number or missing.</td><td data-label="text"><code>Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.</code></td></tr>
+<tr><td data-label="status"><code>shown</code></td><td data-label="When">R reached no median and no bound.</td><td data-label="text"><code>Median (Late): not reached, 95% confidence interval not reached.</code></td></tr>
+<tr><td data-label="status"><code>refused</code></td><td data-label="When">It has no name, a part that is neither a number nor missing, or no level.</td><td data-label="text"><code>Estimate not shown: the interval of Median has no level.</code></td></tr></tbody></table>
+<p>Each number is printed to four significant figures, as <code>formatEstimate</code> prints one, and is otherwise R&#39;s: nothing is computed, and a missing part is never filled in.</p>
 <h2 id="formatcomparisoncomparison"><code>formatComparison(comparison)</code></h2>
 <p>Formats one comparison of two groups from a result&#39;s <code>rows</code>, such as one pairwise comparison, by the rules a whole result is held to: its p-value is given only with its method, the two groups&#39; counts and its label. It reads <code>group_1</code>, <code>group_2</code>, <code>n_1</code>, <code>n_2</code>, <code>method</code>, <code>p_value</code> (the adjusted one, when R adjusted), <code>adjustment</code>, <code>status</code> and <code>reason</code>.</p>
 <p>It returns the sentence, and its parts for a chart that prints the comparisons as a table:</p>
@@ -245,7 +252,7 @@ if (result.status === &#39;ok&#39;) {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/adcdb416f3b56dfafdf317c08d8148cb17969dd9"><code>adcdb41</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/381af5fd32c3c9539dd94b4e1c6cd6914476cca2"><code>381af5f</code></a>.
       </p>
       <p>
         Built in the open — follow the
