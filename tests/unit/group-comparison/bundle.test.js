@@ -71,7 +71,9 @@ describe('bundle: the chart ships, safety.viz and Chart.js do not', () => {
         'sv-sidebar-toggle',
         'safety-viz-shell-styles',
         'function renderShell',
-        'kmEstimate',
+        // The kit's estimator is called by name (the survival chart, #61); a
+        // bundled copy would carry its definition.
+        'function kmEstimate',
         'node_modules'
       ]) {
         expect(code, `${file}: ${marker}`).not.toContain(marker);

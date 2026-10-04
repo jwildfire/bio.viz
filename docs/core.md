@@ -349,6 +349,8 @@ A field's name is the name the caller gave its variable, so it is stable whateve
 
 The chart list: an object naming every chart the library offers, in [safety.viz's portfolio manifest format](https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json), version 2, so safety.viz's demo app can list bio.viz's charts and draw them beside its own on the files a study already has. It is `src/data/portfolio.json`, and the site publishes the same list at `portfolio.json`, with the format beside it at `schema/portfolio.json`.
 
+One chart is not in it: the [stratified survival chart](stratified-survival.md) reads an outcomes table, which no standard domain of the format holds, so the app could not hand it one ([#63](https://github.com/jwildfire/bio.viz/issues/63)).
+
 ```js
 BioViz.portfolio.version; // 2
 Object.keys(BioViz.portfolio.modules);

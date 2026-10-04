@@ -211,6 +211,18 @@ It returns `{ status, text }`:
 
 Each number is printed to four significant figures, without trailing zeros, and is otherwise R's: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, `0.95` as `95%`.
 
+## `formatMedian(estimate)`
+
+Formats one median survival time R returned: a row of `estimates` from gsm.bio's `Analyze_Survival`, named `Median`. It reads `name`, `group`, `estimate`, and the interval as `lower`, `upper` and `level`. R gives no median, or no bound, where the curve or its band did not fall to one half, and says so in its note; that part reads `not reached`.
+
+| `status`  | When                                                                      | `text`                                                                   |
+| --------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `shown`   | The median has a name and a level, and each part is a number or missing.  | `Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.` |
+| `shown`   | R reached no median and no bound.                                         | `Median (Late): not reached, 95% confidence interval not reached.`       |
+| `refused` | It has no name, a part that is neither a number nor missing, or no level. | `Estimate not shown: the interval of Median has no level.`               |
+
+Each number is printed to four significant figures, as `formatEstimate` prints one, and is otherwise R's: nothing is computed, and a missing part is never filled in.
+
 ## `formatComparison(comparison)`
 
 Formats one comparison of two groups from a result's `rows`, such as one pairwise comparison, by the rules a whole result is held to: its p-value is given only with its method, the two groups' counts and its label. It reads `group_1`, `group_2`, `n_1`, `n_2`, `method`, `p_value` (the adjusted one, when R adjusted), `adjustment`, `status` and `reason`.

@@ -169,7 +169,8 @@ describe('module registry', () => {
       ['association-scatter', 'chart'],
       ['correlation-matrix', 'chart'],
       ['biomarker-screen', 'chart'],
-      ['cross-tab', 'chart']
+      ['cross-tab', 'chart'],
+      ['stratified-survival', 'chart']
     ]);
   });
 

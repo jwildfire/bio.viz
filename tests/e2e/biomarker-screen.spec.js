@@ -1443,7 +1443,8 @@ test.describe('biomarker screen: on the site', () => {
       'association-scatter',
       'correlation-matrix',
       'biomarker-screen',
-      'cross-tab'
+      'cross-tab',
+      'stratified-survival'
     ]);
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/biomarker-screen\/evidence\.html$/);

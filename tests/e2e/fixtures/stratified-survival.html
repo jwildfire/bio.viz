@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bio.viz stratified survival fixture</title>
+    <style>
+      body {
+        margin: 16px;
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stratified survival fixture</h1>
+    <p>
+      Playwright harness page for the stratified survival chart (#61). It loads safety.viz's
+      vendored bundle and then bio.viz's committed bundle, as two script tags, and draws the chart
+      on the vendored synthetic study. <code>?data=</code> chooses the tables: <code>all</code>
+      (the results, the participant table and the outcomes table, the default) or
+      <code>no-outcomes</code> (the results and the participant table). The chart opens on
+      event-free survival by CRP at Baseline cut at its median. <code>?make=no</code> loads the
+      tables and makes no chart, for a test that makes its own. The tests reach the chart as
+      <code>window.__ss.chart</code>.
+    </p>
+    <div id="chart"></div>
+    <script src="/site/vendor/safety.viz/safety.viz.js"></script>
+    <script src="/dist/bio.viz-0.1.0/bio.viz.js"></script>
+    <script src="/site/demo/synthetic-study.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const which = params.get('data') || 'all';
+      const study = '/site/data/synthetic-study/';
+
+      function tables() {
+        return Promise.all([BioVizDemo.loadStudy(study), BioVizDemo.loadOutcomes(study)]).then(
+          ([loaded, outcomes]) => (which === 'no-outcomes' ? loaded : { ...loaded, outcomes })
+        );
+      }
+
+      // A test may set these before the chart is made.
+      window.__ssSettings = window.__ssSettings || {};
+      window.__ss = {
+        ready: tables().then((data) => {
+          window.__ss.data = data;
+          if (params.get('make') === 'no') return null;
+          const settings = Object.assign(
+            {
+              group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+              baseline_visits: 'Baseline'
+            },
+            window.__ssSettings
+          );
+          const chart = BioViz.stratifiedSurvival('#chart', settings);
+          window.__ss.chart = chart;
+          chart.init(data);
+          return chart;
+        })
+      };
+    </script>
+  </body>
+</html>

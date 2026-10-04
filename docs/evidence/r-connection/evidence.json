@@ -1,16 +1,13 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-04T01:52:01.637Z",
+  "generatedAt": "2026-10-04T03:50:40.069Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37169270853",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37169270853"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -738,6 +735,22 @@
       "status": "pass",
       "requirementIds": ["PVAL-GRP-002"],
       "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "formatMedian: a median survival time PVAL-MED-001: a median is printed with what it is a median of and its interval, to four significant figures, and a median or bound R did not reach reads not reached (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-MED-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "formatMedian: a median survival time PVAL-MED-002: a median with no name, a value that is neither a number nor missing, or no level for its interval, is refused, and no number is printed in its place (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-MED-002"],
+      "issueRefs": [61],
       "screenshots": []
     },
     {

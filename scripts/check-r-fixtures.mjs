@@ -1,6 +1,6 @@
 // `npm run fixtures:check`: reruns each R script that writes a committed
 // fixture, in desktop R, and compares what it writes with the committed file, so
-// a fixture can only be what its script produces. Eight fixtures:
+// a fixture can only be what its script produces. Nine fixtures:
 //
 //   tools/r-fixtures.R           site/r-check/expected.json, the expected
 //                                results on the R check page
@@ -24,6 +24,9 @@
 //                                stats::quantile() gives and the groups
 //                                base::cut() makes, which the core's cut rule
 //                                is held to
+//   tools/r-survival.R           tests/fixtures/stratified-survival-r.json,
+//                                each group's survfit() estimate and what
+//                                gsm.bio's Analyze_Survival answers
 //   tools/r-cross-tab.R          tests/fixtures/cross-tab-r.json, the
 //                                cross-tabulation's counts, totals and
 //                                percentages, and what gsm.bio's
@@ -89,6 +92,11 @@ const FIXTURES = [
     script: 'tools/r-cross-tab.R',
     committed: 'tests/fixtures/cross-tab-r.json',
     body: ['cases', 'blank_code_points']
+  },
+  {
+    script: 'tools/r-survival.R',
+    committed: 'tests/fixtures/stratified-survival-r.json',
+    body: 'cases'
   }
 ];
 const requireR = process.argv.includes('--require-r');
