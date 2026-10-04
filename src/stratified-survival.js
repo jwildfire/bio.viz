@@ -59,7 +59,10 @@ import {
   syncHost,
   toolbarStyles,
   writeStatistic,
-  writeTitles
+  writeTitles,
+  specificationOf,
+  startFilters,
+  cutsOffered
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { checkOutcomes, laidOver } from './shared/outcomes.js';
@@ -330,7 +333,7 @@ class StratifiedSurvival {
     return {
       endpoint: named ? named.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
       groupBy,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -1102,6 +1105,33 @@ class StratifiedSurvival {
 
   railSettings() {
     return railSettings(this, 'linear');
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    const group = state.groupBy ? this.groupingOf(state.groupBy) : null;
+    return {
+      endpoint: state.endpoint,
+      group_by: group,
+      // Every cut the Groups control offers stays offered, the one a moved line
+      // left among them (#71 review).
+      cuts: cutsOffered(this.cutOptions, [group])
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

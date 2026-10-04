@@ -52,7 +52,10 @@ import {
   syncHost,
   toolbarStyles,
   writeStatistic,
-  writeTitles
+  writeTitles,
+  specificationOf,
+  startFilters,
+  cutsOffered
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
@@ -278,7 +281,7 @@ class CrossTab {
       colBy,
       percent: settings.percent,
       test: settings.test,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -712,6 +715,35 @@ class CrossTab {
 
   railSettings() {
     return railSettings(this, 'linear');
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    const row = this.groupingOf(state.rowBy);
+    const col = this.groupingOf(state.colBy);
+    return {
+      row_by: row,
+      col_by: col,
+      // Every cut the Rows and Columns controls offer stays offered (#71 review).
+      cuts: cutsOffered(this.cutOptions, [row, col]),
+      percent: state.percent,
+      test: state.test
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

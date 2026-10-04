@@ -91,6 +91,7 @@ describe('bundle: the correlation matrix ships, safety.viz, Chart.js and webR do
       'src/shared/paging.js',
       'src/shared/png.js',
       'src/shared/settings.js',
+      'src/shared/specification.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
       'src/shared/titles.js',

@@ -112,7 +112,11 @@ describe('the chart list', () => {
     }
     // Every chart the bundle exports is listed, but for one the registry says
     // is left out, and says why.
-    const exported = Object.keys(bioViz).filter((key) => typeof bioViz[key] === 'function');
+    // `fromSpecification` (#68) makes whichever chart a specification names; it
+    // is no chart of its own.
+    const exported = Object.keys(bioViz).filter(
+      (key) => typeof bioViz[key] === 'function' && key !== 'fromSpecification'
+    );
     expect(Object.values(manifest.modules).map((entry) => entry.export)).toEqual(
       exported.filter((name) => !leftOut.some((entry) => exportName(entry.module) === name))
     );

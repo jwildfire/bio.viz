@@ -70,7 +70,9 @@ import {
   writeStatistic,
   drawSafely,
   checkTables,
-  writeTitles
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -324,7 +326,7 @@ class AssociationScatter {
       yScale: settings.y_scale,
       fit: settings.fit,
       method: settings.method,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -931,6 +933,35 @@ class AssociationScatter {
         scale: scaleOf(state.fit)
       }
     );
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      ...(state.x ? { x: settingOf(state.x) } : {}),
+      ...(state.y ? { y: settingOf(state.y) } : {}),
+      color_by: state.colorBy || null,
+      panel_by: state.panelBy || null,
+      x_scale: state.xScale,
+      y_scale: state.yScale,
+      fit: state.fit,
+      method: state.method
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

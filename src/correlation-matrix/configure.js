@@ -131,8 +131,8 @@ export function syncSettings(overrides) {
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
-  settings.biomarkers = textList(settings.biomarkers, 'biomarkers');
-  settings.visits = textList(settings.visits, 'visits');
+  settings.biomarkers = textList(settings.biomarkers, 'biomarkers', { empty: true });
+  settings.visits = textList(settings.visits, 'visits', { empty: true });
   settings.measures = textList(settings.measures, 'measures');
   settings.filters = fieldList(settings.filters, 'filters');
   return settings;

@@ -92,7 +92,10 @@ describe('group comparison: settings', () => {
     expect(refused({ profile: 'yes' })).toMatch(/`profile` must be true or false/);
     expect(refused({ statistic: 5 })).toMatch(/`statistic` must be the name of an R function/);
     expect(refused({ connection: {} })).toMatch(/`connection` must be a connection to R/);
-    expect(refused({ visits: [] })).toMatch(/`visits` must be a name, or a list of names/);
+    expect(refused({ visits: [{}] })).toMatch(/`visits` must be a name, or a list of names/);
+    // An empty list is a selection of none, which the Visits control can be
+    // emptied to (#71 review).
+    expect(syncSettings({ visits: [] }).visits).toEqual([]);
     expect(refused({ groups: [{ label: 'Arm' }] })).toMatch(
       /`groups` holds something that is not a column name or \{ value_col, label \}/
     );

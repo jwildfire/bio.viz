@@ -46,7 +46,9 @@ import {
   toolbarStyles,
   drawSafely,
   checkTables,
-  writeTitles
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
@@ -355,7 +357,7 @@ class GroupComparison {
     return {
       // No biomarker named, or one the table does not have: the overview.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: 0,
+      page: settings.page,
       visits: [...this.visits.start],
       valueType: settings.value_type,
       groupBy,
@@ -366,7 +368,7 @@ class GroupComparison {
       yScale: settings.y_scale,
       test: settings.test,
       pairwise: settings.pairwise,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -1248,6 +1250,39 @@ class GroupComparison {
         }))
       }
     });
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      start_value: state.measure ?? null,
+      visits: [...state.visits],
+      value_type: state.valueType,
+      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null,
+      levels: state.levels ?? null,
+      color_by: state.colorBy || null,
+      panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
+      mark: state.mark,
+      y_scale: state.yScale,
+      test: state.test,
+      pairwise: state.pairwise,
+      page: state.page || 0
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

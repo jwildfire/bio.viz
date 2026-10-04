@@ -12,6 +12,7 @@ npm test                      # Vitest unit tests (tests/unit/)
 npm run test:e2e              # Playwright browser tests (tests/e2e/); builds the site first
 npm run format:check          # Prettier (npm run format to fix)
 npm run requirements          # requirements/*.md -> docs/requirements/<module>.json (:check to verify)
+npm run specification         # every chart's settings -> src/data/specification.schema.json (:check to verify)
 npm run evidence              # run both suites -> docs/evidence/<module>/evidence.json (:check to verify)
 npm run site                  # build the site into _site/ (gitignored)
 npm run fixtures:check        # desktop R re-derives every committed expected result (needs R)
@@ -26,6 +27,7 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 
 - After any change under `src/`, run `npm run build` and commit `dist/` with it.
 - After adding, removing or renaming a test, run `npm run evidence` and commit `docs/evidence/`.
+- After adding, removing or renaming a chart's setting, run `npm run specification` and commit `src/data/specification.schema.json`, the schema of a chart's specification, written from every chart's settings; `npm test` fails when it is stale. A specification is data: never let one hold, or be read as, anything that runs.
 - Name a test by the requirement ID it evidences and the issue it belongs to: `'CORE-API-001: … (#1)'`. Unit tests for a module go in `tests/unit/<module>/`, browser tests in `tests/e2e/<module>.spec.js`, or `tests/e2e/<group>-<module>.spec.js` where one filter should run several modules' specs: the correlation matrix's are `association-correlation-matrix.spec.js`, so `npm run test:e2e -- association` runs both charts of that requirement.
 - No statistical inference in JavaScript. A chart chooses which R function and arguments to ask for, asks R through the connection, and prints what comes back through `src/r/formatStatistic.js`. No test, estimate, interval, adjustment or minimum group size is worked out or defaulted in JavaScript.
 - `src/core/` is pure: no page, no chart, no network, nothing imported from outside it. A chart takes its variables through `core.variable` and its rows through `core.frame`; do not resolve a variable anywhere else.

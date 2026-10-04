@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
+import Ajv2020 from 'ajv/dist/2020.js';
 import { FIXED_DATE, captureEvidence, fixClock } from './evidence.js';
 import { parseCsv, statisticsTable } from '../../src/shared/csv.js';
 import { readPng } from '../../src/shared/png.js';
@@ -262,7 +263,7 @@ const layout = (page) =>
 
 test.describe('getting results out: titles and footnotes on every chart', () => {
   for (const chart of CHARTS) {
-    test(`${chart.id}: the ${chart.module.replace('-', ' ')} draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)`, async ({
+    test(`${chart.id}: the ${chart.module.replaceAll('-', ' ')} draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)`, async ({
       page
     }) => {
       const errors = watch(page);
@@ -437,7 +438,7 @@ const DOWNLOADS = [
 
 test.describe('getting results out: the downloads of every chart', () => {
   CHARTS.forEach((chart, index) => {
-    test(`${DOWNLOADS[index]}: the ${chart.module.replace('-', ' ')} downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)`, async ({
+    test(`${DOWNLOADS[index]}: the ${chart.module.replaceAll('-', ' ')} downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)`, async ({
       page
     }) => {
       const errors = watch(page);
@@ -615,7 +616,7 @@ const UPDATES = [
 
 test.describe('getting results out: placeholders follow the view', () => {
   CHARTS.forEach((chart, index) => {
-    test(`${UPDATES[index]}: the ${chart.module.replace('-', ' ')}’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)`, async ({
+    test(`${UPDATES[index]}: the ${chart.module.replaceAll('-', ' ')}’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)`, async ({
       page
     }) => {
       const errors = watch(page);
@@ -857,5 +858,422 @@ test.describe('getting results out: what the #70 review found', () => {
       'RESPONSE'
     ]);
     for (const row of cells.slice(0, 20)) expect(Number(row[2]), row[0]).toBe(values[row[0]]);
+  });
+});
+
+// ---- Specifications (#68) ---------------------------------------------------------
+
+const schema = readJson('../../src/data/specification.schema.json');
+const validateSpecification = new Ajv2020({ allErrors: true }).compile(schema);
+const SPECIFICATIONS = [
+  'EXP-SPEC-005',
+  'EXP-SPEC-006',
+  'EXP-SPEC-007',
+  'EXP-SPEC-008',
+  'EXP-SPEC-009',
+  'EXP-SPEC-010'
+];
+
+// What a chart draws, for two charts to be held equal: what it asked R, the
+// table it drew from, and its title, subtitle and footnotes.
+const viewOf = (page) =>
+  page.evaluate(() => {
+    const chart = window.__shown;
+    const text = (selector) =>
+      [...chart.root.querySelectorAll(selector)].map((element) => element.textContent);
+    return {
+      asked: chart
+        .statistics()
+        .map(({ name, args, dataId, rows }) => ({ name, args, dataId, rows })),
+      table: chart.tableOf(),
+      titles: text('.bv-titles > *'),
+      footnotes: text('.bv-foot-line'),
+      controls: [...chart.root.querySelectorAll('.sv-controls select')].map((select) => [
+        select.dataset.control || select.dataset.filter || select.getAttribute('aria-label'),
+        select.value
+      ])
+    };
+  });
+
+test.describe('getting results out: specifications of every chart', () => {
+  CHARTS.forEach((chart, index) => {
+    test(`${SPECIFICATIONS[index]}: the ${chart.module.replaceAll('-', ' ')} writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)`, async ({
+      page
+    }) => {
+      const errors = watch(page);
+      await blockR(page);
+      await openChart(page, chart, {
+        title: chart.title,
+        subtitle: chart.subtitle,
+        footnotes: ['Filters: {filters}.']
+      });
+      // The reader moves a control and a filter: the specification is of what
+      // the controls now read, not of the settings the chart was made with.
+      // Every select control, one after the other, as the controls are drawn
+      // again after each; then a checkbox of a control (not a filter's).
+      await page.evaluate((name) => {
+        const shown = window[name].chart;
+        const names = [...shown.root.querySelectorAll('.sv-controls select[data-control]')].map(
+          (select) => select.dataset.control
+        );
+        for (const control of names) {
+          const select = shown.root.querySelector(`.sv-controls select[data-control="${control}"]`);
+          if (!select || select.options.length < 2) continue;
+          const next = [...select.options].find((option) => option.value !== select.value);
+          select.value = next.value;
+          select.dispatchEvent(new Event('change'));
+        }
+        const box = [...shown.root.querySelectorAll('.sv-controls input[type=checkbox]')].find(
+          (input) => !input.closest('[data-filter]') && !input.closest('.sv-ms-all')
+        );
+        if (box) box.click();
+        const filter = shown.root.querySelector('.sv-controls select[data-filter="SEX"]');
+        filter.value = 'F';
+        filter.dispatchEvent(new Event('change'));
+        window.__shown = shown;
+      }, `__${chart.global}`);
+      const written = await page.evaluate(() => window.__shown.specification());
+      expect(validateSpecification(written), JSON.stringify(validateSpecification.errors)).toBe(
+        true
+      );
+      expect(written).toMatchObject({
+        format: 'bio.viz specification',
+        format_version: 1,
+        bio_viz_version: pkg.version,
+        chart: chart.module
+      });
+      expect(written.filters).toEqual([{ column: 'SEX', operator: 'in', values: ['F'] }]);
+      expect(JSON.parse(JSON.stringify(written))).toEqual(written);
+      const before = await viewOf(page);
+      expect(before.footnotes[0]).toBe('Filters: SEX is F.');
+
+      // Made again, in the same element, from the specification's JSON text.
+      await page.evaluate(
+        ({ name, text }) => {
+          const old = window[name].chart;
+          const connection = old.connection;
+          old.destroy();
+          window.__shown = window.BioViz.fromSpecification('#chart', text, { connection }).init(
+            window[name].data
+          );
+        },
+        { name: `__${chart.global}`, text: JSON.stringify(written) }
+      );
+      await expect
+        .poll(async () => (await viewOf(page)).footnotes.at(-1))
+        .toBe(before.footnotes.at(-1));
+      const after = await viewOf(page);
+      expect(after).toEqual(before);
+      // A chart's own specification asks for nothing the data cannot draw.
+      expect(await page.evaluate(() => window.__shown.notices)).toEqual([]);
+      expect(await page.evaluate(() => window.__shown.specification())).toEqual(written);
+      expect(errors).toEqual([]);
+    });
+  });
+
+  test('EXP-SPEC-011: in the page, a chart made from a specification that holds code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart (#68)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart);
+    const result = await page.evaluate(() => {
+      const base = window.__ct.chart.specification();
+      window.__ct.chart.destroy();
+      const evil = {
+        ...base,
+        settings: {
+          ...base.settings,
+          title: '<img src=x onerror="window.__pwned = 1">${window.__pwned = 2}',
+          footnotes: ['{{constructor.constructor("window.__pwned = 3")()}}']
+        },
+        filters: [
+          { column: 'SEX', operator: 'in', values: ['<script>window.__pwned = 4</script>'] }
+        ]
+      };
+      const made = window.BioViz.fromSpecification('#chart', evil).init(window.__ct.data);
+      const said = {
+        title: made.root.querySelector('.bv-title').textContent,
+        footnote: made.root.querySelector('.bv-foot-line').textContent,
+        images: document.querySelectorAll('#chart img, #chart script').length,
+        pwned: window.__pwned
+      };
+      made.destroy();
+      const refused = (spec) => {
+        try {
+          window.BioViz.fromSpecification('#chart', spec);
+          return null;
+        } catch (error) {
+          return error.message;
+        }
+      };
+      return {
+        said,
+        unknown: refused({ ...base, settings: { ...base.settings, margins: true } }),
+        operator: refused({
+          ...base,
+          filters: [{ column: 'SEX', operator: 'not', values: ['F'] }]
+        }),
+        empty: document.querySelector('#chart').children.length
+      };
+    });
+    expect(result.said).toEqual({
+      title: '<img src=x onerror="window.__pwned = 1">${window.__pwned = 2}',
+      footnote: '{{constructor.constructor("window.__pwned = 3")()}}',
+      images: 0,
+      pwned: undefined
+    });
+    expect(result.unknown).toMatch(
+      /holds `margins`, which is not a setting of that chart in this version\.$/
+    );
+    expect(result.operator).toMatch(/has the operator "not"; the operators are "in"/);
+    expect(result.empty).toBe(0);
+  });
+
+  test('EXP-SPEC-012: the site publishes the format’s schema at schema/specification.json, the committed file (#68)', async ({
+    page
+  }) => {
+    const response = await page.goto('/_site/schema/specification.json');
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual(schema);
+  });
+});
+
+// ---- What the #71 review found -------------------------------------------------------
+
+// Made again from its own specification, in the same element, with the same
+// connection; resolves to the two specifications and the two views.
+const remade = async (page, name) => {
+  const before = {
+    spec: await page.evaluate(() => window.__shown.specification()),
+    view: await viewOf(page)
+  };
+  await page.evaluate(
+    ({ name, text }) => {
+      const old = window.__shown;
+      const connection = old.connection;
+      old.destroy();
+      window.__shown = window.BioViz.fromSpecification('#chart', text, { connection }).init(
+        window[name].data
+      );
+    },
+    { name, text: JSON.stringify(before.spec) }
+  );
+  return {
+    before,
+    after: {
+      spec: await page.evaluate(() => window.__shown.specification()),
+      view: await viewOf(page)
+    }
+  };
+};
+// A checkbox of a control clicked, as a reader's click does, open or not.
+const tick = (page, selector) =>
+  page.evaluate((found) => {
+    const box = document.querySelector(found);
+    if (!box) throw new Error(`no ${found}`);
+    box.click();
+  }, selector);
+
+test.describe('getting results out: what the #71 review found', () => {
+  test('EXP-SPEC-013: a selection emptied by hand round-trips: every Visit unticked in the group comparison, and every biomarker of the correlation matrix, write [] that the reader takes, and the chart made again draws the same nothing (#71 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const comparison = CHARTS.find((entry) => entry.module === 'group-comparison');
+    await openChart(page, comparison);
+    await page.evaluate(() => (window.__shown = window.__gc.chart));
+    await tick(page, '.sv-controls input[type=checkbox][value="Week 4"]');
+    let trip = await remade(page, '__gc');
+    expect(trip.before.spec.settings.visits).toEqual([]);
+    expect(validateSpecification(trip.before.spec)).toBe(true);
+    expect(trip.after.spec).toEqual(trip.before.spec);
+    expect(trip.after.view).toEqual(trip.before.view);
+    await expect(page.locator('#chart .sv-footnote')).toHaveText('Choose a visit to draw.');
+    const matrix = CHARTS.find((entry) => entry.module === 'correlation-matrix');
+    await openChart(page, matrix);
+    await page.evaluate(() => (window.__shown = window.__cm.chart));
+    await tick(page, '.sv-controls [data-control="biomarkers"] .sv-ms-all input');
+    trip = await remade(page, '__cm');
+    expect(trip.before.spec.settings.biomarkers).toEqual([]);
+    expect(trip.after.spec).toEqual(trip.before.spec);
+    expect(trip.after.view).toEqual(trip.before.view);
+  });
+
+  test('EXP-SPEC-014: a filter of several values emptied by hand writes values [] and comes back empty, letting nobody through, not as All (#71 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart, { filters: [{ value_col: 'SEX', label: 'Sex', multiple: true }] });
+    await page.evaluate(() => (window.__shown = window.__ct.chart));
+    await tick(page, '.sv-controls [data-filter="SEX"] .sv-ms-all input');
+    await expect(page.locator('#chart .sv-footnote')).toHaveText(
+      'No participant passes the filters.'
+    );
+    const trip = await remade(page, '__ct');
+    expect(trip.before.spec.filters).toEqual([{ column: 'SEX', operator: 'in', values: [] }]);
+    expect(validateSpecification(trip.before.spec)).toBe(true);
+    expect(trip.after.spec).toEqual(trip.before.spec);
+    await expect(page.locator('#chart .sv-footnote')).toHaveText(
+      'No participant passes the filters.'
+    );
+  });
+
+  test('EXP-SPEC-015: what a specification asks for that the data cannot draw is said on the chart and listed in chart.notices: a filter on a column the participant table does not have, a value a filter does not offer, a grouping the tables do not have, a filter on the id column; a filter named twice is refused (#71 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart);
+    const result = await page.evaluate(() => {
+      const base = window.__ct.chart.specification();
+      window.__ct.chart.destroy();
+      const asked = {
+        ...base,
+        settings: { ...base.settings, row_by: 'NOPE' },
+        filters: [
+          { column: 'NOPE', operator: 'in', values: ['x'] },
+          { column: 'SEX', operator: 'in', values: ['X'] },
+          { column: 'USUBJID', operator: 'in', values: ['BIO-001'] }
+        ]
+      };
+      const made = window.BioViz.fromSpecification('#chart', asked).init(window.__ct.data);
+      const notices = made.notices;
+      const said = made.root.querySelector('.bv-notices')
+        ? made.root.querySelector('.bv-notices').textContent
+        : null;
+      let twice = null;
+      try {
+        window.BioViz.fromSpecification('#chart', {
+          ...base,
+          filters: [
+            { column: 'SEX', operator: 'in', values: ['F'] },
+            { column: 'SEX', operator: 'in', values: ['M'] }
+          ]
+        });
+      } catch (error) {
+        twice = error.message;
+      }
+      return { notices, said, twice };
+    });
+    expect(result.notices).toEqual([
+      {
+        kind: 'setting',
+        name: 'row_by',
+        asked: 'NOPE',
+        drawn: 'ARM',
+        said: 'Rows: NOPE is not in the tables, so the chart draws ARM.'
+      },
+      {
+        kind: 'filter',
+        name: 'NOPE',
+        asked: ['x'],
+        drawn: null,
+        said: 'Filter NOPE: the participant table has no such column, so it is not a filter.'
+      },
+      {
+        kind: 'filter',
+        name: 'SEX',
+        asked: ['X'],
+        drawn: null,
+        said: 'Filter SEX: X is not one of its values, so it is at All.'
+      },
+      {
+        kind: 'filter',
+        name: 'USUBJID',
+        asked: ['BIO-001'],
+        drawn: null,
+        said: 'Filter USUBJID: the participant id is not a filter.'
+      }
+    ]);
+    expect(result.said).toBe(
+      'Not drawn as the specification asks: ' +
+        result.notices.map((notice) => notice.said).join(' ')
+    );
+    expect(result.twice).toBe(
+      'bio.viz: filter 2 is on SEX, which filter 1 is already on: a column is filtered once.'
+    );
+  });
+
+  test('EXP-SPEC-016: a specification opens on the same page of the group comparison’s overview and of the screen, in the screen’s order, and the survival chart’s Groups keep the cut it opened on after a moved line (#71 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const comparison = CHARTS.find((entry) => entry.module === 'group-comparison');
+    await openChart(page, comparison, { start_value: null, visits: null, overview_limit: 4 });
+    await page.evaluate(() => (window.__shown = window.__gc.chart));
+    await page.locator('#chart .bv-overview-pager button[data-go="next"]').first().click();
+    let trip = await remade(page, '__gc');
+    expect(trip.before.spec.settings.page).toBe(1);
+    expect(trip.after.spec).toEqual(trip.before.spec);
+    expect(await page.locator('#chart .bv-overview-count').first().textContent()).toMatch(
+      /^4 of 12 biomarkers shown: 5 to 8/
+    );
+    const screen = CHARTS.find((entry) => entry.module === 'biomarker-screen');
+    await openChart(page, screen, { limit: 5 });
+    await page.evaluate(() => (window.__shown = window.__bs.chart));
+    await expect(page.locator('#chart .bv-statistic').first()).toHaveAttribute(
+      'data-state',
+      'shown'
+    );
+    await page.evaluate(() => {
+      const select = window.__shown.root.querySelector('select[data-control="sort"]');
+      select.value = 'name';
+      select.dispatchEvent(new Event('change'));
+    });
+    await page.locator('#chart .bv-overview-pager button[data-go="next"]').first().click();
+    trip = await remade(page, '__bs');
+    expect(trip.before.spec.settings).toMatchObject({ sort: 'name', page: 1 });
+    expect(trip.after.spec).toEqual(trip.before.spec);
+    const survival = CHARTS.find((entry) => entry.module === 'stratified-survival');
+    await openChart(page, survival);
+    await page.evaluate(() => {
+      window.__shown = window.__ss.chart;
+      window.__shown.moveCut(0, 3);
+      window.__shown.dropCut(0, 3);
+    });
+    trip = await remade(page, '__ss');
+    const groups = await page.evaluate(() =>
+      [...window.__shown.root.querySelectorAll('select[data-control="group-by"] option')].map(
+        (option) => option.textContent
+      )
+    );
+    expect(groups).toContain('CRP at Baseline, cut at the median');
+    expect(trip.after.spec).toEqual(trip.before.spec);
+  });
+
+  test('EXP-SPEC-011: a filter value that looks like code and is in the data is drawn as text, and filters by it (#71 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart);
+    const said = await page.evaluate(() => {
+      const evil = '<img src=x onerror="window.__pwned = 1">';
+      const data = {
+        ...window.__ct.data,
+        participants: window.__ct.data.participants.map((row, i) =>
+          i < 10 ? { ...row, SEX: evil } : row
+        )
+      };
+      const base = window.__ct.chart.specification();
+      window.__ct.chart.destroy();
+      const made = window.BioViz.fromSpecification('#chart', {
+        ...base,
+        settings: { ...base.settings, subtitle: '{filters}: {n}' },
+        filters: [{ column: 'SEX', operator: 'in', values: [evil] }]
+      }).init(data);
+      return {
+        subtitle: made.root.querySelector('.bv-subtitle').textContent,
+        images: document.querySelectorAll('#chart img').length,
+        pwned: window.__pwned
+      };
+    });
+    expect(said).toEqual({
+      subtitle: 'SEX is <img src=x onerror="window.__pwned = 1">: 10',
+      images: 0,
+      pwned: undefined
+    });
   });
 });

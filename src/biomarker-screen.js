@@ -67,7 +67,9 @@ import {
   writeStatistic,
   drawSafely,
   checkTables,
-  writeTitles
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
@@ -349,6 +351,8 @@ class BiomarkerScreen {
       : this.endpoints[0]
         ? this.endpoints[0].endpoint
         : null;
+    // The page the settings name is the one the next rows open on.
+    this.pageFromSettings = true;
     return {
       comparison: this.comparisons().includes(settings.comparison)
         ? settings.comparison
@@ -362,8 +366,8 @@ class BiomarkerScreen {
       method: settings.method,
       adjustment: settings.adjustment,
       sort: settings.sort,
-      page: 0,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      page: settings.page,
+      filters: startFilters(this)
     };
   }
 
@@ -617,7 +621,10 @@ class BiomarkerScreen {
     const round = this.desk.begin();
     this.asked = [];
     this.answer = null;
-    this.state.page = 0;
+    // New rows open on their first page, but for the first rows after the
+    // settings named a page (#71 review).
+    if (this.pageFromSettings) this.pageFromSettings = false;
+    else this.state.page = 0;
     this.notes.innerHTML = '';
     this.screenWrap.innerHTML = '';
     this.screenWrap.hidden = true;
@@ -931,6 +938,38 @@ class BiomarkerScreen {
       ],
       'bio.viz-biomarker-screen-rows.csv'
     );
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      comparison: state.comparison,
+      endpoint: state.endpoint,
+      visit: state.visit,
+      value_type: state.valueType,
+      group_by: state.groupBy,
+      levels: state.levels ? [...state.levels] : null,
+      with: state.with ? settingOf(state.with) : null,
+      method: state.method,
+      adjustment: state.adjustment,
+      sort: state.sort,
+      page: state.page || 0
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**
