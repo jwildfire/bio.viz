@@ -92,7 +92,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const file = new URL(`../${SCHEMA_FILE}`, import.meta.url);
   if (process.argv.includes('--check')) {
     if (readFileSync(file, 'utf8') !== schemaText()) {
-      console.error(`✗ ${SCHEMA_FILE} is not what tools/write-specification-schema.mjs writes. Run it.`);
+      console.error(
+        `✗ ${SCHEMA_FILE} is not what tools/write-specification-schema.mjs writes. Run it.`
+      );
       process.exit(1);
     }
     console.log(`✓ ${SCHEMA_FILE} is what the charts' settings make.`);
