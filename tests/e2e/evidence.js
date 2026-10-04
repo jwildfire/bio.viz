@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
@@ -54,6 +55,22 @@ async function versionsDrawn(target) {
   return [...new Set(text.match(VERSION_DRAWN) || [])].sort();
 }
 
+// The evidence pictures a capture shows, by `<module>/<file>.png`: the gallery's
+// page shows the charts' own pictures as images.
+async function picturesShown(target) {
+  const element = typeof target.page === 'function' ? target : target.locator('body');
+  const sources = await element.evaluate((root) =>
+    [...root.querySelectorAll('img')].map((image) => new URL(image.src, document.baseURI).pathname)
+  );
+  const named = sources
+    .map((source) => source.match(/\/([a-z][a-z0-9-]*)\/evidence\/([^/]+\.png)$/))
+    .filter(Boolean)
+    .map(([, owner, file]) => `${owner}/${file}`);
+  return [...new Set(named)].sort();
+}
+
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+
 /**
  * Where the text a picture was drawn with is kept: beside it, named for it.
  * @param {string} picture The PNG's path.
@@ -64,11 +81,19 @@ export const drawnRecordOf = (picture) => picture.replace(/\.png$/, '.drawn.json
  * `target` is the page, for the viewport, or a locator, for one part of it.
  *
  * On the Linux runner the versions of bio.viz the capture draws are kept beside
- * the picture, in `<name>.drawn.json`, whenever the picture is written: by a
- * refresh that rewrites it, or by `--update-snapshots=all`, which rewrites every
- * one. A run that does not rewrite the picture fails when the page now draws a
- * version other than the one kept: the picture is stale, however few of its
- * pixels differ, and is refreshed with every other (`update-baselines-all`).
+ * the picture, in `<name>.drawn.json`, with the picture's sha256 and the
+ * evidence pictures it shows, whenever the picture is written: by a refresh
+ * that rewrites it, or by `--update-snapshots=all`, which rewrites every one. A
+ * run that does not rewrite the picture fails when the page now draws a version
+ * other than the one kept, shows other pictures, or the committed picture is
+ * not the one the record was written for: the picture is stale, however few of
+ * its pixels differ, and is refreshed with every other (`update-baselines-all`).
+ *
+ * A picture of pictures, the gallery's page, is checked for its own text and
+ * bytes, and names the pictures it shows; their versions are each held by
+ * their own records. Its embedded pixels are not: the site under test is built
+ * before a refresh rewrites the pictures it shows, so a picture of them always
+ * lags them by one refresh, and holding it to them would fail every refresh.
  */
 export async function captureEvidence(target, requirementId, slug, { module } = {}) {
   const file = test.info().file;
@@ -90,20 +115,36 @@ export async function captureEvidence(target, requirementId, slug, { module } = 
     const record = drawnRecordOf(picture);
     const before = existsSync(picture) ? readFileSync(picture) : null;
     const drawn = await versionsDrawn(target);
+    const shown = await picturesShown(target);
     await expect(target).toHaveScreenshot([owner, name]);
     const updating = test.info().config.updateSnapshots;
     const after = existsSync(picture) ? readFileSync(picture) : null;
     const written = after && (!before || !before.equals(after) || updating === 'all');
     if (updating !== 'none' && written) {
-      writeFileSync(record, `${JSON.stringify({ versions: drawn }, null, 2)}\n`);
+      const made = {
+        versions: drawn,
+        ...(shown.length ? { embeds: shown } : {}),
+        sha256: sha256(after)
+      };
+      writeFileSync(record, `${JSON.stringify(made, null, 2)}\n`);
     } else if (existsSync(record)) {
-      const kept = JSON.parse(readFileSync(record, 'utf8')).versions;
+      const kept = JSON.parse(readFileSync(record, 'utf8'));
+      const stale = (what) =>
+        `${name} ${what}: the picture is stale. Refresh every picture with the ` +
+        'update-baselines-all label.';
       expect(
-        kept,
-        `${name} was drawn with ${kept.join(', ') || 'no version'}, and the page now draws ` +
-          `${drawn.join(', ') || 'none'}: the picture is stale. Refresh every picture with the ` +
-          'update-baselines-all label.'
+        kept.versions,
+        stale(
+          `was drawn with ${kept.versions.join(', ') || 'no version'}, and the page now draws ` +
+            `${drawn.join(', ') || 'none'}`
+        )
       ).toEqual(drawn);
+      expect(kept.embeds || [], stale('shows other pictures than its record names')).toEqual(shown);
+      if (kept.sha256 !== undefined) {
+        expect(sha256(after), stale('is not the picture its record was written for')).toBe(
+          kept.sha256
+        );
+      }
     }
   } else {
     await page.evaluate(() => document.fonts.ready);

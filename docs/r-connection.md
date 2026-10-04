@@ -135,6 +135,8 @@ A call is answered by a stored result only when all of these hold:
 
 Anything else is a miss, answered `unavailable` with reason `not-precomputed`, or passed to R in the browser when that form is configured. A stored result is never returned for a call it was not computed for.
 
+R's numbers that JSON has no number for are written as text, as gsm.bio's widget writes them: `"Inf"`, `"-Inf"` and `"NaN"`. The connection reads the three back as `Infinity`, `-Infinity` and `NaN`, as the browser form hands them over, in the members that hold a number R may return so: `estimate`, `lower`, `upper`, `value`, `statistic`, `p_value`, `p_unadjusted`, `expected`, `median`, `hazard_ratio`, `hr_lower`, `hr_upper` and `hr_p_value`. Text spelled the same in a name, a group, a category or a note stays text. A stored page then prints Fisher's infinite odds ratio as live R's does: `infinite, 95% confidence interval 14.86 to infinity`. NA is `null`, and an estimate whose number is `null` while R gave a bound is said not to be shown, with the reason, and is never left out.
+
 Written from R, the value must be in the shape the browser form would give it. With jsonlite that means `auto_unbox = TRUE` and data frames written by row, and it means counts by group are written as a named list: jsonlite drops the names of a named vector. `tools/r-fixtures.R` writes the R check page's stored results with a few lines of base R that follow the table above exactly.
 
 The data identity is stated, not derived. It is whatever the producer and the chart agree to call a selection of the study: a label such as `"opening view"`, or an object describing the filters in force. A fingerprint of the rows was considered and rejected: it would have to be computed identically in R and in JavaScript, and the two do not always read the same decimal text to the same number, so it would miss when it should match. The price of a stated identity is that the chart must state it truthfully: it must change `dataId` whenever a filter changes the rows. `rows` is the cheap cross-check on that.
@@ -204,11 +206,12 @@ Formats one estimate R returned: one row of a result's `estimates`. It reads `na
 
 It returns `{ status, text }`:
 
-| `status`  | When                                                                  | `text`                                                                                      |
-| --------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `shown`   | The estimate has a name and a number, and a whole interval.           | `Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.` |
-| `shown`   | The estimate has a name and a number, and R gave no interval.         | `Mean (Placebo): 0.02473.`                                                                  |
-| `refused` | It has no name, no finite number, or an interval with a part missing. | `Estimate not shown: the interval of Difference in means is incomplete.`                    |
+| `status`  | When                                                                                        | `text`                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `shown`   | The estimate has a name and a number, and a whole interval.                                 | `Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.` |
+| `shown`   | The estimate has a name and a number, and R gave no interval.                               | `Mean (Placebo): 0.02473.`                                                                  |
+| `shown`   | R gave an infinite estimate or bound, as Fisher's odds ratio of a table with an empty cell. | `odds ratio: infinite, 95% confidence interval 14.86 to infinity.`                          |
+| `refused` | It has no name, no number (not-a-number among them), or an interval with a part missing.    | `Estimate not shown: the interval of Difference in means is incomplete.`                    |
 
 Each number is printed to four significant figures, without trailing zeros, and is otherwise R's: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, `0.95` as `95%`.
 

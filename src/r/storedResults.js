@@ -66,6 +66,57 @@ export function createStore(results) {
   return entries;
 }
 
+// R's numbers that JSON has no number for, as gsm.bio writes them into a stored
+// answer, and what R in the browser hands over for each (src/r/webREngine.js).
+const NON_FINITE = { Inf: Infinity, '-Inf': -Infinity, NaN: Number.NaN };
+
+// The members of R's answers that hold a number R may return as non-finite:
+// an estimate and its bounds, a test statistic's value, a p-value, an expected
+// count, a median, a hazard ratio. Only these are read: text spelled "Inf" in a
+// name, a group, a category or a note is text.
+const NUMBER_MEMBERS = new Set([
+  'estimate',
+  'lower',
+  'upper',
+  'value',
+  'statistic',
+  'p_value',
+  'p_unadjusted',
+  'expected',
+  'median',
+  'hazard_ratio',
+  'hr_lower',
+  'hr_upper',
+  'hr_p_value'
+]);
+
+const asNumber = (member) =>
+  typeof member === 'string' && Object.hasOwn(NON_FINITE, member) ? NON_FINITE[member] : member;
+
+/**
+ * A stored answer with R's non-finite numbers read back: "Inf", "-Inf" and
+ * "NaN" where R returned a number are Infinity, -Infinity and NaN, so a stored
+ * answer prints as R's answer in the browser does. Changes `value` in place.
+ * @param {*} value A copy of a stored answer.
+ * @returns {*} The same value.
+ */
+export function readNonFinite(value) {
+  if (Array.isArray(value)) {
+    value.forEach(readNonFinite);
+  } else if (isPlainObject(value)) {
+    for (const [key, member] of Object.entries(value)) {
+      if (NUMBER_MEMBERS.has(key)) {
+        value[key] =
+          Array.isArray(member) && member.every((item) => typeof item !== 'object')
+            ? member.map(asNumber)
+            : asNumber(member);
+      }
+      readNonFinite(value[key]);
+    }
+  }
+  return value;
+}
+
 // Returns { hit: true, value } or { hit: false, message }.
 export function lookUp(store, name, { data, args, dataId }) {
   const miss = (detail) => ({
@@ -86,5 +137,6 @@ export function lookUp(store, name, { data, args, dataId }) {
     }
   }
   // A copy, so nothing a caller does to the value reaches the stored result.
-  return { hit: true, value: structuredClone(entry.value) };
+  // R's non-finite numbers are read back as the numbers they are.
+  return { hit: true, value: readNonFinite(structuredClone(entry.value)) };
 }

@@ -215,6 +215,43 @@ describe('connection: the precomputed form', () => {
   });
 });
 
+describe('connection: R’s non-finite numbers in a stored answer', () => {
+  it('RCON-PRE-007: a stored answer’s "Inf", "-Inf" and "NaN" where R returned a number are read as Infinity, -Infinity and NaN, as R in the browser hands them over; text elsewhere spelled so is left as text (#78)', async () => {
+    const value = {
+      method: "Fisher's Exact Test for Count Data",
+      p_value: 2.6e-8,
+      estimates: [
+        { name: 'odds ratio', group: 'Inf', estimate: 'Inf', lower: 14.86, upper: 'Inf' },
+        { name: 'Difference', group: null, estimate: '-Inf', lower: '-Inf', upper: 'NaN' }
+      ],
+      statistic: [{ name: 'Inf', value: 'NaN' }],
+      rows: [{ row: 'Inf', col: 'NaN', n: 3, expected: 'Inf' }],
+      notes: ['Inf'],
+      reason: 'NaN'
+    };
+    const connection = createConnection({
+      results: [{ name: 'fisher', args: {}, dataId: 'empty cell', value }]
+    });
+    const { value: read } = await connection.run('fisher', {
+      data: [],
+      args: {},
+      dataId: 'empty cell'
+    });
+    expect(read.estimates).toEqual([
+      { name: 'odds ratio', group: 'Inf', estimate: Infinity, lower: 14.86, upper: Infinity },
+      { name: 'Difference', group: null, estimate: -Infinity, lower: -Infinity, upper: NaN }
+    ]);
+    expect(read.statistic).toEqual([{ name: 'Inf', value: NaN }]);
+    expect(read.rows).toEqual([{ row: 'Inf', col: 'NaN', n: 3, expected: Infinity }]);
+    // Text stays text: a note, a reason, a name, a group or a category.
+    expect(read.notes).toEqual(['Inf']);
+    expect(read.reason).toBe('NaN');
+    expect(read.p_value).toBe(2.6e-8);
+    // The stored result itself is not changed.
+    expect(value.estimates[0].estimate).toBe('Inf');
+  });
+});
+
 describe('connection: the browser form starts R lazily and once', () => {
   it('RCON-LAZY-001: creating a connection starts nothing; the first run starts the engine with its configuration (#2)', async () => {
     const { engine, log } = stubEngine();

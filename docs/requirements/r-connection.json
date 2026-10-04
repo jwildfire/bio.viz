@@ -16,6 +16,7 @@
     "RCON-PRE-004": "Stored results that are malformed, or that hold two results under one key, are refused when the connection is created.",
     "RCON-PRE-005": "With both forms configured, a call with no stored result is answered by R in the browser.",
     "RCON-PRE-006": "Changing a value a call returned does not change the stored result.",
+    "RCON-PRE-007": "A stored answer's `\"Inf\"`, `\"-Inf\"` and `\"NaN\"`, where R returned a number, are read as `Infinity`, `-Infinity` and `NaN`, as R in the browser hands them over; text spelled so in a name, a group, a category or a note stays text, and the stored result is not changed.",
     "RCON-LAZY-001": "Creating a connection starts nothing; the first run that needs R starts the engine, with the location, packages and source the connection was given.",
     "RCON-LAZY-002": "Two simultaneous first calls cause one start, and later calls reuse it.",
     "RCON-LAZY-003": "A start that fails answers `unavailable` with reason `load-failed` and the cause, for every call waiting on it, and the next run tries again.",

@@ -287,6 +287,24 @@ dose_tables <- list(
   )
 )
 
+# A two-by-two table with an empty cell: no participant of Arm A responds, and
+# 17 of the 20 of Arm B do. Fisher's odds ratio is then infinite, its interval
+# a number to infinity, and the stored answer carries R's Inf as gsm.bio's
+# widget writes it.
+empty_people <- data.frame(
+  USUBJID = sprintf("E-%02d", 1:40),
+  ARM = rep(c("Arm A", "Arm B"), each = 20),
+  RESPONSE = c(rep("Non-responder", 20), rep("Non-responder", 3), rep("Responder", 17)),
+  stringsAsFactors = FALSE
+)
+empty_tables <- list(
+  participants = empty_people,
+  results = data.frame(
+    USUBJID = empty_people$USUBJID, VISIT = "Day 1", VISITNUM = 1, TEST = "X", STRESU = "u",
+    STRESN = 1, stringsAsFactors = FALSE
+  )
+)
+
 cases <- list(
   case("arm-by-response-chisq", "ARM", "RESPONSE", "chisq"),
   case("arm-by-response-fisher", "ARM", "RESPONSE", "fisher"),
@@ -303,7 +321,9 @@ cases <- list(
   case("stage-by-grade-chisq", "STAGE", "GRADE", "chisq", people = levels_people,
        tables = levels_tables),
   case("dose-by-response-fisher", "ARM", "RESPONSE", "fisher", people = dose_people,
-       tables = dose_tables)
+       tables = dose_tables),
+  case("empty-cell-fisher", "ARM", "RESPONSE", "fisher", people = empty_people,
+       tables = empty_tables)
 )
 
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
