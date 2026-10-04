@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T16:16:23.274Z",
+  "generatedAt": "2026-10-04T16:29:58.780Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37216117868",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37216117868"
+    "id": "37216945291",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37216945291"
   },
   "records": [
     {
@@ -327,7 +327,7 @@
     {
       "test": "EXP-SITE-003: the built gallery shows every chart in a picture of its frame with its title and footnotes, its own last, and at 390px the page does not scroll sideways (#66)",
       "suite": "browser",
-      "status": "fail",
+      "status": "pass",
       "requirementIds": ["EXP-SITE-003"],
       "issueRefs": [66],
       "screenshots": []
