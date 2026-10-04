@@ -61,6 +61,7 @@ if (result.status === &#39;ok&#39;) {
 <p>Returns a frozen object with one method, <code>run</code>. Creating a connection loads nothing and requests nothing.</p>
 <table class="doc-table"><thead><tr><th scope="col">Option</th><th scope="col">Type</th><th scope="col">Meaning</th></tr></thead>
 <tbody><tr><td data-label="Option"><code>results</code></td><td data-label="Type">array</td><td data-label="Meaning">The precomputed form: <a href="#stored-results">stored results</a>. Omit for none.</td></tr>
+<tr><td data-label="Option"><code>computedBy</code></td><td data-label="Type">object</td><td data-label="Meaning">Which R computed the stored results: <code>{ r_version, gsm_bio_version, computed_at }</code>, each text, as gsm.bio&#39;s widget records them; <code>r_version</code> is needed, the other two may be left out, and <code>computed_at</code> is ISO 8601. An answer from the stored results carries it as <code>computedBy</code>, and a chart&#39;s <a href="../output/api.html#the-footnote-the-chart-writes">last footnote</a> names the versions and the date. Omit when they are not known.</td></tr>
 <tr><td data-label="Option"><code>browser</code></td><td data-label="Type">object</td><td data-label="Meaning">The browser form: R started in the page on the first run that needs it. Omit for none. <code>{}</code> is enough to reach base R.</td></tr>
 <tr><td data-label="Option"><code>browser.source</code></td><td data-label="Type">string</td><td data-label="Meaning">R source text that defines the functions to call. Evaluated once, when R starts.</td></tr>
 <tr><td data-label="Option"><code>browser.sourceUrl</code></td><td data-label="Type">string</td><td data-label="Meaning">Instead of <code>source</code>: the URL of that file. Fetched on the first run, not before. Give one or the other.</td></tr>
@@ -78,7 +79,7 @@ if (result.status === &#39;ok&#39;) {
 <tr><td data-label="Argument"><code>dataId</code></td><td data-label="Type">any JSON value</td><td data-label="Meaning">The identity of <code>data</code>: which selection of the study it is. Read only by the precomputed form; see <a href="#stored-results">stored results</a>.</td></tr></tbody></table>
 <p><code>run</code> returns a promise that always resolves, to one of three results. It never rejects.</p>
 <table class="doc-table"><thead><tr><th scope="col">Result</th><th scope="col">When</th></tr></thead>
-<tbody><tr><td data-label="Result"><code>{ status: &#39;ok&#39;, value, form }</code></td><td data-label="When">R answered. <code>value</code> is what the function returned. <code>form</code> is <code>&#39;precomputed&#39;</code> or <code>&#39;browser&#39;</code>.</td></tr>
+<tbody><tr><td data-label="Result"><code>{ status: &#39;ok&#39;, value, form }</code></td><td data-label="When">R answered. <code>value</code> is what the function returned. <code>form</code> is <code>&#39;precomputed&#39;</code> or <code>&#39;browser&#39;</code>. A stored result also carries <code>computedBy</code> when the connection was given it.</td></tr>
 <tr><td data-label="Result"><code>{ status: &#39;unavailable&#39;, reason, message }</code></td><td data-label="When">No R answered. The chart still draws; <code>message</code> is a sentence it can print. <code>reason</code> is one of the codes below.</td></tr>
 <tr><td data-label="Result"><code>{ status: &#39;error&#39;, message }</code></td><td data-label="When">R ran and stopped with an error. <code>message</code> is R&#39;s own message, with nothing added.</td></tr></tbody></table>
 <p>Reasons a result is unavailable:</p>
@@ -252,7 +253,7 @@ if (result.status === &#39;ok&#39;) {
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/7a28bf2f6b7c2bc4261810d7aba27c599aabdf22"><code>7a28bf2</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
       </p>
       <p>
         Built in the open — follow the

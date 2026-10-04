@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#biomarkerscreenelement-settings"><code>biomarkerScreen(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-rows">The rows</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-frame">The frame</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#the-statistics">The statistics</a></li><li><a href="#a-row-opens-its-chart">A row opens its chart</a></li><li><a href="#what-r-is-asked">What R is asked</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#biomarkerscreenelement-settings"><code>biomarkerScreen(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-rows">The rows</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-frame">The frame</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#the-statistics">The statistics</a></li><li><a href="#a-row-opens-its-chart">A row opens its chart</a></li><li><a href="#what-r-is-asked">What R is asked</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -156,8 +156,23 @@
 <tr><td data-label="Setting"><code>waiting_note</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.</td></tr>
 <tr><td data-label="Setting"><code>group_comparison</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the group comparison a row of a difference opens, laid under what the screen carries across.</td></tr>
 <tr><td data-label="Setting"><code>association_scatter</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the association scatter a row of a correlation opens, laid under what the screen carries across.</td></tr>
-<tr><td data-label="Setting"><code>stratified_survival</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the stratified survival chart a row of a hazard ratio opens, laid under what the screen carries across.</td></tr></tbody></table>
+<tr><td data-label="Setting"><code>stratified_survival</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the stratified survival chart a row of a hazard ratio opens, laid under what the screen carries across.</td></tr>
+<tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr></tbody></table>
 <p>There is no setting for a confidence level or a minimum group size: those are R&#39;s, at gsm.bio&#39;s defaults.</p>
+<h2 id="titles-and-footnotes">Titles and footnotes</h2>
+<p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
+<table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{heading}</code></td><td data-label="What it holds">What the rows are, as the heading above them reads.</td></tr>
+<tr><td data-label="Placeholder"><code>{comparison}</code></td><td data-label="What it holds">The comparison, as the Compare control names it.</td></tr>
+<tr><td data-label="Placeholder"><code>{visit}</code></td><td data-label="What it holds">The visit.</td></tr>
+<tr><td data-label="Placeholder"><code>{endpoint}</code></td><td data-label="What it holds">A hazard ratio&#39;s endpoint, by its label; empty for the other comparisons.</td></tr>
+<tr><td data-label="Placeholder"><code>{biomarkers}</code></td><td data-label="What it holds">How many biomarkers are screened.</td></tr>
+<tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants the frame holds.</td></tr>
+<tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
 <h2 id="the-controls">The controls</h2>
 <p>In safety.viz&#39;s sidebar.</p>
 <table class="doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
@@ -328,7 +343,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/7a28bf2f6b7c2bc4261810d7aba27c599aabdf22"><code>7a28bf2</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
       </p>
       <p>
         Built in the open — follow the

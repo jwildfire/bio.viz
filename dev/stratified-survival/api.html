@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#stratifiedsurvivalelement-settings"><code>stratifiedSurvival(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#moving-a-cut-line">Moving a cut line</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#stratifiedsurvivalelement-settings"><code>stratifiedSurvival(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#moving-a-cut-line">Moving a cut line</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -103,7 +103,19 @@
 <tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The columns the profile&#39;s header shows. Null means the category columns.</td></tr>
 <tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The study day, for the profile. May be null.</td></tr>
 <tr><td data-label="Setting"><code>normal_col_high</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The upper limit of normal, for the profile. May be null.</td></tr>
-<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The lower limit of normal, for the profile. May be null.</td></tr></tbody></table>
+<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The lower limit of normal, for the profile. May be null.</td></tr>
+<tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="What it is">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr></tbody></table>
+<h2 id="titles-and-footnotes">Titles and footnotes</h2>
+<p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
+<table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{endpoint}</code></td><td data-label="What it holds">The endpoint, by its label.</td></tr>
+<tr><td data-label="Placeholder"><code>{group}</code></td><td data-label="What it holds">What the groups are, as the Group control names it.</td></tr>
+<tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants are drawn.</td></tr>
+<tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
 <h2 id="what-is-drawn">What is drawn</h2>
 <ul><li>The curves: each group&#39;s Kaplan–Meier estimate, the kit&#39;s <code>kmEstimate</code>, drawn as steps from 1 at time 0 to the group&#39;s last time, with a short upright mark at each censored time. A cut&#39;s groups run low to high, labelled with their bounds; a column&#39;s are in order of name. The legend gives each group&#39;s number of participants, and hides nothing when clicked. No confidence band is drawn, and none is worked out here: the chart reads only the estimate&#39;s steps and censored times, never the bounds <code>kmEstimate</code> also returns. A click lists a group only when it is on that group&#39;s curve, within a few pixels.</li><li>The at-risk strip: for each group, the number at risk at each time of the axis, the participants whose time is at or after it. A group&#39;s name lists its participants, and a count lists the participants it counts.</li><li>The histogram, for a cut variable: the values the cut points were worked out on, in equal bars, with a dashed line at each cut point and how many values fall in each group. Each line can be dragged with a pointer, and each is a slider of its own for the keyboard (see <a href="#moving-a-cut-line">moving a cut line</a>).</li><li>A cut&#39;s points are worked out on the participants the filters keep who have a value of the cut variable and an outcome for the endpoint: the ones the curves are drawn of, so the median cuts them in halves, as R&#39;s <code>Analyze_Screen</code> cuts a biomarker for its hazard ratio. The footnote says so.</li><li>The footnote: how to list a group, and how the variable was cut.</li></ul>
 <h2 id="moving-a-cut-line">Moving a cut line</h2>
@@ -146,7 +158,7 @@
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/7a28bf2f6b7c2bc4261810d7aba27c599aabdf22"><code>7a28bf2</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
       </p>
       <p>
         Built in the open — follow the

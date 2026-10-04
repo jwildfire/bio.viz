@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#associationscatterelement-settings"><code>associationScatter(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#a-variable-on-an-axis">A variable on an axis</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#the-fitted-line">The fitted line</a></li><li><a href="#a-region-the-listing-and-the-participant-profile">A region, the listing and the participant profile</a></li><li><a href="#what-r-is-asked">What R is asked</a></li><li><a href="#opened-by-another-chart">Opened by another chart</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#associationscatterelement-settings"><code>associationScatter(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#a-variable-on-an-axis">A variable on an axis</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#the-fitted-line">The fitted line</a></li><li><a href="#a-region-the-listing-and-the-participant-profile">A region, the listing and the participant profile</a></li><li><a href="#what-r-is-asked">What R is asked</a></li><li><a href="#opened-by-another-chart">Opened by another chart</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -131,11 +131,23 @@
 <tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s columns shown at the head of the profile. Null means the category columns.</td></tr>
 <tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.</td></tr>
 <tr><td data-label="Setting"><code>normal_col_high</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the upper limit of normal of each result, when the results have one.</td></tr>
-<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr></tbody></table>
+<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr>
+<tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr></tbody></table>
 <p>There is no setting that chooses a confidence level, a minimum number of pairs, an adjustment or how smooth a smooth is: those are R&#39;s.</p>
 <h3 id="what-it-opens-on">What it opens on</h3>
 <p>With <code>x</code> and <code>y</code> named, the chart opens on that pair. With neither named it opens on the first two biomarkers of the Variable control at the first visit, as their results: x the first, y the second. With one biomarker in the table, y is that biomarker at the second visit; with one visit as well, the first participant-level number; with nothing else, the same variable as x. A variable that is named and that the tables do not have gives way to these, and the chart says so in the console.</p>
 <p><code>setSettings({ x, y })</code> opens another pair in place: the two Variable controls move, the chart is drawn again and R is asked again. It is how a page, or another chart, points this one at a pair it names.</p>
+<h2 id="titles-and-footnotes">Titles and footnotes</h2>
+<p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
+<table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{x}</code></td><td data-label="What it holds">The horizontal axis, as its title reads.</td></tr>
+<tr><td data-label="Placeholder"><code>{y}</code></td><td data-label="What it holds">The vertical axis, as its title reads.</td></tr>
+<tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants are drawn.</td></tr>
+<tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
 <h2 id="what-is-drawn">What is drawn</h2>
 <p>Each panel is one Chart.js chart: one point per participant, at its two values. Each axis is named for its variable, with its unit. A colour gives each of its levels a colour and a key; the key does not switch a level off, because the coefficient beneath is of every point drawn. Panels by one further variable give one panel per level of it, all on the same two axes, each with its own count and its own statistics line.</p>
 <p>An axis runs from the least value drawn to the greatest, with a little room. On a logarithmic axis a value of zero or less cannot be shown: it is left out, and the note above the chart counts how many were, for each axis.</p>
@@ -374,7 +386,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/7a28bf2f6b7c2bc4261810d7aba27c599aabdf22"><code>7a28bf2</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
       </p>
       <p>
         Built in the open — follow the

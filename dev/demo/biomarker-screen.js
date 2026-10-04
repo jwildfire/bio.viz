@@ -24,6 +24,13 @@
   ];
   var demo = (window.BioVizDemo.biomarkerScreen = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{heading}',
+      subtitle: '{biomarkers} biomarkers, {n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       // The planted difference: IL-6's change from Baseline to Week 4 between arms.
       comparison: 'difference',
       visit: 'Week 4',

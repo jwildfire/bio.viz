@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#a-cut-biomarker-as-the-groups">A cut biomarker as the groups</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#a-cut-biomarker-as-the-groups">A cut biomarker as the groups</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -123,7 +123,21 @@
 <tr><td data-label="Setting"><code>profile_details</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s columns shown at the head of the profile. Null means the category columns.</td></tr>
 <tr><td data-label="Setting"><code>studyday_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.</td></tr>
 <tr><td data-label="Setting"><code>normal_col_high</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the upper limit of normal of each result, when the results have one.</td></tr>
-<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr></tbody></table>
+<tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr>
+<tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr></tbody></table>
+<h2 id="titles-and-footnotes">Titles and footnotes</h2>
+<p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
+<table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{measure}</code></td><td data-label="What it holds">The biomarker drawn, or <code>every biomarker</code> in the overview.</td></tr>
+<tr><td data-label="Placeholder"><code>{visits}</code></td><td data-label="What it holds">The visits drawn, separated by commas.</td></tr>
+<tr><td data-label="Placeholder"><code>{value}</code></td><td data-label="What it holds">What is drawn of the value: <code>Result</code>, <code>Change from baseline</code> and so on.</td></tr>
+<tr><td data-label="Placeholder"><code>{group}</code></td><td data-label="What it holds">What the groups are, as the Group control names it; empty for none.</td></tr>
+<tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants are drawn: in the overview, on its page of biomarkers, anywhere.</td></tr>
+<tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
 <h2 id="what-is-drawn">What is drawn</h2>
 <p>Each panel is one Chart.js chart. The levels of the group are along the axis; under each is its name and the number of participants drawn there, <code>n = 95</code>, and with a colour the number in each colour, <code>42 · 53</code>. The value axis is named for the variable, with its unit.</p>
 <table class="doc-table"><thead><tr><th scope="col">Mark</th><th scope="col">What it is</th></tr></thead>
@@ -348,7 +362,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/7a28bf2f6b7c2bc4261810d7aba27c599aabdf22"><code>7a28bf2</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
       </p>
       <p>
         Built in the open — follow the
