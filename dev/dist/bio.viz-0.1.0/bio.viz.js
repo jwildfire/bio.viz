@@ -491,17 +491,17 @@ var BioViz = (() => {
   var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
   function formatEstimate(estimate) {
     const row = estimate && typeof estimate === "object" ? estimate : {};
-    const refuse6 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+    const refuse7 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
     const name = text(row.name);
-    if (!name) return refuse6("it has no name");
-    if (!isNumber(row.estimate)) return refuse6(`${name} is not a number`);
+    if (!name) return refuse7("it has no name");
+    if (!isNumber(row.estimate)) return refuse7(`${name} is not a number`);
     const group = text(row.group);
     const lead = `${name}${group ? ` (${group})` : ""}: ${figure(row.estimate)}`;
     const bounds = [row.lower, row.upper, row.level];
     const absent = (value) => value === void 0 || value === null;
     if (bounds.every(absent)) return { status: "shown", text: `${lead}.` };
     if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
-      return refuse6(`the interval of ${name} is incomplete`);
+      return refuse7(`the interval of ${name} is incomplete`);
     }
     const percent = Number((row.level * 100).toPrecision(12));
     return {
@@ -511,14 +511,14 @@ var BioViz = (() => {
   }
   function formatMedian(estimate) {
     const row = estimate && typeof estimate === "object" ? estimate : {};
-    const refuse6 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+    const refuse7 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
     const name = text(row.name);
-    if (!name) return refuse6("it has no name");
+    if (!name) return refuse7("it has no name");
     const absent = (value) => value === void 0 || value === null;
     for (const part of ["estimate", "lower", "upper"]) {
-      if (!absent(row[part]) && !isNumber(row[part])) return refuse6(`${name} is not a number`);
+      if (!absent(row[part]) && !isNumber(row[part])) return refuse7(`${name} is not a number`);
     }
-    if (!(row.level > 0 && row.level < 1)) return refuse6(`the interval of ${name} has no level`);
+    if (!(row.level > 0 && row.level < 1)) return refuse7(`the interval of ${name} has no level`);
     const said = (value) => absent(value) ? "not reached" : figure(value);
     const group = text(row.group);
     const percent = Number((row.level * 100).toPrecision(12));
@@ -588,15 +588,15 @@ var BioViz = (() => {
       counts: counted ? given2.counts : void 0
     });
     if (parts.status !== "shown") return whole(parts.status, parts.text);
-    const refuse6 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-    if (!isNumber(given2.estimate)) return refuse6("the group\u2019s estimate is not a number");
+    const refuse7 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+    if (!isNumber(given2.estimate)) return refuse7("the group\u2019s estimate is not a number");
     const bounds = [given2.lower, given2.upper, given2.level];
     const absent = (value) => value === void 0 || value === null;
     let ends = null;
     let level = null;
     if (!bounds.every(absent)) {
       if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-        return refuse6("the interval of the group\u2019s estimate is incomplete");
+        return refuse7("the interval of the group\u2019s estimate is incomplete");
       }
       level = `${Number((given2.level * 100).toPrecision(12))}%`;
       ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -635,8 +635,8 @@ var BioViz = (() => {
       bounds: null,
       level: null
     });
-    const refuse6 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-    if (!pair) return refuse6("the row does not name its two variables");
+    const refuse7 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+    if (!pair) return refuse7("the row does not name its two variables");
     const counts = counted ? `n = ${given2.counts}` : null;
     const reason = text(given2.reason);
     if (given2.status === "error") {
@@ -648,15 +648,15 @@ var BioViz = (() => {
         withCounts(SAYS_NOT_COMPUTED.test(reason) ? reason : `Not computed, ${reason}`, counts)
       );
     }
-    if (!counted) return refuse6("the pair does not give the number of complete pairs it used");
-    if (!isNumber(given2.estimate)) return refuse6("the pair\u2019s estimate is not a number");
+    if (!counted) return refuse7("the pair does not give the number of complete pairs it used");
+    if (!isNumber(given2.estimate)) return refuse7("the pair\u2019s estimate is not a number");
     const bounds = [given2.lower, given2.upper, given2.level];
     const absent = (value) => value === void 0 || value === null;
     let ends = null;
     let level = null;
     if (!bounds.every(absent)) {
       if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-        return refuse6("the interval of the pair\u2019s estimate is incomplete");
+        return refuse7("the interval of the pair\u2019s estimate is incomplete");
       }
       level = `${Number((given2.level * 100).toPrecision(12))}%`;
       ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -710,24 +710,24 @@ var BioViz = (() => {
       counts
     });
     if (raw.status !== "shown") return whole(raw.status, raw.text);
-    const refuse6 = (what) => whole("refused", `Row not shown: ${what}.`);
+    const refuse7 = (what) => whole("refused", `Row not shown: ${what}.`);
     const adjustment = adjustmentName(given2.adjustment);
-    if (!adjustment) return refuse6("the row does not name the adjustment of its p-value");
+    if (!adjustment) return refuse7("the row does not name the adjustment of its p-value");
     if (!isCount(given2.adjusted_over) || given2.adjusted_over < 1) {
-      return refuse6("the row does not say how many rows its p-value was adjusted across");
+      return refuse7("the row does not say how many rows its p-value was adjusted across");
     }
     const p = given2.p_value;
     if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
-      return refuse6("the adjusted p-value is not a number between 0 and 1");
+      return refuse7("the adjusted p-value is not a number between 0 and 1");
     }
-    if (!isNumber(given2.estimate)) return refuse6("the estimate is not a number");
+    if (!isNumber(given2.estimate)) return refuse7("the estimate is not a number");
     const bounds = [given2.lower, given2.upper, given2.level];
     const absent = (value) => value === void 0 || value === null;
     let ends = null;
     let level = null;
     if (!bounds.every(absent)) {
       if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-        return refuse6("the interval of the estimate is incomplete");
+        return refuse7("the interval of the estimate is incomplete");
       }
       level = `${Number((given2.level * 100).toPrecision(12))}%`;
       ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -1391,7 +1391,9 @@ var BioViz = (() => {
     countsText: () => countsText,
     fillParts: () => fillParts,
     fillText: () => fillText,
-    placeholdersIn: () => placeholdersIn
+    parseCsv: () => parseCsv,
+    placeholdersIn: () => placeholdersIn,
+    toCsv: () => toCsv
   });
 
   // src/shared/titles.js
@@ -1403,6 +1405,14 @@ var BioViz = (() => {
   var DEVELOPMENT = true ? true : true;
   var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
   var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
+  var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
+  function checkDownloads(settings) {
+    if (typeof settings.downloads !== "boolean") refuse4("`downloads` must be true or false.");
+    const scale = settings.png_scale;
+    if (typeof scale !== "number" || !Number.isFinite(scale) || scale < 1 || scale > 4) {
+      refuse4("`png_scale` must be a number from 1 to 4: image pixels per CSS pixel.");
+    }
+  }
   var PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
   function fillText(template, values = {}) {
     return fillParts(template, values).map((part) => part.text).join("");
@@ -1533,10 +1543,150 @@ var BioViz = (() => {
     return `${drawn} Statistics: ${said}; ${sources.join("; ")}.` + (missing ? ` ${missing} of ${answers.length} could not be computed.` : "");
   }
 
+  // src/shared/csv.js
+  var NEEDS_QUOTES = /[",\r\n]/;
+  function csvField(value) {
+    if (value === null || value === void 0) return "";
+    let text2;
+    if (typeof value === "number") {
+      text2 = Number.isNaN(value) ? "NaN" : value === Infinity ? "Inf" : value === -Infinity ? "-Inf" : String(value);
+    } else if (typeof value === "boolean") text2 = value ? "TRUE" : "FALSE";
+    else text2 = String(value);
+    return NEEDS_QUOTES.test(text2) ? `"${text2.replace(/"/g, '""')}"` : text2;
+  }
+  function toCsv(rows, columns) {
+    const lines = [columns.map((column) => csvField(column.label)).join(",")];
+    for (const row of rows) {
+      lines.push(columns.map((column) => csvField(row[column.value_col])).join(","));
+    }
+    return `${lines.join("\r\n")}\r
+`;
+  }
+  function parseCsv(text2) {
+    const records = [];
+    let record = [];
+    let field = "";
+    let quoted = false;
+    let index = 0;
+    const end = () => {
+      record.push(field);
+      field = "";
+    };
+    while (index < text2.length) {
+      const char = text2[index];
+      if (quoted) {
+        if (char === '"' && text2[index + 1] === '"') {
+          field += '"';
+          index += 2;
+          continue;
+        }
+        if (char === '"') quoted = false;
+        else field += char;
+        index += 1;
+        continue;
+      }
+      if (char === '"') quoted = true;
+      else if (char === ",") end();
+      else if (char === "\r" && text2[index + 1] === "\n") {
+        end();
+        records.push(record);
+        record = [];
+        index += 2;
+        continue;
+      } else if (char === "\n") {
+        end();
+        records.push(record);
+        record = [];
+      } else field += char;
+      index += 1;
+    }
+    if (field !== "" || record.length) {
+      end();
+      records.push(record);
+    }
+    return records;
+  }
+  var isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  var OWN = ["asked", "function", "part", "item"];
+  var refuse5 = (message) => {
+    throw new TypeError(`bio.viz: ${message}`);
+  };
+  function scalars(value, prefix, out = {}) {
+    const put = (name, entry) => {
+      if (Object.prototype.hasOwnProperty.call(out, name)) {
+        refuse5(`R\u2019s answer has two members written \`${name}\` in the statistics file.`);
+      }
+      out[name] = entry;
+    };
+    if (Array.isArray(value)) {
+      if (value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
+        if (value.length)
+          put(prefix, value.map((entry) => entry === null ? "NA" : String(entry)).join(" | "));
+        return out;
+      }
+      value.forEach((entry, at) => {
+        const name = `${prefix}/${at + 1}`;
+        if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
+        else put(name, entry);
+      });
+      return out;
+    }
+    for (const [key, entry] of Object.entries(value)) {
+      const name = prefix ? `${prefix}/${key}` : key;
+      if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
+      else put(name, entry);
+    }
+    return out;
+  }
+  function membersOf(object, parts) {
+    const out = {};
+    for (const [key, entry] of Object.entries(object)) {
+      if (OWN.includes(key) || key === "data" || key.startsWith("data/")) {
+        refuse5(`R\u2019s answer has a member \`${key}\`, which the statistics file names itself.`);
+      }
+      if (parts && Array.isArray(entry) && entry.some(isObject)) continue;
+      if (isObject(entry) || Array.isArray(entry)) scalars(entry, key, out);
+      else out[key] = entry;
+    }
+    return out;
+  }
+  function statisticsTable(asked) {
+    const rows = [];
+    asked.forEach((entry, index) => {
+      const answer = entry.answer;
+      if (!answer || answer.status !== "ok" || !isObject(answer.value)) return;
+      const about = {
+        asked: index + 1,
+        function: entry.name,
+        ...isObject(entry.dataId) || Array.isArray(entry.dataId) ? scalars(entry.dataId, "data") : { data: entry.dataId }
+      };
+      const value = answer.value;
+      rows.push({ ...about, part: "result", ...membersOf(value, true) });
+      for (const [key, list] of Object.entries(value)) {
+        if (!Array.isArray(list) || !list.some(isObject)) continue;
+        list.forEach((part, at) => {
+          if (isObject(part))
+            rows.push({ ...about, part: key, item: at + 1, ...membersOf(part, false) });
+        });
+      }
+    });
+    const order2 = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const row of rows) {
+      for (const key of Object.keys(row)) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          order2.push(key);
+        }
+      }
+    }
+    return { columns: order2.map((key) => ({ value_col: key, label: key })), rows };
+  }
+
   // src/shared/settings.js
   var isText4 = (value) => typeof value === "string" && value.trim() !== "";
   var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-  var refuse5 = (message) => {
+  var refuse6 = (message) => {
     throw new TypeError(`bio.viz: ${message}`);
   };
   function fieldSpec(value, setting) {
@@ -1548,7 +1698,7 @@ var BioViz = (() => {
         label: isText4(value.label) ? value.label : value.value_col
       };
     }
-    return refuse5(
+    return refuse6(
       `\`${setting}\` holds something that is not a column name or { value_col, label }.`
     );
   }
@@ -1561,13 +1711,13 @@ var BioViz = (() => {
     if (value === null || value === void 0) return null;
     const list = Array.isArray(value) ? value : [value];
     if (!list.length || !list.every((entry) => isText4(entry) || typeof entry === "number")) {
-      refuse5(`\`${setting}\` must be a name, or a list of names.`);
+      refuse6(`\`${setting}\` must be a name, or a list of names.`);
     }
     return [...new Set(list.map(String))];
   }
   var columnOrNull = (settings, key) => {
     if (settings[key] !== null && !isText4(settings[key])) {
-      refuse5(`\`${key}\` must be the name of a column, or null.`);
+      refuse6(`\`${key}\` must be the name of a column, or null.`);
     }
   };
   function coreSettings(settings) {
@@ -1584,12 +1734,12 @@ var BioViz = (() => {
   }
   function layOver(defaults, overrides, chart) {
     if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
-      refuse5(`${chart} takes its settings as an object.`);
+      refuse6(`${chart} takes its settings as an object.`);
     }
     const given2 = overrides || {};
     for (const key of Object.keys(given2)) {
       if (!(key in defaults)) {
-        refuse5(
+        refuse6(
           `\`${key}\` is not a setting of ${chart}. Its settings are ${Object.keys(defaults).join(", ")}.`
         );
       }
@@ -1602,37 +1752,38 @@ var BioViz = (() => {
   }
   function checkShared(settings, baselineStats) {
     for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-      if (!isText4(settings[key])) refuse5(`\`${key}\` must be the name of a column.`);
+      if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
     }
     if (!baselineStats.includes(settings.baseline_stat)) {
-      refuse5(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
+      refuse6(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
     }
     if ("profile" in settings && typeof settings.profile !== "boolean") {
-      refuse5("`profile` must be true or false.");
+      refuse6("`profile` must be true or false.");
     }
     if (settings.waiting_note !== null && !isText4(settings.waiting_note)) {
-      refuse5("`waiting_note` must be a sentence, or null for none.");
+      refuse6("`waiting_note` must be a sentence, or null for none.");
     }
     if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
-      refuse5("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
+      refuse6("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
     }
     checkTitles(settings);
+    checkDownloads(settings);
   }
   function checkBack(settings) {
     if (settings.back !== null && (!isPlainObject4(settings.back) || !isText4(settings.back.label) || typeof settings.back.action !== "function")) {
-      refuse5("`back` must be { label, action }, a sentence and a function, or null for none.");
+      refuse6("`back` must be { label, action }, a sentence and a function, or null for none.");
     }
   }
   function variableSetting(value, setting) {
     if (value === null || value === void 0) return null;
     if (!isPlainObject4(value)) {
-      refuse5(
+      refuse6(
         `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
       );
     }
     const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
     if (read2.cut !== void 0) {
-      refuse5(
+      refuse6(
         `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave \`cut\` out.`
       );
     }
@@ -1848,15 +1999,15 @@ var BioViz = (() => {
       columnOrNull(settings, key);
     }
     for (const key of ["endpoint_col", "time_col"]) {
-      if (!isText4(settings[key])) refuse5(`\`${key}\` must be the name of a column.`);
+      if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
     }
     if (settings.censor_col === null === (settings.event_col === null)) {
-      refuse5(
+      refuse6(
         "Name exactly one of `censor_col` (1 = censored, as ADaM\u2019s CNSR) and `event_col` (1 = event); give the other as null."
       );
     }
     if (settings.endpoint !== null && !isText4(settings.endpoint)) {
-      refuse5("`endpoint` must be the name of an endpoint, or null for the first.");
+      refuse6("`endpoint` must be the name of an endpoint, or null for the first.");
     }
   }
   function flagOf(settings) {
@@ -1876,7 +2027,7 @@ var BioViz = (() => {
     ];
     for (const [key, column] of needed) {
       if (!outcomes.some((row) => column in row)) {
-        refuse5(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
+        refuse6(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
       }
     }
   }
@@ -1934,6 +2085,186 @@ var BioViz = (() => {
     };
     outcomeOf.strangers = strangers;
     return outcomeOf;
+  }
+
+  // src/shared/png.js
+  var PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+  var crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) {
+      crcTable = new Uint32Array(256);
+      for (let n = 0; n < 256; n += 1) {
+        let c = n;
+        for (let k = 0; k < 8; k += 1) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+        crcTable[n] = c >>> 0;
+      }
+    }
+    let crc = 4294967295;
+    for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ crc >>> 8;
+    return (crc ^ 4294967295) >>> 0;
+  }
+  var utf8 = (text2) => new TextEncoder().encode(text2);
+  function chunk(type, data) {
+    const body = new Uint8Array(4 + data.length);
+    body.set(utf8(type), 0);
+    body.set(data, 4);
+    const out = new Uint8Array(12 + data.length);
+    const view = new DataView(out.buffer);
+    view.setUint32(0, data.length);
+    out.set(body, 4);
+    view.setUint32(8 + data.length, crc32(body));
+    return out;
+  }
+  function itxt(keyword, text2) {
+    const head = utf8(keyword);
+    const value = utf8(text2);
+    const data = new Uint8Array(head.length + 5 + value.length);
+    data.set(head, 0);
+    data.set([0, 0, 0, 0, 0], head.length);
+    data.set(value, head.length + 5);
+    return chunk("iTXt", data);
+  }
+  function phys(perMetre) {
+    const data = new Uint8Array(9);
+    const view = new DataView(data.buffer);
+    view.setUint32(0, perMetre);
+    view.setUint32(4, perMetre);
+    data[8] = 1;
+    return chunk("pHYs", data);
+  }
+  var CSS_PIXELS_PER_INCH = 96;
+  function pngChunks(png, { scale, text: text2 }) {
+    for (let i = 0; i < PNG_SIGNATURE.length; i += 1) {
+      if (png[i] !== PNG_SIGNATURE[i]) throw new Error("bio.viz: not a PNG.");
+    }
+    const afterHeader = 8 + 25;
+    const extra = [
+      phys(Math.round(scale * CSS_PIXELS_PER_INCH / 0.0254)),
+      ...Object.entries(text2).filter(([, value]) => typeof value === "string" && value !== "").map(([keyword, value]) => itxt(keyword, value))
+    ];
+    const size = extra.reduce((total, part) => total + part.length, png.length);
+    const out = new Uint8Array(size);
+    out.set(png.subarray(0, afterHeader), 0);
+    let at = afterHeader;
+    for (const part of extra) {
+      out.set(part, at);
+      at += part.length;
+    }
+    out.set(png.subarray(afterHeader), at);
+    return out;
+  }
+  var HEIGHTS = /* @__PURE__ */ new Set(["height", "block-size", "max-height", "max-block-size"]);
+  var OVERFLOWS = /* @__PURE__ */ new Set([
+    "overflow",
+    "overflow-x",
+    "overflow-y",
+    "overflow-block",
+    "overflow-inline"
+  ]);
+  var holdsText = (element) => /\S/.test(element.textContent || "");
+  function copyStyles(from, to) {
+    const style = getComputedStyle(from);
+    const reflow = from.tagName !== "CANVAS" && from.tagName !== "IMG" && holdsText(from);
+    let text2 = "";
+    for (let i = 0; i < style.length; i += 1) {
+      const name = style[i];
+      if (reflow && HEIGHTS.has(name)) continue;
+      if (OVERFLOWS.has(name)) continue;
+      text2 += `${name}:${style.getPropertyValue(name)};`;
+    }
+    to.setAttribute("style", `${text2}overflow:visible;`);
+  }
+  function copyTree(from, to) {
+    if (from.nodeType !== 1) return;
+    copyStyles(from, to);
+    if (from.tagName === "CANVAS") return;
+    const a = from.children;
+    const b = to.children;
+    for (let i = 0; i < a.length; i += 1) copyTree(a[i], b[i]);
+  }
+  async function drawFrame(frame2, { leaveOut, scale, text: text2 }) {
+    const copy = frame2.cloneNode(true);
+    copyTree(frame2, copy);
+    const canvases = frame2.querySelectorAll("canvas");
+    const copies = copy.querySelectorAll("canvas");
+    canvases.forEach((canvas2, i) => {
+      const picture = document.createElement("img");
+      picture.setAttribute("style", copies[i].getAttribute("style") || "");
+      picture.width = canvas2.clientWidth;
+      picture.height = canvas2.clientHeight;
+      picture.src = canvas2.width && canvas2.height ? canvas2.toDataURL("image/png") : "";
+      copies[i].replaceWith(picture);
+    });
+    const all = [...frame2.querySelectorAll("*")];
+    const copied = [...copy.querySelectorAll("*")];
+    const dropped = all.map((element, i) => element.tagName !== "CANVAS" && leaveOut(element) ? copied[i] : null).filter(Boolean);
+    dropped.forEach((element) => element.remove());
+    copy.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+    const width = Math.ceil(frame2.getBoundingClientRect().width);
+    copy.style.width = `${width}px`;
+    copy.style.height = "auto";
+    copy.style.minHeight = "0";
+    copy.style.margin = "0";
+    copy.style.background = "#ffffff";
+    const holder = document.createElement("div");
+    holder.setAttribute(
+      "style",
+      `position:absolute;left:-100000px;top:0;width:${width}px;background:#fff`
+    );
+    holder.append(copy);
+    document.body.append(holder);
+    await Promise.all(
+      [...copy.querySelectorAll("img")].map(
+        (picture) => picture.complete ? null : new Promise((done) => picture.onload = picture.onerror = done)
+      )
+    );
+    const height = Math.ceil(copy.getBoundingClientRect().height);
+    const holderBox = holder.getBoundingClientRect();
+    let right = width;
+    for (const element of copy.querySelectorAll("*")) {
+      const box = element.getBoundingClientRect();
+      if (box.width && box.height) right = Math.max(right, Math.ceil(box.right - holderBox.left));
+    }
+    const drawnWidth = right;
+    holder.remove();
+    const markup = new XMLSerializer().serializeToString(copy);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${drawnWidth}" height="${height}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div></foreignObject></svg>`;
+    const image = new Image();
+    await new Promise((done, fail) => {
+      image.onload = done;
+      image.onerror = () => fail(
+        new Error("bio.viz: the chart could not be drawn as a picture, as the browser read it.")
+      );
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(drawnWidth * scale);
+    canvas.height = Math.round(height * scale);
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.scale(scale, scale);
+    context.drawImage(image, 0, 0, drawnWidth, height);
+    const written = await new Promise((done, fail) => {
+      try {
+        canvas.toBlob(
+          (blob) => blob ? done(blob) : fail(
+            new Error(
+              "bio.viz: the picture could not be written, which a browser does when it is too large. Try a smaller png_scale."
+            )
+          ),
+          "image/png"
+        );
+      } catch (error) {
+        fail(new Error(`bio.viz: the picture could not be read back (${error.message}).`));
+      }
+    });
+    const bytes = pngChunks(new Uint8Array(await written.arrayBuffer()), { scale, text: text2 });
+    return {
+      blob: new Blob([bytes], { type: "image/png" }),
+      width: canvas.width,
+      height: canvas.height
+    };
   }
 
   // src/shared/chartHost.js
@@ -2004,7 +2335,13 @@ ${root} .bv-titles:empty{display:none}
 ${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
 ${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
 ${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
-${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
+${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}
+${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:.6rem 0 0;font-size:.8rem;color:#52616f}
+${root} .bv-downloads[hidden]{display:none}
+${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
   function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
     const { kit } = chart;
     Object.assign(
@@ -2018,10 +2355,14 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     chart.statLine = kit.createElement("div", "bv-statistic");
     chart.statLine.setAttribute("role", "status");
     chart.footnote.after(chart.statLine);
+    chart.footnote.classList.add("bv-no-picture");
+    chart.listingWrap.classList.add("bv-no-picture");
     chart.titleBlock = kit.createElement("div", "bv-titles");
     chart.main.prepend(chart.titleBlock);
     chart.footBlock = kit.createElement("div", "bv-foot");
     chart.listingWrap.before(chart.footBlock);
+    chart.module = moduleClass.replace(/^bv-/, "");
+    mountDownloads(chart);
     chart.host = {
       settings: {
         profile: chart.settings.profile,
@@ -2179,6 +2520,15 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     }
     return { ...sharedPlaceholders(chart), ...own };
   }
+  function titlesOf(chart) {
+    const parts = partsOf(chart);
+    const joined = (runs) => runs === null ? null : runs.map((run) => run.text).join("");
+    return {
+      title: joined(parts.title),
+      subtitle: joined(parts.subtitle),
+      footnotes: parts.footnotes.map(joined)
+    };
+  }
   function partsOf(chart) {
     const { settings } = chart;
     const values = placeholderValues(chart);
@@ -2235,6 +2585,117 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
       if (index === said.footnotes.length - 1) line.dataset.automatic = "true";
       chart.footBlock.append(line);
     });
+    syncDownloads(chart);
+  }
+  var DOWNLOAD_LABELS = Object.freeze({
+    png: "PNG",
+    statistics: "Statistics (CSV)",
+    table: "Table (CSV)"
+  });
+  var slug = (text2) => String(text2).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => whole.length <= 60 ? whole : kept).replace(/-+$/g, "");
+  function downloadName(chart, kind) {
+    const values = placeholderValues(chart);
+    const view = (chart.viewFields || []).map((name) => values[name]).filter((value) => value !== null && value !== void 0 && String(value).trim() !== "").join(" ");
+    const base = ["bio.viz", chart.module, slug(view)].filter(Boolean).join("-");
+    return kind === "png" ? `${base}.png` : `${base}-${kind}.csv`;
+  }
+  async function downloadFile(chart, kind) {
+    const name = downloadName(chart, kind);
+    if (kind === "statistics") {
+      const { columns, rows } = statisticsTable(chart.asked || []);
+      return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
+    }
+    if (kind === "table") {
+      const { columns, rows } = typeof chart.tableOf === "function" ? chart.tableOf() : { columns: [], rows: [] };
+      return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
+    }
+    if (kind === "png") {
+      const said = titlesOf(chart);
+      const scale = chart.settings.png_scale;
+      const charts = (chart.charts || []).filter(
+        (made) => made && made.options && typeof made.resize === "function"
+      );
+      const ratios = charts.map((made) => made.options.devicePixelRatio);
+      const sharpen = (ratio) => charts.forEach((made, i) => {
+        made.options.devicePixelRatio = ratio === null ? ratios[i] : ratio;
+        made.resize();
+      });
+      sharpen(Math.max(scale, globalThis.devicePixelRatio || 1));
+      try {
+        const { blob } = await drawFrame(chart.main, {
+          scale,
+          // What a reader works the chart with is marked to be left out.
+          leaveOut: (element) => element.classList.contains("bv-no-picture"),
+          text: {
+            Title: [said.title, said.subtitle].filter(Boolean).join(" \u2014 "),
+            Description: said.footnotes.join("\n"),
+            Software: `bio.viz ${VERSION_SAID}`
+          }
+        });
+        return { name, blob };
+      } finally {
+        sharpen(null);
+      }
+    }
+    throw new TypeError(
+      `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
+    );
+  }
+  function mountDownloads(chart) {
+    const { kit } = chart;
+    chart.downloadBar = kit.createElement("div", "bv-downloads bv-no-picture");
+    chart.downloadBar.append(kit.createElement("span", "bv-downloads-label", "Download:"));
+    chart.downloadButtons = {};
+    for (const [kind, label2] of Object.entries(DOWNLOAD_LABELS)) {
+      const button = kit.createElement("button", null, label2);
+      button.type = "button";
+      button.dataset.download = kind;
+      button.onclick = async () => {
+        button.disabled = true;
+        sayFailure(chart, null);
+        try {
+          const { name, blob } = await downloadFile(chart, kind);
+          saveFile(blob, name);
+        } catch (error) {
+          sayFailure(
+            chart,
+            `The ${kind === "png" ? "PNG" : `${kind} file`} could not be made: ${String(error && error.message || error).replace(/^bio\.viz: /, "")}`
+          );
+          console.error(error);
+        } finally {
+          syncDownloads(chart);
+        }
+      };
+      chart.downloadButtons[kind] = button;
+      chart.downloadBar.append(button);
+    }
+    chart.footBlock.after(chart.downloadBar);
+    chart.fileOf = (kind) => downloadFile(chart, kind);
+  }
+  function sayFailure(chart, said) {
+    const old = chart.downloadBar.querySelector(".bv-download-error");
+    if (old) old.remove();
+    if (!said) return;
+    const line = chart.kit.createElement("p", "bv-download-error", said);
+    line.setAttribute("role", "alert");
+    chart.downloadBar.append(line);
+  }
+  function syncDownloads(chart) {
+    if (!chart.downloadBar) return;
+    chart.downloadBar.hidden = !chart.settings.downloads;
+    const answered = (chart.asked || []).some(
+      (entry) => entry.answer && entry.answer.status === "ok"
+    );
+    const table = typeof chart.tableOf === "function" ? chart.tableOf() : { rows: [] };
+    const { png, statistics } = chart.downloadButtons;
+    if (!(chart.asked || []).length) statistics.remove();
+    else if (!statistics.isConnected) png.after(statistics);
+    const waiting = (chart.asked || []).some((entry) => !entry.answer);
+    statistics.disabled = !answered;
+    statistics.title = answered ? "" : waiting ? "Waiting for R\u2019s answer." : "R returned no statistics for this view.";
+    if (!statistics.title) statistics.removeAttribute("title");
+    chart.downloadButtons.table.disabled = !table.rows.length;
+    chart.downloadButtons.png.disabled = false;
   }
   function syncHost(chart) {
     chart.host.settings.profile = chart.settings.profile;
@@ -2349,13 +2810,17 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     chart.kit.resetProfileRail(host);
   }
   function downloadCsv(kit, rows, columns, file) {
-    const blob = new Blob([kit.buildCsv(rows, columns)], { type: "text/csv" });
+    saveFile(new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }), file);
+  }
+  function saveFile(blob, name) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = file;
+    link.download = name;
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   function downloadListing(chart, file) {
     const { host, kit } = chart;
@@ -2422,7 +2887,7 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     pager.append(kit.createElement("span", "bv-overview-count", count));
     if (page.pages === 1) return pager;
     const button = (label2, to, name) => {
-      const made = kit.createElement("button", null, label2);
+      const made = kit.createElement("button", "bv-no-picture", label2);
       made.type = "button";
       made.dataset.go = name;
       made.disabled = to < 0 || to >= page.pages;
@@ -2439,7 +2904,7 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
   function mountToolbar(chart) {
     const { kit, settings } = chart;
     if (!chart.toolbar) {
-      chart.toolbar = kit.createElement("div", "bv-toolbar");
+      chart.toolbar = kit.createElement("div", "bv-toolbar bv-no-picture");
       chart.notes.before(chart.toolbar);
     }
     chart.toolbar.innerHTML = "";
@@ -2468,7 +2933,7 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     const value = settings[key];
     if (!isPlainObject4(value)) return;
     if (value.cut === void 0 || value.cut === null) {
-      refuse5(
+      refuse6(
         `\`${key}\` is a variable with no cut. A biomarker or a number makes groups only when it is cut: add \`cut: 'median'\`, 'tertiles', 'quartiles' or the cut points.`
       );
     }
@@ -2567,7 +3032,9 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings(overrides) {
     const settings = layOver(DEFAULT_SETTINGS2, overrides, "the group comparison chart");
@@ -2590,21 +3057,21 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       else columnOrNull(settings, key);
     }
     if (!VALUE_TYPES.includes(settings.value_type)) {
-      refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+      refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
     }
-    if (!MARKS.includes(settings.mark)) refuse5(`\`mark\` must be one of ${MARKS.join(", ")}.`);
+    if (!MARKS.includes(settings.mark)) refuse6(`\`mark\` must be one of ${MARKS.join(", ")}.`);
     if (!Y_SCALES.includes(settings.y_scale)) {
-      refuse5(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
+      refuse6(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
     }
     for (const key of ["page_size", "max_levels", "overview_limit"]) {
       if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-        refuse5(`\`${key}\` must be a whole number, one or more.`);
+        refuse6(`\`${key}\` must be a whole number, one or more.`);
       }
     }
-    if (!TESTS.includes(settings.test)) refuse5(`\`test\` must be one of ${TESTS.join(", ")}.`);
-    if (typeof settings.pairwise !== "boolean") refuse5("`pairwise` must be true or false.");
+    if (!TESTS.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS.join(", ")}.`);
+    if (typeof settings.pairwise !== "boolean") refuse6("`pairwise` must be true or false.");
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+      refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
     }
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.visits = textList2(settings.visits, "visits");
@@ -4159,6 +4626,34 @@ ${toolbarStyles(".bv-group-comparison")}
       });
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.panels) return { columns: [], rows: [] };
+      const visits2 = model.panels.some((panel) => panel.visit !== null && panel.visit !== void 0);
+      const columns = [{ value_col: settings.id_col, label: "Participant" }];
+      if (visits2) columns.push({ value_col: "visit", label: "Visit" });
+      if (state.groupBy) columns.push({ value_col: "x", label: this.labelOf(state.groupBy) });
+      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+      if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
+      columns.push({
+        value_col: "y",
+        label: `${state.measure}, ${VALUE_LABELS[state.valueType] || state.valueType}`
+      });
+      const rows = model.panels.flatMap(
+        (panel) => panel.records.map((record) => ({ ...record, visit: panel.visit }))
+      );
+      return { columns, rows };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["measure", "visits", "group"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -4339,7 +4834,9 @@ ${toolbarStyles(".bv-group-comparison")}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings2(overrides) {
     const settings = layOver(DEFAULT_SETTINGS3, overrides, "the association scatter");
@@ -4358,23 +4855,23 @@ ${toolbarStyles(".bv-group-comparison")}
     }
     for (const key of ["x_scale", "y_scale"]) {
       if (!SCALES.includes(settings[key])) {
-        refuse5(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
+        refuse6(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
       }
     }
-    if (!FITS.includes(settings.fit)) refuse5(`\`fit\` must be one of ${FITS.join(", ")}.`);
+    if (!FITS.includes(settings.fit)) refuse6(`\`fit\` must be one of ${FITS.join(", ")}.`);
     if (!METHODS.includes(settings.method)) {
-      refuse5(`\`method\` must be one of ${METHODS.join(", ")}.`);
+      refuse6(`\`method\` must be one of ${METHODS.join(", ")}.`);
     }
     for (const key of ["page_size", "max_levels"]) {
       if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-        refuse5(`\`${key}\` must be a whole number, one or more.`);
+        refuse6(`\`${key}\` must be a whole number, one or more.`);
       }
     }
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+      refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
     }
     if (settings.fit_statistic !== null && !isText4(settings.fit_statistic)) {
-      refuse5(
+      refuse6(
         "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
       );
     }
@@ -5624,6 +6121,28 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       );
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.panels) return { columns: [], rows: [] };
+      const columns = [
+        { value_col: settings.id_col, label: "Participant" },
+        { value_col: "x", label: this.titleOf(state.x) },
+        { value_col: "y", label: this.titleOf(state.y) }
+      ];
+      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+      if (state.panelBy) columns.push({ value_col: "panel", label: this.labelOf(state.panelBy) });
+      return { columns, rows: model.panels.flatMap((panel) => panel.records) };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["y", "x"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -5953,7 +6472,9 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
     // The association scatter a cell opens.
     scatter: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings3(overrides) {
     const settings = layOver(DEFAULT_SETTINGS4, overrides, "the correlation matrix");
@@ -5966,31 +6487,31 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       ["measure", "a biomarker"]
     ]) {
       if (settings[key] !== null && !isText4(settings[key])) {
-        refuse5(`\`${key}\` must be the name of ${what}, or null.`);
+        refuse6(`\`${key}\` must be the name of ${what}, or null.`);
       }
     }
-    if (!MODES.includes(settings.mode)) refuse5(`\`mode\` must be one of ${MODES.join(", ")}.`);
-    if (!VIEWS.includes(settings.view)) refuse5(`\`view\` must be one of ${VIEWS.join(", ")}.`);
+    if (!MODES.includes(settings.mode)) refuse6(`\`mode\` must be one of ${MODES.join(", ")}.`);
+    if (!VIEWS.includes(settings.view)) refuse6(`\`view\` must be one of ${VIEWS.join(", ")}.`);
     if (!VALUE_TYPES.includes(settings.value_type)) {
-      refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+      refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
     }
     if (!METHODS2.includes(settings.method)) {
-      refuse5(`\`method\` must be one of ${METHODS2.join(", ")}.`);
+      refuse6(`\`method\` must be one of ${METHODS2.join(", ")}.`);
     }
     if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-      refuse5("`max_levels` must be a whole number, one or more.");
+      refuse6("`max_levels` must be a whole number, one or more.");
     }
     if (!Number.isInteger(settings.limit) || settings.limit < 2) {
-      refuse5("`limit` must be a whole number, two or more.");
+      refuse6("`limit` must be a whole number, two or more.");
     }
     if (settings.min_pairs !== null && !(typeof settings.min_pairs === "number" && Number.isFinite(settings.min_pairs) && settings.min_pairs > 0)) {
-      refuse5("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
+      refuse6("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
     }
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no coefficients.");
+      refuse6("`statistic` must be the name of an R function, or null for no coefficients.");
     }
     if (settings.scatter !== null && !isPlainObject4(settings.scatter)) {
-      refuse5("`scatter` must be an object of settings for the association scatter, or null.");
+      refuse6("`scatter` must be an object of settings for the association scatter, or null.");
     }
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.biomarkers = textList2(settings.biomarkers, "biomarkers");
@@ -7062,7 +7583,7 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
           `Every pair, with its count: ${rows.length}, in the order R returned them`
         )
       );
-      const tools = kit.createElement("div", "bv-pairs-tools");
+      const tools = kit.createElement("div", "bv-pairs-tools bv-no-picture");
       const download = kit.createElement("button", null, "Download: CSV");
       download.type = "button";
       download.onclick = () => downloadCsv(
@@ -7112,6 +7633,27 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         details.append(note);
       });
       this.listingWrap.append(details);
+    }
+    /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, settings } = this;
+      if (!model || !model.records || !model.variables) return { columns: [], rows: [] };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          ...model.variables.map((variable2) => ({ value_col: variable2.name, label: variable2.label }))
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["heading"];
     }
     /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
@@ -7319,7 +7861,9 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings4(overrides) {
     const settings = layOver(
@@ -7343,11 +7887,11 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     if (isCut(settings.group_by)) checkGrouping(settings, "group_by");
     else columnOrNull(settings, "group_by");
     if (settings.cuts !== null) {
-      if (!Array.isArray(settings.cuts)) refuse5("`cuts` must be a list of cut variables, or null.");
+      if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
       settings.cuts = settings.cuts.map((spec, index) => {
         const holder = { [`cuts[${index}]`]: spec };
         if (!isCut(spec)) {
-          refuse5(
+          refuse6(
             `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
           );
         }
@@ -7358,17 +7902,17 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     if (settings.at_risk_times !== null) {
       const times = settings.at_risk_times;
       if (!Array.isArray(times) || !times.length || !times.every((time) => typeof time === "number" && Number.isFinite(time) && time >= 0) || times.some((time, index) => index > 0 && !(time > times[index - 1]))) {
-        refuse5("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
+        refuse6("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
       }
       settings.at_risk_times = [...times];
     }
     for (const key of ["page_size", "max_levels"]) {
       if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-        refuse5(`\`${key}\` must be a whole number, one or more.`);
+        refuse6(`\`${key}\` must be a whole number, one or more.`);
       }
     }
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+      refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
     }
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.measures = textList2(settings.measures, "measures");
@@ -7558,6 +8102,8 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       records.push({
         [idCol]: id,
         group: cut ? groupLabel(record.group, cut) : String(record.group),
+        // The value a cut was made from, for the table download (#70 review).
+        ...cut ? { value: record.group } : {},
         time: outcome.time,
         flag: outcome.flag,
         event: outcome.event
@@ -8534,6 +9080,31 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       return railSettings(this, "linear");
     }
     /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.records) return { columns: [], rows: [] };
+      const valued = model.cut ? (({ cut, ...variable2 }) => variable2)(model.cut.spec) : null;
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          { value_col: "group", label: this.labelOf(state.groupBy) },
+          ...valued ? [{ value_col: "value", label: label(valued) }] : [],
+          { value_col: "time", label: "Time" },
+          { value_col: "event", label: "Event" }
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["endpoint", "group"];
+    }
+    /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
      * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
      * @returns {object}
@@ -8643,7 +9214,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     association_scatter: null,
     stratified_survival: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings5(overrides) {
     const settings = layOver(DEFAULT_SETTINGS6, flaggedSettings(overrides), "the biomarker screen");
@@ -8653,38 +9226,38 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       columnOrNull(settings, key);
     }
     if (settings.visit !== null && !isText4(settings.visit)) {
-      refuse5("`visit` must be the name of a visit, or null.");
+      refuse6("`visit` must be the name of a visit, or null.");
     }
     if (!COMPARISONS.includes(settings.comparison)) {
-      refuse5(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
+      refuse6(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
     }
     if (!VALUE_TYPES.includes(settings.value_type)) {
-      refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+      refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
     }
     if (!METHODS3.includes(settings.method)) {
-      refuse5(`\`method\` must be one of ${METHODS3.join(", ")}.`);
+      refuse6(`\`method\` must be one of ${METHODS3.join(", ")}.`);
     }
     if (!ADJUSTMENTS2.includes(settings.adjustment)) {
-      refuse5(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
+      refuse6(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
     }
-    if (!SORTS.includes(settings.sort)) refuse5(`\`sort\` must be one of ${SORTS.join(", ")}.`);
+    if (!SORTS.includes(settings.sort)) refuse6(`\`sort\` must be one of ${SORTS.join(", ")}.`);
     if (!Number.isInteger(settings.limit) || settings.limit < 1) {
-      refuse5("`limit` must be a whole number, one or more.");
+      refuse6("`limit` must be a whole number, one or more.");
     }
     if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-      refuse5("`max_levels` must be a whole number, one or more.");
+      refuse6("`max_levels` must be a whole number, one or more.");
     }
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no statistics.");
+      refuse6("`statistic` must be the name of an R function, or null for no statistics.");
     }
     for (const key of ["group_comparison", "association_scatter", "stratified_survival"]) {
       if (settings[key] !== null && !isPlainObject4(settings[key])) {
-        refuse5(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
+        refuse6(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
       }
     }
     settings.levels = textList2(settings.levels, "levels");
     if (settings.levels && settings.levels.length !== 2) {
-      refuse5("`levels` must name two groups, the first and the second, or be null.");
+      refuse6("`levels` must name two groups, the first and the second, or be null.");
     }
     settings.with = variableSetting(settings.with, "with");
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
@@ -9646,7 +10219,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       const list = kit.createElement("div", "bv-screen-rows");
       page.items.forEach((row) => list.append(this.rowOf(row, range)));
       wrap.append(list);
-      const tools = kit.createElement("div", "bv-screen-tools");
+      const tools = kit.createElement("div", "bv-screen-tools bv-no-picture");
       const download = kit.createElement("button", null, "Download: CSV");
       download.type = "button";
       download.onclick = () => this.download(sorted2);
@@ -9754,6 +10327,33 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         ],
         "bio.viz-biomarker-screen-rows.csv"
       );
+    }
+    /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, settings } = this;
+      if (!model || !model.records || !model.rows) return { columns: [], rows: [] };
+      const OUTCOME = { time: "Time", censor: "Censored", event: "Event" };
+      return {
+        columns: [
+          { value_col: settings.id_col, label: "Participant" },
+          ...model.rows.map((row) => ({ value_col: row.name, label: row.name })),
+          ...model.extra ? [{ value_col: model.extra, label: model.extra }] : [],
+          ...(model.outcomeFields || []).map((field) => ({
+            value_col: field,
+            label: OUTCOME[field] || field
+          }))
+        ],
+        rows: model.records
+      };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["heading"];
     }
     /**
      * What the title, subtitle and footnotes' placeholders hold for the view now
@@ -9978,7 +10578,9 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     normal_col_high: null,
     normal_col_low: null,
     // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
-    ...TITLE_DEFAULTS
+    ...TITLE_DEFAULTS,
+    // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+    ...DOWNLOAD_DEFAULTS
   });
   function syncSettings6(overrides) {
     const settings = layOver(DEFAULT_SETTINGS7, overrides, "the cross-tabulation");
@@ -9999,11 +10601,11 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       else columnOrNull(settings, key);
     }
     if (settings.cuts !== null) {
-      if (!Array.isArray(settings.cuts)) refuse5("`cuts` must be a list of cut variables, or null.");
+      if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
       settings.cuts = settings.cuts.map((spec, index) => {
         const holder = { [`cuts[${index}]`]: spec };
         if (!isCut(spec)) {
-          refuse5(
+          refuse6(
             `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
           );
         }
@@ -10012,16 +10614,16 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       });
     }
     if (!PERCENTS.includes(settings.percent)) {
-      refuse5(`\`percent\` must be one of ${PERCENTS.join(", ")}.`);
+      refuse6(`\`percent\` must be one of ${PERCENTS.join(", ")}.`);
     }
-    if (!TESTS2.includes(settings.test)) refuse5(`\`test\` must be one of ${TESTS2.join(", ")}.`);
+    if (!TESTS2.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS2.join(", ")}.`);
     for (const key of ["page_size", "max_levels"]) {
       if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-        refuse5(`\`${key}\` must be a whole number, one or more.`);
+        refuse6(`\`${key}\` must be a whole number, one or more.`);
       }
     }
     if (settings.statistic !== null && !isText4(settings.statistic)) {
-      refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+      refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
     }
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.measures = textList2(settings.measures, "measures");
@@ -10125,6 +10727,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       total: 0,
       percents: { row: [], col: [] },
       cuts: {},
+      cutValues: { row: null, col: null },
       participants: kept ? kept.length : 0,
       dropped: [],
       unused: [],
@@ -10143,10 +10746,13 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       { row: grouping2(state.rowBy), col: grouping2(state.colBy) },
       config
     );
+    const cutValues = { row: null, col: null };
+    for (const field of ["row", "col"]) if (cuts[field]) cutValues[field] = {};
     const records = made.data.map((record) => {
       const out = { [config.id_col]: record[config.id_col] };
       for (const field of ["row", "col"]) {
         out[field] = cuts[field] ? groupLabel(record[field], cuts[field]) : String(record[field]);
+        if (cuts[field]) cutValues[field][record[config.id_col]] = record[field];
       }
       return out;
     });
@@ -10164,6 +10770,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     return {
       ...empty,
       records,
+      cutValues,
       rowLevels,
       colLevels,
       counts,
@@ -10765,6 +11372,38 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     }
     railSettings() {
       return railSettings(this, "linear");
+    }
+    /**
+     * The table the chart drew from, one row per participant drawn, for the
+     * table download (#67): which field of a row each column holds, and its
+     * heading.
+     * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+     */
+    tableOf() {
+      const { model, state, settings } = this;
+      if (!model || !model.records) return { columns: [], rows: [] };
+      const columns = [{ value_col: settings.id_col, label: "Participant" }];
+      const values = model.cutValues || {};
+      for (const [field, by] of [
+        ["row", state.rowBy],
+        ["col", state.colBy]
+      ]) {
+        columns.push({ value_col: field, label: this.labelOf(by) });
+        if (values[field]) {
+          const { cut, ...variable2 } = this.groupingOf(by);
+          columns.push({ value_col: `${field}Value`, label: label(variable2) });
+        }
+      }
+      const rows = model.records.map((record) => ({
+        ...record,
+        ...values.row ? { rowValue: values.row[record[settings.id_col]] } : {},
+        ...values.col ? { colValue: values.col[record[settings.id_col]] } : {}
+      }));
+      return { columns, rows };
+    }
+    /** The placeholders a download's file name is made of, after the chart's name. */
+    get viewFields() {
+      return ["rows", "columns"];
     }
     /**
      * What the title, subtitle and footnotes' placeholders hold for the view now

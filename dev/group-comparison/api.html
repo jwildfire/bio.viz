@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#a-cut-biomarker-as-the-groups">A cut biomarker as the groups</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#groupcomparisonelement-settings"><code>groupComparison(element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#downloads">Downloads</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-overview">The overview</a></li><li><a href="#a-cut-biomarker-as-the-groups">A cut biomarker as the groups</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#listing-and-participant-profile">Listing and participant profile</a></li><li><a href="#the-statistics-line">The statistics line</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -126,7 +126,9 @@
 <tr><td data-label="Setting"><code>normal_col_low</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A column holding the lower limit of normal.</td></tr>
 <tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
 <tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
-<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr></tbody></table>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr>
+<tr><td data-label="Setting"><code>downloads</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether the downloads are offered under the chart: the PNG, the statistics and the table (<a href="#downloads">downloads</a>).</td></tr>
+<tr><td data-label="Setting"><code>png_scale</code></td><td data-label="Default"><code>2</code></td><td data-label="Meaning">The PNG&#39;s resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.</td></tr></tbody></table>
 <h2 id="titles-and-footnotes">Titles and footnotes</h2>
 <p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
 <table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
@@ -138,6 +140,13 @@
 <tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
 <tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
 <tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
+<h2 id="downloads">Downloads</h2>
+<p>Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as <code>bio.viz-group-comparison-….png</code>:</p>
+<table class="doc-table"><thead><tr><th scope="col">Download</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Download">PNG</td><td data-label="What it holds">The chart&#39;s frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart&#39;s own last, at <code>png_scale</code> image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole.</td></tr>
+<tr><td data-label="Download">Statistics (CSV)</td><td data-label="What it holds">The statistics R returned for the view, as shown: a row for each answer&#39;s result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.</td></tr>
+<tr><td data-label="Download">Table (CSV)</td><td data-label="What it holds">The table the chart drew from: one row per participant per visit drawn: the participant, the visit, the group, the colour and the panel where there are any, and the value drawn.</td></tr></tbody></table>
+<p>A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. <code>chart.fileOf(kind)</code> gives the same file without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>. The format of each file is in <a href="../output/api.html#downloads">Getting results out</a>.</p>
 <h2 id="what-is-drawn">What is drawn</h2>
 <p>Each panel is one Chart.js chart. The levels of the group are along the axis; under each is its name and the number of participants drawn there, <code>n = 95</code>, and with a colour the number in each colour, <code>42 · 53</code>. The value axis is named for the variable, with its unit.</p>
 <table class="doc-table"><thead><tr><th scope="col">Mark</th><th scope="col">What it is</th></tr></thead>
@@ -362,7 +371,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/65a9edbae0e9c7e0742acad8fd2d78162d6244da"><code>65a9edb</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c76881151d18d350be3bc5be7a5e6f8bd87aad45"><code>c768811</code></a>.
       </p>
       <p>
         Built in the open — follow the
