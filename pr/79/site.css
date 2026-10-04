@@ -1,0 +1,770 @@
+/* ============================================================================
+   bio.viz site — the safety.viz portfolio theme, trimmed to the pages that
+   exist here. Same tokens (espresso #271810 · paper #faf6f1 · orange #f97316;
+   Instrument Serif headings, Instrument Sans body, IBM Plex Mono meta), so the
+   two sites read as one family.
+
+     1. Design tokens
+     2. Base elements
+     3. Site chrome: full-bleed header and footer bands
+     4. Page components: hero, callout, facts, module list
+     5. R check page: answers, comparisons, measurement tables
+     6. Module pages: tabs, evidence lists, the API reference
+     7. A chart's demo page
+
+   Every rule has to hold at a 390px-wide viewport with no horizontal scroll;
+   tests/e2e/site.spec.js measures it.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* ---- 1. Design tokens ---------------------------------------------------- */
+
+:root {
+  /* Surfaces */
+  --side-bg: #271810; /* espresso bands */
+  --side-ink: #f5ede4;
+  --side-soft: #c4a995;
+  --paper: #faf6f1;
+  --panel: #f5efe7; /* warm inset: code, facts */
+  --card: #ffffff;
+
+  /* Ink */
+  --ink: #2a211b;
+  --muted: #6b5d52;
+
+  /* Accent */
+  --accent: #c2410c; /* links */
+  --accent-bright: #f97316; /* borders, hover, highlights */
+
+  /* Rules */
+  --rule: #ece2d7;
+
+  /* Type */
+  --sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Layout */
+  --measure: 52rem; /* main column */
+  --band-pad: max(calc(50vw - (var(--measure) / 2)), 1.25rem);
+  --radius: 14px;
+  --radius-small: 8px;
+}
+
+/* ---- 2. Base elements ---------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  /* Long unbroken strings (paths, identifiers) wrap instead of widening the page. */
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 9vw, 4rem);
+}
+
+h2 {
+  font-size: 1.75rem;
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--accent-bright);
+}
+
+code,
+pre {
+  font-family: var(--mono);
+  font-size: 0.875em;
+}
+
+code {
+  background: var(--panel);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  /* Wrap rather than scroll: a phone reader sees the whole snippet. */
+  white-space: pre-wrap;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 1em;
+}
+
+/* ---- 3. Site chrome ------------------------------------------------------ */
+
+.site-header,
+.site-footer {
+  background: var(--side-bg);
+  color: var(--side-ink);
+  padding: 1rem var(--band-pad);
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  border-bottom: 3px solid var(--accent-bright);
+}
+
+.site-name {
+  color: var(--side-ink);
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  text-decoration: none;
+}
+
+.site-version {
+  color: var(--side-soft);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  margin-left: 0.35rem;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  font-size: 0.95rem;
+}
+
+.site-nav a,
+.site-footer a {
+  color: var(--side-ink);
+}
+
+.site-nav a:hover,
+.site-footer a:hover {
+  color: var(--accent-bright);
+}
+
+.site-main {
+  margin: 0 auto;
+  max-width: calc(var(--measure) + 2.5rem);
+  padding: 2.5rem 1.25rem 3rem;
+}
+
+.site-main > section,
+.site-main > aside,
+.site-main > nav,
+.site-main > article {
+  margin-bottom: 2.5rem;
+}
+
+.site-footer {
+  color: var(--side-soft);
+  font-size: 0.9rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.site-footer p:last-child {
+  margin-bottom: 0;
+}
+
+.site-footer code {
+  background: none;
+  color: var(--side-ink);
+  padding: 0;
+}
+
+/* ---- 4. Page components -------------------------------------------------- */
+
+.eyebrow {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.hero-version {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.4em;
+  white-space: nowrap;
+}
+
+.lead {
+  font-size: 1.15rem;
+  max-width: 40rem;
+}
+
+.callout {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--accent-bright);
+  border-radius: var(--radius-small);
+  padding: 1.1rem 1.25rem;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.facts {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  margin: 0;
+  padding: 0.25rem 1.25rem;
+}
+
+.facts > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.15rem 1.5rem;
+  padding: 0.7rem 0;
+}
+
+.facts > div + div {
+  border-top: 1px solid var(--rule);
+}
+
+.facts dt {
+  color: var(--muted);
+}
+
+.facts dd {
+  font-weight: 600;
+  margin: 0;
+}
+
+.modules {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.module {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.module p {
+  margin-bottom: 0.5rem;
+}
+
+.module-facts {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* An experimental module's badge and its reason, as safety.viz marks one. */
+.module-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  border-radius: 999px;
+  display: inline-block;
+  font: 700 0.68rem var(--sans);
+  letter-spacing: 0.05em;
+  margin-right: 0.35rem;
+  padding: 0.08rem 0.45rem;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+
+.status-badge.status-experimental {
+  background: #f3c46d;
+  color: #4a2f05;
+}
+
+.module p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- 5. R check page ----------------------------------------------------- */
+
+.sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+th .sub {
+  display: block;
+  font-weight: 400;
+}
+
+.notes {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.notes li + li {
+  margin-top: 0.35rem;
+}
+
+.modules + .notes {
+  margin-top: 1rem;
+}
+
+/* The R check page's one button. Named, so the rule stays off the buttons a
+   chart draws inside a demo page. */
+#start-r {
+  background: var(--side-bg);
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--side-ink);
+  cursor: pointer;
+  font: 600 1rem var(--sans);
+  padding: 0.7rem 1.1rem;
+}
+
+#start-r:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+#start-r:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+#r-status {
+  font-weight: 600;
+}
+
+.answers {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.answer,
+.comparison-block {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.comparison-block {
+  margin-bottom: 1rem;
+}
+
+.answer-data {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.answer-text {
+  background: var(--panel);
+  border-left: 4px solid var(--accent-bright);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.answer .answer-text {
+  margin-bottom: 0;
+}
+
+.verdict {
+  font-weight: 600;
+}
+
+.verdict.differs,
+.comparison .differs h4 {
+  color: #b91c1c;
+}
+
+.comparison {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.comparison li {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.6rem;
+}
+
+.comparison h4 {
+  font: 600 0.875rem var(--mono);
+  margin: 0 0 0.3rem;
+}
+
+.comparison dl {
+  display: grid;
+  gap: 0.15rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin: 0;
+}
+
+.comparison dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.comparison dd {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.recorded {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.recorded th,
+.recorded td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.recorded thead th {
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.75rem;
+  /* Column headings wrap between words, never inside one. */
+  overflow-wrap: normal;
+}
+
+.recorded td {
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+.comparison-block details {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+}
+
+.comparison-block summary {
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.comparison-block details .comparison {
+  margin-top: 0.6rem;
+}
+
+/* ---- 6. Module pages ------------------------------------------------------ */
+
+.module-links {
+  font-weight: 600;
+}
+
+.page-tabs {
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 1.25rem;
+  padding-bottom: 0.6rem;
+}
+
+.page-tabs a {
+  text-decoration: none;
+}
+
+.page-tabs a.current {
+  border-bottom: 3px solid var(--accent-bright);
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: calc(-0.6rem - 2px);
+  padding-bottom: 0.6rem;
+}
+
+.chip {
+  border-radius: 999px;
+  display: inline-block;
+  font: 600 0.72rem var(--mono);
+  letter-spacing: 0.02em;
+  padding: 0.1rem 0.55rem;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+
+.chip.status-pass {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.chip.status-fail {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.chip.status-none {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.chip-link {
+  text-decoration: none;
+}
+
+.requirements {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.requirement {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.requirement[data-status='fail'] {
+  border-left: 4px solid #b91c1c;
+}
+
+.requirement h3 {
+  font: 600 0.95rem var(--mono);
+  margin-bottom: 0.5rem;
+}
+
+.req-text {
+  margin-bottom: 0.75rem;
+}
+
+.tests {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.9rem;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suite {
+  font: 0.72rem var(--mono);
+  text-transform: uppercase;
+}
+
+.screenshots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.screenshot {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+#shared-tests summary {
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.api-toc {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.api-toc h2 {
+  font-size: 1.3rem;
+}
+
+.api-toc ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.api-toc li + li {
+  margin-top: 0.25rem;
+}
+
+.api-body h2 {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+}
+
+.api-body h3 {
+  margin-top: 1.5rem;
+}
+
+.api-body ul,
+.api-body ol {
+  margin: 0 0 1rem;
+  padding-left: 1.3rem;
+}
+
+.api-body li + li {
+  margin-top: 0.35rem;
+}
+
+.doc-table {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.doc-table th,
+.doc-table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-table thead th {
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.75rem;
+  overflow-wrap: normal;
+}
+
+/* On a narrow screen a table becomes a list of rows, each cell under the name
+   of its column, so no table ever needs a sideways scroll. */
+@media (max-width: 44rem) {
+  .doc-table,
+  .doc-table tbody,
+  .doc-table tr,
+  .doc-table td {
+    display: block;
+  }
+
+  .doc-table thead {
+    display: none;
+  }
+
+  .doc-table tr {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .doc-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .doc-table td {
+    border: 0;
+    padding: 0.2rem 0;
+  }
+
+  .doc-table td::before {
+    color: var(--muted);
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+}
+
+/* ---- 7. A chart's demo page ---------------------------------------------- */
+
+/* A chart with its sidebar needs more room than a page of prose. */
+.site-main.wide {
+  max-width: 82rem;
+}
+
+.site-main.wide > .hero .lead {
+  max-width: 52rem;
+}
+
+#chart {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.module-hero {
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.module-hero img {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+#about-demo .sub {
+  margin-top: 1rem;
+}
+
+@media (max-width: 44rem) {
+  #chart {
+    padding: 0.5rem;
+  }
+}
