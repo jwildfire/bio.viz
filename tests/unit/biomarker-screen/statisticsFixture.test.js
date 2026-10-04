@@ -194,10 +194,22 @@ describe('what desktop R answered, and the key it wrote', () => {
   });
 
   it('BS-STAT-009: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its view, and by no other view’s (#36)', async () => {
-    const connection = createConnection({ results: stored(fromR.results) });
-    const run = ({ name, data, args, dataId }) => connection.run(name, { data, args, dataId });
+    // A case drawn on a changed outcomes table asks with the opening view's key:
+    // the identity names the data a page holds, not its contents, so the two
+    // are never on one page. Those cases are handed to a connection of their
+    // own; the rest are one store, as a page holds them.
+    const changed = (result) => Boolean(caseOf(result.case).outcomes);
+    expect(fromR.results.filter(changed).map((result) => result.case)).toEqual([
+      'hazard-baseline-30-without-outcome',
+      'hazard-baseline-no-events-in-low-crp'
+    ]);
+    const opening = fromR.results.filter((result) => !changed(result));
+    const connection = createConnection({ results: stored(opening) });
+    const run = ({ name, data, args, dataId }, over = connection) =>
+      over.run(name, { data, args, dataId });
     for (const result of fromR.results) {
-      expect(await run(requestOf(demo, caseOf(result.case))), result.case).toEqual({
+      const over = changed(result) ? createConnection({ results: stored([result]) }) : connection;
+      expect(await run(requestOf(demo, caseOf(result.case)), over), result.case).toEqual({
         status: 'ok',
         value: result.value,
         form: 'precomputed'

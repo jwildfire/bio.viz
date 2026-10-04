@@ -17,6 +17,7 @@ import vm from 'node:vm';
 import { syncSettings } from '../src/biomarker-screen/configure.js';
 import { screenRequest } from '../src/biomarker-screen/statistic.js';
 import { buildScreen, groupsOf } from '../src/biomarker-screen/structureData.js';
+import { cutPoints } from '../src/core/cut.js';
 import { flagOf, listEndpoints } from '../src/shared/outcomes.js';
 import { listMeasures, listVisits } from '../src/shared/tables.js';
 import { axisOf, settingOf } from '../src/shared/variables.js';
@@ -125,6 +126,18 @@ export const CASES = [
     view: { ...HAZARD, filters: { AGE: '35' } }
   },
   {
+    case: 'hazard-baseline-30-without-outcome',
+    says: 'The hazard screen with the event-free survival rows of the thirty participants with the highest CRP at Baseline taken out: each biomarker is cut at the median of those with an outcome',
+    view: HAZARD,
+    outcomes: 'without-30'
+  },
+  {
+    case: 'hazard-baseline-no-events-in-low-crp',
+    says: 'The hazard screen with every participant at or below the median of CRP at Baseline censored: CRP’s Low half has no event, and its hazard ratio is not estimable',
+    view: HAZARD,
+    outcomes: 'no-events-in-low-crp'
+  },
+  {
     case: 'correlation-age',
     says: 'Every biomarker’s change to Week 4 against age, a participant-level number',
     view: { comparison: 'correlation', with: { col: 'AGE' } }
@@ -172,16 +185,54 @@ export function stateOf(demo, entry) {
   };
 }
 
+// CRP at Baseline for each participant with a result, by id.
+function crpAtBaseline(tables) {
+  return new Map(
+    tables.results
+      .filter((row) => row.TEST === 'CRP' && row.VISIT === 'Baseline')
+      .map((row) => [row.USUBJID, Number(row.STRESN)])
+  );
+}
+
+/**
+ * The outcomes table a case is drawn on: the demo's, or the demo's changed as
+ * the case says. Worked out from the demo's own tables, not typed.
+ *   without-30            the rows of the thirty participants with the highest
+ *                         CRP at Baseline taken out
+ *   no-events-in-low-crp  every participant whose CRP at Baseline is at or
+ *                         below its median censored, so CRP's Low half has no event
+ */
+export function outcomesFor(demo, entry) {
+  const outcomes = demo.tables.outcomes;
+  if (!entry.outcomes) return outcomes;
+  const crp = crpAtBaseline(demo.tables);
+  if (entry.outcomes === 'without-30') {
+    const highest = new Set(
+      [...crp]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 30)
+        .map(([id]) => id)
+    );
+    return outcomes.filter((row) => !highest.has(row.USUBJID));
+  }
+  if (entry.outcomes === 'no-events-in-low-crp') {
+    const [median] = cutPoints([...crp.values()], 'median').points;
+    return outcomes.map((row) => (crp.get(row.USUBJID) <= median ? { ...row, CNSR: '1' } : row));
+  }
+  throw new Error(`${entry.case}: no outcomes rule ${entry.outcomes}.`);
+}
+
 // The case's frame: what the screen is of, and the rows R is handed.
 function modelOf(demo, entry) {
   const config = syncSettings({ ...demo.settings, visit: null });
   const state = stateOf(demo, entry);
+  const tables = { ...demo.tables, outcomes: outcomesFor(demo, entry) };
   const offered = {
-    measures: listMeasures(demo.tables.results, config),
-    visits: listVisits(demo.tables.results, config).all,
-    endpoints: listEndpoints(demo.tables.outcomes, config)
+    measures: listMeasures(tables.results, config),
+    visits: listVisits(tables.results, config).all,
+    endpoints: listEndpoints(tables.outcomes, config)
   };
-  const model = buildScreen(demo.tables, config, state, offered);
+  const model = buildScreen(tables, config, state, offered);
   if (model.message || !model.records.length) {
     throw new Error(`${entry.case}: the view has no screen (${model.message}).`);
   }

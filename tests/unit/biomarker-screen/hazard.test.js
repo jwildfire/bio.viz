@@ -2,7 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SCREEN_STATISTICS, readDemo, requestOf } from '../../../scripts/screen-statistics-lib.mjs';
+import {
+  CASES,
+  SCREEN_STATISTICS,
+  outcomesFor,
+  readDemo,
+  requestOf
+} from '../../../scripts/screen-statistics-lib.mjs';
+import { syncSettings as survivalSettings } from '../../../src/stratified-survival/configure.js';
+import { buildSurvival } from '../../../src/stratified-survival/structureData.js';
+import { kit } from '../stratified-survival/kit.js';
+import { cutPoints } from '../../../src/core/cut.js';
 import { syncSettings } from '../../../src/biomarker-screen/configure.js';
 import {
   COMPARISON_LABELS,
@@ -118,19 +128,21 @@ describe('biomarker screen: the hazard rows', () => {
       'hazard-baseline',
       'hazard-baseline-holm',
       'hazard-baseline-women',
-      'hazard-baseline-age-35'
+      'hazard-baseline-age-35',
+      'hazard-baseline-30-without-outcome',
+      'hazard-baseline-no-events-in-low-crp'
     ]);
-    const connection = createConnection({
-      results: hazards.map(({ name, args, dataId, rows, value }) => ({
-        name,
-        args,
-        dataId,
-        rows,
-        value
-      }))
-    });
+    // The cases drawn on a changed outcomes table ask with the opening view's
+    // key: the identity names the data a page holds, not its contents, so a
+    // page holds one of them. Each is handed to a connection of its own.
+    const connectionOf = ({ name, args, dataId, rows, value }) =>
+      createConnection({ results: [{ name, args, dataId, rows, value }] });
     for (const result of hazards) {
-      const request = requestOf(demo, { case: result.case, view: viewOf(result) });
+      const connection = connectionOf(result);
+      const request = requestOf(
+        demo,
+        CASES.find((entry) => entry.case === result.case)
+      );
       expect(canonicalJson(request.args), result.case).toBe(canonicalJson(result.args));
       expect(canonicalJson(request.dataId), result.case).toBe(canonicalJson(result.dataId));
       expect(request.args).toMatchObject({
@@ -182,7 +194,7 @@ describe('biomarker screen: the hazard rows', () => {
                 ...row,
                 status: 'error',
                 reason:
-                  'Not computed: the hazard ratio is not estimable: Low has no events, so the Cox model’s estimate is infinite.',
+                  "Not computed: the hazard ratio is not estimable: Low has no events, so the Cox model's estimate is infinite.",
                 estimate: null,
                 lower: null,
                 upper: null,
@@ -223,20 +235,80 @@ describe('biomarker screen: the hazard rows', () => {
       undefined
     );
   });
-});
 
-// A hazard case's view, as the fixture's library states its cases.
-function viewOf(result) {
-  const filters = result.dataId.filters
-    ? Object.fromEntries(
-        Object.entries(result.dataId.filters).map(([column, values]) => [column, values[0]])
-      )
-    : {};
-  return {
-    comparison: 'hazard',
-    visit: 'Baseline',
-    valueType: 'raw',
-    adjustment: result.args.strPAdjust,
-    filters
-  };
-}
+  it('BS-HAZ-009: with some participants holding a value but no outcome, the row and the survival chart it opens cut at the same median, of those with both, with the same participants High and Low and R’s same hazard ratio; the participants with no outcome are counted once (#62)', () => {
+    const entry = CASES.find((item) => item.case === 'hazard-baseline-30-without-outcome');
+    const changed = outcomesFor(demo, entry);
+    expect(demo.tables.outcomes.length - changed.length).toBe(30);
+    const tables = { ...demo.tables, outcomes: changed };
+    // The frame R is handed: thirty participants have CRP and a gap for time.
+    const request = requestOf(demo, entry);
+    const both = request.data.filter((record) => record.CRP !== null && record.time !== null);
+    expect(both).toHaveLength(170);
+    const [cut] = cutPoints(
+      both.map((record) => record.CRP),
+      'median'
+    ).points;
+    const row = resultOf(entry.case).value.rows.find((item) => item.biomarker === 'CRP');
+    const high = both.filter((record) => record.CRP > cut).length;
+    expect([high, both.length - high]).toEqual([row.n_1, row.n_2]);
+    expect(row.dropped).toBe(30);
+    // The model of the screen counts the thirty once, under one reason.
+    const model = buildScreen(tables, syncSettings(demo.settings), state(), {
+      ...offered,
+      measures: request.args.chrCols
+    });
+    expect(model.outcomeGaps).toEqual([{ reason: LEFT_OUT.NO_OUTCOME, n: 30 }]);
+    // The chart a click opens: CRP at Baseline cut at its median, on EFS.
+    const opened = buildSurvival(
+      tables,
+      survivalSettings({ baseline_visits: 'Baseline' }),
+      {
+        endpoint: 'EFS',
+        groupBy: { measure: 'CRP', visit: 'Baseline', value: 'raw', cut: 'median' },
+        filters: {}
+      },
+      { kmEstimate: kit.kmEstimate }
+    );
+    expect(opened.cut.points).toEqual([cut]);
+    const counted = Object.fromEntries(
+      opened.levels.map((level) => [
+        level,
+        opened.records.filter((record) => record.group === level).length
+      ])
+    );
+    expect(Object.values(counted).sort()).toEqual([row.n_1, row.n_2].sort());
+    // Desktop R's survival answer on that chart's frame: the row's hazard ratio.
+    const survival = JSON.parse(text('tests/fixtures/stratified-survival-r.json')).cases.find(
+      (item) => item.case === 'crp-median-30-without-outcome'
+    );
+    expect(survival.tables.outcomes.map((item) => item.USUBJID)).toEqual(
+      changed.map((item) => item.USUBJID)
+    );
+    expect(survival.points).toEqual([cut]);
+    const ratio = survival.value.estimates.find((item) => item.name === 'Hazard ratio');
+    expect(ratio.estimate).toBeCloseTo(row.estimate, 10);
+    expect(ratio.lower).toBeCloseTo(row.lower, 10);
+    expect(ratio.upper).toBeCloseTo(row.upper, 10);
+  });
+
+  it('BS-HAZ-010: a hazard ratio R could not estimate, with no event in one half, is a row with R’s reason, no number and no place in the adjustment, which is across the rows that have a p-value (#62)', () => {
+    const answer = resultOf('hazard-baseline-no-events-in-low-crp').value;
+    const crp = answer.rows.find((row) => row.biomarker === 'CRP');
+    expect(crp).toMatchObject({ status: 'error', estimate: null, adjusted_over: null });
+    expect(crp.reason).toBe(
+      "Not computed: the hazard ratio is not estimable: Low has no events, so the Cox model's estimate is infinite."
+    );
+    const described = describeScreen(ok(answer), { groups: [...HAZARD_GROUPS] });
+    expect(described.state).toBe('shown');
+    expect(described.over).toBe(11);
+    expect(described.text).toMatch(/11 of 12 computed/);
+    const row = described.rows.find((item) => item.biomarker === 'CRP');
+    expect(row.estimate).toBe(null);
+    expect(row.reason).toBe(crp.reason);
+    expect(row.inAdjustment).toBe(false);
+    expect(
+      described.rows.filter((item) => item.biomarker !== 'CRP').every((item) => item.inAdjustment)
+    ).toBe(true);
+  });
+});

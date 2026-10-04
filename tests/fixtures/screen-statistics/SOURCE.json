@@ -78,6 +78,14 @@
       "says": "The same among the four participants aged 35: every row has a group too small"
     },
     {
+      "case": "hazard-baseline-30-without-outcome",
+      "says": "The hazard screen with the event-free survival rows of the thirty participants with the highest CRP at Baseline taken out: each biomarker is cut at the median of those with an outcome"
+    },
+    {
+      "case": "hazard-baseline-no-events-in-low-crp",
+      "says": "The hazard screen with every participant at or below the median of CRP at Baseline censored: CRP’s Low half has no event, and its hazard ratio is not estimable"
+    },
+    {
       "case": "correlation-age",
       "says": "Every biomarker’s change to Week 4 against age, a participant-level number"
     }
@@ -136,12 +144,20 @@
       "sha256": "9f08dd127860a49c04abccaa36ec6d66b57451aa0934a7e8f17b6f846811a3fc"
     },
     {
+      "file": "hazard-baseline-30-without-outcome.csv",
+      "sha256": "1e6bfbc3d4489ef6dfeb061f514373c1f0545863841eadcb30675a5df683ecc1"
+    },
+    {
+      "file": "hazard-baseline-no-events-in-low-crp.csv",
+      "sha256": "8dd10336e58095dc84a9309e16972855b3b9abcaeea773a23853712daeec583a"
+    },
+    {
       "file": "correlation-age.csv",
       "sha256": "e93c79d16033134f4febf034e7663af6401bedc4d88fd45df48ea985f7e0aa78"
     },
     {
       "file": "cases.csv",
-      "sha256": "a060f848d01c76a5ef853932c906900b2c4f4e4da7e13a7de06bd5f592589168"
+      "sha256": "eaf1e7299a8dd74b07a76a56e7593f6d7ea805d40becf05a838b66893a897e99"
     }
   ]
 }

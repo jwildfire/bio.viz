@@ -14,6 +14,12 @@ import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
 import { captureEvidence } from './evidence.js';
+import {
+  CASES as SCREEN_CASES,
+  SCREEN_STATISTICS,
+  outcomesFor,
+  readDemo
+} from '../../scripts/screen-statistics-lib.mjs';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -39,6 +45,28 @@ const scatterStatistics = readJson('../fixtures/association-statistics-r.json');
 const fromFixture = (fixture, name) =>
   keyed(fixture.results.find((result) => result.case === name));
 const statisticsRecord = readJson('../../site/vendor/gsm.bio/SOURCE.json');
+// The demo's tables as the fixture's library reads them, for a case drawn on a
+// changed outcomes table: the changed table is the library's, not typed here.
+const screenDemo = readDemo(
+  Object.fromEntries(
+    Object.entries(SCREEN_STATISTICS.sources).map(([name, file]) => [
+      name,
+      readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8')
+    ])
+  )
+);
+const changedOutcomes = (name) =>
+  outcomesFor(
+    screenDemo,
+    SCREEN_CASES.find((entry) => entry.case === name)
+  );
+const survivalCase = (name) =>
+  readJson('../fixtures/stratified-survival-r.json').cases.find((item) => item.case === name);
+const withOutcomes = (page, outcomes) =>
+  page.evaluate(
+    (given) => window.__bs.chart.setData({ ...window.__bs.data, outcomes: given }),
+    outcomes
+  );
 const FIXTURE = '/tests/e2e/fixtures/biomarker-screen.html';
 const R_HOSTS = ['webr.r-wasm.org', 'repo.r-wasm.org'];
 const isRHost = (url) => R_HOSTS.includes(new URL(url).hostname);
@@ -258,6 +286,7 @@ const stubR = () => {
           rows: request.data.length,
           args: request.args,
           fields: Object.keys(request.data[0]),
+          data: request.data,
           resolve
         });
       })
@@ -2037,7 +2066,7 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     measured.warm = Number(((times[1] - times[0]) / 1000).toFixed(3));
   });
 
-  test('BS-HAZ-008: with R and the survival package in this browser, every hazard row, by Benjamini-Hochberg and by Holm, for the women alone and with every row too small, is desktop R’s, CRP at the top; its row opens the stratified survival chart, whose hazard ratio from the same R is the row’s, and the way back returns (#62)', async ({}, testInfo) => {
+  test('BS-HAZ-008: with R and the survival package in this browser, every hazard row, by Benjamini-Hochberg and by Holm, for the women alone, with every row too small, with thirty outcomes taken out and with a ratio R cannot estimate, is desktop R’s, CRP at the top; its row opens the stratified survival chart, whose hazard ratio from the same R is the row’s, and the way back returns (#62)', async ({}, testInfo) => {
     await reopen();
     await setView({ comparison: 'hazard', visit: 'Baseline', value_type: 'raw', adjustment: 'BH' });
     const bh = await holdToDesktop('hazard-baseline', testInfo);
@@ -2087,6 +2116,40 @@ test.describe('biomarker screen: the demo, with R in the browser, live', () => {
     const few = await holdToDesktop('hazard-baseline-age-35', testInfo);
     expect(few.differing).toEqual([]);
     await expect(line(page)).toHaveAttribute('data-state', 'withheld');
+    // On a changed outcomes table: thirty participants with CRP and no outcome,
+    // then no event in CRP's Low half, which R cannot estimate a ratio for.
+    const withLiveOutcomes = (outcomes, settings) =>
+      page.evaluate(
+        ({ outcomes, settings }) => {
+          const { chart: screenChart, biomarkerScreen } = window.BioVizDemo;
+          screenChart.setData(
+            { ...screenChart.tables, outcomes },
+            { ...settings, filters: biomarkerScreen.settings.filters }
+          );
+        },
+        { outcomes, settings }
+      );
+    const opened = await page.evaluate(() => window.BioVizDemo.chart.tables.outcomes);
+    const hazardView = {
+      comparison: 'hazard',
+      visit: 'Baseline',
+      value_type: 'raw',
+      adjustment: 'BH'
+    };
+    await withLiveOutcomes(changedOutcomes('hazard-baseline-30-without-outcome'), hazardView);
+    await answered();
+    const without = await holdToDesktop('hazard-baseline-30-without-outcome', testInfo);
+    expect(without.differing).toEqual([]);
+    expect(without.shown.rows[0].biomarker).toBe('CRP');
+    await withLiveOutcomes(changedOutcomes('hazard-baseline-no-events-in-low-crp'), hazardView);
+    await answered();
+    const none = await holdToDesktop('hazard-baseline-no-events-in-low-crp', testInfo);
+    expect(none.differing).toEqual([]);
+    expect(none.shown.rows.find((row) => row.biomarker === 'CRP').value).toMatch(
+      /^Not computed: the hazard ratio is not estimable: Low has no events/
+    );
+    await withLiveOutcomes(opened, hazardView);
+    await answered();
   });
 
   test('BS-LIVE-006: the megabytes and seconds of the first screen, and of a screen once R has started, are measured, recorded, and are what the page tells its reader (#36)', async ({
@@ -2307,6 +2370,147 @@ test.describe('biomarker screen: the hazard rows', () => {
     await back.click();
     await expect(root(page)).toBeVisible();
     await expect(rowAt(page, 'CRP')).toBeFocused();
+    expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-011: with thirty participants holding CRP but no outcome, the row and the survival chart it opens cut at the same median, of those with both, with the same High and Low counts and the same hazard ratio; the thirty are counted once (#62)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes' });
+    await withOutcomes(page, changedOutcomes('hazard-baseline-30-without-outcome'));
+    const survival = survivalCase('crp-median-30-without-outcome');
+    await withStored(page, [...stored('hazard-baseline-30-without-outcome'), keyed(survival)], {
+      comparison: 'hazard',
+      visit: 'Baseline',
+      value_type: 'raw'
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const value = resultOf('hazard-baseline-30-without-outcome').value;
+    expectRows(await screen(page), value, { groups: ['High', 'Low'], comparison: 'hazard' });
+    const gaps = (await notes(page).allTextContents()).filter((note) =>
+      note.includes('no outcome to use')
+    );
+    expect(gaps).toHaveLength(1);
+    expect(gaps[0]).toMatch(/^30 with no outcome to use: /);
+    await rowAt(page, 'CRP').click();
+    await expect(root(page)).toBeHidden();
+    const now = await page.evaluate(() => {
+      const chart = window.__bs.chart.opened();
+      return {
+        points: chart.model.cut.points,
+        counts: chart.model.levels.map(
+          (level) => chart.model.records.filter((record) => record.group === level).length
+        ),
+        asked: chart.statistics().map(({ answer }) => answer && answer.form)
+      };
+    });
+    const row = value.rows.find((entry) => entry.biomarker === 'CRP');
+    expect(now.points).toEqual(survival.points);
+    expect(now.counts.sort()).toEqual([row.n_1, row.n_2].sort());
+    expect(now.asked).toEqual(['precomputed']);
+    const hazard = survival.value.estimates.find((entry) => entry.name === 'Hazard ratio');
+    expect(hazard.estimate).toBeCloseTo(row.estimate, 10);
+    expect([hazard.lower, hazard.upper].map((bound) => bound.toFixed(10))).toEqual(
+      [row.lower, row.upper].map((bound) => bound.toFixed(10))
+    );
+    await expect(drill(page).locator('.bv-statistic').first()).toContainText(
+      'Hazard ratio, high over low'
+    );
+    expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-012: a hazard ratio R could not estimate, CRP’s Low half having no event, is drawn as a row with R’s reason and no mark, out of the adjustment, which is across the other eleven (#62)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes' });
+    await withOutcomes(page, changedOutcomes('hazard-baseline-no-events-in-low-crp'));
+    await withStored(page, stored('hazard-baseline-no-events-in-low-crp'), {
+      comparison: 'hazard',
+      visit: 'Baseline',
+      value_type: 'raw'
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    await expect(line(page)).toContainText('11 of 12 computed');
+    await expect(line(page)).toContainText('across the 11 biomarkers that have a p-value');
+    const value = resultOf('hazard-baseline-no-events-in-low-crp').value;
+    const shown = await screen(page);
+    expectRows(shown, value, { groups: ['High', 'Low'], comparison: 'hazard' });
+    const crp = shown.rows.find((row) => row.biomarker === 'CRP');
+    expect(crp.value).toBe(
+      "Not computed: the hazard ratio is not estimable: Low has no events, so the Cox model's estimate is infinite. Not in the adjustment."
+    );
+    expect([crp.dot, crp.line]).toEqual([null, null]);
+    expect(shown.rows.at(-1).biomarker).toBe('CRP');
+    expect(errors).toEqual([]);
+  });
+
+  test('BS-HAZ-013: with two endpoints the Endpoint control offers both by their labels; choosing the second asks R again on its times, names it in the heading and the identity, and a row opens the survival chart on it (#62)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page, { data: 'outcomes', before: stubR });
+    // The demo's event-free survival, and overall survival at twice its times.
+    await page.evaluate(() => {
+      const efs = window.__bs.data.outcomes;
+      const os = efs.map((row) => ({
+        ...row,
+        PARAMCD: 'OS',
+        PARAM: 'Overall survival (months)',
+        AVAL: String(Number(row.AVAL) * 2)
+      }));
+      window.__bs.chart.setData({ ...window.__bs.data, outcomes: [...efs, ...os] });
+    });
+    await attachStub(page, { comparison: 'hazard', visit: 'Baseline', value_type: 'raw' });
+    await expect.poll(() => called(page)).toBe(1);
+    expect(
+      await page.evaluate(() => window.__bs.chart.statistics().map(({ dataId }) => dataId.endpoint))
+    ).toEqual(['EFS']);
+    const endpoint = page.locator('#chart .sv-sidebar select[data-control="endpoint"]');
+    expect(await endpoint.locator('option').allTextContents()).toEqual([
+      'Event-free survival (months)',
+      'Overall survival (months)'
+    ]);
+    await answer(page, 0, 'hazard-baseline');
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    await choose(page, 'endpoint', 'OS');
+    await expect.poll(() => called(page)).toBe(2);
+    expect(
+      await page.evaluate(() => window.__bs.chart.statistics().map(({ dataId }) => dataId.endpoint))
+    ).toEqual(['OS']);
+    expect((await calls(page)).map(({ rows }) => rows)).toEqual([200, 200]);
+    // The second frame's times are overall survival's: twice the first's.
+    expect(
+      await page.evaluate(() =>
+        window.__r.calls[1].data.every(
+          (record, i) => record.time === window.__r.calls[0].data[i].time * 2
+        )
+      )
+    ).toBe(true);
+    await answer(page, 1, 'hazard-baseline');
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expect((await screen(page)).title).toBe(
+      'Result at Baseline: hazard ratio, high against low, on Overall survival (months)'
+    );
+    expect(await controls(page)).toMatchObject({ comparison: 'hazard', endpoint: 'OS' });
+    await rowAt(page, 'CRP').click();
+    await expect(root(page)).toBeHidden();
+    const opened = await page.evaluate(() => {
+      const chart = window.__bs.chart.opened();
+      return {
+        endpoint: chart.settings.endpoint,
+        first: chart.model.records[0].time,
+        dataId: chart.statistics()[0].dataId.endpoint
+      };
+    });
+    const efsFirst = await page.evaluate(() => {
+      const chart = window.__bs.chart.opened();
+      const id = chart.model.records[0][chart.settings.id_col];
+      return Number(window.__bs.data.outcomes.find((row) => row.USUBJID === id).AVAL);
+    });
+    expect(opened).toMatchObject({ endpoint: 'OS', dataId: 'OS' });
+    expect(opened.first).toBe(efsFirst * 2);
     expect(errors).toEqual([]);
   });
 });
