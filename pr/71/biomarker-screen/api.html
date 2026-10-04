@@ -161,6 +161,7 @@
 <tr><td data-label="Setting"><code>stratified_survival</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the stratified survival chart a row of a hazard ratio opens, laid under what the screen carries across.</td></tr>
 <tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
 <tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>page</code></td><td data-label="Default"><code>0</code></td><td data-label="Meaning">The page of rows it opens on, from 0, when <code>limit</code> makes more than one. A specification keeps it.</td></tr>
 <tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr>
 <tr><td data-label="Setting"><code>downloads</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether the downloads are offered under the chart: the PNG, the statistics and the table (<a href="#downloads">downloads</a>).</td></tr>
 <tr><td data-label="Setting"><code>png_scale</code></td><td data-label="Default"><code>2</code></td><td data-label="Meaning">The PNG&#39;s resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.</td></tr></tbody></table>
@@ -180,8 +181,8 @@
 <h2 id="downloads">Downloads</h2>
 <p>Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as <code>bio.viz-biomarker-screen-….png</code>:</p>
 <table class="doc-table"><thead><tr><th scope="col">Download</th><th scope="col">What it holds</th></tr></thead>
-<tbody><tr><td data-label="Download">PNG</td><td data-label="What it holds">The chart&#39;s frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart&#39;s own last, at <code>png_scale</code> image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. The controls, the listing and the bar are left out.</td></tr>
-<tr><td data-label="Download">Statistics (CSV)</td><td data-label="What it holds">The statistics R returned for the view, as shown: a row for each answer&#39;s result and one for each of its parts, every number as R returned it. Offered once R has answered.</td></tr>
+<tbody><tr><td data-label="Download">PNG</td><td data-label="What it holds">The chart&#39;s frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart&#39;s own last, at <code>png_scale</code> image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole.</td></tr>
+<tr><td data-label="Download">Statistics (CSV)</td><td data-label="What it holds">The statistics R returned for the view, as shown: a row for each answer&#39;s result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.</td></tr>
 <tr><td data-label="Download">Table (CSV)</td><td data-label="What it holds">The table the chart drew from: the frame R is handed: one row per participant, a column for each biomarker screened, and the group, the variable correlated with, or the time and the flag of the endpoint.</td></tr></tbody></table>
 <p>A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. <code>chart.fileOf(kind)</code> gives the same file without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>. The format of each file is in <a href="../output/api.html#downloads">Getting results out</a>.</p>
 <h2 id="the-controls">The controls</h2>
@@ -354,7 +355,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/61c84b7ad8f7244b934385b6f6c1787517d2c70a"><code>61c84b7</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/0deabca4bedfb54d0add4b72ae96a33033633f26"><code>0deabca</code></a>.
       </p>
       <p>
         Built in the open — follow the
