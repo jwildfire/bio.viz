@@ -49,7 +49,7 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - Never edit `site/data/synthetic-study/`. It is gsm.bio's study, copied byte for byte by `node tools/vendor-synthetic-study.mjs`, with a checksum per file in `SOURCE.json`.
 - A module's API reference page is its reference file in `docs/`, rendered. After changing an export, a parameter or a constant, change that file; `npm run site` and `npm test` fail when they disagree.
 - Every requirement row needs a test named for it, and a test may name only a row that exists; `npm run evidence` fails otherwise.
-- Screenshot baselines (`docs/evidence/<module>/*.png`) are made only on the Linux CI runner: label the pull request `update-baselines`, download the `evidence-baselines` artifact, commit it. Never commit a capture from another system.
+- Screenshot baselines (`docs/evidence/<module>/*.png`) are made only on the Linux CI runner: label the pull request `update-baselines`, download the `evidence-baselines` artifact, commit it. After a version change, use `update-baselines-all`, which rewrites every picture and its `.drawn.json` record of the versions it draws: pixel tolerance does not see a footnote's version. Never commit a capture from another system.
 - Public or synthetic data only.
 - Every page on the site holds at a 390px-wide viewport with no horizontal scroll; assert it in a browser test.
 - The browser suite serves the repository root on port 8199 and refuses to reuse a server already there; set `PW_PORT` to run two worktrees side by side.

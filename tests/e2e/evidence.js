@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
 import { moduleForFile } from '../../scripts/evidence-lib.mjs';
@@ -43,8 +43,32 @@ async function fontsLoaded(page) {
   );
 }
 
+// Every "bio.viz <version>" the capture draws, as a footnote writes it. Pixel
+// tolerance cannot see a version change in a footnote, so beside each picture
+// the text it was drawn with is kept, and checked (#78 review).
+const VERSION_DRAWN = /bio\.viz \d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?(?: with development changes)?/g;
+
+async function versionsDrawn(target) {
+  const element = typeof target.page === 'function' ? target : target.locator('body');
+  const text = await element.innerText();
+  return [...new Set(text.match(VERSION_DRAWN) || [])].sort();
+}
+
+/**
+ * Where the text a picture was drawn with is kept: beside it, named for it.
+ * @param {string} picture The PNG's path.
+ */
+export const drawnRecordOf = (picture) => picture.replace(/\.png$/, '.drawn.json');
+
 /**
  * `target` is the page, for the viewport, or a locator, for one part of it.
+ *
+ * On the Linux runner the versions of bio.viz the capture draws are kept beside
+ * the picture, in `<name>.drawn.json`, whenever the picture is written: by a
+ * refresh that rewrites it, or by `--update-snapshots=all`, which rewrites every
+ * one. A run that does not rewrite the picture fails when the page now draws a
+ * version other than the one kept: the picture is stale, however few of its
+ * pixels differ, and is refreshed with every other (`update-baselines-all`).
  */
 export async function captureEvidence(target, requirementId, slug, { module } = {}) {
   const file = test.info().file;
@@ -62,7 +86,25 @@ export async function captureEvidence(target, requirementId, slug, { module } = 
         'the page’s web fonts did not load, so the capture would not be the page a reader sees'
       ).toEqual([]);
     }
+    const picture = test.info().snapshotPath(owner, name, { kind: 'screenshot' });
+    const record = drawnRecordOf(picture);
+    const before = existsSync(picture) ? readFileSync(picture) : null;
+    const drawn = await versionsDrawn(target);
     await expect(target).toHaveScreenshot([owner, name]);
+    const updating = test.info().config.updateSnapshots;
+    const after = existsSync(picture) ? readFileSync(picture) : null;
+    const written = after && (!before || !before.equals(after) || updating === 'all');
+    if (updating !== 'none' && written) {
+      writeFileSync(record, `${JSON.stringify({ versions: drawn }, null, 2)}\n`);
+    } else if (existsSync(record)) {
+      const kept = JSON.parse(readFileSync(record, 'utf8')).versions;
+      expect(
+        kept,
+        `${name} was drawn with ${kept.join(', ') || 'no version'}, and the page now draws ` +
+          `${drawn.join(', ') || 'none'}: the picture is stale. Refresh every picture with the ` +
+          'update-baselines-all label.'
+      ).toEqual(drawn);
+    }
   } else {
     await page.evaluate(() => document.fonts.ready);
     await target.screenshot({ path: `test-results/evidence-preview/${owner}/${name}` });

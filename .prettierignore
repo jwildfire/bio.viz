@@ -45,3 +45,7 @@ src/data/schema/
 # Written by tools/write-specification-schema.mjs, and checked against it by the
 # unit tests: the tool is its formatter.
 src/data/specification.schema.json
+
+# Each evidence picture's record of the versions it draws, written beside it by
+# the browser suite (tests/e2e/evidence.js) when the picture is written.
+docs/evidence/*/*.drawn.json

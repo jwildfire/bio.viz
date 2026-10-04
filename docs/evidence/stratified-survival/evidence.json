@@ -1,13 +1,16 @@
 {
   "module": "stratified-survival",
-  "generatedAt": "2026-10-04T20:58:57.070Z",
+  "generatedAt": "2026-10-04T21:07:29.914Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37234767536",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37234767536"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
