@@ -409,9 +409,9 @@ var ADJUSTMENTS = {
   BY: "Benjamini-Yekutieli"
 };
 function adjustmentName(adjustment) {
-  const named3 = text(adjustment);
-  if (!named3 || named3.toLowerCase() === "none") return null;
-  return Object.hasOwn(ADJUSTMENTS, named3) ? ADJUSTMENTS[named3] : named3;
+  const named2 = text(adjustment);
+  if (!named2 || named2.toLowerCase() === "none") return null;
+  return Object.hasOwn(ADJUSTMENTS, named2) ? ADJUSTMENTS[named2] : named2;
 }
 var formatLabel = (adjustment) => adjustment ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
 var ENDS_A_SENTENCE = /[.!?]$/;
@@ -462,17 +462,17 @@ var figure = (value) => String(Number(value.toPrecision(4)));
 var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
 function formatEstimate(estimate) {
   const row = estimate && typeof estimate === "object" ? estimate : {};
-  const refuse7 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+  const refuse8 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
   const name = text(row.name);
-  if (!name) return refuse7("it has no name");
-  if (!isNumber(row.estimate)) return refuse7(`${name} is not a number`);
+  if (!name) return refuse8("it has no name");
+  if (!isNumber(row.estimate)) return refuse8(`${name} is not a number`);
   const group = text(row.group);
   const lead = `${name}${group ? ` (${group})` : ""}: ${figure(row.estimate)}`;
   const bounds = [row.lower, row.upper, row.level];
   const absent = (value) => value === void 0 || value === null;
   if (bounds.every(absent)) return { status: "shown", text: `${lead}.` };
   if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
-    return refuse7(`the interval of ${name} is incomplete`);
+    return refuse8(`the interval of ${name} is incomplete`);
   }
   const percent = Number((row.level * 100).toPrecision(12));
   return {
@@ -482,14 +482,14 @@ function formatEstimate(estimate) {
 }
 function formatMedian(estimate) {
   const row = estimate && typeof estimate === "object" ? estimate : {};
-  const refuse7 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
+  const refuse8 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
   const name = text(row.name);
-  if (!name) return refuse7("it has no name");
+  if (!name) return refuse8("it has no name");
   const absent = (value) => value === void 0 || value === null;
   for (const part of ["estimate", "lower", "upper"]) {
-    if (!absent(row[part]) && !isNumber(row[part])) return refuse7(`${name} is not a number`);
+    if (!absent(row[part]) && !isNumber(row[part])) return refuse8(`${name} is not a number`);
   }
-  if (!(row.level > 0 && row.level < 1)) return refuse7(`the interval of ${name} has no level`);
+  if (!(row.level > 0 && row.level < 1)) return refuse8(`the interval of ${name} has no level`);
   const said = (value) => absent(value) ? "not reached" : figure(value);
   const group = text(row.group);
   const percent = Number((row.level * 100).toPrecision(12));
@@ -503,8 +503,8 @@ function formatComparison(comparison) {
   const row = comparison && typeof comparison === "object" ? comparison : {};
   const groups = [text(row.group_1), text(row.group_2)];
   const n = [row.n_1, row.n_2];
-  const named3 = groups.every(Boolean);
-  const counted = named3 && n.every(isCount);
+  const named2 = groups.every(Boolean);
+  const counted = named2 && n.every(isCount);
   const parts = read({
     status: row.status,
     method: row.method,
@@ -513,12 +513,12 @@ function formatComparison(comparison) {
     reason: row.reason,
     counts: counted ? { [groups[0]]: n[0], [groups[1]]: n[1] } : void 0
   });
-  const pair = { groups: named3 ? groups : null, n: counted ? n : null };
-  const shown2 = named3 && parts.status === "shown";
-  const result = named3 ? parts.text : refused("the comparison does not name its two groups").text;
+  const pair = { groups: named2 ? groups : null, n: counted ? n : null };
+  const shown2 = named2 && parts.status === "shown";
+  const result = named2 ? parts.text : refused("the comparison does not name its two groups").text;
   return {
-    status: named3 ? parts.status : "refused",
-    text: named3 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
+    status: named2 ? parts.status : "refused",
+    text: named2 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
     result,
     ...pair,
     method: shown2 ? parts.method : null,
@@ -559,15 +559,15 @@ function formatGroup(row) {
     counts: counted ? given2.counts : void 0
   });
   if (parts.status !== "shown") return whole(parts.status, parts.text);
-  const refuse7 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-  if (!isNumber(given2.estimate)) return refuse7("the group\u2019s estimate is not a number");
+  const refuse8 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+  if (!isNumber(given2.estimate)) return refuse8("the group\u2019s estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse7("the interval of the group\u2019s estimate is incomplete");
+      return refuse8("the interval of the group\u2019s estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -606,8 +606,8 @@ function formatPair(row) {
     bounds: null,
     level: null
   });
-  const refuse7 = (what) => whole("refused", `Estimate not shown: ${what}.`);
-  if (!pair) return refuse7("the row does not name its two variables");
+  const refuse8 = (what) => whole("refused", `Estimate not shown: ${what}.`);
+  if (!pair) return refuse8("the row does not name its two variables");
   const counts = counted ? `n = ${given2.counts}` : null;
   const reason = text(given2.reason);
   if (given2.status === "error") {
@@ -619,15 +619,15 @@ function formatPair(row) {
       withCounts(SAYS_NOT_COMPUTED.test(reason) ? reason : `Not computed, ${reason}`, counts)
     );
   }
-  if (!counted) return refuse7("the pair does not give the number of complete pairs it used");
-  if (!isNumber(given2.estimate)) return refuse7("the pair\u2019s estimate is not a number");
+  if (!counted) return refuse8("the pair does not give the number of complete pairs it used");
+  if (!isNumber(given2.estimate)) return refuse8("the pair\u2019s estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse7("the interval of the pair\u2019s estimate is incomplete");
+      return refuse8("the interval of the pair\u2019s estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -648,8 +648,8 @@ function formatPair(row) {
 function formatScreenRow(row, groups = null) {
   const given2 = row && typeof row === "object" ? row : {};
   const biomarker = text(given2.biomarker);
-  const named3 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
-  const twoCounts = named3 && isCount(given2.n_1) && isCount(given2.n_2);
+  const named2 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
+  const twoCounts = named2 && isCount(given2.n_1) && isCount(given2.n_2);
   const counts = twoCounts ? { [groups[0]]: given2.n_1, [groups[1]]: given2.n_2 } : isCount(given2.counts) ? given2.counts : void 0;
   const n = formatCounts(counts);
   const none = {
@@ -681,24 +681,24 @@ function formatScreenRow(row, groups = null) {
     counts
   });
   if (raw.status !== "shown") return whole(raw.status, raw.text);
-  const refuse7 = (what) => whole("refused", `Row not shown: ${what}.`);
+  const refuse8 = (what) => whole("refused", `Row not shown: ${what}.`);
   const adjustment = adjustmentName(given2.adjustment);
-  if (!adjustment) return refuse7("the row does not name the adjustment of its p-value");
+  if (!adjustment) return refuse8("the row does not name the adjustment of its p-value");
   if (!isCount(given2.adjusted_over) || given2.adjusted_over < 1) {
-    return refuse7("the row does not say how many rows its p-value was adjusted across");
+    return refuse8("the row does not say how many rows its p-value was adjusted across");
   }
   const p = given2.p_value;
   if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
-    return refuse7("the adjusted p-value is not a number between 0 and 1");
+    return refuse8("the adjusted p-value is not a number between 0 and 1");
   }
-  if (!isNumber(given2.estimate)) return refuse7("the estimate is not a number");
+  if (!isNumber(given2.estimate)) return refuse8("the estimate is not a number");
   const bounds = [given2.lower, given2.upper, given2.level];
   const absent = (value) => value === void 0 || value === null;
   let ends = null;
   let level = null;
   if (!bounds.every(absent)) {
     if (!bounds.every(isNumber) || !(given2.level > 0 && given2.level < 1)) {
-      return refuse7("the interval of the estimate is incomplete");
+      return refuse8("the interval of the estimate is incomplete");
     }
     level = `${Number((given2.level * 100).toPrecision(12))}%`;
     ends = `${figure(given2.lower)} to ${figure(given2.upper)}`;
@@ -1152,7 +1152,7 @@ function frame(tables, variables, settings) {
     refuse3("frame() takes the variables as an object, each under the name of its field.");
   }
   const idCol = config.id_col;
-  const named3 = Object.entries(variables).map(([name, spec]) => {
+  const named2 = Object.entries(variables).map(([name, spec]) => {
     if (name.trim() === "" || name !== name.trim()) {
       refuse3("a variable needs a name with no space at either end: it is the name of its field.");
     }
@@ -1162,10 +1162,10 @@ function frame(tables, variables, settings) {
     return { name, variable: variable(spec) };
   });
   const required = new Set(
-    config.required === null ? named3.map(({ name }) => name) : config.required
+    config.required === null ? named2.map(({ name }) => name) : config.required
   );
   for (const name of required) {
-    if (!named3.some((entry) => entry.name === name)) {
+    if (!named2.some((entry) => entry.name === name)) {
       refuse3(`\`required\` names \`${name}\`, which is not one of the variables.`);
     }
   }
@@ -1175,7 +1175,7 @@ function frame(tables, variables, settings) {
     unusedCounts.set(key, (unusedCounts.get(key) || 0) + n);
   };
   needColumn(results, idCol, "id_col", "results");
-  const measures = named3.filter(({ variable: variable2 }) => variable2.kind === "measure");
+  const measures = named2.filter(({ variable: variable2 }) => variable2.kind === "measure");
   const needsBaseline = measures.some(({ variable: variable2 }) => variable2.value !== "raw");
   if (measures.length) {
     needColumn(results, config.measure_col, "measure_col", "results");
@@ -1187,7 +1187,7 @@ function frame(tables, variables, settings) {
     needColumn(participantTable, participantIdCol, "participant_id_col", "participant");
   }
   const columnSource = /* @__PURE__ */ new Map();
-  for (const { variable: variable2 } of named3) {
+  for (const { variable: variable2 } of named2) {
     if (variable2.kind !== "column") continue;
     if (participantTable && hasColumn(participantTable, variable2.col)) {
       columnSource.set(variable2.col, "participants");
@@ -1307,7 +1307,7 @@ function frame(tables, variables, settings) {
     const source = participantRow.get(id) || (resultRows.get(id) || [])[0];
     const record = { [idCol]: source[participantRow.has(id) ? participantIdCol : idCol] };
     let leftOut = null;
-    for (const { name, variable: variable2 } of named3) {
+    for (const { name, variable: variable2 } of named2) {
       const found = variable2.kind === "measure" ? measureValue(id, variable2) : columnValue(id, variable2);
       if ("value" in found) {
         record[name] = found.value;
@@ -1330,7 +1330,7 @@ function frame(tables, variables, settings) {
   if (notInTable) {
     dropped.push({ reason: DROPPED.NOT_IN_PARTICIPANT_TABLE, variable: null, n: notInTable });
   }
-  for (const { name } of named3) {
+  for (const { name } of named2) {
     for (const reason of reasons) {
       const n = droppedCounts.get(`${name}\0${reason}`);
       if (n) dropped.push({ reason, variable: name, n });
@@ -1346,7 +1346,7 @@ function frame(tables, variables, settings) {
   return {
     data,
     id_col: idCol,
-    variables: Object.fromEntries(named3.map(({ name, variable: variable2 }) => [name, variable2])),
+    variables: Object.fromEntries(named2.map(({ name, variable: variable2 }) => [name, variable2])),
     participants: ids.length + notInTable,
     dropped,
     unused: unusedList,
@@ -1363,6 +1363,7 @@ __export(output_exports, {
   TITLE_DEFAULTS: () => TITLE_DEFAULTS,
   automaticFootnote: () => automaticFootnote,
   countsText: () => countsText,
+  fillParts: () => fillParts,
   fillText: () => fillText,
   parseCsv: () => parseCsv,
   placeholdersIn: () => placeholdersIn,
@@ -1375,7 +1376,9 @@ var isText3 = (value) => typeof value === "string" && value.trim() !== "";
 var refuse4 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
-var VERSION = true ? "0.1.0" : "unbuilt";
+var VERSION2 = true ? "0.1.0" : "unbuilt";
+var DEVELOPMENT = true ? true : true;
+var VERSION_SAID = DEVELOPMENT ? `${VERSION2} with development changes` : VERSION2;
 var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
 var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
 function checkDownloads(settings) {
@@ -1387,11 +1390,29 @@ function checkDownloads(settings) {
 }
 var PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 function fillText(template, values = {}) {
-  return String(template).replace(PLACEHOLDER, (written, name) => {
-    if (!Object.prototype.hasOwnProperty.call(values, name)) return written;
-    const value = values[name];
-    return value === null || value === void 0 ? "" : String(value);
-  });
+  return fillParts(template, values).map((part) => part.text).join("");
+}
+function fillParts(template, values = {}) {
+  const text2 = String(template);
+  const parts = [];
+  const push = (piece, value) => {
+    if (piece === "") return;
+    const last = parts[parts.length - 1];
+    if (!value && last && !last.value) last.text += piece;
+    else parts.push({ text: piece, value });
+  };
+  let at = 0;
+  for (const match of text2.matchAll(PLACEHOLDER)) {
+    push(text2.slice(at, match.index), false);
+    const [written, name] = match;
+    if (Object.prototype.hasOwnProperty.call(values, name)) {
+      const value = values[name];
+      push(value === null || value === void 0 ? "" : String(value), true);
+    } else push(written, false);
+    at = match.index + written.length;
+  }
+  push(text2.slice(at), false);
+  return parts;
 }
 var placeholdersIn = (template) => [
   ...new Set([...String(template).matchAll(PLACEHOLDER)].map((match) => match[1]))
@@ -1413,32 +1434,73 @@ function checkTitles(settings) {
 var NOTHING_ASKED = "No statistic was asked of R.";
 var STILL_WAITING = "Statistics: waiting for R.";
 var dateDrawn = (when = /* @__PURE__ */ new Date()) => when.toISOString().slice(0, 10);
-var named = (count) => Number.isFinite(count) ? String(count) : null;
+var countOf = (count) => {
+  if (typeof count === "number") return Number.isFinite(count) ? count : null;
+  if (typeof count === "string" && /^\s*-?\d+(\.\d+)?\s*$/.test(count)) return Number(count);
+  return null;
+};
 function countsText(counts, of = "groups") {
-  if (Number.isFinite(counts)) return `n = ${counts}`;
+  const one = countOf(counts);
+  if (one !== null) return `n = ${one}`;
   if (counts === null || typeof counts !== "object" || Array.isArray(counts)) return null;
-  const entries = Object.entries(counts).filter(([, count]) => named(count) !== null);
+  const entries = [];
+  for (const [group, count] of Object.entries(counts)) {
+    const read2 = countOf(count);
+    if (read2 !== null) entries.push([group, read2]);
+  }
   if (!entries.length) return null;
   if (entries.length <= 4)
     return entries.map(([group, count]) => `${group} n = ${count}`).join(", ");
-  const all = entries.map(([, count]) => count);
-  const [least, most] = [Math.min(...all), Math.max(...all)];
+  let least = Infinity;
+  let most = -Infinity;
+  for (const [, count] of entries) {
+    if (count < least) least = count;
+    if (count > most) most = count;
+  }
   return `${least === most ? `n = ${least}` : `n = ${least} to ${most}`} across ${entries.length} ${of}`;
 }
-function sourceText(answer) {
-  if (answer.form !== "precomputed") return "computed by R in this browser";
-  const by = answer.computedBy;
-  if (by && isText3(by.r_version) && isText3(by.gsm_bio_version)) {
-    return `computed by R ${by.r_version} with gsm.bio ${by.gsm_bio_version}, stored with the page`;
+var ADJUSTMENT_NAMES = Object.freeze({
+  BH: "Benjamini-Hochberg",
+  fdr: "Benjamini-Hochberg",
+  BY: "Benjamini-Yekutieli",
+  holm: "Holm",
+  hochberg: "Hochberg",
+  hommel: "Hommel",
+  bonferroni: "Bonferroni"
+});
+function methodsOf(value) {
+  const methods = [];
+  const adjustments = [];
+  const take = (entry) => {
+    if (!entry || typeof entry !== "object") return;
+    if (isText3(entry.method) && !methods.includes(entry.method)) methods.push(entry.method);
+    if (isText3(entry.adjustment) && entry.adjustment !== "none") {
+      const said = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
+      if (!adjustments.includes(said)) adjustments.push(said);
+    }
+  };
+  take(value);
+  for (const list of Object.values(value)) {
+    if (Array.isArray(list)) list.forEach(take);
   }
-  if (by && isText3(by.r_version)) return `computed by R ${by.r_version}, stored with the page`;
-  return "stored with the page";
+  return { methods, adjustments };
+}
+function sourceText(answer) {
+  if (answer.form === "browser") return "computed by R in this browser";
+  if (answer.form !== "precomputed") return "computed by R";
+  const by = answer.computedBy;
+  if (!by || !isText3(by.r_version)) return "stored with the page";
+  const gsmBio = isText3(by.gsm_bio_version) ? ` with gsm.bio ${by.gsm_bio_version}` : "";
+  const when = isText3(by.computed_at) && /^\d{4}-\d{2}-\d{2}/.test(by.computed_at) ? ` on ${by.computed_at.slice(0, 10)}` : "";
+  return `computed by R ${by.r_version}${gsmBio}${when}, stored with the page`;
 }
 function answerText(answer, of) {
   const value = answer.value && typeof answer.value === "object" ? answer.value : {};
-  const method = isText3(value.method) ? value.method : "no statistic";
+  const { methods, adjustments } = methodsOf(value);
+  const [first, ...rest] = methods;
+  const method = !first ? "no statistic" : rest.length ? `${first}, with ${rest.join(" and ")}` : first;
   const counts = countsText(value.counts, of);
-  return counts ? `${method} (${counts})` : method;
+  return (counts ? `${method} (${counts})` : method) + (adjustments.length ? `, p-values adjusted by ${adjustments.join(" and ")}` : "");
 }
 function automaticFootnote({ date, version: version2, asked = [], of }) {
   const drawn = `Drawn on ${date} by bio.viz ${version2}.`;
@@ -1461,8 +1523,9 @@ var NEEDS_QUOTES = /[",\r\n]/;
 function csvField(value) {
   if (value === null || value === void 0) return "";
   let text2;
-  if (typeof value === "number") text2 = Number.isFinite(value) ? String(value) : "";
-  else if (typeof value === "boolean") text2 = value ? "TRUE" : "FALSE";
+  if (typeof value === "number") {
+    text2 = Number.isNaN(value) ? "NaN" : value === Infinity ? "Inf" : value === -Infinity ? "-Inf" : String(value);
+  } else if (typeof value === "boolean") text2 = value ? "TRUE" : "FALSE";
   else text2 = String(value);
   return NEEDS_QUOTES.test(text2) ? `"${text2.replace(/"/g, '""')}"` : text2;
 }
@@ -1519,17 +1582,46 @@ function parseCsv(text2) {
   return records;
 }
 var isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-function scalars(object, prefix = "") {
+var OWN = ["asked", "function", "part", "item"];
+var refuse5 = (message) => {
+  throw new TypeError(`bio.viz: ${message}`);
+};
+function scalars(value, prefix, out = {}) {
+  const put = (name, entry) => {
+    if (Object.prototype.hasOwnProperty.call(out, name)) {
+      refuse5(`R\u2019s answer has two members written \`${name}\` in the statistics file.`);
+    }
+    out[name] = entry;
+  };
+  if (Array.isArray(value)) {
+    if (value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
+      if (value.length)
+        put(prefix, value.map((entry) => entry === null ? "NA" : String(entry)).join(" | "));
+      return out;
+    }
+    value.forEach((entry, at) => {
+      const name = `${prefix}/${at + 1}`;
+      if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
+      else put(name, entry);
+    });
+    return out;
+  }
+  for (const [key, entry] of Object.entries(value)) {
+    const name = prefix ? `${prefix}/${key}` : key;
+    if (isObject(entry) || Array.isArray(entry)) scalars(entry, name, out);
+    else put(name, entry);
+  }
+  return out;
+}
+function membersOf(object, parts) {
   const out = {};
-  for (const [key, value] of Object.entries(object)) {
-    const name = `${prefix}${key}`;
-    if (isObject(value)) Object.assign(out, scalars(value, `${name}.`));
-    else if (Array.isArray(value)) {
-      if (value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
-        if (value.length)
-          out[name] = value.map((entry) => entry === null ? "NA" : String(entry)).join("; ");
-      }
-    } else out[name] = value;
+  for (const [key, entry] of Object.entries(object)) {
+    if (OWN.includes(key) || key === "data" || key.startsWith("data/")) {
+      refuse5(`R\u2019s answer has a member \`${key}\`, which the statistics file names itself.`);
+    }
+    if (parts && Array.isArray(entry) && entry.some(isObject)) continue;
+    if (isObject(entry) || Array.isArray(entry)) scalars(entry, key, out);
+    else out[key] = entry;
   }
   return out;
 }
@@ -1541,27 +1633,35 @@ function statisticsTable(asked) {
     const about = {
       asked: index + 1,
       function: entry.name,
-      ...isObject(entry.dataId) ? scalars(entry.dataId, "data.") : { data: entry.dataId }
+      ...isObject(entry.dataId) || Array.isArray(entry.dataId) ? scalars(entry.dataId, "data") : { data: entry.dataId }
     };
     const value = answer.value;
-    rows.push({ ...about, part: "result", ...scalars(value) });
+    rows.push({ ...about, part: "result", ...membersOf(value, true) });
     for (const [key, list] of Object.entries(value)) {
       if (!Array.isArray(list) || !list.some(isObject)) continue;
       list.forEach((part, at) => {
-        if (isObject(part)) rows.push({ ...about, part: key, item: at + 1, ...scalars(part) });
+        if (isObject(part))
+          rows.push({ ...about, part: key, item: at + 1, ...membersOf(part, false) });
       });
     }
   });
   const order2 = [];
-  for (const row of rows)
-    for (const key of Object.keys(row)) if (!order2.includes(key)) order2.push(key);
+  const seen = /* @__PURE__ */ new Set();
+  for (const row of rows) {
+    for (const key of Object.keys(row)) {
+      if (!seen.has(key)) {
+        seen.add(key);
+        order2.push(key);
+      }
+    }
+  }
   return { columns: order2.map((key) => ({ value_col: key, label: key })), rows };
 }
 
 // src/shared/settings.js
 var isText4 = (value) => typeof value === "string" && value.trim() !== "";
 var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
-var refuse5 = (message) => {
+var refuse6 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
 function fieldSpec(value, setting) {
@@ -1573,7 +1673,7 @@ function fieldSpec(value, setting) {
       label: isText4(value.label) ? value.label : value.value_col
     };
   }
-  return refuse5(
+  return refuse6(
     `\`${setting}\` holds something that is not a column name or { value_col, label }.`
   );
 }
@@ -1586,13 +1686,13 @@ function textList2(value, setting) {
   if (value === null || value === void 0) return null;
   const list = Array.isArray(value) ? value : [value];
   if (!list.length || !list.every((entry) => isText4(entry) || typeof entry === "number")) {
-    refuse5(`\`${setting}\` must be a name, or a list of names.`);
+    refuse6(`\`${setting}\` must be a name, or a list of names.`);
   }
   return [...new Set(list.map(String))];
 }
 var columnOrNull = (settings, key) => {
   if (settings[key] !== null && !isText4(settings[key])) {
-    refuse5(`\`${key}\` must be the name of a column, or null.`);
+    refuse6(`\`${key}\` must be the name of a column, or null.`);
   }
 };
 function coreSettings(settings) {
@@ -1609,12 +1709,12 @@ function coreSettings(settings) {
 }
 function layOver(defaults, overrides, chart) {
   if (overrides !== void 0 && overrides !== null && !isPlainObject4(overrides)) {
-    refuse5(`${chart} takes its settings as an object.`);
+    refuse6(`${chart} takes its settings as an object.`);
   }
   const given2 = overrides || {};
   for (const key of Object.keys(given2)) {
     if (!(key in defaults)) {
-      refuse5(
+      refuse6(
         `\`${key}\` is not a setting of ${chart}. Its settings are ${Object.keys(defaults).join(", ")}.`
       );
     }
@@ -1627,38 +1727,38 @@ function layOver(defaults, overrides, chart) {
 }
 function checkShared(settings, baselineStats) {
   for (const key of ["id_col", "measure_col", "value_col", "visit_col"]) {
-    if (!isText4(settings[key])) refuse5(`\`${key}\` must be the name of a column.`);
+    if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
   }
   if (!baselineStats.includes(settings.baseline_stat)) {
-    refuse5(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
+    refuse6(`\`baseline_stat\` must be one of ${baselineStats.join(", ")}.`);
   }
   if ("profile" in settings && typeof settings.profile !== "boolean") {
-    refuse5("`profile` must be true or false.");
+    refuse6("`profile` must be true or false.");
   }
   if (settings.waiting_note !== null && !isText4(settings.waiting_note)) {
-    refuse5("`waiting_note` must be a sentence, or null for none.");
+    refuse6("`waiting_note` must be a sentence, or null for none.");
   }
   if (settings.connection !== null && (typeof settings.connection !== "object" || typeof settings.connection.run !== "function")) {
-    refuse5("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
+    refuse6("`connection` must be a connection to R (BioViz.r.createConnection), or null.");
   }
   checkTitles(settings);
   checkDownloads(settings);
 }
 function checkBack(settings) {
   if (settings.back !== null && (!isPlainObject4(settings.back) || !isText4(settings.back.label) || typeof settings.back.action !== "function")) {
-    refuse5("`back` must be { label, action }, a sentence and a function, or null for none.");
+    refuse6("`back` must be { label, action }, a sentence and a function, or null for none.");
   }
 }
 function variableSetting(value, setting) {
   if (value === null || value === void 0) return null;
   if (!isPlainObject4(value)) {
-    refuse5(
+    refuse6(
       `\`${setting}\` must be a variable: { measure, visit, value } for a biomarker at a visit, or { col } for a participant-level number; or null.`
     );
   }
   const read2 = variable("col" in value && value.col != null ? { ...value, type: "number" } : value);
   if (read2.cut !== void 0) {
-    refuse5(
+    refuse6(
       `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave \`cut\` out.`
     );
   }
@@ -1680,7 +1780,7 @@ function checkGrouping(settings, key) {
   const value = settings[key];
   if (!isPlainObject4(value)) return;
   if (value.cut === void 0 || value.cut === null) {
-    refuse5(
+    refuse6(
       `\`${key}\` is a variable with no cut. A biomarker or a number makes groups only when it is cut: add \`cut: 'median'\`, 'tertiles', 'quartiles' or the cut points.`
     );
   }
@@ -1804,21 +1904,21 @@ function syncSettings(overrides) {
     else columnOrNull(settings, key);
   }
   if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
   }
-  if (!MARKS.includes(settings.mark)) refuse5(`\`mark\` must be one of ${MARKS.join(", ")}.`);
+  if (!MARKS.includes(settings.mark)) refuse6(`\`mark\` must be one of ${MARKS.join(", ")}.`);
   if (!Y_SCALES.includes(settings.y_scale)) {
-    refuse5(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
+    refuse6(`\`y_scale\` must be one of ${Y_SCALES.join(", ")}.`);
   }
   for (const key of ["page_size", "max_levels", "overview_limit"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse5(`\`${key}\` must be a whole number, one or more.`);
+      refuse6(`\`${key}\` must be a whole number, one or more.`);
     }
   }
-  if (!TESTS.includes(settings.test)) refuse5(`\`test\` must be one of ${TESTS.join(", ")}.`);
-  if (typeof settings.pairwise !== "boolean") refuse5("`pairwise` must be true or false.");
+  if (!TESTS.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS.join(", ")}.`);
+  if (typeof settings.pairwise !== "boolean") refuse6("`pairwise` must be true or false.");
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.visits = textList2(settings.visits, "visits");
@@ -1900,23 +2000,23 @@ function syncSettings2(overrides) {
   }
   for (const key of ["x_scale", "y_scale"]) {
     if (!SCALES.includes(settings[key])) {
-      refuse5(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
+      refuse6(`\`${key}\` must be one of ${SCALES.join(", ")}.`);
     }
   }
-  if (!FITS.includes(settings.fit)) refuse5(`\`fit\` must be one of ${FITS.join(", ")}.`);
+  if (!FITS.includes(settings.fit)) refuse6(`\`fit\` must be one of ${FITS.join(", ")}.`);
   if (!METHODS.includes(settings.method)) {
-    refuse5(`\`method\` must be one of ${METHODS.join(", ")}.`);
+    refuse6(`\`method\` must be one of ${METHODS.join(", ")}.`);
   }
   for (const key of ["page_size", "max_levels"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse5(`\`${key}\` must be a whole number, one or more.`);
+      refuse6(`\`${key}\` must be a whole number, one or more.`);
     }
   }
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
   }
   if (settings.fit_statistic !== null && !isText4(settings.fit_statistic)) {
-    refuse5(
+    refuse6(
       "`fit_statistic` must be the name of an R function, or null for no linear or smooth line."
     );
   }
@@ -1988,31 +2088,31 @@ function syncSettings3(overrides) {
     ["measure", "a biomarker"]
   ]) {
     if (settings[key] !== null && !isText4(settings[key])) {
-      refuse5(`\`${key}\` must be the name of ${what}, or null.`);
+      refuse6(`\`${key}\` must be the name of ${what}, or null.`);
     }
   }
-  if (!MODES.includes(settings.mode)) refuse5(`\`mode\` must be one of ${MODES.join(", ")}.`);
-  if (!VIEWS.includes(settings.view)) refuse5(`\`view\` must be one of ${VIEWS.join(", ")}.`);
+  if (!MODES.includes(settings.mode)) refuse6(`\`mode\` must be one of ${MODES.join(", ")}.`);
+  if (!VIEWS.includes(settings.view)) refuse6(`\`view\` must be one of ${VIEWS.join(", ")}.`);
   if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
   }
   if (!METHODS2.includes(settings.method)) {
-    refuse5(`\`method\` must be one of ${METHODS2.join(", ")}.`);
+    refuse6(`\`method\` must be one of ${METHODS2.join(", ")}.`);
   }
   if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-    refuse5("`max_levels` must be a whole number, one or more.");
+    refuse6("`max_levels` must be a whole number, one or more.");
   }
   if (!Number.isInteger(settings.limit) || settings.limit < 2) {
-    refuse5("`limit` must be a whole number, two or more.");
+    refuse6("`limit` must be a whole number, two or more.");
   }
   if (settings.min_pairs !== null && !(typeof settings.min_pairs === "number" && Number.isFinite(settings.min_pairs) && settings.min_pairs > 0)) {
-    refuse5("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
+    refuse6("`min_pairs` must be a number above zero, or null for R\u2019s own minimum.");
   }
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no coefficients.");
+    refuse6("`statistic` must be the name of an R function, or null for no coefficients.");
   }
   if (settings.scatter !== null && !isPlainObject4(settings.scatter)) {
-    refuse5("`scatter` must be an object of settings for the association scatter, or null.");
+    refuse6("`scatter` must be an object of settings for the association scatter, or null.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.biomarkers = textList2(settings.biomarkers, "biomarkers");
@@ -2227,15 +2327,15 @@ function checkOutcomeSettings(settings) {
     columnOrNull(settings, key);
   }
   for (const key of ["endpoint_col", "time_col"]) {
-    if (!isText4(settings[key])) refuse5(`\`${key}\` must be the name of a column.`);
+    if (!isText4(settings[key])) refuse6(`\`${key}\` must be the name of a column.`);
   }
   if (settings.censor_col === null === (settings.event_col === null)) {
-    refuse5(
+    refuse6(
       "Name exactly one of `censor_col` (1 = censored, as ADaM\u2019s CNSR) and `event_col` (1 = event); give the other as null."
     );
   }
   if (settings.endpoint !== null && !isText4(settings.endpoint)) {
-    refuse5("`endpoint` must be the name of an endpoint, or null for the first.");
+    refuse6("`endpoint` must be the name of an endpoint, or null for the first.");
   }
 }
 function flagOf(settings) {
@@ -2255,7 +2355,7 @@ function checkOutcomes(outcomes, settings) {
   ];
   for (const [key, column] of needed) {
     if (!outcomes.some((row) => column in row)) {
-      refuse5(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
+      refuse6(`the outcomes table has no column \`${column}\` (\`${key}\`).`);
     }
   }
 }
@@ -2384,38 +2484,38 @@ function syncSettings4(overrides) {
     columnOrNull(settings, key);
   }
   if (settings.visit !== null && !isText4(settings.visit)) {
-    refuse5("`visit` must be the name of a visit, or null.");
+    refuse6("`visit` must be the name of a visit, or null.");
   }
   if (!COMPARISONS.includes(settings.comparison)) {
-    refuse5(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
+    refuse6(`\`comparison\` must be one of ${COMPARISONS.join(", ")}.`);
   }
   if (!VALUE_TYPES.includes(settings.value_type)) {
-    refuse5(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
+    refuse6(`\`value_type\` must be one of ${VALUE_TYPES.join(", ")}.`);
   }
   if (!METHODS3.includes(settings.method)) {
-    refuse5(`\`method\` must be one of ${METHODS3.join(", ")}.`);
+    refuse6(`\`method\` must be one of ${METHODS3.join(", ")}.`);
   }
   if (!ADJUSTMENTS2.includes(settings.adjustment)) {
-    refuse5(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
+    refuse6(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
   }
-  if (!SORTS.includes(settings.sort)) refuse5(`\`sort\` must be one of ${SORTS.join(", ")}.`);
+  if (!SORTS.includes(settings.sort)) refuse6(`\`sort\` must be one of ${SORTS.join(", ")}.`);
   if (!Number.isInteger(settings.limit) || settings.limit < 1) {
-    refuse5("`limit` must be a whole number, one or more.");
+    refuse6("`limit` must be a whole number, one or more.");
   }
   if (!Number.isInteger(settings.max_levels) || settings.max_levels < 1) {
-    refuse5("`max_levels` must be a whole number, one or more.");
+    refuse6("`max_levels` must be a whole number, one or more.");
   }
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no statistics.");
+    refuse6("`statistic` must be the name of an R function, or null for no statistics.");
   }
   for (const key of ["group_comparison", "association_scatter", "stratified_survival"]) {
     if (settings[key] !== null && !isPlainObject4(settings[key])) {
-      refuse5(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
+      refuse6(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
     }
   }
   settings.levels = textList2(settings.levels, "levels");
   if (settings.levels && settings.levels.length !== 2) {
-    refuse5("`levels` must name two groups, the first and the second, or be null.");
+    refuse6("`levels` must name two groups, the first and the second, or be null.");
   }
   settings.with = variableSetting(settings.with, "with");
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
@@ -2493,11 +2593,11 @@ function syncSettings5(overrides) {
     else columnOrNull(settings, key);
   }
   if (settings.cuts !== null) {
-    if (!Array.isArray(settings.cuts)) refuse5("`cuts` must be a list of cut variables, or null.");
+    if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
     settings.cuts = settings.cuts.map((spec, index) => {
       const holder = { [`cuts[${index}]`]: spec };
       if (!isCut(spec)) {
-        refuse5(
+        refuse6(
           `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
         );
       }
@@ -2506,16 +2606,16 @@ function syncSettings5(overrides) {
     });
   }
   if (!PERCENTS.includes(settings.percent)) {
-    refuse5(`\`percent\` must be one of ${PERCENTS.join(", ")}.`);
+    refuse6(`\`percent\` must be one of ${PERCENTS.join(", ")}.`);
   }
-  if (!TESTS2.includes(settings.test)) refuse5(`\`test\` must be one of ${TESTS2.join(", ")}.`);
+  if (!TESTS2.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS2.join(", ")}.`);
   for (const key of ["page_size", "max_levels"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse5(`\`${key}\` must be a whole number, one or more.`);
+      refuse6(`\`${key}\` must be a whole number, one or more.`);
     }
   }
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.measures = textList2(settings.measures, "measures");
@@ -2603,11 +2703,11 @@ function syncSettings6(overrides) {
   if (isCut(settings.group_by)) checkGrouping(settings, "group_by");
   else columnOrNull(settings, "group_by");
   if (settings.cuts !== null) {
-    if (!Array.isArray(settings.cuts)) refuse5("`cuts` must be a list of cut variables, or null.");
+    if (!Array.isArray(settings.cuts)) refuse6("`cuts` must be a list of cut variables, or null.");
     settings.cuts = settings.cuts.map((spec, index) => {
       const holder = { [`cuts[${index}]`]: spec };
       if (!isCut(spec)) {
-        refuse5(
+        refuse6(
           `\`cuts[${index}]\` must be a cut variable: { measure, visit, cut } or { col, type: 'number', cut }.`
         );
       }
@@ -2618,17 +2718,17 @@ function syncSettings6(overrides) {
   if (settings.at_risk_times !== null) {
     const times = settings.at_risk_times;
     if (!Array.isArray(times) || !times.length || !times.every((time) => typeof time === "number" && Number.isFinite(time) && time >= 0) || times.some((time, index) => index > 0 && !(time > times[index - 1]))) {
-      refuse5("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
+      refuse6("`at_risk_times` must be a list of times, none below 0, in ascending order, or null.");
     }
     settings.at_risk_times = [...times];
   }
   for (const key of ["page_size", "max_levels"]) {
     if (!Number.isInteger(settings[key]) || settings[key] < 1) {
-      refuse5(`\`${key}\` must be a whole number, one or more.`);
+      refuse6(`\`${key}\` must be a whole number, one or more.`);
     }
   }
   if (settings.statistic !== null && !isText4(settings.statistic)) {
-    refuse5("`statistic` must be the name of an R function, or null for no statistics line.");
+    refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
   settings.measures = textList2(settings.measures, "measures");
@@ -2706,16 +2806,25 @@ function pngChunks(png, { scale, text: text2 }) {
   return out;
 }
 var HEIGHTS = /* @__PURE__ */ new Set(["height", "block-size", "max-height", "max-block-size"]);
+var OVERFLOWS = /* @__PURE__ */ new Set([
+  "overflow",
+  "overflow-x",
+  "overflow-y",
+  "overflow-block",
+  "overflow-inline"
+]);
+var holdsText = (element) => /\S/.test(element.textContent || "");
 function copyStyles(from, to) {
   const style = getComputedStyle(from);
-  const fixed = from.tagName === "CANVAS" || from.tagName === "IMG";
+  const reflow = from.tagName !== "CANVAS" && from.tagName !== "IMG" && holdsText(from);
   let text2 = "";
   for (let i = 0; i < style.length; i += 1) {
     const name = style[i];
-    if (!fixed && HEIGHTS.has(name)) continue;
+    if (reflow && HEIGHTS.has(name)) continue;
+    if (OVERFLOWS.has(name)) continue;
     text2 += `${name}:${style.getPropertyValue(name)};`;
   }
-  to.setAttribute("style", text2);
+  to.setAttribute("style", `${text2}overflow:visible;`);
 }
 function copyTree(from, to) {
   if (from.nodeType !== 1) return;
@@ -2762,29 +2871,46 @@ async function drawFrame(frame2, { leaveOut, scale, text: text2 }) {
     )
   );
   const height = Math.ceil(copy2.getBoundingClientRect().height);
+  const holderBox = holder.getBoundingClientRect();
+  let right = width;
+  for (const element of copy2.querySelectorAll("*")) {
+    const box = element.getBoundingClientRect();
+    if (box.width && box.height) right = Math.max(right, Math.ceil(box.right - holderBox.left));
+  }
+  const drawnWidth = right;
   holder.remove();
   const markup = new XMLSerializer().serializeToString(copy2);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div></foreignObject></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${drawnWidth}" height="${height}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div></foreignObject></svg>`;
   const image = new Image();
   await new Promise((done, fail) => {
     image.onload = done;
-    image.onerror = () => fail(new Error("bio.viz: the chart could not be drawn as a picture."));
+    image.onerror = () => fail(
+      new Error("bio.viz: the chart could not be drawn as a picture, as the browser read it.")
+    );
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(width * scale);
+  canvas.width = Math.round(drawnWidth * scale);
   canvas.height = Math.round(height * scale);
   const context = canvas.getContext("2d");
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.scale(scale, scale);
-  context.drawImage(image, 0, 0, width, height);
-  const written = await new Promise(
-    (done, fail) => canvas.toBlob(
-      (blob) => blob ? done(blob) : fail(new Error("bio.viz: the picture could not be written.")),
-      "image/png"
-    )
-  );
+  context.drawImage(image, 0, 0, drawnWidth, height);
+  const written = await new Promise((done, fail) => {
+    try {
+      canvas.toBlob(
+        (blob) => blob ? done(blob) : fail(
+          new Error(
+            "bio.viz: the picture could not be written, which a browser does when it is too large. Try a smaller png_scale."
+          )
+        ),
+        "image/png"
+      );
+    } catch (error) {
+      fail(new Error(`bio.viz: the picture could not be read back (${error.message}).`));
+    }
+  });
   const bytes = pngChunks(new Uint8Array(await written.arrayBuffer()), { scale, text: text2 });
   return {
     blob: new Blob([bytes], { type: "image/png" }),
@@ -2798,7 +2924,7 @@ var SPECIFICATION_FORMAT = "bio.viz specification";
 var SPECIFICATION_VERSION = 1;
 var FILTER_OPERATORS = Object.freeze(["in"]);
 var PAGE_SETTINGS = Object.freeze(["connection", "back"]);
-var refuse6 = (message) => {
+var refuse7 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
 var isPlainObject5 = (value) => value !== null && typeof value === "object" && !Array.isArray(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
@@ -2851,65 +2977,65 @@ function readSpecification(specification, charts) {
     try {
       spec = JSON.parse(spec);
     } catch (error) {
-      refuse6(`a specification given as text must be JSON: ${error.message}.`);
+      refuse7(`a specification given as text must be JSON: ${error.message}.`);
     }
   }
   if (!isPlainObject5(spec))
-    refuse6("a specification is an object: { format, chart, settings, filters }.");
+    refuse7("a specification is an object: { format, chart, settings, filters }.");
   const problem = notData(spec, "the specification");
-  if (problem) refuse6(`${problem}.`);
+  if (problem) refuse7(`${problem}.`);
   if (spec.format !== SPECIFICATION_FORMAT) {
-    refuse6(
+    refuse7(
       `this is not a bio.viz specification: its \`format\` must be "${SPECIFICATION_FORMAT}".`
     );
   }
   if (spec.format_version !== SPECIFICATION_VERSION) {
-    refuse6(
+    refuse7(
       `this specification is of format version ${JSON.stringify(spec.format_version)}, and this version of bio.viz reads version ${SPECIFICATION_VERSION}.`
     );
   }
   const known = ["format", "format_version", "bio_viz_version", "chart", "settings", "filters"];
   const extra = Object.keys(spec).filter((key) => !known.includes(key));
   if (extra.length) {
-    refuse6(`a specification has no \`${extra[0]}\`: it holds ${known.join(", ")}.`);
+    refuse7(`a specification has no \`${extra[0]}\`: it holds ${known.join(", ")}.`);
   }
   if (!isText5(spec.chart) || !Object.prototype.hasOwnProperty.call(charts, spec.chart)) {
-    refuse6(
+    refuse7(
       `this specification names the chart ${JSON.stringify(spec.chart)}, which bio.viz does not have. Its charts are ${Object.keys(charts).join(", ")}.`
     );
   }
   const defaults = charts[spec.chart];
   const settings = spec.settings === void 0 ? {} : spec.settings;
-  if (!isPlainObject5(settings)) refuse6("a specification\u2019s `settings` is an object of settings.");
+  if (!isPlainObject5(settings)) refuse7("a specification\u2019s `settings` is an object of settings.");
   const unknown = Object.keys(settings).filter(
     (key) => !Object.prototype.hasOwnProperty.call(defaults, key) || PAGE_SETTINGS.includes(key)
   );
   if (unknown.length) {
     const names = unknown.map((key) => `\`${key}\``).join(", ");
-    refuse6(
+    refuse7(
       `this specification of the ${spec.chart} chart${isText5(spec.bio_viz_version) ? `, written by bio.viz ${spec.bio_viz_version},` : ""} holds ${names}, which ${unknown.length === 1 ? "is not a setting" : "are not settings"} of that chart in this version.`
     );
   }
   const filters = spec.filters === void 0 ? [] : spec.filters;
   if (!Array.isArray(filters))
-    refuse6("a specification\u2019s `filters` is a list of { column, operator, values }.");
+    refuse7("a specification\u2019s `filters` is a list of { column, operator, values }.");
   const read2 = copy(settings);
   filters.forEach((filter, index) => {
     const where = `filter ${index + 1}`;
-    if (!isPlainObject5(filter)) refuse6(`${where} must be { column, operator, values }.`);
+    if (!isPlainObject5(filter)) refuse7(`${where} must be { column, operator, values }.`);
     const keys = Object.keys(filter).filter(
       (key) => !["column", "operator", "values"].includes(key)
     );
     if (keys.length)
-      refuse6(`${where} has \`${keys[0]}\`: a filter is { column, operator, values }.`);
-    if (!isText5(filter.column)) refuse6(`${where} must name its column.`);
+      refuse7(`${where} has \`${keys[0]}\`: a filter is { column, operator, values }.`);
+    if (!isText5(filter.column)) refuse7(`${where} must name its column.`);
     if (!FILTER_OPERATORS.includes(filter.operator)) {
-      refuse6(
+      refuse7(
         `${where}, on ${filter.column}, has the operator ${JSON.stringify(filter.operator)}; the operators are ${FILTER_OPERATORS.map((entry) => `"${entry}"`).join(", ")}: in, the values it lets through.`
       );
     }
     if (!Array.isArray(filter.values) || !filter.values.length || !filter.values.every((value) => typeof value === "string" || typeof value === "number")) {
-      refuse6(
+      refuse7(
         `${where}, on ${filter.column}, must list the values it lets through: text or numbers.`
       );
     }
@@ -3003,7 +3129,8 @@ ${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .
 ${root} .bv-downloads[hidden]{display:none}
 ${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
-${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
 function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   const { kit } = chart;
   Object.assign(
@@ -3017,6 +3144,8 @@ function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   chart.statLine = kit.createElement("div", "bv-statistic");
   chart.statLine.setAttribute("role", "status");
   chart.footnote.after(chart.statLine);
+  chart.footnote.classList.add("bv-no-picture");
+  chart.listingWrap.classList.add("bv-no-picture");
   chart.titleBlock = kit.createElement("div", "bv-titles");
   chart.main.prepend(chart.titleBlock);
   chart.footBlock = kit.createElement("div", "bv-foot");
@@ -3166,7 +3295,7 @@ function sharedPlaceholders(chart) {
   const filters = chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
   return {
     date: dateDrawn(),
-    version: VERSION,
+    version: VERSION_SAID,
     filters: filters.length ? filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ") : "none"
   };
 }
@@ -3174,50 +3303,74 @@ function placeholderValues(chart) {
   let own = {};
   try {
     own = typeof chart.placeholders === "function" ? chart.placeholders() || {} : {};
-  } catch {
+  } catch (error) {
+    console.error("bio.viz: the chart\u2019s placeholders could not be read.", error);
     own = {};
   }
   return { ...sharedPlaceholders(chart), ...own };
 }
 function titlesOf(chart) {
+  const parts = partsOf(chart);
+  const joined = (runs) => runs === null ? null : runs.map((run) => run.text).join("");
+  return {
+    title: joined(parts.title),
+    subtitle: joined(parts.subtitle),
+    footnotes: parts.footnotes.map(joined)
+  };
+}
+function partsOf(chart) {
   const { settings } = chart;
   const values = placeholderValues(chart);
-  const filled = (template) => template === null ? null : fillText(template, values);
+  const filled = (template) => typeof template !== "string" || template.trim() === "" ? null : fillParts(template, values);
   return {
     title: filled(settings.title),
     subtitle: filled(settings.subtitle),
     footnotes: [
-      ...(settings.footnotes || []).map(filled),
-      automaticFootnote({
-        date: values.date,
-        version: VERSION,
-        asked: chart.asked || [],
-        of: chart.footnoteCounts
-      })
+      ...(settings.footnotes || []).map(filled).filter(Boolean),
+      [
+        {
+          text: automaticFootnote({
+            date: values.date,
+            version: VERSION_SAID,
+            asked: chart.asked || [],
+            of: chart.footnoteCounts
+          }),
+          value: false
+        }
+      ]
     ]
   };
+}
+function writeRuns(kit, element, runs) {
+  for (const run of runs) {
+    if (run.value) {
+      const isolated = document.createElement("bdi");
+      isolated.textContent = run.text;
+      element.append(isolated);
+    } else element.append(document.createTextNode(run.text));
+  }
 }
 function writeTitles(chart) {
   if (!chart.titleBlock || !chart.footBlock) return;
   const { kit } = chart;
-  const said = titlesOf(chart);
+  const said = partsOf(chart);
   chart.titleBlock.innerHTML = "";
-  if (said.title !== null && said.title !== "") {
+  if (said.title !== null) {
     const title = kit.createElement("div", "bv-title");
     title.setAttribute("role", "heading");
     title.setAttribute("aria-level", "2");
-    title.textContent = said.title;
+    writeRuns(kit, title, said.title);
     chart.titleBlock.append(title);
   }
-  if (said.subtitle !== null && said.subtitle !== "") {
+  if (said.subtitle !== null) {
     const subtitle = kit.createElement("p", "bv-subtitle");
-    subtitle.textContent = said.subtitle;
+    writeRuns(kit, subtitle, said.subtitle);
     chart.titleBlock.append(subtitle);
   }
   chart.footBlock.innerHTML = "";
-  said.footnotes.forEach((text2, index) => {
+  said.footnotes.forEach((runs, index) => {
     const line = kit.createElement("p", "bv-foot-line");
-    line.textContent = text2;
+    writeRuns(kit, line, runs);
     if (index === said.footnotes.length - 1) line.dataset.automatic = "true";
     chart.footBlock.append(line);
   });
@@ -3228,7 +3381,7 @@ var DOWNLOAD_LABELS = Object.freeze({
   statistics: "Statistics (CSV)",
   table: "Table (CSV)"
 });
-var slug = (text2) => String(text2).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+var slug = (text2) => String(text2).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => whole.length <= 60 ? whole : kept).replace(/-+$/g, "");
 function downloadName(chart, kind) {
   const values = placeholderValues(chart);
   const view = (chart.viewFields || []).map((name) => values[name]).filter((value) => value !== null && value !== void 0 && String(value).trim() !== "").join(" ");
@@ -3247,19 +3400,31 @@ async function downloadFile(chart, kind) {
   }
   if (kind === "png") {
     const said = titlesOf(chart);
-    const leaving = [chart.toolbar, chart.footnote, chart.listingWrap, chart.downloadBar].filter(
-      Boolean
+    const scale = chart.settings.png_scale;
+    const charts = (chart.charts || []).filter(
+      (made) => made && made.options && typeof made.resize === "function"
     );
-    const { blob } = await drawFrame(chart.main, {
-      scale: chart.settings.png_scale,
-      leaveOut: (element) => leaving.includes(element),
-      text: {
-        Title: [said.title, said.subtitle].filter(Boolean).join(" \u2014 "),
-        Description: said.footnotes.join(" "),
-        Software: `bio.viz ${VERSION}`
-      }
+    const ratios = charts.map((made) => made.options.devicePixelRatio);
+    const sharpen = (ratio) => charts.forEach((made, i) => {
+      made.options.devicePixelRatio = ratio === null ? ratios[i] : ratio;
+      made.resize();
     });
-    return { name, blob };
+    sharpen(Math.max(scale, globalThis.devicePixelRatio || 1));
+    try {
+      const { blob } = await drawFrame(chart.main, {
+        scale,
+        // What a reader works the chart with is marked to be left out.
+        leaveOut: (element) => element.classList.contains("bv-no-picture"),
+        text: {
+          Title: [said.title, said.subtitle].filter(Boolean).join(" \u2014 "),
+          Description: said.footnotes.join("\n"),
+          Software: `bio.viz ${VERSION_SAID}`
+        }
+      });
+      return { name, blob };
+    } finally {
+      sharpen(null);
+    }
   }
   throw new TypeError(
     `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
@@ -3267,7 +3432,7 @@ async function downloadFile(chart, kind) {
 }
 function mountDownloads(chart) {
   const { kit } = chart;
-  chart.downloadBar = kit.createElement("div", "bv-downloads");
+  chart.downloadBar = kit.createElement("div", "bv-downloads bv-no-picture");
   chart.downloadBar.append(kit.createElement("span", "bv-downloads-label", "Download:"));
   chart.downloadButtons = {};
   for (const [kind, label2] of Object.entries(DOWNLOAD_LABELS)) {
@@ -3276,10 +3441,15 @@ function mountDownloads(chart) {
     button.dataset.download = kind;
     button.onclick = async () => {
       button.disabled = true;
+      sayFailure(chart, null);
       try {
         const { name, blob } = await downloadFile(chart, kind);
         saveFile(blob, name);
       } catch (error) {
+        sayFailure(
+          chart,
+          `The ${kind === "png" ? "PNG" : `${kind} file`} could not be made: ${String(error && error.message || error).replace(/^bio\.viz: /, "")}`
+        );
         console.error(error);
       } finally {
         syncDownloads(chart);
@@ -3291,6 +3461,14 @@ function mountDownloads(chart) {
   chart.footBlock.after(chart.downloadBar);
   chart.fileOf = (kind) => downloadFile(chart, kind);
 }
+function sayFailure(chart, said) {
+  const old = chart.downloadBar.querySelector(".bv-download-error");
+  if (old) old.remove();
+  if (!said) return;
+  const line = chart.kit.createElement("p", "bv-download-error", said);
+  line.setAttribute("role", "alert");
+  chart.downloadBar.append(line);
+}
 function syncDownloads(chart) {
   if (!chart.downloadBar) return;
   chart.downloadBar.hidden = !chart.settings.downloads;
@@ -3301,7 +3479,10 @@ function syncDownloads(chart) {
   const { png, statistics } = chart.downloadButtons;
   if (!(chart.asked || []).length) statistics.remove();
   else if (!statistics.isConnected) png.after(statistics);
+  const waiting = (chart.asked || []).some((entry) => !entry.answer);
   statistics.disabled = !answered;
+  statistics.title = answered ? "" : waiting ? "Waiting for R\u2019s answer." : "R returned no statistics for this view.";
+  if (!statistics.title) statistics.removeAttribute("title");
   chart.downloadButtons.table.disabled = !table.rows.length;
   chart.downloadButtons.png.disabled = false;
 }
@@ -3495,7 +3676,7 @@ function renderPager(kit, page, count, go) {
   pager.append(kit.createElement("span", "bv-overview-count", count));
   if (page.pages === 1) return pager;
   const button = (label2, to, name) => {
-    const made = kit.createElement("button", null, label2);
+    const made = kit.createElement("button", "bv-no-picture", label2);
     made.type = "button";
     made.dataset.go = name;
     made.disabled = to < 0 || to >= page.pages;
@@ -3512,7 +3693,7 @@ function renderPager(kit, page, count, go) {
 function mountToolbar(chart) {
   const { kit, settings } = chart;
   if (!chart.toolbar) {
-    chart.toolbar = kit.createElement("div", "bv-toolbar");
+    chart.toolbar = kit.createElement("div", "bv-toolbar bv-no-picture");
     chart.notes.before(chart.toolbar);
   }
   chart.toolbar.innerHTML = "";
@@ -3750,15 +3931,15 @@ function noTestText(groups, several) {
   return `${lead}none is drawn.`;
 }
 function scopeText({ group, n, panel, color, filters = [] }) {
-  const named3 = group.includes(",") ? `${group},` : group;
+  const named2 = group.includes(",") ? `${group},` : group;
   const said = [
-    `This test compares the levels of ${named3} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+    `This test compares the levels of ${named2} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
     said.push("Each panel has a test of its own, and they are not adjusted for one another.");
   }
   if (color) {
-    said.push(`Colour by ${color} is not part of it: each level of ${named3} is tested whole.`);
+    said.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
   }
   if (filters.length) said.push(filtersSaid(filters));
   return said.join(" ");
@@ -4240,10 +4421,10 @@ var GroupComparison = class {
     this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
       (spec) => this.kit.normalizeFilterSpec(spec)
     );
-    const named3 = this.settings.start_value;
-    if (results.length && named3 !== null && !this.measures.includes(named3)) {
+    const named2 = this.settings.start_value;
+    if (results.length && named2 !== null && !this.measures.includes(named2)) {
       console.warn(
-        `The initial biomarker [${named3}] does not exist. Defaulting to the all-biomarkers overview.`
+        `The initial biomarker [${named2}] does not exist. Defaulting to the all-biomarkers overview.`
       );
     }
   }
@@ -5158,9 +5339,10 @@ var GroupComparison = class {
    * @returns {object}
    */
   placeholders() {
-    const { state, model } = this;
+    const { state, model, overview } = this;
+    const panels = model ? model.panels : overview ? overview.rows.flatMap((row) => row.model.panels) : [];
     const ids = /* @__PURE__ */ new Set();
-    for (const panel of model && model.panels || []) {
+    for (const panel of panels) {
       for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
     }
     return {
@@ -5168,7 +5350,7 @@ var GroupComparison = class {
       visits: (state.visits || []).join(", "),
       value: VALUE_LABELS[state.valueType] || state.valueType,
       group: state.groupBy ? this.labelOf(state.groupBy) : "",
-      n: model ? ids.size : ""
+      n: model || overview ? ids.size : ""
     };
   }
   /**
@@ -5320,7 +5502,7 @@ function axisOffered(axis, { measures, visits: visits2, numbers }) {
 function openingAxes(settings, offered) {
   const { measures, visits: visits2, numbers } = offered;
   const missing = [];
-  const named3 = (key) => {
+  const named2 = (key) => {
     if (!settings[key]) return null;
     const axis = axisOf(settings[key]);
     if (axisOffered(axis, offered)) return axis;
@@ -5329,8 +5511,8 @@ function openingAxes(settings, offered) {
   };
   const at = (measure, visit) => ({ kind: "measure", measure, value: "raw", visit });
   const first = measures.length && visits2.length ? at(measures[0], visits2[0]) : numbers.length ? { kind: "column", col: numbers[0].value_col } : null;
-  const x = named3("x") || first;
-  let y = named3("y");
+  const x = named2("x") || first;
+  let y = named2("y");
   if (!y && x) {
     if (measures.length > 1 && visits2.length) y = at(measures[1], visits2[0]);
     else if (measures.length && visits2.length > 1) y = at(measures[0], visits2[1]);
@@ -6011,14 +6193,14 @@ var AssociationScatter = class {
       const axis = state[key];
       if (!axis) return;
       const section = addSection(title);
-      const named3 = (text2) => `${title}: ${text2}`;
+      const named2 = (text2) => `${title}: ${text2}`;
       const variables = [
         ...this.measures.map((measure) => [`m:${measure}`, measure]),
         ...this.numbers.map((entry) => [`c:${entry.value_col}`, `${entry.label} (participant)`])
       ];
       select(
         `${key}-variable`,
-        named3("Variable"),
+        named2("Variable"),
         variables,
         axis.kind === "column" ? `c:${axis.col}` : `m:${axis.measure}`,
         (next) => {
@@ -6036,7 +6218,7 @@ var AssociationScatter = class {
       if (axis.kind === "measure") {
         select(
           `${key}-value`,
-          named3("Value"),
+          named2("Value"),
           VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
           axis.value,
           (next) => {
@@ -6049,7 +6231,7 @@ var AssociationScatter = class {
         if (axis.value !== "baseline") {
           select(
             `${key}-visit`,
-            named3("Visit"),
+            named2("Visit"),
             this.visits.map((visit) => [visit, visit]),
             axis.visit,
             (next) => {
@@ -6062,7 +6244,7 @@ var AssociationScatter = class {
       }
       select(
         `${key}-scale`,
-        named3("Scale"),
+        named2("Scale"),
         SCALES.map((scale) => [scale, SCALE_LABELS[scale]]),
         state[`${key}Scale`],
         (next) => {
@@ -6877,7 +7059,7 @@ function matrixVariables(settings, state, offered, results = []) {
     notDrawn,
     message
   });
-  const named3 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
+  const named2 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
   if (state.mode === "visits") {
     const heading2 = `${state.measure}: ${VALUE_WORDS2[value].toLowerCase()}, visit against visit`;
     if (value === "baseline") {
@@ -6890,7 +7072,7 @@ function matrixVariables(settings, state, offered, results = []) {
     const chosen2 = state.visits ? offered.visits.filter((visit) => state.visits.includes(visit)) : offered.visits;
     const drawn = chosen2.filter((visit) => !flat(visit));
     return {
-      variables: named3(
+      variables: named2(
         drawn.slice(0, settings.limit).map((visit) => ({
           label: visit,
           axis: { kind: "measure", measure: state.measure, value, visit }
@@ -6916,7 +7098,7 @@ function matrixVariables(settings, state, offered, results = []) {
   }
   const chosen = state.biomarkers ? offered.measures.filter((measure) => state.biomarkers.includes(measure)) : offered.measures;
   return {
-    variables: named3(
+    variables: named2(
       chosen.slice(0, settings.limit).map((measure) => ({
         label: measure,
         axis: {
@@ -7917,7 +8099,7 @@ var CorrelationMatrix = class {
         `Every pair, with its count: ${rows.length}, in the order R returned them`
       )
     );
-    const tools = kit.createElement("div", "bv-pairs-tools");
+    const tools = kit.createElement("div", "bv-pairs-tools bv-no-picture");
     const download = kit.createElement("button", null, "Download: CSV");
     download.type = "button";
     download.onclick = () => downloadCsv(
@@ -8351,6 +8533,8 @@ function buildSurvival({ results, participants, outcomes }, settings, state, { k
     records.push({
       [idCol]: id,
       group: cut ? groupLabel(record.group, cut) : String(record.group),
+      // The value a cut was made from, for the table download (#70 review).
+      ...cut ? { value: record.group } : {},
       time: outcome.time,
       flag: outcome.flag,
       event: outcome.event
@@ -8611,9 +8795,9 @@ var StratifiedSurvival = class {
     let groupBy = categories[0] ? categories[0].value_col : null;
     if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
     else if (has(settings.group_by)) groupBy = settings.group_by;
-    const named3 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
+    const named2 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
     return {
-      endpoint: named3 ? named3.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
+      endpoint: named2 ? named2.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
       groupBy,
       filters: this.kit.initFilterState(this.filterSpecs)
     };
@@ -9253,11 +9437,11 @@ var StratifiedSurvival = class {
     }
     const typed = { ...spec, cut: points };
     this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
-    const named3 = this.cutOptions.find(
+    const named2 = this.cutOptions.find(
       (entry) => JSON.stringify(entry.spec) === JSON.stringify(typed)
     );
-    if (named3) {
-      this.state.groupBy = named3.key;
+    if (named2) {
+      this.state.groupBy = named2.key;
     } else {
       this.cutOptions.push({ key: MOVED_KEY, spec: typed, label: label(typed) });
       this.state.groupBy = MOVED_KEY;
@@ -9356,10 +9540,12 @@ var StratifiedSurvival = class {
   tableOf() {
     const { model, state, settings } = this;
     if (!model || !model.records) return { columns: [], rows: [] };
+    const valued = model.cut ? (({ cut, ...variable2 }) => variable2)(model.cut.spec) : null;
     return {
       columns: [
         { value_col: settings.id_col, label: "Participant" },
         { value_col: "group", label: this.labelOf(state.groupBy) },
+        ...valued ? [{ value_col: "value", label: label(valued) }] : [],
         { value_col: "time", label: "Time" },
         { value_col: "event", label: "Event" }
       ],
@@ -9676,7 +9862,7 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
     { ...coreSettings(settings), required: [] }
   );
   const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
-  const named3 = made.data.map((record) => {
+  const named2 = made.data.map((record) => {
     const row = {
       [settings.id_col]: record[settings.id_col],
       ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]]))
@@ -9689,7 +9875,7 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
       [outcomeFields[1]]: outcome.reason ? null : outcome.flag
     };
   });
-  const records = named3.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+  const records = named2.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
   const gaps = /* @__PURE__ */ new Map();
   if (hazard) {
     for (const record of records) {
@@ -9701,7 +9887,7 @@ function buildScreen({ results, participants, outcomes = null }, settings, state
     ...model,
     records,
     participants: made.participants,
-    empty: named3.length - records.length,
+    empty: named2.length - records.length,
     // With no biomarker required, who is left out is who the participant table
     // does not have.
     dropped: made.dropped,
@@ -10374,7 +10560,7 @@ var BiomarkerScreen = class {
     const list = kit.createElement("div", "bv-screen-rows");
     page.items.forEach((row) => list.append(this.rowOf(row, range)));
     wrap.append(list);
-    const tools = kit.createElement("div", "bv-screen-tools");
+    const tools = kit.createElement("div", "bv-screen-tools bv-no-picture");
     const download = kit.createElement("button", null, "Download: CSV");
     download.type = "button";
     download.onclick = () => this.download(sorted2);
@@ -10756,7 +10942,7 @@ function contingencyRequest({ name, test, settings, state, model }) {
   };
 }
 var present3 = (value) => value !== void 0 && value !== null;
-function named2(value, names) {
+function named(value, names) {
   if (!names || typeof value.reason !== "string") return value;
   const reason = value.reason.replace(
     /(^Not computed: |; )(row|col) = /g,
@@ -10766,7 +10952,7 @@ function named2(value, names) {
 }
 function describeAnswer3(result, context = {}) {
   if (result && result.status === "ok") {
-    const value = named2(
+    const value = named(
       result.value && typeof result.value === "object" ? result.value : {},
       context.names
     );
@@ -10811,6 +10997,7 @@ function buildTable({ results, participants }, settings, state, options = {}) {
     total: 0,
     percents: { row: [], col: [] },
     cuts: {},
+    cutValues: { row: null, col: null },
     participants: kept ? kept.length : 0,
     dropped: [],
     unused: [],
@@ -10829,10 +11016,13 @@ function buildTable({ results, participants }, settings, state, options = {}) {
     { row: grouping2(state.rowBy), col: grouping2(state.colBy) },
     config
   );
+  const cutValues = { row: null, col: null };
+  for (const field of ["row", "col"]) if (cuts[field]) cutValues[field] = {};
   const records = made.data.map((record) => {
     const out = { [config.id_col]: record[config.id_col] };
     for (const field of ["row", "col"]) {
       out[field] = cuts[field] ? groupLabel(record[field], cuts[field]) : String(record[field]);
+      if (cuts[field]) cutValues[field][record[config.id_col]] = record[field];
     }
     return out;
   });
@@ -10850,6 +11040,7 @@ function buildTable({ results, participants }, settings, state, options = {}) {
   return {
     ...empty,
     records,
+    cutValues,
     rowLevels,
     colLevels,
     counts,
@@ -11484,14 +11675,24 @@ var CrossTab = class {
   tableOf() {
     const { model, state, settings } = this;
     if (!model || !model.records) return { columns: [], rows: [] };
-    return {
-      columns: [
-        { value_col: settings.id_col, label: "Participant" },
-        { value_col: "row", label: this.labelOf(state.rowBy) },
-        { value_col: "col", label: this.labelOf(state.colBy) }
-      ],
-      rows: model.records
-    };
+    const columns = [{ value_col: settings.id_col, label: "Participant" }];
+    const values = model.cutValues || {};
+    for (const [field, by] of [
+      ["row", state.rowBy],
+      ["col", state.colBy]
+    ]) {
+      columns.push({ value_col: field, label: this.labelOf(by) });
+      if (values[field]) {
+        const { cut, ...variable2 } = this.groupingOf(by);
+        columns.push({ value_col: `${field}Value`, label: label(variable2) });
+      }
+    }
+    const rows = model.records.map((record) => ({
+      ...record,
+      ...values.row ? { rowValue: values.row[record[settings.id_col]] } : {},
+      ...values.col ? { colValue: values.col[record[settings.id_col]] } : {}
+    }));
+    return { columns, rows };
   }
   /** The placeholders a download's file name is made of, after the chart's name. */
   get viewFields() {

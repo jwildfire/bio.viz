@@ -50,6 +50,7 @@ export function buildTable({ results, participants }, settings, state, options =
     total: 0,
     percents: { row: [], col: [] },
     cuts: {},
+    cutValues: { row: null, col: null },
     participants: kept ? kept.length : 0,
     dropped: [],
     unused: [],
@@ -73,10 +74,15 @@ export function buildTable({ results, participants }, settings, state, options =
     { row: grouping(state.rowBy), col: grouping(state.colBy) },
     config
   );
+  // The value each cut was made from, by participant, for the table download
+  // (#70 review); R is handed the categories alone.
+  const cutValues = { row: null, col: null };
+  for (const field of ['row', 'col']) if (cuts[field]) cutValues[field] = {};
   const records = made.data.map((record) => {
     const out = { [config.id_col]: record[config.id_col] };
     for (const field of ['row', 'col']) {
       out[field] = cuts[field] ? groupLabel(record[field], cuts[field]) : String(record[field]);
+      if (cuts[field]) cutValues[field][record[config.id_col]] = record[field];
     }
     return out;
   });
@@ -99,6 +105,7 @@ export function buildTable({ results, participants }, settings, state, options =
   return {
     ...empty,
     records,
+    cutValues,
     rowLevels,
     colLevels,
     counts,

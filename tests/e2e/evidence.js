@@ -68,3 +68,18 @@ export async function captureEvidence(target, requirementId, slug, { module } = 
     await target.screenshot({ path: `test-results/evidence-preview/${owner}/${name}` });
   }
 }
+
+/**
+ * The time every chart is drawn at in a test that fixes the clock: the chart's
+ * own footnote names the date drawn (#66), so a screenshot or an expected
+ * sentence holds on any day, and across midnight.
+ */
+export const FIXED_DATE = new Date('2026-10-04T12:00:00Z');
+
+/**
+ * Fixes the page's clock at FIXED_DATE: Date.now() and new Date() read it, and
+ * timers still run. Chart.js's animations read Date.now(), so a chart that
+ * animates never finishes under it: a spec whose charts all draw without
+ * animation may fix the clock.
+ */
+export const fixClock = (page) => page.clock.setFixedTime(FIXED_DATE);

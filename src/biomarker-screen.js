@@ -814,7 +814,8 @@ class BiomarkerScreen {
     page.items.forEach((row) => list.append(this.rowOf(row, range)));
     wrap.append(list);
 
-    const tools = kit.createElement('div', 'bv-screen-tools');
+    // A control: left out of the chart's picture (#70 review).
+    const tools = kit.createElement('div', 'bv-screen-tools bv-no-picture');
     const download = kit.createElement('button', null, 'Download: CSV');
     download.type = 'button';
     download.onclick = () => this.download(sorted);

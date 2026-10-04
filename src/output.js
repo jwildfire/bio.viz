@@ -7,6 +7,7 @@ export {
   TITLE_DEFAULTS,
   automaticFootnote,
   countsText,
+  fillParts,
   fillText,
   placeholdersIn
 } from './shared/titles.js';

@@ -44,7 +44,7 @@ describe('getting results out: the downloads', () => {
     expect(csvField(null)).toBe('');
     expect(csvField(undefined)).toBe('');
     expect(csvField(0.1 + 0.2)).toBe('0.30000000000000004');
-    expect(csvField(Number.NaN)).toBe('');
+    expect(csvField(Number.NaN)).toBe('NaN');
     expect(csvField(true)).toBe('TRUE');
     const columns = [
       { value_col: 'id', label: 'Participant' },
@@ -94,19 +94,19 @@ describe('getting results out: the downloads', () => {
     ];
     const { columns, rows } = statisticsTable(asked);
     const keys = columns.map((column) => column.value_col);
-    expect(keys.slice(0, 3)).toEqual(['asked', 'function', 'data.chart']);
+    expect(keys.slice(0, 3)).toEqual(['asked', 'function', 'data/chart']);
     expect(columns.every((column) => column.label === column.value_col)).toBe(true);
     const result = rows.find((row) => row.part === 'result');
     expect(result).toMatchObject({
       asked: 1,
       function: welch.name,
-      'data.measure': 'IL-6',
-      'data.visit': 'Week 4',
-      'data.groups': 'Placebo; Treatment',
+      'data/measure': 'IL-6',
+      'data/visit': 'Week 4',
+      'data/groups': 'Placebo | Treatment',
       method: welch.value.method,
       p_value: welch.value.p_value,
-      'counts.Placebo': welch.value.counts.Placebo,
-      'counts.Treatment': welch.value.counts.Treatment
+      'counts/Placebo': welch.value.counts.Placebo,
+      'counts/Treatment': welch.value.counts.Treatment
     });
     for (const [list, parts] of Object.entries(welch.value)) {
       if (!Array.isArray(parts) || !parts.some((part) => part && typeof part === 'object'))
@@ -210,5 +210,75 @@ describe('getting results out: the downloads', () => {
         );
       }
     }
+  });
+});
+
+describe('getting results out: what the #70 review found', () => {
+  it('EXP-CSV-003: every member R returned is a column, however nested: a list of objects or of lists in the data asked about is flattened by position (a list of values alone is one field), nested names are joined by a slash, and an R member that would take an identifying column’s name, or two names that would meet, is refused, not overwritten (#70 review)', () => {
+    const matrix = fixture('matrix-statistics-r.json').results.find(
+      (entry) => entry.case === 'biomarkers-baseline'
+    );
+    const { columns, rows } = statisticsTable([
+      { name: matrix.name, dataId: matrix.dataId, answer: { status: 'ok', value: matrix.value } }
+    ]);
+    const keys = columns.map((column) => column.value_col);
+    // The variables the grid's v1 … v12 stand for are in the file.
+    expect(Array.isArray(matrix.dataId.variables)).toBe(true);
+    matrix.dataId.variables.forEach((variable, i) => {
+      for (const [member, value] of Object.entries(variable)) {
+        if (value !== null && typeof value !== 'object') {
+          expect(rows[0][`data/variables/${i + 1}/${member}`], `${i} ${member}`).toBe(value);
+        }
+      }
+    });
+    expect(keys).toContain('counts/v1');
+    expect(rows.filter((row) => row.part === 'rows')).toHaveLength(matrix.value.rows.length);
+    // A list of lists, and a mixed list, keep every value.
+    const mixed = statisticsTable([
+      {
+        name: 'f',
+        dataId: { grid: [[1, 2], [3]], mixed: ['a', { b: 1 }] },
+        answer: { status: 'ok', value: { method: 'm', 'p.value': 0.5, p: { value: 0.25 } } }
+      }
+    ]).rows[0];
+    expect(mixed).toMatchObject({
+      'data/grid/1': '1 | 2',
+      'data/grid/2': '3',
+      'data/mixed/1': 'a',
+      'data/mixed/2/b': 1,
+      'p.value': 0.5,
+      'p/value': 0.25
+    });
+    for (const member of ['asked', 'function', 'part', 'item']) {
+      expect(() =>
+        statisticsTable([
+          { name: 'f', dataId: 'x', answer: { status: 'ok', value: { [member]: 1 } } }
+        ])
+      ).toThrow(
+        `bio.viz: R’s answer has a member \`${member}\`, which the statistics file names itself`
+      );
+    }
+    expect(() =>
+      statisticsTable([
+        { name: 'f', dataId: 'x', answer: { status: 'ok', value: { 'a/b': 1, a: { b: 2 } } } }
+      ])
+    ).toThrow('bio.viz: R’s answer has two members written `a/b`');
+  });
+
+  it('EXP-CSV-004: R’s NaN, Inf and -Inf are written as R writes them, apart from a value missing; a list of values is joined by “ | ”, which R’s notes do not use (#70 review)', () => {
+    expect([Number.NaN, Infinity, -Infinity, null].map(csvField)).toEqual([
+      'NaN',
+      'Inf',
+      '-Inf',
+      ''
+    ]);
+    const { rows } = statisticsTable([
+      {
+        name: 'f',
+        dataId: 'x',
+        answer: { status: 'ok', value: { notes: ['one; two', 'three'], warnings: [] } }
+      }
+    ]);
+    expect(rows[0].notes).toBe('one; two | three');
   });
 });

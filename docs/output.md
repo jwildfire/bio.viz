@@ -27,7 +27,7 @@ Under it, the two footnotes and the chart's own:
 
 > Synthetic study from gsm.bio.
 > Filters: none.
-> Drawn on 2026-10-04 by bio.viz 0.1.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
+> Drawn on 2026-10-04 by bio.viz 0.1.0 with development changes. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
 
 ## The settings
 
@@ -48,7 +48,8 @@ A placeholder is a name in braces: `{measure}`. When the chart draws, each one i
 - A placeholder is replaced by text, once, from left to right. Nothing in a template or in a value is evaluated: there are no expressions, no functions and no templates that run, and a value is never read for placeholders of its own. `${…}`, `<script>` and `{{…}}` are shown as they are written.
 - A name the chart does not have is left as written, braces and all, so a slip in a setting shows on the page instead of disappearing.
 - A value that is null is written as nothing; a number as it reads.
-- What comes out is written on the page as text, never as markup.
+- What comes out is written on the page as text, never as markup; each value is set apart in a `<bdi>`, so a value written right to left keeps its direction to itself.
+- A title or a subtitle of only white space is none.
 
 Every chart fills these three:
 
@@ -56,7 +57,7 @@ Every chart fills these three:
 | ----------- | ----------------------------------------------------------------------- |
 | `{filters}` | The filters in force, in words (`Sex is F; Arm is Placebo`), or `none`. |
 | `{date}`    | The date drawn, in UTC, as ISO 8601: `2026-10-04`.                      |
-| `{version}` | The bio.viz version.                                                    |
+| `{version}` | The bio.viz version, as the chart's own footnote says it.               |
 
 Each chart adds its own, listed in its reference under Titles and footnotes: [group comparison](group-comparison.md#titles-and-footnotes), [association scatter](association-scatter.md#titles-and-footnotes), [correlation matrix](correlation-matrix.md#titles-and-footnotes), [biomarker screen](biomarker-screen.md#titles-and-footnotes), [cross-tabulation](cross-tab.md#titles-and-footnotes) and [stratified survival](stratified-survival.md#titles-and-footnotes). Every chart has `{n}`, the participants it draws.
 
@@ -68,9 +69,9 @@ The title and the subtitle are drawn at the top of the chart's own frame, above 
 
 The last footnote is the chart's, and it says three things:
 
-1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.1.0.`
-2. For every statistic printed, R's method and the counts R used, as R returned them: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
-3. Which R computed them: `computed by R in this browser`, or, for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0, stored with the page` when the connection was told the versions (`computedBy`, below), and `stored with the page` when it was not.
+1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.1.0.` A build with changes made since that release says so, `bio.viz 0.1.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true on the integration branch while the release log has an upcoming section, and set false when a release is prepared; a unit test fails when the two disagree, and when a tagged build says it holds development changes.
+2. For every statistic printed, every method R used, the counts R used, as R returned them, and every adjustment of its p-values (`p-values adjusted by Holm`, `by Benjamini-Hochberg`); with a pairwise test, the overall test first, `Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction (…), p-values adjusted by Holm`. Its form: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
+3. Which R computed them, as the connection says: `computed by R in this browser` for R started in the page; for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page` when the connection was told the versions and the date (`computedBy`, below), and `stored with the page` when it was not; for any other form, `computed by R`.
 
 While an answer is on its way it says `Statistics: waiting for R.`, and it is written again when the answer arrives. A chart that asked R nothing says `No statistic was asked of R.`; one whose answer did not come says that statistics are unavailable, or that R reported an error, as the statistics line under the chart says in full.
 
@@ -102,21 +103,30 @@ The bar has three buttons. Each saves a file named for the chart and the view, t
 
 ### The PNG
 
-The chart's frame as the page draws it, from the title to the chart's own footnote: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes. The controls, the hint under the chart, the listing and the bar of downloads are left out. It is drawn at `png_scale` image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its `pHYs` chunk gives the pixels per metre. Its text chunks (`iTXt`, UTF-8) give its `Title` (the title and subtitle), its `Description` (the footnotes, the chart's own last) and its `Software` (the bio.viz version), so the file still says what it is when it is separated from the page.
+The chart's frame as the page draws it, from the title to the chart's own footnote: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes. What a reader works the chart with is left out: every element marked `bv-no-picture`, which the toolbar, the hint under the chart, the listing, the bar of downloads, a chart's own download buttons and the overview's pager buttons are. A chart's marks (the matrix's discs and key, the screen's zero line, intervals and dots, the bars and curves) are drawn at the size the page draws them, and text finds its own height. What scrolls sideways on the page, such as the survival chart's at-risk table on a phone, is drawn whole, and the picture is as wide as it needs to be.
+
+It is drawn at `png_scale` image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its `pHYs` chunk gives the pixels per metre. Each Chart.js canvas is drawn again at that resolution for the picture, so the plotted marks are as sharp as the text. Its text chunks (`iTXt`, UTF-8) give its `Title` (the title and subtitle), its `Description` (the footnotes, one a line, the chart's own last) and its `Software` (the bio.viz version, as the footnote says it), so the file still says what it is when it is separated from the page.
+
+When the picture cannot be made, the bar says so in a line of its own, where the reader sees it: a browser will not write a canvas larger than it allows (Safari about 16.7 million pixels, which a tall screen at `png_scale` 4 can pass), will not read one it has been given a picture from elsewhere, or cannot read the drawing. Another download, or a smaller `png_scale`, can follow.
 
 The picture is the page's drawing, not a drawing for print: anything bound for a document should come from gsm.bio's static twin of the chart, which draws a vector figure from the same settings.
 
 ### The statistics
 
-The statistics R returned for the view drawn, as shown, as one table. For each answer there is a row for R's result (its `part` is `result`) and a row for each of its parts: each estimate (`estimates`), each row of a screen or a grid (`rows`), and so on, numbered by `item`. Every member R returned is a column, a nested one as `outer.inner` (`counts.Placebo`) and a list of values as one field joined by `; `. Each row also names the answer it came from (`asked`), the R function (`function`) and the data it was asked about (`data.…`, the identity a stored result is found by). Every number is R's, written as the shortest text that reads back as the same number. Until R has answered there is nothing to download, and the button waits; a view that asks R nothing, such as the group comparison's overview, offers none.
+The statistics R returned for the view drawn, as shown, as one table. For each answer there is a row for R's result (its `part` is `result`) and a row for each of its parts: each estimate (`estimates`), each row of a screen or a grid (`rows`), and so on, numbered by `item`. Every member R returned is a column, by its path: a nested member's names joined by a slash (`counts/Placebo`, so R's own dotted names, `p.value`, stay as they are), a list's entries by their place (`data/variables/1/measure`, the variable the grid's `v1` stands for), and a list of values alone as one field, joined by `|` (R's notes may hold a `;`). Each row also names the answer it came from (`asked`), the R function (`function`) and the data it was asked about (`data/…`, the identity a stored result is found by). A member of R's answer that would take one of those names, or two members written alike, is refused, not overwritten. Every number is R's, written as the shortest text that reads back in JavaScript as exactly the same number; R's own reader reads about one in fourteen such numbers one unit in the last place away. NaN, Inf and -Inf are written as R writes them, and a value missing as an empty field. Until R has answered there is nothing to download, and the button waits, saying so; a view whose statistics are unavailable says that instead; a view that asks R nothing, such as the group comparison's overview, offers none.
 
 ### The table
 
-The table the chart drew from, one row per participant drawn, with the headings the chart's listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value; and so on, as each chart's reference says. A number is written as it was drawn, unrounded.
+The table the chart drew from, one row per participant drawn, with the headings the chart's listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value; and so on, as each chart's reference says. A group or a category that is a cut biomarker has the value it was cut from beside it (`CRP at Baseline`), so the cut can be made again from the file. A number is written as it was drawn, unrounded.
 
 ### CSV
 
 Every CSV file, the listing's export among them, is written by RFC 4180: records end in CRLF, and a field or a heading that holds a comma, a double quote, a carriage return or a line feed is written between double quotes with each double quote doubled. A heading that holds a comma is one heading ([bio.viz#39](https://github.com/jwildfire/bio.viz/issues/39)). An empty field is a value the participant does not have; `TRUE` and `FALSE` are written as R reads them.
+
+Values are written as they are, so a file reads back into R exactly. Two things follow for a spreadsheet:
+
+- Excel and other spreadsheets run a field that begins with `=`, `+`, `-` or `@` as a formula. A value from a table, a label or a note can begin that way; open a downloaded file with its columns imported as text, or in a reader that does not run formulas, when its contents are not your own.
+- The files are UTF-8 with no byte-order mark. Excel on Windows reads a CSV opened by a double click in the system's own code page, so `≤`, `–` and other characters come out wrong; use Data → From Text/CSV and choose UTF-8.
 
 ## Specifications
 
@@ -196,6 +206,10 @@ BioViz.output.fillText('${1 + 1} {unknown}', {});
 // '${1 + 1} {unknown}'
 ```
 
+## `fillParts(template, values)`
+
+The template filled, as its runs of text: `[{ text, value }]`, each placeholder's value a run of its own (`value: true`), so a page can set values apart, as the charts do with `<bdi>`, without reading anything as markup.
+
 ## `placeholdersIn(template)`
 
 The names of the placeholders a template holds, each once, in the order written.
@@ -213,7 +227,7 @@ The footnote a chart writes last.
 
 ## `countsText(counts, of)`
 
-R's counts as the footnote writes them: a number as `n = 200`; an object of up to four groups as `Placebo n = 95, Treatment n = 91`; more as `n = 179 to 186 across 12 biomarkers`, with `of` naming what they are of. Null when R returned none.
+R's counts as the footnote writes them: a number as `n = 200`; an object of up to four groups as `Placebo n = 95, Treatment n = 91`; five or more as `n = 179 to 186 across 12 biomarkers`, with `of` naming what they are of. A count written as text that reads as a number is read as that number. Null when R returned none.
 
 ## `toCsv(rows, columns)`
 

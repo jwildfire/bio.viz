@@ -9,7 +9,7 @@
 // slots; a chart's own file decides what is drawn and what R is asked.
 
 import { checkOutcomes } from './outcomes.js';
-import { VERSION, automaticFootnote, dateDrawn, fillText } from './titles.js';
+import { VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
 import { statisticsTable, toCsv } from './csv.js';
 import { drawFrame } from './png.js';
 import { writeSpecification } from './specification.js';
@@ -108,7 +108,8 @@ ${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .
 ${root} .bv-downloads[hidden]{display:none}
 ${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
-${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -137,6 +138,10 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
   chart.statLine = kit.createElement('div', 'bv-statistic');
   chart.statLine.setAttribute('role', 'status');
   chart.footnote.after(chart.statLine);
+  // What a reader works the chart with, rather than what it shows, is left out
+  // of its picture (#70 review): the hint under it and the listing.
+  chart.footnote.classList.add('bv-no-picture');
+  chart.listingWrap.classList.add('bv-no-picture');
   // The title and subtitle above everything the chart draws, and its
   // footnotes under it, before the listing (#66).
   chart.titleBlock = kit.createElement('div', 'bv-titles');
@@ -368,7 +373,7 @@ export function sharedPlaceholders(chart) {
     chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
   return {
     date: dateDrawn(),
-    version: VERSION,
+    version: VERSION_SAID,
     filters: filters.length
       ? filters.map(({ label, values }) => `${label} is ${values.join(' or ')}`).join('; ')
       : 'none'
@@ -385,7 +390,10 @@ export function placeholderValues(chart) {
   let own = {};
   try {
     own = typeof chart.placeholders === 'function' ? chart.placeholders() || {} : {};
-  } catch {
+  } catch (error) {
+    // The title is still drawn, its own placeholders left as written; the
+    // error is the chart's, and is said where a developer will see it.
+    console.error('bio.viz: the chart’s placeholders could not be read.', error);
     own = {};
   }
   return { ...sharedPlaceholders(chart), ...own };
@@ -398,22 +406,52 @@ export function placeholderValues(chart) {
  * @returns {{title: ?string, subtitle: ?string, footnotes: string[]}}
  */
 export function titlesOf(chart) {
+  const parts = partsOf(chart);
+  const joined = (runs) => (runs === null ? null : runs.map((run) => run.text).join(''));
+  return {
+    title: joined(parts.title),
+    subtitle: joined(parts.subtitle),
+    footnotes: parts.footnotes.map(joined)
+  };
+}
+
+// The title, subtitle and footnotes as runs of text, each placeholder's value a
+// run of its own. A title or subtitle of only white space is none.
+function partsOf(chart) {
   const { settings } = chart;
   const values = placeholderValues(chart);
-  const filled = (template) => (template === null ? null : fillText(template, values));
+  const filled = (template) =>
+    typeof template !== 'string' || template.trim() === '' ? null : fillParts(template, values);
   return {
     title: filled(settings.title),
     subtitle: filled(settings.subtitle),
     footnotes: [
-      ...(settings.footnotes || []).map(filled),
-      automaticFootnote({
-        date: values.date,
-        version: VERSION,
-        asked: chart.asked || [],
-        of: chart.footnoteCounts
-      })
+      ...(settings.footnotes || []).map(filled).filter(Boolean),
+      [
+        {
+          text: automaticFootnote({
+            date: values.date,
+            version: VERSION_SAID,
+            asked: chart.asked || [],
+            of: chart.footnoteCounts
+          }),
+          value: false
+        }
+      ]
     ]
   };
+}
+
+// Text into an element as text: each placeholder's value in a <bdi>, so a value
+// written right to left keeps to itself.
+function writeRuns(kit, element, runs) {
+  for (const run of runs) {
+    if (run.value) {
+      const isolated = document.createElement('bdi');
+      isolated.textContent = run.text;
+      element.append(isolated);
+    } else element.append(document.createTextNode(run.text));
+  }
 }
 
 /**
@@ -424,24 +462,24 @@ export function titlesOf(chart) {
 export function writeTitles(chart) {
   if (!chart.titleBlock || !chart.footBlock) return;
   const { kit } = chart;
-  const said = titlesOf(chart);
+  const said = partsOf(chart);
   chart.titleBlock.innerHTML = '';
-  if (said.title !== null && said.title !== '') {
+  if (said.title !== null) {
     const title = kit.createElement('div', 'bv-title');
     title.setAttribute('role', 'heading');
     title.setAttribute('aria-level', '2');
-    title.textContent = said.title;
+    writeRuns(kit, title, said.title);
     chart.titleBlock.append(title);
   }
-  if (said.subtitle !== null && said.subtitle !== '') {
+  if (said.subtitle !== null) {
     const subtitle = kit.createElement('p', 'bv-subtitle');
-    subtitle.textContent = said.subtitle;
+    writeRuns(kit, subtitle, said.subtitle);
     chart.titleBlock.append(subtitle);
   }
   chart.footBlock.innerHTML = '';
-  said.footnotes.forEach((text, index) => {
+  said.footnotes.forEach((runs, index) => {
     const line = kit.createElement('p', 'bv-foot-line');
-    line.textContent = text;
+    writeRuns(kit, line, runs);
     if (index === said.footnotes.length - 1) line.dataset.automatic = 'true';
     chart.footBlock.append(line);
   });
@@ -465,7 +503,8 @@ const slug = (text) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
+    // At most 60 characters, cut where a word ends.
+    .replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => (whole.length <= 60 ? whole : kept))
     .replace(/-+$/g, '');
 
 /**
@@ -506,19 +545,34 @@ export async function downloadFile(chart, kind) {
   }
   if (kind === 'png') {
     const said = titlesOf(chart);
-    const leaving = [chart.toolbar, chart.footnote, chart.listingWrap, chart.downloadBar].filter(
-      Boolean
+    const scale = chart.settings.png_scale;
+    // Each Chart.js chart drawn again at the picture's resolution, so its
+    // canvas is as sharp as the rest, and back as it was afterwards.
+    const charts = (chart.charts || []).filter(
+      (made) => made && made.options && typeof made.resize === 'function'
     );
-    const { blob } = await drawFrame(chart.main, {
-      scale: chart.settings.png_scale,
-      leaveOut: (element) => leaving.includes(element),
-      text: {
-        Title: [said.title, said.subtitle].filter(Boolean).join(' — '),
-        Description: said.footnotes.join(' '),
-        Software: `bio.viz ${VERSION}`
-      }
-    });
-    return { name, blob };
+    const ratios = charts.map((made) => made.options.devicePixelRatio);
+    const sharpen = (ratio) =>
+      charts.forEach((made, i) => {
+        made.options.devicePixelRatio = ratio === null ? ratios[i] : ratio;
+        made.resize();
+      });
+    sharpen(Math.max(scale, globalThis.devicePixelRatio || 1));
+    try {
+      const { blob } = await drawFrame(chart.main, {
+        scale,
+        // What a reader works the chart with is marked to be left out.
+        leaveOut: (element) => element.classList.contains('bv-no-picture'),
+        text: {
+          Title: [said.title, said.subtitle].filter(Boolean).join(' — '),
+          Description: said.footnotes.join('\n'),
+          Software: `bio.viz ${VERSION_SAID}`
+        }
+      });
+      return { name, blob };
+    } finally {
+      sharpen(null);
+    }
   }
   throw new TypeError(
     `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
@@ -528,7 +582,7 @@ export async function downloadFile(chart, kind) {
 // The bar under the footnotes: a button for each download.
 function mountDownloads(chart) {
   const { kit } = chart;
-  chart.downloadBar = kit.createElement('div', 'bv-downloads');
+  chart.downloadBar = kit.createElement('div', 'bv-downloads bv-no-picture');
   chart.downloadBar.append(kit.createElement('span', 'bv-downloads-label', 'Download:'));
   chart.downloadButtons = {};
   for (const [kind, label] of Object.entries(DOWNLOAD_LABELS)) {
@@ -537,10 +591,16 @@ function mountDownloads(chart) {
     button.dataset.download = kind;
     button.onclick = async () => {
       button.disabled = true;
+      sayFailure(chart, null);
       try {
         const { name, blob } = await downloadFile(chart, kind);
         saveFile(blob, name);
       } catch (error) {
+        // Said where the reader sees it, and where a developer does.
+        sayFailure(
+          chart,
+          `The ${kind === 'png' ? 'PNG' : `${kind} file`} could not be made: ${String((error && error.message) || error).replace(/^bio\.viz: /, '')}`
+        );
         console.error(error);
       } finally {
         syncDownloads(chart);
@@ -557,6 +617,16 @@ function mountDownloads(chart) {
   chart.fileOf = (kind) => downloadFile(chart, kind);
 }
 
+// A download that failed, said in the bar; null takes the sentence away.
+function sayFailure(chart, said) {
+  const old = chart.downloadBar.querySelector('.bv-download-error');
+  if (old) old.remove();
+  if (!said) return;
+  const line = chart.kit.createElement('p', 'bv-download-error', said);
+  line.setAttribute('role', 'alert');
+  chart.downloadBar.append(line);
+}
+
 // Which downloads there is something to download for.
 function syncDownloads(chart) {
   if (!chart.downloadBar) return;
@@ -570,7 +640,14 @@ function syncDownloads(chart) {
   const { png, statistics } = chart.downloadButtons;
   if (!(chart.asked || []).length) statistics.remove();
   else if (!statistics.isConnected) png.after(statistics);
+  const waiting = (chart.asked || []).some((entry) => !entry.answer);
   statistics.disabled = !answered;
+  statistics.title = answered
+    ? ''
+    : waiting
+      ? 'Waiting for R’s answer.'
+      : 'R returned no statistics for this view.';
+  if (!statistics.title) statistics.removeAttribute('title');
   chart.downloadButtons.table.disabled = !table.rows.length;
   chart.downloadButtons.png.disabled = false;
 }
@@ -888,7 +965,8 @@ export function renderPager(kit, page, count, go) {
   pager.append(kit.createElement('span', 'bv-overview-count', count));
   if (page.pages === 1) return pager;
   const button = (label, to, name) => {
-    const made = kit.createElement('button', null, label);
+    // A control: left out of the chart's picture (#70 review).
+    const made = kit.createElement('button', 'bv-no-picture', label);
     made.type = 'button';
     made.dataset.go = name;
     made.disabled = to < 0 || to >= page.pages;
@@ -916,7 +994,7 @@ export function renderPager(kit, page, count, go) {
 export function mountToolbar(chart) {
   const { kit, settings } = chart;
   if (!chart.toolbar) {
-    chart.toolbar = kit.createElement('div', 'bv-toolbar');
+    chart.toolbar = kit.createElement('div', 'bv-toolbar bv-no-picture');
     chart.notes.before(chart.toolbar);
   }
   chart.toolbar.innerHTML = '';

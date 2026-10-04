@@ -127,26 +127,26 @@ Every setting, with its default. The column settings and the baseline settings a
 
 The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
 
-| Placeholder | What it holds                                                           |
-| ----------- | ----------------------------------------------------------------------- |
-| `{measure}` | The biomarker drawn, or `every biomarker` in the overview.              |
-| `{visits}`  | The visits drawn, separated by commas.                                  |
-| `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on. |
-| `{group}`   | What the groups are, as the Group control names it; empty for none.     |
-| `{n}`       | How many participants are drawn.                                        |
-| `{filters}` | The filters in force, in words, or `none`.                              |
-| `{date}`    | The date drawn, in UTC: `2026-10-04`.                                   |
-| `{version}` | The bio.viz version.                                                    |
+| Placeholder | What it holds                                                                          |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `{measure}` | The biomarker drawn, or `every biomarker` in the overview.                             |
+| `{visits}`  | The visits drawn, separated by commas.                                                 |
+| `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on.                |
+| `{group}`   | What the groups are, as the Group control names it; empty for none.                    |
+| `{n}`       | How many participants are drawn: in the overview, on its page of biomarkers, anywhere. |
+| `{filters}` | The filters in force, in words, or `none`.                                             |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.                                                  |
+| `{version}` | The bio.viz version.                                                                   |
 
 ## Downloads
 
 Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-group-comparison-….png`:
 
-| Download         | What it holds                                                                                                                                                                                                                                                                                                                                      |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. The controls, the listing and the bar are left out. |
-| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every number as R returned it. Offered once R has answered.                                                                                                                                                                        |
-| Table (CSV)      | The table the chart drew from: one row per participant per visit drawn: the participant, the visit, the group, the colour and the panel where there are any, and the value drawn.                                                                                                                                                                  |
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its title, its footnotes and its resolution in its own text and size chunks. What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.                                                                                                                                                                                                                        |
+| Table (CSV)      | The table the chart drew from: one row per participant per visit drawn: the participant, the visit, the group, the colour and the panel where there are any, and the value drawn.                                                                                                                                                                                                                                                       |
 
 A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
 

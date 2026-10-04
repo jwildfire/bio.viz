@@ -969,7 +969,8 @@ class CorrelationMatrix {
         `Every pair, with its count: ${rows.length}, in the order R returned them`
       )
     );
-    const tools = kit.createElement('div', 'bv-pairs-tools');
+    // A control: left out of the chart's picture (#70 review).
+    const tools = kit.createElement('div', 'bv-pairs-tools bv-no-picture');
     const download = kit.createElement('button', null, 'Download: CSV');
     download.type = 'button';
     download.onclick = () =>
