@@ -438,9 +438,9 @@ var BioViz = (() => {
     BY: "Benjamini-Yekutieli"
   };
   function adjustmentName(adjustment) {
-    const named3 = text(adjustment);
-    if (!named3 || named3.toLowerCase() === "none") return null;
-    return Object.hasOwn(ADJUSTMENTS, named3) ? ADJUSTMENTS[named3] : named3;
+    const named2 = text(adjustment);
+    if (!named2 || named2.toLowerCase() === "none") return null;
+    return Object.hasOwn(ADJUSTMENTS, named2) ? ADJUSTMENTS[named2] : named2;
   }
   var formatLabel = (adjustment) => adjustment ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
   var ENDS_A_SENTENCE = /[.!?]$/;
@@ -532,8 +532,8 @@ var BioViz = (() => {
     const row = comparison && typeof comparison === "object" ? comparison : {};
     const groups = [text(row.group_1), text(row.group_2)];
     const n = [row.n_1, row.n_2];
-    const named3 = groups.every(Boolean);
-    const counted = named3 && n.every(isCount);
+    const named2 = groups.every(Boolean);
+    const counted = named2 && n.every(isCount);
     const parts = read({
       status: row.status,
       method: row.method,
@@ -542,12 +542,12 @@ var BioViz = (() => {
       reason: row.reason,
       counts: counted ? { [groups[0]]: n[0], [groups[1]]: n[1] } : void 0
     });
-    const pair = { groups: named3 ? groups : null, n: counted ? n : null };
-    const shown2 = named3 && parts.status === "shown";
-    const result = named3 ? parts.text : refused("the comparison does not name its two groups").text;
+    const pair = { groups: named2 ? groups : null, n: counted ? n : null };
+    const shown2 = named2 && parts.status === "shown";
+    const result = named2 ? parts.text : refused("the comparison does not name its two groups").text;
     return {
-      status: named3 ? parts.status : "refused",
-      text: named3 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
+      status: named2 ? parts.status : "refused",
+      text: named2 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
       result,
       ...pair,
       method: shown2 ? parts.method : null,
@@ -677,8 +677,8 @@ var BioViz = (() => {
   function formatScreenRow(row, groups = null) {
     const given2 = row && typeof row === "object" ? row : {};
     const biomarker = text(given2.biomarker);
-    const named3 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
-    const twoCounts = named3 && isCount(given2.n_1) && isCount(given2.n_2);
+    const named2 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
+    const twoCounts = named2 && isCount(given2.n_1) && isCount(given2.n_2);
     const counts = twoCounts ? { [groups[0]]: given2.n_1, [groups[1]]: given2.n_2 } : isCount(given2.counts) ? given2.counts : void 0;
     const n = formatCounts(counts);
     const none = {
@@ -1181,7 +1181,7 @@ var BioViz = (() => {
       refuse3("frame() takes the variables as an object, each under the name of its field.");
     }
     const idCol = config.id_col;
-    const named3 = Object.entries(variables).map(([name, spec]) => {
+    const named2 = Object.entries(variables).map(([name, spec]) => {
       if (name.trim() === "" || name !== name.trim()) {
         refuse3("a variable needs a name with no space at either end: it is the name of its field.");
       }
@@ -1191,10 +1191,10 @@ var BioViz = (() => {
       return { name, variable: variable(spec) };
     });
     const required = new Set(
-      config.required === null ? named3.map(({ name }) => name) : config.required
+      config.required === null ? named2.map(({ name }) => name) : config.required
     );
     for (const name of required) {
-      if (!named3.some((entry) => entry.name === name)) {
+      if (!named2.some((entry) => entry.name === name)) {
         refuse3(`\`required\` names \`${name}\`, which is not one of the variables.`);
       }
     }
@@ -1204,7 +1204,7 @@ var BioViz = (() => {
       unusedCounts.set(key, (unusedCounts.get(key) || 0) + n);
     };
     needColumn(results, idCol, "id_col", "results");
-    const measures = named3.filter(({ variable: variable2 }) => variable2.kind === "measure");
+    const measures = named2.filter(({ variable: variable2 }) => variable2.kind === "measure");
     const needsBaseline = measures.some(({ variable: variable2 }) => variable2.value !== "raw");
     if (measures.length) {
       needColumn(results, config.measure_col, "measure_col", "results");
@@ -1216,7 +1216,7 @@ var BioViz = (() => {
       needColumn(participantTable, participantIdCol, "participant_id_col", "participant");
     }
     const columnSource = /* @__PURE__ */ new Map();
-    for (const { variable: variable2 } of named3) {
+    for (const { variable: variable2 } of named2) {
       if (variable2.kind !== "column") continue;
       if (participantTable && hasColumn(participantTable, variable2.col)) {
         columnSource.set(variable2.col, "participants");
@@ -1336,7 +1336,7 @@ var BioViz = (() => {
       const source = participantRow.get(id) || (resultRows.get(id) || [])[0];
       const record = { [idCol]: source[participantRow.has(id) ? participantIdCol : idCol] };
       let leftOut = null;
-      for (const { name, variable: variable2 } of named3) {
+      for (const { name, variable: variable2 } of named2) {
         const found = variable2.kind === "measure" ? measureValue(id, variable2) : columnValue(id, variable2);
         if ("value" in found) {
           record[name] = found.value;
@@ -1359,7 +1359,7 @@ var BioViz = (() => {
     if (notInTable) {
       dropped.push({ reason: DROPPED.NOT_IN_PARTICIPANT_TABLE, variable: null, n: notInTable });
     }
-    for (const { name } of named3) {
+    for (const { name } of named2) {
       for (const reason of reasons) {
         const n = droppedCounts.get(`${name}\0${reason}`);
         if (n) dropped.push({ reason, variable: name, n });
@@ -1375,7 +1375,7 @@ var BioViz = (() => {
     return {
       data,
       id_col: idCol,
-      variables: Object.fromEntries(named3.map(({ name, variable: variable2 }) => [name, variable2])),
+      variables: Object.fromEntries(named2.map(({ name, variable: variable2 }) => [name, variable2])),
       participants: ids.length + notInTable,
       dropped,
       unused: unusedList,
@@ -1389,6 +1389,7 @@ var BioViz = (() => {
     TITLE_DEFAULTS: () => TITLE_DEFAULTS,
     automaticFootnote: () => automaticFootnote,
     countsText: () => countsText,
+    fillParts: () => fillParts,
     fillText: () => fillText,
     placeholdersIn: () => placeholdersIn
   });
@@ -1399,14 +1400,34 @@ var BioViz = (() => {
     throw new TypeError(`bio.viz: ${message}`);
   };
   var VERSION = true ? "0.1.0" : "unbuilt";
+  var DEVELOPMENT = true ? true : true;
+  var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
   var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
   var PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
   function fillText(template, values = {}) {
-    return String(template).replace(PLACEHOLDER, (written, name) => {
-      if (!Object.prototype.hasOwnProperty.call(values, name)) return written;
-      const value = values[name];
-      return value === null || value === void 0 ? "" : String(value);
-    });
+    return fillParts(template, values).map((part) => part.text).join("");
+  }
+  function fillParts(template, values = {}) {
+    const text2 = String(template);
+    const parts = [];
+    const push = (piece, value) => {
+      if (piece === "") return;
+      const last = parts[parts.length - 1];
+      if (!value && last && !last.value) last.text += piece;
+      else parts.push({ text: piece, value });
+    };
+    let at = 0;
+    for (const match of text2.matchAll(PLACEHOLDER)) {
+      push(text2.slice(at, match.index), false);
+      const [written, name] = match;
+      if (Object.prototype.hasOwnProperty.call(values, name)) {
+        const value = values[name];
+        push(value === null || value === void 0 ? "" : String(value), true);
+      } else push(written, false);
+      at = match.index + written.length;
+    }
+    push(text2.slice(at), false);
+    return parts;
   }
   var placeholdersIn = (template) => [
     ...new Set([...String(template).matchAll(PLACEHOLDER)].map((match) => match[1]))
@@ -1428,32 +1449,73 @@ var BioViz = (() => {
   var NOTHING_ASKED = "No statistic was asked of R.";
   var STILL_WAITING = "Statistics: waiting for R.";
   var dateDrawn = (when = /* @__PURE__ */ new Date()) => when.toISOString().slice(0, 10);
-  var named = (count) => Number.isFinite(count) ? String(count) : null;
+  var countOf = (count) => {
+    if (typeof count === "number") return Number.isFinite(count) ? count : null;
+    if (typeof count === "string" && /^\s*-?\d+(\.\d+)?\s*$/.test(count)) return Number(count);
+    return null;
+  };
   function countsText(counts, of = "groups") {
-    if (Number.isFinite(counts)) return `n = ${counts}`;
+    const one = countOf(counts);
+    if (one !== null) return `n = ${one}`;
     if (counts === null || typeof counts !== "object" || Array.isArray(counts)) return null;
-    const entries = Object.entries(counts).filter(([, count]) => named(count) !== null);
+    const entries = [];
+    for (const [group, count] of Object.entries(counts)) {
+      const read2 = countOf(count);
+      if (read2 !== null) entries.push([group, read2]);
+    }
     if (!entries.length) return null;
     if (entries.length <= 4)
       return entries.map(([group, count]) => `${group} n = ${count}`).join(", ");
-    const all = entries.map(([, count]) => count);
-    const [least, most] = [Math.min(...all), Math.max(...all)];
+    let least = Infinity;
+    let most = -Infinity;
+    for (const [, count] of entries) {
+      if (count < least) least = count;
+      if (count > most) most = count;
+    }
     return `${least === most ? `n = ${least}` : `n = ${least} to ${most}`} across ${entries.length} ${of}`;
   }
-  function sourceText(answer) {
-    if (answer.form !== "precomputed") return "computed by R in this browser";
-    const by = answer.computedBy;
-    if (by && isText3(by.r_version) && isText3(by.gsm_bio_version)) {
-      return `computed by R ${by.r_version} with gsm.bio ${by.gsm_bio_version}, stored with the page`;
+  var ADJUSTMENT_NAMES = Object.freeze({
+    BH: "Benjamini-Hochberg",
+    fdr: "Benjamini-Hochberg",
+    BY: "Benjamini-Yekutieli",
+    holm: "Holm",
+    hochberg: "Hochberg",
+    hommel: "Hommel",
+    bonferroni: "Bonferroni"
+  });
+  function methodsOf(value) {
+    const methods = [];
+    const adjustments = [];
+    const take = (entry) => {
+      if (!entry || typeof entry !== "object") return;
+      if (isText3(entry.method) && !methods.includes(entry.method)) methods.push(entry.method);
+      if (isText3(entry.adjustment) && entry.adjustment !== "none") {
+        const said = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
+        if (!adjustments.includes(said)) adjustments.push(said);
+      }
+    };
+    take(value);
+    for (const list of Object.values(value)) {
+      if (Array.isArray(list)) list.forEach(take);
     }
-    if (by && isText3(by.r_version)) return `computed by R ${by.r_version}, stored with the page`;
-    return "stored with the page";
+    return { methods, adjustments };
+  }
+  function sourceText(answer) {
+    if (answer.form === "browser") return "computed by R in this browser";
+    if (answer.form !== "precomputed") return "computed by R";
+    const by = answer.computedBy;
+    if (!by || !isText3(by.r_version)) return "stored with the page";
+    const gsmBio = isText3(by.gsm_bio_version) ? ` with gsm.bio ${by.gsm_bio_version}` : "";
+    const when = isText3(by.computed_at) && /^\d{4}-\d{2}-\d{2}/.test(by.computed_at) ? ` on ${by.computed_at.slice(0, 10)}` : "";
+    return `computed by R ${by.r_version}${gsmBio}${when}, stored with the page`;
   }
   function answerText(answer, of) {
     const value = answer.value && typeof answer.value === "object" ? answer.value : {};
-    const method = isText3(value.method) ? value.method : "no statistic";
+    const { methods, adjustments } = methodsOf(value);
+    const [first, ...rest] = methods;
+    const method = !first ? "no statistic" : rest.length ? `${first}, with ${rest.join(" and ")}` : first;
     const counts = countsText(value.counts, of);
-    return counts ? `${method} (${counts})` : method;
+    return (counts ? `${method} (${counts})` : method) + (adjustments.length ? `, p-values adjusted by ${adjustments.join(" and ")}` : "");
   }
   function automaticFootnote({ date, version: version2, asked = [], of }) {
     const drawn = `Drawn on ${date} by bio.viz ${version2}.`;
@@ -2103,7 +2165,7 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     const filters = chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
     return {
       date: dateDrawn(),
-      version: VERSION,
+      version: VERSION_SAID,
       filters: filters.length ? filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ") : "none"
     };
   }
@@ -2111,50 +2173,65 @@ ${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
     let own = {};
     try {
       own = typeof chart.placeholders === "function" ? chart.placeholders() || {} : {};
-    } catch {
+    } catch (error) {
+      console.error("bio.viz: the chart\u2019s placeholders could not be read.", error);
       own = {};
     }
     return { ...sharedPlaceholders(chart), ...own };
   }
-  function titlesOf(chart) {
+  function partsOf(chart) {
     const { settings } = chart;
     const values = placeholderValues(chart);
-    const filled = (template) => template === null ? null : fillText(template, values);
+    const filled = (template) => typeof template !== "string" || template.trim() === "" ? null : fillParts(template, values);
     return {
       title: filled(settings.title),
       subtitle: filled(settings.subtitle),
       footnotes: [
-        ...(settings.footnotes || []).map(filled),
-        automaticFootnote({
-          date: values.date,
-          version: VERSION,
-          asked: chart.asked || [],
-          of: chart.footnoteCounts
-        })
+        ...(settings.footnotes || []).map(filled).filter(Boolean),
+        [
+          {
+            text: automaticFootnote({
+              date: values.date,
+              version: VERSION_SAID,
+              asked: chart.asked || [],
+              of: chart.footnoteCounts
+            }),
+            value: false
+          }
+        ]
       ]
     };
+  }
+  function writeRuns(kit, element, runs) {
+    for (const run of runs) {
+      if (run.value) {
+        const isolated = document.createElement("bdi");
+        isolated.textContent = run.text;
+        element.append(isolated);
+      } else element.append(document.createTextNode(run.text));
+    }
   }
   function writeTitles(chart) {
     if (!chart.titleBlock || !chart.footBlock) return;
     const { kit } = chart;
-    const said = titlesOf(chart);
+    const said = partsOf(chart);
     chart.titleBlock.innerHTML = "";
-    if (said.title !== null && said.title !== "") {
+    if (said.title !== null) {
       const title = kit.createElement("div", "bv-title");
       title.setAttribute("role", "heading");
       title.setAttribute("aria-level", "2");
-      title.textContent = said.title;
+      writeRuns(kit, title, said.title);
       chart.titleBlock.append(title);
     }
-    if (said.subtitle !== null && said.subtitle !== "") {
+    if (said.subtitle !== null) {
       const subtitle = kit.createElement("p", "bv-subtitle");
-      subtitle.textContent = said.subtitle;
+      writeRuns(kit, subtitle, said.subtitle);
       chart.titleBlock.append(subtitle);
     }
     chart.footBlock.innerHTML = "";
-    said.footnotes.forEach((text2, index) => {
+    said.footnotes.forEach((runs, index) => {
       const line = kit.createElement("p", "bv-foot-line");
-      line.textContent = text2;
+      writeRuns(kit, line, runs);
       if (index === said.footnotes.length - 1) line.dataset.automatic = "true";
       chart.footBlock.append(line);
     });
@@ -2737,15 +2814,15 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     return `${lead}none is drawn.`;
   }
   function scopeText({ group, n, panel, color, filters = [] }) {
-    const named3 = group.includes(",") ? `${group},` : group;
+    const named2 = group.includes(",") ? `${group},` : group;
     const said = [
-      `This test compares the levels of ${named3} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+      `This test compares the levels of ${named2} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
     ];
     if (panel) {
       said.push("Each panel has a test of its own, and they are not adjusted for one another.");
     }
     if (color) {
-      said.push(`Colour by ${color} is not part of it: each level of ${named3} is tested whole.`);
+      said.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
     }
     if (filters.length) said.push(filtersSaid(filters));
     return said.join(" ");
@@ -3227,10 +3304,10 @@ ${toolbarStyles(".bv-group-comparison")}
       this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
         (spec) => this.kit.normalizeFilterSpec(spec)
       );
-      const named3 = this.settings.start_value;
-      if (results.length && named3 !== null && !this.measures.includes(named3)) {
+      const named2 = this.settings.start_value;
+      if (results.length && named2 !== null && !this.measures.includes(named2)) {
         console.warn(
-          `The initial biomarker [${named3}] does not exist. Defaulting to the all-biomarkers overview.`
+          `The initial biomarker [${named2}] does not exist. Defaulting to the all-biomarkers overview.`
         );
       }
     }
@@ -4087,9 +4164,10 @@ ${toolbarStyles(".bv-group-comparison")}
      * @returns {object}
      */
     placeholders() {
-      const { state, model } = this;
+      const { state, model, overview } = this;
+      const panels = model ? model.panels : overview ? overview.rows.flatMap((row) => row.model.panels) : [];
       const ids = /* @__PURE__ */ new Set();
-      for (const panel of model && model.panels || []) {
+      for (const panel of panels) {
         for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
       }
       return {
@@ -4097,7 +4175,7 @@ ${toolbarStyles(".bv-group-comparison")}
         visits: (state.visits || []).join(", "),
         value: VALUE_LABELS[state.valueType] || state.valueType,
         group: state.groupBy ? this.labelOf(state.groupBy) : "",
-        n: model ? ids.size : ""
+        n: model || overview ? ids.size : ""
       };
     }
     /**
@@ -4349,7 +4427,7 @@ ${toolbarStyles(".bv-group-comparison")}
   function openingAxes(settings, offered) {
     const { measures, visits: visits2, numbers } = offered;
     const missing = [];
-    const named3 = (key) => {
+    const named2 = (key) => {
       if (!settings[key]) return null;
       const axis = axisOf(settings[key]);
       if (axisOffered(axis, offered)) return axis;
@@ -4358,8 +4436,8 @@ ${toolbarStyles(".bv-group-comparison")}
     };
     const at = (measure, visit) => ({ kind: "measure", measure, value: "raw", visit });
     const first = measures.length && visits2.length ? at(measures[0], visits2[0]) : numbers.length ? { kind: "column", col: numbers[0].value_col } : null;
-    const x = named3("x") || first;
-    let y = named3("y");
+    const x = named2("x") || first;
+    let y = named2("y");
     if (!y && x) {
       if (measures.length > 1 && visits2.length) y = at(measures[1], visits2[0]);
       else if (measures.length && visits2.length > 1) y = at(measures[0], visits2[1]);
@@ -5040,14 +5118,14 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         const axis = state[key];
         if (!axis) return;
         const section = addSection(title);
-        const named3 = (text2) => `${title}: ${text2}`;
+        const named2 = (text2) => `${title}: ${text2}`;
         const variables = [
           ...this.measures.map((measure) => [`m:${measure}`, measure]),
           ...this.numbers.map((entry) => [`c:${entry.value_col}`, `${entry.label} (participant)`])
         ];
         select(
           `${key}-variable`,
-          named3("Variable"),
+          named2("Variable"),
           variables,
           axis.kind === "column" ? `c:${axis.col}` : `m:${axis.measure}`,
           (next) => {
@@ -5065,7 +5143,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         if (axis.kind === "measure") {
           select(
             `${key}-value`,
-            named3("Value"),
+            named2("Value"),
             VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
             axis.value,
             (next) => {
@@ -5078,7 +5156,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
           if (axis.value !== "baseline") {
             select(
               `${key}-visit`,
-              named3("Visit"),
+              named2("Visit"),
               this.visits.map((visit) => [visit, visit]),
               axis.visit,
               (next) => {
@@ -5091,7 +5169,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         }
         select(
           `${key}-scale`,
-          named3("Scale"),
+          named2("Scale"),
           SCALES.map((scale) => [scale, SCALE_LABELS[scale]]),
           state[`${key}Scale`],
           (next) => {
@@ -5944,7 +6022,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       notDrawn,
       message
     });
-    const named3 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
+    const named2 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
     if (state.mode === "visits") {
       const heading2 = `${state.measure}: ${VALUE_WORDS2[value].toLowerCase()}, visit against visit`;
       if (value === "baseline") {
@@ -5957,7 +6035,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       const chosen2 = state.visits ? offered.visits.filter((visit) => state.visits.includes(visit)) : offered.visits;
       const drawn = chosen2.filter((visit) => !flat(visit));
       return {
-        variables: named3(
+        variables: named2(
           drawn.slice(0, settings.limit).map((visit) => ({
             label: visit,
             axis: { kind: "measure", measure: state.measure, value, visit }
@@ -5983,7 +6061,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
     }
     const chosen = state.biomarkers ? offered.measures.filter((measure) => state.biomarkers.includes(measure)) : offered.measures;
     return {
-      variables: named3(
+      variables: named2(
         chosen.slice(0, settings.limit).map((measure) => ({
           label: measure,
           axis: {
@@ -7740,9 +7818,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       let groupBy = categories[0] ? categories[0].value_col : null;
       if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
       else if (has(settings.group_by)) groupBy = settings.group_by;
-      const named3 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
+      const named2 = endpoints.find((entry) => entry.endpoint === settings.endpoint);
       return {
-        endpoint: named3 ? named3.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
+        endpoint: named2 ? named2.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
         groupBy,
         filters: this.kit.initFilterState(this.filterSpecs)
       };
@@ -8382,11 +8460,11 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       }
       const typed = { ...spec, cut: points };
       this.cutOptions = this.cutOptions.filter((entry) => entry.key !== MOVED_KEY);
-      const named3 = this.cutOptions.find(
+      const named2 = this.cutOptions.find(
         (entry) => JSON.stringify(entry.spec) === JSON.stringify(typed)
       );
-      if (named3) {
-        this.state.groupBy = named3.key;
+      if (named2) {
+        this.state.groupBy = named2.key;
       } else {
         this.cutOptions.push({ key: MOVED_KEY, spec: typed, label: label(typed) });
         this.state.groupBy = MOVED_KEY;
@@ -8870,7 +8948,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       { ...coreSettings(settings), required: [] }
     );
     const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
-    const named3 = made.data.map((record) => {
+    const named2 = made.data.map((record) => {
       const row = {
         [settings.id_col]: record[settings.id_col],
         ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]]))
@@ -8883,7 +8961,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
         [outcomeFields[1]]: outcome.reason ? null : outcome.flag
       };
     });
-    const records = named3.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+    const records = named2.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
     const gaps = /* @__PURE__ */ new Map();
     if (hazard) {
       for (const record of records) {
@@ -8895,7 +8973,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       ...model,
       records,
       participants: made.participants,
-      empty: named3.length - records.length,
+      empty: named2.length - records.length,
       // With no biomarker required, who is left out is who the participant table
       // does not have.
       dropped: made.dropped,
@@ -9992,7 +10070,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     };
   }
   var present3 = (value) => value !== void 0 && value !== null;
-  function named2(value, names) {
+  function named(value, names) {
     if (!names || typeof value.reason !== "string") return value;
     const reason = value.reason.replace(
       /(^Not computed: |; )(row|col) = /g,
@@ -10002,7 +10080,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
   }
   function describeAnswer3(result, context = {}) {
     if (result && result.status === "ok") {
-      const value = named2(
+      const value = named(
         result.value && typeof result.value === "object" ? result.value : {},
         context.names
       );

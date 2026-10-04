@@ -34,7 +34,7 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#the-settings">The settings</a></li><li><a href="#placeholders">Placeholders</a></li><li><a href="#where-they-are-drawn">Where they are drawn</a></li><li><a href="#the-footnote-the-chart-writes">The footnote the chart writes</a></li><li><a href="#the-functions-of-biovizoutput">The functions of <code>BioViz.output</code></a></li><li><a href="#filltexttemplate-values"><code>fillText(template, values)</code></a></li><li><a href="#placeholdersintemplate"><code>placeholdersIn(template)</code></a></li><li><a href="#automaticfootnoteparts"><code>automaticFootnote(parts)</code></a></li><li><a href="#countstextcounts-of"><code>countsText(counts, of)</code></a></li><li><a href="#title_defaults"><code>TITLE_DEFAULTS</code></a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#the-settings">The settings</a></li><li><a href="#placeholders">Placeholders</a></li><li><a href="#where-they-are-drawn">Where they are drawn</a></li><li><a href="#the-footnote-the-chart-writes">The footnote the chart writes</a></li><li><a href="#the-functions-of-biovizoutput">The functions of <code>BioViz.output</code></a></li><li><a href="#filltexttemplate-values"><code>fillText(template, values)</code></a></li><li><a href="#fillpartstemplate-values"><code>fillParts(template, values)</code></a></li><li><a href="#placeholdersintemplate"><code>placeholdersIn(template)</code></a></li><li><a href="#automaticfootnoteparts"><code>automaticFootnote(parts)</code></a></li><li><a href="#countstextcounts-of"><code>countsText(counts, of)</code></a></li><li><a href="#title_defaults"><code>TITLE_DEFAULTS</code></a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -53,7 +53,7 @@
 <p>Above the chart:</p>
 <p>&gt; IL-6: Change from baseline at Week 4 &gt; 186 participants, by Arm</p>
 <p>Under it, the two footnotes and the chart&#39;s own:</p>
-<p>&gt; Synthetic study from gsm.bio. &gt; Filters: none. &gt; Drawn on 2026-10-04 by bio.viz 0.1.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.</p>
+<p>&gt; Synthetic study from gsm.bio. &gt; Filters: none. &gt; Drawn on 2026-10-04 by bio.viz 0.1.0 with development changes. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.</p>
 <h2 id="the-settings">The settings</h2>
 <p>Every chart has the three settings, with the same defaults and the same checks.</p>
 <table class="doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it is</th></tr></thead>
@@ -63,18 +63,18 @@
 <p>A title or a subtitle that is not text, or footnotes that are not text or a list of texts, are refused with a sentence that names the setting, as every other setting is. The chart&#39;s own footnote is not a setting: it is always written, and always last.</p>
 <h2 id="placeholders">Placeholders</h2>
 <p>A placeholder is a name in braces: <code>{measure}</code>. When the chart draws, each one is replaced by the text of its value for the view drawn, and the title, the subtitle and the footnotes are written again whenever the chart draws again or an answer from R arrives.</p>
-<ul><li>A placeholder is replaced by text, once, from left to right. Nothing in a template or in a value is evaluated: there are no expressions, no functions and no templates that run, and a value is never read for placeholders of its own. <code>${…}</code>, <code>&lt;script&gt;</code> and <code>{{…}}</code> are shown as they are written.</li><li>A name the chart does not have is left as written, braces and all, so a slip in a setting shows on the page instead of disappearing.</li><li>A value that is null is written as nothing; a number as it reads.</li><li>What comes out is written on the page as text, never as markup.</li></ul>
+<ul><li>A placeholder is replaced by text, once, from left to right. Nothing in a template or in a value is evaluated: there are no expressions, no functions and no templates that run, and a value is never read for placeholders of its own. <code>${…}</code>, <code>&lt;script&gt;</code> and <code>{{…}}</code> are shown as they are written.</li><li>A name the chart does not have is left as written, braces and all, so a slip in a setting shows on the page instead of disappearing.</li><li>A value that is null is written as nothing; a number as it reads.</li><li>What comes out is written on the page as text, never as markup; each value is set apart in a <code>&lt;bdi&gt;</code>, so a value written right to left keeps its direction to itself.</li><li>A title or a subtitle of only white space is none.</li></ul>
 <p>Every chart fills these three:</p>
 <table class="doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
 <tbody><tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words (<code>Sex is F; Arm is Placebo</code>), or <code>none</code>.</td></tr>
 <tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC, as ISO 8601: <code>2026-10-04</code>.</td></tr>
-<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version, as the chart&#39;s own footnote says it.</td></tr></tbody></table>
 <p>Each chart adds its own, listed in its reference under Titles and footnotes: <a href="../group-comparison/api.html#titles-and-footnotes">group comparison</a>, <a href="../association-scatter/api.html#titles-and-footnotes">association scatter</a>, <a href="../correlation-matrix/api.html#titles-and-footnotes">correlation matrix</a>, <a href="../biomarker-screen/api.html#titles-and-footnotes">biomarker screen</a>, <a href="../cross-tab/api.html#titles-and-footnotes">cross-tabulation</a> and <a href="../stratified-survival/api.html#titles-and-footnotes">stratified survival</a>. Every chart has <code>{n}</code>, the participants it draws.</p>
 <h2 id="where-they-are-drawn">Where they are drawn</h2>
 <p>The title and the subtitle are drawn at the top of the chart&#39;s own frame, above its toolbar, notes and figure; the footnotes at the bottom of it, under the figure and the statistics line and above the listing. They are part of the chart&#39;s element, so they move, wrap and print with it, and at a 390-pixel viewport they wrap like any other text, with no horizontal scroll. The title is a heading of level 2 to assistive technology.</p>
 <h2 id="the-footnote-the-chart-writes">The footnote the chart writes</h2>
 <p>The last footnote is the chart&#39;s, and it says three things:</p>
-<ol><li>The date the chart was drawn, in UTC, and the bio.viz version that drew it: <code>Drawn on 2026-10-04 by bio.viz 0.1.0.</code></li><li>For every statistic printed, R&#39;s method and the counts R used, as R returned them: <code>Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)</code>. One count is written <code>n = 200</code>; up to four groups each by name; more, such as a screen&#39;s biomarkers, as the least and the most with how many there are: <code>n = 179 to 186 across 12 biomarkers</code>.</li><li>Which R computed them: <code>computed by R in this browser</code>, or, for a result stored with the page, <code>computed by R 4.3.3 with gsm.bio 0.2.0, stored with the page</code> when the connection was told the versions (<code>computedBy</code>, below), and <code>stored with the page</code> when it was not.</li></ol>
+<ol><li>The date the chart was drawn, in UTC, and the bio.viz version that drew it: <code>Drawn on 2026-10-04 by bio.viz 0.1.0.</code> A build with changes made since that release says so, <code>bio.viz 0.1.0 with development changes</code>, so the footnote never names a release for code that is not one. The package&#39;s <code>bioviz.development</code> says which it is: true on the integration branch while the release log has an upcoming section, and set false when a release is prepared; a unit test fails when the two disagree, and when a tagged build says it holds development changes.</li><li>For every statistic printed, every method R used, the counts R used, as R returned them, and every adjustment of its p-values (<code>p-values adjusted by Holm</code>, <code>by Benjamini-Hochberg</code>); with a pairwise test, the overall test first, <code>Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction (…), p-values adjusted by Holm</code>. Its form: <code>Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)</code>. One count is written <code>n = 200</code>; up to four groups each by name; more, such as a screen&#39;s biomarkers, as the least and the most with how many there are: <code>n = 179 to 186 across 12 biomarkers</code>.</li><li>Which R computed them, as the connection says: <code>computed by R in this browser</code> for R started in the page; for a result stored with the page, <code>computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page</code> when the connection was told the versions and the date (<code>computedBy</code>, below), and <code>stored with the page</code> when it was not; for any other form, <code>computed by R</code>.</li></ol>
 <p>While an answer is on its way it says <code>Statistics: waiting for R.</code>, and it is written again when the answer arrives. A chart that asked R nothing says <code>No statistic was asked of R.</code>; one whose answer did not come says that statistics are unavailable, or that R reported an error, as the statistics line under the chart says in full.</p>
 <p>Nothing in the footnote is worked out by the chart. The method and the counts are R&#39;s, read off its answer; the chart only writes them down.</p>
 <h3 id="stored-results-and-which-r-computed-them">Stored results, and which R computed them</h3>
@@ -92,6 +92,8 @@
 // &#39;CRP at Week 4&#39;
 BioViz.output.fillText(&#39;${1 + 1} {unknown}&#39;, {});
 // &#39;${1 + 1} {unknown}&#39;</code></pre>
+<h2 id="fillpartstemplate-values"><code>fillParts(template, values)</code></h2>
+<p>The template filled, as its runs of text: <code>[{ text, value }]</code>, each placeholder&#39;s value a run of its own (<code>value: true</code>), so a page can set values apart, as the charts do with <code>&lt;bdi&gt;</code>, without reading anything as markup.</p>
 <h2 id="placeholdersintemplate"><code>placeholdersIn(template)</code></h2>
 <p>The names of the placeholders a template holds, each once, in the order written.</p>
 <h2 id="automaticfootnoteparts"><code>automaticFootnote(parts)</code></h2>
@@ -102,7 +104,7 @@ BioViz.output.fillText(&#39;${1 + 1} {unknown}&#39;, {});
 <tr><td data-label="Part"><code>asked</code></td><td data-label="What it is">What the chart asked R, each <code>{ answer }</code> with the answer as the connection gave it, or null while it is on its way. A chart&#39;s <code>statistics()</code> returns this.</td></tr>
 <tr><td data-label="Part"><code>of</code></td><td data-label="What it is">What R&#39;s counts are of, when there are more than four: <code>&#39;biomarkers&#39;</code>. Default <code>&#39;groups&#39;</code>.</td></tr></tbody></table>
 <h2 id="countstextcounts-of"><code>countsText(counts, of)</code></h2>
-<p>R&#39;s counts as the footnote writes them: a number as <code>n = 200</code>; an object of up to four groups as <code>Placebo n = 95, Treatment n = 91</code>; more as <code>n = 179 to 186 across 12 biomarkers</code>, with <code>of</code> naming what they are of. Null when R returned none.</p>
+<p>R&#39;s counts as the footnote writes them: a number as <code>n = 200</code>; an object of up to four groups as <code>Placebo n = 95, Treatment n = 91</code>; five or more as <code>n = 179 to 186 across 12 biomarkers</code>, with <code>of</code> naming what they are of. A count written as text that reads as a number is read as that number. Null when R returned none.</p>
 <h2 id="title_defaults"><code>TITLE_DEFAULTS</code></h2>
 <p>The three settings&#39; defaults, which every chart has: <code>{ title: null, subtitle: null, footnotes: null }</code>.</p>
 <h2 id="what-is-not-here">What is not here</h2>
@@ -118,7 +120,7 @@ BioViz.output.fillText(&#39;${1 + 1} {unknown}&#39;, {});
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/495da941ed8a5acc89c1e7efbee5494ae5d56a29"><code>495da94</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/f874af05e17832c092f68fc065ac14fcca8fec8c"><code>f874af0</code></a>.
       </p>
       <p>
         Built in the open — follow the
