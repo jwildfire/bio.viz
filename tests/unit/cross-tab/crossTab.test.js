@@ -44,7 +44,14 @@ const stateOf = (entry) => ({
     Object.entries(entry.dataId.filters || {}).map(([column, values]) => [column, values[0]])
   )
 });
-const modelOf = (entry) => buildTable({ results, participants }, settings, stateOf(entry));
+// A case's tables: the study's, or the ones the case brings.
+const tablesOf = (entry) => entry.tables || { results, participants };
+const modelOf = (entry) => buildTable(tablesOf(entry), settings, stateOf(entry));
+// A table's counts by its categories, whatever order each way is drawn in.
+const countsByName = (rowLevels, colLevels, counts) =>
+  Object.fromEntries(
+    rowLevels.flatMap((row, i) => colLevels.map((col, j) => [`${row} | ${col}`, counts[i][j]]))
+  );
 
 describe('cross-tabulation: settings', () => {
   it('CT-CFG-001: every setting has a default; the rows and the columns are each a column or a cut variable; the percentages, the test and the statistic are checked (#44)', () => {
@@ -78,28 +85,45 @@ describe('cross-tabulation: the table', () => {
     expect(fromR.cases.length).toBeGreaterThanOrEqual(6);
     for (const entry of fromR.cases) {
       const model = modelOf(entry);
-      expect(model.rowLevels, entry.case).toEqual(entry.row_levels);
-      expect(model.colLevels, entry.case).toEqual(entry.col_levels);
-      expect(model.counts, entry.case).toEqual(entry.counts);
-      expect(model.rowTotals, entry.case).toEqual(entry.row_totals);
-      expect(model.colTotals, entry.case).toEqual(entry.col_totals);
+      // Every participant in the table, in R's category each way.
+      expect(
+        model.records.map((record) => [record.USUBJID, record.row, record.col]),
+        entry.case
+      ).toEqual(entry.ids.map((id, index) => [id, entry.row_of[index], entry.col_of[index]]));
+      // The same categories, and the same count in each cell, as R's.
+      expect([...model.rowLevels].sort(), entry.case).toEqual([...entry.row_levels].sort());
+      expect([...model.colLevels].sort(), entry.case).toEqual([...entry.col_levels].sort());
+      expect(countsByName(model.rowLevels, model.colLevels, model.counts), entry.case).toEqual(
+        countsByName(entry.row_levels, entry.col_levels, entry.counts)
+      );
+      const totals = (levels, values) =>
+        Object.fromEntries(levels.map((level, i) => [level, values[i]]));
+      expect(totals(model.rowLevels, model.rowTotals), entry.case).toEqual(
+        totals(entry.row_levels, entry.row_totals)
+      );
+      expect(totals(model.colLevels, model.colTotals), entry.case).toEqual(
+        totals(entry.col_levels, entry.col_totals)
+      );
       expect(model.total, entry.case).toBe(entry.total);
     }
+    // A value of white space alone is missing, as R's recipe reads it: the
+    // participants with one are not in the table.
+    const stages = caseOf('stage-by-grade-chisq');
+    expect(stages.tables.participants.filter((row) => row.GRADE.trim() === '')).toHaveLength(6);
+    expect(stages.total).toBe(42);
+    expect(modelOf(stages).colLevels).not.toContain(' ');
   });
 
   it('CT-DATA-002: the row and the column percentages are each count of its row’s or its column’s total, as desktop R works them out (#44)', () => {
     for (const entry of fromR.cases) {
       const model = modelOf(entry);
-      model.percents.row.forEach((row, i) =>
-        row.forEach((value, j) =>
-          expect(value, entry.case).toBeCloseTo(entry.row_percent[i][j], 12)
-        )
-      );
-      model.percents.col.forEach((row, i) =>
-        row.forEach((value, j) =>
-          expect(value, entry.case).toBeCloseTo(entry.col_percent[i][j], 12)
-        )
-      );
+      for (const kind of ['row', 'col']) {
+        const ours = countsByName(model.rowLevels, model.colLevels, model.percents[kind]);
+        const theirs = countsByName(entry.row_levels, entry.col_levels, entry[`${kind}_percent`]);
+        for (const [cell, value] of Object.entries(theirs)) {
+          expect(ours[cell], `${entry.case} ${cell}`).toBeCloseTo(value, 12);
+        }
+      }
     }
   });
 
@@ -144,6 +168,42 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
       'arm-by-crp-change-median-chisq'
     ]);
     expect(caseOf('arm-by-crp-change-median-chisq').dataId.baseline_visits).toEqual(['Baseline']);
+
+    // A column's categories are named in the key by code point, whatever order
+    // the table shows them in and whatever the browser's language: Week 10
+    // before Week 2, upper case before lower, ASCII before Ö.
+    const stages = caseOf('stage-by-grade-chisq');
+    const requestIn = (locale) => {
+      const compare = String.prototype.localeCompare;
+      String.prototype.localeCompare = function (other, _locales, options) {
+        return compare.call(this, other, locale, options);
+      };
+      try {
+        const model = modelOf(stages);
+        return {
+          shown: model.rowLevels,
+          request: contingencyRequest({
+            name: settings.statistic,
+            test: 'chisq',
+            settings,
+            state: stateOf(stages),
+            model
+          })
+        };
+      } finally {
+        String.prototype.localeCompare = compare;
+      }
+    };
+    const english = requestIn('en');
+    const swedish = requestIn('sv');
+    expect(english.shown.indexOf('Week 2')).toBeLessThan(english.shown.indexOf('Week 10'));
+    expect(english.shown).not.toEqual(swedish.shown);
+    for (const { request } of [english, swedish]) {
+      expect(request.args.chrRowGroups).toEqual(['Week 10', 'Week 2', 'week 1', 'Ödem']);
+      expect(request.args.chrColGroups).toEqual(['B', 'a']);
+      expect(canonicalJson(request.args)).toBe(canonicalJson(stages.args));
+      expect(canonicalJson(request.dataId)).toBe(canonicalJson(stages.dataId));
+    }
   });
 
   it('CT-STAT-002: R’s chi-square and Fisher results are printed with their method and counts, labelled exploratory and unadjusted, and Fisher’s odds ratio with its interval (#44)', () => {
@@ -180,6 +240,39 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
     for (const name of ['arm-by-response-chisq', 'response-by-crp-median-chisq']) {
       expect(describeAnswer({ status: 'ok', value: caseOf(name).value }).remarks, name).toEqual([]);
     }
+  });
+
+  it('CT-STAT-010: a table R withholds, a category below its minimum size, prints R’s reason with the table’s variables named where R names the columns the chart gave it, and no number (#44, #58)', () => {
+    const small = caseOf('response-by-crp-10-chisq');
+    expect(small.value.status).toBe('too_small');
+    // R names the margin by the column the chart handed it: `col`.
+    expect(small.value.reason).toMatch(/^Not computed: col = > 10 has \d+\./);
+    const described = describeAnswer(
+      { status: 'ok', value: small.value },
+      { names: { row: 'RESPONSE', col: 'CRP at Baseline, cut at 10' } }
+    );
+    expect(described.state).toBe('withheld');
+    expect(described.text).toBe(
+      `${small.value.reason.replace('Not computed: col = ', 'Not computed: CRP at Baseline, cut at 10 = ')} ` +
+        `Counts: n = ${small.value.counts}.`
+    );
+    expect(described.text).not.toMatch(/\b(row|col) = /);
+    expect(described.text).not.toMatch(/p [=<]/);
+    // Both margins, and a reason that names neither, are left as R wrote them
+    // but for the names.
+    const both = describeAnswer(
+      {
+        status: 'ok',
+        value: {
+          ...small.value,
+          reason: 'Not computed: row = b has 3; col = > 10 has 2. The minimum group size is 5.'
+        }
+      },
+      { names: { row: 'Arm', col: 'Grade' } }
+    );
+    expect(both.text).toMatch(/^Not computed: Arm = b has 3; Grade = > 10 has 2\./);
+    // With no names given, R's words are printed as they are.
+    expect(describeAnswer({ status: 'ok', value: small.value }).text).toMatch(/col = > 10/);
   });
 
   it('CT-STAT-004: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its table (#44)', async () => {

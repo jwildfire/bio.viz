@@ -149,10 +149,11 @@ result_at <- function(measure, visit) {
 
 # A variable's category for every participant: a column's value, or a cut
 # biomarker's group, worked out on the participants kept.
-category_of <- function(variable, keep) {
+category_of <- function(variable, keep, people = participants) {
   if (is.character(variable)) {
-    value <- participants[[variable]]
-    value[value == ""] <- NA
+    # A value that is empty or only white space is missing, as the chart reads it.
+    value <- people[[variable]]
+    value[!is.na(value) & trimws(value) == ""] <- NA
     return(list(values = value, levels = NULL))
   }
   # The baseline is the result at Baseline, the one baseline visit the cases
@@ -166,20 +167,25 @@ category_of <- function(variable, keep) {
   list(values = cut_groups(x, points), levels = cut_labels(points))
 }
 
-case <- function(name, row_by, col_by, test, filters = list()) {
-  keep <- rep(TRUE, nrow(participants))
-  for (column in names(filters)) keep <- keep & participants[[column]] %in% filters[[column]]
-  rows <- category_of(row_by, keep)
-  cols <- category_of(col_by, keep)
+# A case: the table of two variables for the participants the filters keep,
+# and R's answer. `people` is the participant table, the study's unless a case
+# brings its own, which is then written into the case as `tables`.
+case <- function(name, row_by, col_by, test, filters = list(), people = participants,
+                 tables = NULL) {
+  keep <- rep(TRUE, nrow(people))
+  for (column in names(filters)) keep <- keep & people[[column]] %in% filters[[column]]
+  rows <- category_of(row_by, keep, people)
+  cols <- category_of(col_by, keep, people)
   used <- keep & !is.na(rows$values) & !is.na(cols$values)
-  # The categories, in the chart's order: a cut's low to high, a column's by
-  # code point, of the participants with both.
+  # The categories, in the order the key names them: a cut's low to high, a
+  # column's by code point, of the participants with both. The chart shows a
+  # column's in an order of its own; the key's does not depend on it.
   row_levels <- if (is.null(rows$levels)) sort(unique(rows$values[used]), method = "radix") else rows$levels
   col_levels <- if (is.null(cols$levels)) sort(unique(cols$values[used]), method = "radix") else cols$levels
   row_levels <- row_levels[row_levels %in% rows$values[used]]
   col_levels <- col_levels[col_levels %in% cols$values[used]]
   frame <- data.frame(
-    USUBJID = participants$USUBJID[used], row = rows$values[used], col = cols$values[used],
+    USUBJID = people$USUBJID[used], row = rows$values[used], col = cols$values[used],
     stringsAsFactors = FALSE
   )
   counts <- unclass(table(factor(frame$row, levels = row_levels), factor(frame$col, levels = col_levels)))
@@ -194,7 +200,9 @@ case <- function(name, row_by, col_by, test, filters = list()) {
   matrix_rows <- function(m) lapply(seq_len(nrow(m)), function(i) unname(m[i, ]))
   c(
     list(
-      case = name, participants = sum(keep), row_levels = as.list(row_levels),
+      case = name, participants = sum(keep), tables = tables,
+      ids = as.list(frame$USUBJID), row_of = as.list(frame$row), col_of = as.list(frame$col),
+      row_levels = as.list(row_levels),
       col_levels = as.list(col_levels),
       counts = matrix_rows(counts), row_totals = unname(rowSums(counts)),
       col_totals = unname(colSums(counts)), total = sum(counts),
@@ -208,6 +216,29 @@ case <- function(name, row_by, col_by, test, filters = list()) {
 
 crp <- function(cut) list(measure = "CRP", visit = "Baseline", value = "raw", cut = cut)
 
+# Levels whose order depends on how they are sorted: numbers in text (Week 2
+# and Week 10), a difference of case (week 1), a letter outside ASCII (Ödem),
+# and a value of white space alone, which is missing. Made here, not drawn
+# from the study, and written into the case so the chart reads the same table.
+levels_people <- local({
+  i <- seq_len(48)
+  grade <- c("a", "B")[((i - 1) %/% 4) %% 2 + 1]
+  grade[i %% 7 == 0] <- " "
+  data.frame(
+    USUBJID = sprintf("L-%02d", i),
+    STAGE = c("Week 2", "Week 10", "week 1", "\u00d6dem")[(i - 1) %% 4 + 1],
+    GRADE = grade,
+    stringsAsFactors = FALSE
+  )
+})
+levels_tables <- list(
+  participants = levels_people,
+  results = data.frame(
+    USUBJID = levels_people$USUBJID, VISIT = "Day 1", VISITNUM = 1, TEST = "X", STRESU = "u",
+    STRESN = 1, stringsAsFactors = FALSE
+  )
+)
+
 cases <- list(
   case("arm-by-response-chisq", "ARM", "RESPONSE", "chisq"),
   case("arm-by-response-fisher", "ARM", "RESPONSE", "fisher"),
@@ -215,10 +246,14 @@ cases <- list(
   case("response-by-crp-median-fisher", "RESPONSE", crp("median"), "fisher"),
   case("response-by-crp-typed-chisq", "RESPONSE", crp(8), "chisq"),
   case("arm-by-response-women-chisq", "ARM", "RESPONSE", "chisq", list(SEX = "F")),
+  # CRP cut at 10 leaves 4 participants above it: below R's minimum group size.
+  case("response-by-crp-10-chisq", "RESPONSE", crp(10), "chisq"),
   case(
     "arm-by-crp-change-median-chisq", "ARM",
     list(measure = "CRP", visit = "Week 4", value = "change", cut = "median"), "chisq"
-  )
+  ),
+  case("stage-by-grade-chisq", "STAGE", "GRADE", "chisq", people = levels_people,
+       tables = levels_tables)
 )
 
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")

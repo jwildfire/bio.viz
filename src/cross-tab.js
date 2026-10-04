@@ -348,7 +348,9 @@ class CrossTab {
       state.percent,
       (next) => {
         state.percent = next;
-        redraw();
+        // What the percentages are of describes the same table: R is not
+        // asked again, and its answer stays.
+        drawSafely(this, () => this.redrawPercentages());
       },
       table
     );
@@ -460,8 +462,28 @@ class CrossTab {
         if (answer) asked.answer = answer;
         show(description);
       },
-      { scope: scopeText({ n: model.total, filters: filtersForScope(this) }) }
+      {
+        scope: scopeText({ n: model.total, filters: filtersForScope(this) }),
+        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) }
+      }
     );
+  }
+
+  // The table and the bars again, with the percentages of the rows or the
+  // columns, from the table already worked out. Nothing else changes: the
+  // statistics line keeps R's answer for this table, and R is not asked again.
+  redrawPercentages() {
+    if (!this.model || !this.model.total) {
+      this.render();
+      return;
+    }
+    this.destroyCharts();
+    this.clearSelection();
+    this.tableWrap.innerHTML = '';
+    this.multiplesWrap.innerHTML = '';
+    this.drawTable(this.model);
+    this.drawBars(this.model);
+    this.footnote.textContent = [HINT, ...this.cutNotes(this.model)].join(' ');
   }
 
   // Above the table: who is in it, and what was left out of it.

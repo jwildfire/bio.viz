@@ -19,7 +19,8 @@ import {
   filtersInForce,
   filtersSaid,
   remarksOf,
-  sentence
+  sentence,
+  sorted
 } from '../shared/statisticLine.js';
 
 export { NOT_STORED, WAITING } from '../shared/statisticLine.js';
@@ -37,6 +38,9 @@ export const NO_TEST_CHOSEN = 'Statistics: no test chosen.';
 /** The line when the table is not two-way: a test needs two categories each way. */
 export const NOT_TWO_WAY =
   'Statistics: no test. A test of a two-way table needs two or more categories each way.';
+
+// A variable's categories as the key names them.
+const keyOrder = (by, levels) => (isCut(by) ? [...levels] : sorted(levels));
 
 // Whether a variable of the table is a cut biomarker that reads a baseline.
 const readsBaseline = (by) =>
@@ -68,10 +72,11 @@ export function contingencyRequest({ name, test, settings, state, model }) {
       strRowCol: 'row',
       strColCol: 'col',
       strMethod: test,
-      // The categories in the order the table shows them, so R's rows are
-      // the table's.
-      chrRowGroups: [...model.rowLevels],
-      chrColGroups: [...model.colLevels]
+      // The categories, in an order that depends on nothing but them: a cut's
+      // low to high, a column's by code point. The table shows a column's in
+      // the browser's own order, which is not the same in every language.
+      chrRowGroups: keyOrder(state.rowBy, model.rowLevels),
+      chrColGroups: keyOrder(state.colBy, model.colLevels)
     },
     dataId: {
       chart: 'cross-tab',
@@ -89,6 +94,18 @@ export function contingencyRequest({ name, test, settings, state, model }) {
 
 const present = (value) => value !== undefined && value !== null;
 
+// R names a category in its reason by the column the chart handed it, `row`
+// or `col`: "Not computed: col = > 10 has 2." The table's own names for its
+// variables are put in their place, and nothing else of R's words changes.
+function named(value, names) {
+  if (!names || typeof value.reason !== 'string') return value;
+  const reason = value.reason.replace(
+    /(^Not computed: |; )(row|col) = /g,
+    (_, before, field) => `${before}${names[field] || field} = `
+  );
+  return { ...value, reason };
+}
+
 /**
  * What one answer from the connection reads as on the line: R's result with
  * its method and counts, the estimate R gave an interval for (Fisher's odds
@@ -97,12 +114,17 @@ const present = (value) => value !== undefined && value !== null;
  * @param {object} result What `connection.run` resolved to.
  * @param {object} [context]
  * @param {string} [context.scope] What the test covers, in a sentence.
+ * @param {{row: string, col: string}} [context.names] The table's names for its
+ *   two variables, put where R's reason names the columns `row` and `col`.
  * @returns {{state: string, text: string, estimates: string[],
  *   remarks: Array<{kind: string, text: string}>, scope: ?string}}
  */
 export function describeAnswer(result, context = {}) {
   if (result && result.status === 'ok') {
-    const value = result.value && typeof result.value === 'object' ? result.value : {};
+    const value = named(
+      result.value && typeof result.value === 'object' ? result.value : {},
+      context.names
+    );
     const formatted = formatStatistic(value);
     const described = sentence(formatted.status, formatted.text);
     if (formatted.status === 'shown') {

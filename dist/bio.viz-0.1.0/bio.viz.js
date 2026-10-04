@@ -412,9 +412,9 @@ var BioViz = (() => {
     BY: "Benjamini-Yekutieli"
   };
   function adjustmentName(adjustment) {
-    const named = text(adjustment);
-    if (!named || named.toLowerCase() === "none") return null;
-    return Object.hasOwn(ADJUSTMENTS, named) ? ADJUSTMENTS[named] : named;
+    const named2 = text(adjustment);
+    if (!named2 || named2.toLowerCase() === "none") return null;
+    return Object.hasOwn(ADJUSTMENTS, named2) ? ADJUSTMENTS[named2] : named2;
   }
   var formatLabel = (adjustment) => adjustment ? `Exploratory, adjusted (${adjustment}).` : "Exploratory, unadjusted.";
   var ENDS_A_SENTENCE = /[.!?]$/;
@@ -487,8 +487,8 @@ var BioViz = (() => {
     const row = comparison && typeof comparison === "object" ? comparison : {};
     const groups = [text(row.group_1), text(row.group_2)];
     const n = [row.n_1, row.n_2];
-    const named = groups.every(Boolean);
-    const counted = named && n.every(isCount);
+    const named2 = groups.every(Boolean);
+    const counted = named2 && n.every(isCount);
     const parts = read({
       status: row.status,
       method: row.method,
@@ -497,12 +497,12 @@ var BioViz = (() => {
       reason: row.reason,
       counts: counted ? { [groups[0]]: n[0], [groups[1]]: n[1] } : void 0
     });
-    const pair = { groups: named ? groups : null, n: counted ? n : null };
-    const shown2 = named && parts.status === "shown";
-    const result = named ? parts.text : refused("the comparison does not name its two groups").text;
+    const pair = { groups: named2 ? groups : null, n: counted ? n : null };
+    const shown2 = named2 && parts.status === "shown";
+    const result = named2 ? parts.text : refused("the comparison does not name its two groups").text;
     return {
-      status: named ? parts.status : "refused",
-      text: named ? `${groups[0]} and ${groups[1]}: ${result}` : result,
+      status: named2 ? parts.status : "refused",
+      text: named2 ? `${groups[0]} and ${groups[1]}: ${result}` : result,
       result,
       ...pair,
       method: shown2 ? parts.method : null,
@@ -632,8 +632,8 @@ var BioViz = (() => {
   function formatScreenRow(row, groups = null) {
     const given2 = row && typeof row === "object" ? row : {};
     const biomarker = text(given2.biomarker);
-    const named = Array.isArray(groups) && groups.length === 2 && groups.every(text);
-    const twoCounts = named && isCount(given2.n_1) && isCount(given2.n_2);
+    const named2 = Array.isArray(groups) && groups.length === 2 && groups.every(text);
+    const twoCounts = named2 && isCount(given2.n_1) && isCount(given2.n_2);
     const counts = twoCounts ? { [groups[0]]: given2.n_1, [groups[1]]: given2.n_2 } : isCount(given2.counts) ? given2.counts : void 0;
     const n = formatCounts(counts);
     const none = {
@@ -1136,7 +1136,7 @@ var BioViz = (() => {
       refuse3("frame() takes the variables as an object, each under the name of its field.");
     }
     const idCol = config.id_col;
-    const named = Object.entries(variables).map(([name, spec]) => {
+    const named2 = Object.entries(variables).map(([name, spec]) => {
       if (name.trim() === "" || name !== name.trim()) {
         refuse3("a variable needs a name with no space at either end: it is the name of its field.");
       }
@@ -1146,10 +1146,10 @@ var BioViz = (() => {
       return { name, variable: variable(spec) };
     });
     const required = new Set(
-      config.required === null ? named.map(({ name }) => name) : config.required
+      config.required === null ? named2.map(({ name }) => name) : config.required
     );
     for (const name of required) {
-      if (!named.some((entry) => entry.name === name)) {
+      if (!named2.some((entry) => entry.name === name)) {
         refuse3(`\`required\` names \`${name}\`, which is not one of the variables.`);
       }
     }
@@ -1159,7 +1159,7 @@ var BioViz = (() => {
       unusedCounts.set(key, (unusedCounts.get(key) || 0) + n);
     };
     needColumn(results, idCol, "id_col", "results");
-    const measures = named.filter(({ variable: variable2 }) => variable2.kind === "measure");
+    const measures = named2.filter(({ variable: variable2 }) => variable2.kind === "measure");
     const needsBaseline = measures.some(({ variable: variable2 }) => variable2.value !== "raw");
     if (measures.length) {
       needColumn(results, config.measure_col, "measure_col", "results");
@@ -1171,7 +1171,7 @@ var BioViz = (() => {
       needColumn(participantTable, participantIdCol, "participant_id_col", "participant");
     }
     const columnSource = /* @__PURE__ */ new Map();
-    for (const { variable: variable2 } of named) {
+    for (const { variable: variable2 } of named2) {
       if (variable2.kind !== "column") continue;
       if (participantTable && hasColumn(participantTable, variable2.col)) {
         columnSource.set(variable2.col, "participants");
@@ -1291,7 +1291,7 @@ var BioViz = (() => {
       const source = participantRow.get(id) || (resultRows.get(id) || [])[0];
       const record = { [idCol]: source[participantRow.has(id) ? participantIdCol : idCol] };
       let leftOut = null;
-      for (const { name, variable: variable2 } of named) {
+      for (const { name, variable: variable2 } of named2) {
         const found = variable2.kind === "measure" ? measureValue(id, variable2) : columnValue(id, variable2);
         if ("value" in found) {
           record[name] = found.value;
@@ -1314,7 +1314,7 @@ var BioViz = (() => {
     if (notInTable) {
       dropped.push({ reason: DROPPED.NOT_IN_PARTICIPANT_TABLE, variable: null, n: notInTable });
     }
-    for (const { name } of named) {
+    for (const { name } of named2) {
       for (const reason of reasons) {
         const n = droppedCounts.get(`${name}\0${reason}`);
         if (n) dropped.push({ reason, variable: name, n });
@@ -1330,7 +1330,7 @@ var BioViz = (() => {
     return {
       data,
       id_col: idCol,
-      variables: Object.fromEntries(named.map(({ name, variable: variable2 }) => [name, variable2])),
+      variables: Object.fromEntries(named2.map(({ name, variable: variable2 }) => [name, variable2])),
       participants: ids.length + notInTable,
       dropped,
       unused: unusedList,
@@ -2397,15 +2397,15 @@ ${C4} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     return `${lead}none is drawn.`;
   }
   function scopeText({ group, n, panel, color, filters = [] }) {
-    const named = group.includes(",") ? `${group},` : group;
+    const named2 = group.includes(",") ? `${group},` : group;
     const said = [
-      `This test compares the levels of ${named} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
+      `This test compares the levels of ${named2} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
     ];
     if (panel) {
       said.push("Each panel has a test of its own, and they are not adjusted for one another.");
     }
     if (color) {
-      said.push(`Colour by ${color} is not part of it: each level of ${named} is tested whole.`);
+      said.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
     }
     if (filters.length) said.push(filtersSaid(filters));
     return said.join(" ");
@@ -2887,10 +2887,10 @@ ${toolbarStyles(".bv-group-comparison")}
       this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
         (spec) => this.kit.normalizeFilterSpec(spec)
       );
-      const named = this.settings.start_value;
-      if (results.length && named !== null && !this.measures.includes(named)) {
+      const named2 = this.settings.start_value;
+      if (results.length && named2 !== null && !this.measures.includes(named2)) {
         console.warn(
-          `The initial biomarker [${named}] does not exist. Defaulting to the all-biomarkers overview.`
+          `The initial biomarker [${named2}] does not exist. Defaulting to the all-biomarkers overview.`
         );
       }
     }
@@ -3987,7 +3987,7 @@ ${toolbarStyles(".bv-group-comparison")}
   function openingAxes(settings, offered) {
     const { measures, visits: visits2, numbers } = offered;
     const missing = [];
-    const named = (key) => {
+    const named2 = (key) => {
       if (!settings[key]) return null;
       const axis = axisOf(settings[key]);
       if (axisOffered(axis, offered)) return axis;
@@ -3996,8 +3996,8 @@ ${toolbarStyles(".bv-group-comparison")}
     };
     const at = (measure, visit) => ({ kind: "measure", measure, value: "raw", visit });
     const first = measures.length && visits2.length ? at(measures[0], visits2[0]) : numbers.length ? { kind: "column", col: numbers[0].value_col } : null;
-    const x = named("x") || first;
-    let y = named("y");
+    const x = named2("x") || first;
+    let y = named2("y");
     if (!y && x) {
       if (measures.length > 1 && visits2.length) y = at(measures[1], visits2[0]);
       else if (measures.length && visits2.length > 1) y = at(measures[0], visits2[1]);
@@ -4678,14 +4678,14 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         const axis = state[key];
         if (!axis) return;
         const section = addSection(title);
-        const named = (text2) => `${title}: ${text2}`;
+        const named2 = (text2) => `${title}: ${text2}`;
         const variables = [
           ...this.measures.map((measure) => [`m:${measure}`, measure]),
           ...this.numbers.map((entry) => [`c:${entry.value_col}`, `${entry.label} (participant)`])
         ];
         select(
           `${key}-variable`,
-          named("Variable"),
+          named2("Variable"),
           variables,
           axis.kind === "column" ? `c:${axis.col}` : `m:${axis.measure}`,
           (next) => {
@@ -4703,7 +4703,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         if (axis.kind === "measure") {
           select(
             `${key}-value`,
-            named("Value"),
+            named2("Value"),
             VALUE_TYPES.map((type) => [type, VALUE_LABELS[type]]),
             axis.value,
             (next) => {
@@ -4716,7 +4716,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
           if (axis.value !== "baseline") {
             select(
               `${key}-visit`,
-              named("Visit"),
+              named2("Visit"),
               this.visits.map((visit) => [visit, visit]),
               axis.visit,
               (next) => {
@@ -4729,7 +4729,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
         }
         select(
           `${key}-scale`,
-          named("Scale"),
+          named2("Scale"),
           SCALES.map((scale) => [scale, SCALE_LABELS[scale]]),
           state[`${key}Scale`],
           (next) => {
@@ -5565,7 +5565,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       notDrawn,
       message
     });
-    const named = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
+    const named2 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
     if (state.mode === "visits") {
       const heading2 = `${state.measure}: ${VALUE_WORDS2[value].toLowerCase()}, visit against visit`;
       if (value === "baseline") {
@@ -5578,7 +5578,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       const chosen2 = state.visits ? offered.visits.filter((visit) => state.visits.includes(visit)) : offered.visits;
       const drawn = chosen2.filter((visit) => !flat(visit));
       return {
-        variables: named(
+        variables: named2(
           drawn.slice(0, settings.limit).map((visit) => ({
             label: visit,
             axis: { kind: "measure", measure: state.measure, value, visit }
@@ -5604,7 +5604,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
     }
     const chosen = state.biomarkers ? offered.measures.filter((measure) => state.biomarkers.includes(measure)) : offered.measures;
     return {
-      variables: named(
+      variables: named2(
         chosen.slice(0, settings.limit).map((measure) => ({
           label: measure,
           axis: {
@@ -7109,17 +7109,17 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       // frame, and R counts who each row has.
       { ...coreSettings(settings), required: [] }
     );
-    const named = made.data.map((record) => ({
+    const named2 = made.data.map((record) => ({
       [settings.id_col]: record[settings.id_col],
       ...Object.fromEntries(fields.map((field) => [field.name, record[field.key]])),
       [extra.name]: record[extraKey]
     }));
-    const records = named.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+    const records = named2.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
     return {
       ...model,
       records,
       participants: made.participants,
-      empty: named.length - records.length,
+      empty: named2.length - records.length,
       // With no biomarker required, who is left out is who the participant table
       // does not have.
       dropped: made.dropped,
@@ -8061,6 +8061,7 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
   });
   var NO_TEST_CHOSEN2 = "Statistics: no test chosen.";
   var NOT_TWO_WAY = "Statistics: no test. A test of a two-way table needs two or more categories each way.";
+  var keyOrder = (by, levels) => isCut(by) ? [...levels] : sorted(levels);
   var readsBaseline = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
   function contingencyRequest({ name, test, settings, state, model }) {
     const filters = filtersInForce(state.filters);
@@ -8072,10 +8073,11 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         strRowCol: "row",
         strColCol: "col",
         strMethod: test,
-        // The categories in the order the table shows them, so R's rows are
-        // the table's.
-        chrRowGroups: [...model.rowLevels],
-        chrColGroups: [...model.colLevels]
+        // The categories, in an order that depends on nothing but them: a cut's
+        // low to high, a column's by code point. The table shows a column's in
+        // the browser's own order, which is not the same in every language.
+        chrRowGroups: keyOrder(state.rowBy, model.rowLevels),
+        chrColGroups: keyOrder(state.colBy, model.colLevels)
       },
       dataId: {
         chart: "cross-tab",
@@ -8089,9 +8091,20 @@ ${C2}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     };
   }
   var present3 = (value) => value !== void 0 && value !== null;
+  function named(value, names) {
+    if (!names || typeof value.reason !== "string") return value;
+    const reason = value.reason.replace(
+      /(^Not computed: |; )(row|col) = /g,
+      (_, before, field) => `${before}${names[field] || field} = `
+    );
+    return { ...value, reason };
+  }
   function describeAnswer2(result, context = {}) {
     if (result && result.status === "ok") {
-      const value = result.value && typeof result.value === "object" ? result.value : {};
+      const value = named(
+        result.value && typeof result.value === "object" ? result.value : {},
+        context.names
+      );
       const formatted = formatStatistic(value);
       const described = sentence(formatted.status, formatted.text);
       if (formatted.status === "shown") {
@@ -8453,7 +8466,7 @@ ${C3} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
         state.percent,
         (next) => {
           state.percent = next;
-          redraw();
+          drawSafely(this, () => this.redrawPercentages());
         },
         table
       );
@@ -8556,8 +8569,27 @@ ${C3} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
           if (answer) asked.answer = answer;
           show(description);
         },
-        { scope: scopeText5({ n: model.total, filters: filtersForScope(this) }) }
+        {
+          scope: scopeText5({ n: model.total, filters: filtersForScope(this) }),
+          names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) }
+        }
       );
+    }
+    // The table and the bars again, with the percentages of the rows or the
+    // columns, from the table already worked out. Nothing else changes: the
+    // statistics line keeps R's answer for this table, and R is not asked again.
+    redrawPercentages() {
+      if (!this.model || !this.model.total) {
+        this.render();
+        return;
+      }
+      this.destroyCharts();
+      this.clearSelection();
+      this.tableWrap.innerHTML = "";
+      this.multiplesWrap.innerHTML = "";
+      this.drawTable(this.model);
+      this.drawBars(this.model);
+      this.footnote.textContent = [HINT3, ...this.cutNotes(this.model)].join(" ");
     }
     // Above the table: who is in it, and what was left out of it.
     updateNotes(model) {

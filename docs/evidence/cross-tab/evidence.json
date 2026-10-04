@@ -1,16 +1,13 @@
 {
   "module": "cross-tab",
-  "generatedAt": "2026-10-03T22:45:18.658Z",
+  "generatedAt": "2026-10-04T01:26:41.095Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37159460096",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37159460096"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -261,6 +258,30 @@
       "screenshots": []
     },
     {
+      "test": "CT-STAT-011: a table R withholds prints R’s reason, with the table’s variables named in it, and no number (#44, #58)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-011"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "CT-STAT-012: after a filter changes, the answer to the table no longer on screen is dropped when it arrives; the line shows the answer for the table drawn (#44, #58)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-012"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "CT-STAT-013: changing what the percentages are of redraws the table and the bars and asks R nothing: the line keeps R’s answer (#44, #58)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-013"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
       "suite": "unit",
       "status": "pass",
@@ -442,6 +463,14 @@
       "status": "pass",
       "requirementIds": ["CT-STAT-004"],
       "issueRefs": [44],
+      "screenshots": []
+    },
+    {
+      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-010: a table R withholds, a category below its minimum size, prints R’s reason with the table’s variables named where R names the columns the chart gave it, and no number (#44, #58)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-010"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

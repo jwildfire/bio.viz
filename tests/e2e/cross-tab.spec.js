@@ -193,6 +193,9 @@ test.describe('cross-tabulation: what is drawn', () => {
     await expect(root(page).locator('.sv-notes')).toContainText(
       '200 of 200 participants in the table.'
     );
+    // The gallery's picture of the chart, with R's answer stored in the page.
+    await withStored(page, stored('arm-by-response-chisq'));
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(resultText(entry));
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'CT-DRAW-001', 'arm-by-response');
   });
@@ -320,6 +323,104 @@ test.describe('cross-tabulation: the statistics line', () => {
       'This test is of the 91 participants in the table. Filters: SEX is F.'
     );
   });
+
+  test('CT-STAT-011: a table R withholds prints R’s reason, with the table’s variables named in it, and no number (#44, #58)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page);
+    const small = caseOf('response-by-crp-10-chisq');
+    await withStored(page, stored('response-by-crp-10-chisq'), {
+      row_by: 'RESPONSE',
+      col_by: { measure: 'CRP', visit: 'Baseline', cut: [10] }
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'withheld');
+    const [, margin] = small.value.reason.match(/^Not computed: col = (.*?) has /);
+    await expect(line(page)).toContainText(
+      `Not computed: CRP at Baseline, cut at 10 = ${margin} has `
+    );
+    await expect(line(page)).not.toContainText('col =');
+    await expect(line(page)).not.toContainText('p =');
+    expect(errors).toEqual([]);
+  });
+
+  test('CT-STAT-012: after a filter changes, the answer to the table no longer on screen is dropped when it arrives; the line shows the answer for the table drawn (#44, #58)', async ({
+    page
+  }) => {
+    await open(page);
+    // A connection whose answers arrive when the test says.
+    await page.evaluate(() => {
+      window.__pending = [];
+      window.__ct.chart.setSettings({
+        connection: {
+          run: (name, request) =>
+            new Promise((resolve) => window.__pending.push({ request, resolve }))
+        }
+      });
+    });
+    await expect(line(page)).toHaveAttribute('data-state', 'waiting');
+    // The women alone: a second question; the first is still unanswered.
+    await root(page).locator('select[data-filter="SEX"]').selectOption('F');
+    await expect.poll(() => page.evaluate(() => window.__pending.length)).toBe(2);
+    const rows = await page.evaluate(() =>
+      window.__pending.map((asked) => asked.request.data.length)
+    );
+    expect(rows).toEqual([
+      caseOf('arm-by-response-chisq').rows,
+      caseOf('arm-by-response-women-chisq').rows
+    ]);
+    // The women's answer first, then the late answer for everyone.
+    await page.evaluate(
+      (value) => window.__pending[1].resolve({ status: 'ok', value }),
+      caseOf('arm-by-response-women-chisq').value
+    );
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      resultText(caseOf('arm-by-response-women-chisq'))
+    );
+    await page.evaluate(
+      (value) => window.__pending[0].resolve({ status: 'ok', value }),
+      caseOf('arm-by-response-chisq').value
+    );
+    await page.waitForTimeout(250);
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      resultText(caseOf('arm-by-response-women-chisq'))
+    );
+    const asked = await page.evaluate(() => window.__ct.chart.statistics());
+    expect(asked).toHaveLength(1);
+    expect(asked[0].rows).toBe(caseOf('arm-by-response-women-chisq').rows);
+  });
+
+  test('CT-STAT-013: changing what the percentages are of redraws the table and the bars and asks R nothing: the line keeps R’s answer (#44, #58)', async ({
+    page
+  }) => {
+    await page.addInitScript(() => {
+      window.__runs = 0;
+    });
+    await open(page);
+    await page.evaluate((results) => {
+      const stored = window.BioViz.r.createConnection({ results });
+      window.__ct.chart.setSettings({
+        connection: {
+          run: (...args) => {
+            window.__runs += 1;
+            return stored.run(...args);
+          }
+        }
+      });
+    }, stored('arm-by-response-chisq'));
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const before = await page.evaluate(() => window.__runs);
+    expect(before).toBe(1);
+    const said = await line(page).textContent();
+    await root(page).locator('select[data-control="percent"]').selectOption('col');
+    expectTable(await tableOf(page), caseOf('arm-by-response-chisq'), 'col');
+    expect((await barsOf(page)).labels).toEqual(caseOf('arm-by-response-chisq').col_levels);
+    await root(page).locator('select[data-control="percent"]').selectOption('none');
+    expectTable(await tableOf(page), caseOf('arm-by-response-chisq'), 'none');
+    expect(await page.evaluate(() => window.__runs)).toBe(before);
+    await expect(line(page)).toHaveText(said);
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+  });
 });
 
 test.describe('cross-tabulation: listing and participant profile', () => {
@@ -343,8 +444,27 @@ test.describe('cross-tabulation: listing and participant profile', () => {
       window.__ct.chart.host.currentTableData.map((row) => [row.ARM, row.RESPONSE])
     );
     expect(new Set(listed.map(String))).toEqual(new Set(['Treatment,Responder']));
+    // The participants listed are the ones R puts in that cell.
+    const inCell = entry.ids.filter(
+      (id, index) => entry.row_of[index] === 'Treatment' && entry.col_of[index] === 'Responder'
+    );
+    const ids = await page.evaluate(() =>
+      window.__ct.chart.host.currentTableData.map((row) => row.USUBJID)
+    );
+    expect([...ids].sort()).toEqual([...inCell].sort());
+    // A row opens that participant's profile: the rail names them, and named
+    // nobody before.
+    const rail = page.locator('#chart .sv-rail');
+    const first = await page
+      .locator('.sv-listing tbody tr')
+      .first()
+      .locator('td')
+      .first()
+      .textContent();
+    expect(inCell).toContain(first);
+    await expect(rail).not.toContainText(first);
     await page.locator('.sv-listing tbody tr').first().click();
-    await expect(page.locator('#chart .sv-rail')).not.toBeEmpty();
+    await expect(rail).toContainText(first);
     await captureEvidence(page.locator('.sv-listing'), 'CT-LIST-001', 'participants-of-a-cell');
   });
 });

@@ -77,13 +77,13 @@ A participant table is matched to the results by the participant's id, in the co
 
 ## What is drawn
 
-- The table: the row categories down the side and the column categories across, a count in each cell with its percentage of its row or its column beneath, the row totals, the column totals and the grand total. A column's categories are in order of name; a cut's run low to high, labelled with their bounds. Every count is a button: a click, or Enter on it, lists that cell's participants.
+- The table: the row categories down the side and the column categories across, a count in each cell with its percentage of its row or its column beneath, the row totals, the column totals and the grand total. A column's categories are in order of name, numbers in them as numbers (Week 2 before Week 10), in the browser's own order; a cut's run low to high, labelled with their bounds. A value that is empty or only white space is missing. Every count is a button: a click, or Enter on it, lists that cell's participants.
 - The bars: the same table as percentages, one stacked bar for each row split by the columns, or, with column percentages, one for each column split by the rows.
 - The footnote: how to list a cell, and how each cut variable was cut (its points, how many values they were worked out on, and whether repeated points collapsed).
 
 ## The statistics line
 
-R is asked once per table, with one row per participant: the id, `row` and `col`, each as text. The line says it is waiting until R answers, and a change to a control or a filter clears it and asks again; an answer to a question no longer on screen is never shown. R's result is printed with its method and counts, labelled exploratory and unadjusted; with Fisher's exact test of a two-by-two table, R's odds ratio is printed with its interval. What R said about its answer is printed as R worded it, its warnings and its notes among them: for chi-square, when an expected count is below 5, R's note says so and that Fisher's exact test does not rely on the approximation. The chart computes no test statistic, no p-value and no expected count. With no R attached the table and the bars are still drawn, and the line says that statistics are unavailable.
+R is asked once per table, with one row per participant: the id, `row` and `col`, each as text. The line says it is waiting until R answers, and a change to the rows, the columns, the test or a filter clears it and asks again; an answer to a question no longer on screen is never shown. What the percentages are of describes the same table: changing it redraws the table and the bars and asks R nothing. R's result is printed with its method and counts, labelled exploratory and unadjusted; with Fisher's exact test of a two-by-two table, R's odds ratio is printed with its interval. A table R withholds, a category below R's minimum size, prints R's reason and no number; R names the category by the column the chart handed it, `row` or `col`, and the line puts the table's name for that variable in its place (`Not computed: CRP at Baseline, cut at 10 = > 10 has 2.`). What R said about its answer is printed as R worded it, its warnings and its notes among them: for chi-square, when an expected count is below 5, R's note says so and that Fisher's exact test does not rely on the approximation. The chart computes no test statistic, no p-value and no expected count. With no R attached the table and the bars are still drawn, and the line says that statistics are unavailable.
 
 ### What R is asked
 
@@ -94,12 +94,14 @@ connection.run('Analyze_Contingency', {
     strRowCol: 'row',
     strColCol: 'col',
     strMethod: 'chisq', // or 'fisher'
-    chrRowGroups: ['Placebo', 'Treatment'], // the rows, in the table's order
+    chrRowGroups: ['Placebo', 'Treatment'], // a column's by code point, a cut's low to high
     chrColGroups: ['Non-responder', 'Responder']
   },
   dataId // what the rows are: see below
 });
 ```
+
+The categories R is handed are in an order that depends on nothing but them: a cut's low to high, a column's sorted by code point, as R's `sort(method = "radix")` sorts them. That is not always the order the table shows (`Week 10` comes before `Week 2`, upper case before lower, ASCII before `Ö`), and it is the same in every browser and every language, so a stored result written from R is found.
 
 `dataId` states what the rows are, so a [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together:
 

@@ -12,7 +12,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 | [association-scatter.md](association-scatter.md) | association-scatter |   87 |
 | [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   74 |
 | [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   70 |
-| [cross-tab.md](cross-tab.md)                     | cross-tab           |   27 |
+| [cross-tab.md](cross-tab.md)                     | cross-tab           |   31 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
 
