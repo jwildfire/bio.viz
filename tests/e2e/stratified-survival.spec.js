@@ -128,7 +128,16 @@ const stripOf = (page) =>
     };
   });
 
-const described = (entry) => describeAnswer({ status: 'ok', value: entry.value });
+// R's answer as the line prints it: the medians in the legend's order, low to
+// high for a cut, and a cut's hazard ratio named high over low.
+const described = (entry) =>
+  describeAnswer(
+    { status: 'ok', value: entry.value },
+    {
+      levels: entry.groups,
+      highOverLow: typeof entry.dataId.group_by === 'object'
+    }
+  );
 
 async function expectAnswer(page, entry) {
   const said = described(entry);
@@ -340,12 +349,107 @@ test.describe('stratified survival: moving the cut line', () => {
     await expectAnswer(page, caseOf('crp-at-4'));
     const [asked] = await page.evaluate(() => window.__ss.chart.statistics());
     expect(keyed({ ...asked, value: asked.answer.value })).toEqual(keyed(caseOf('crp-at-4')));
-    // One bar to the right with the keyboard: a new typed point, asked again.
-    await root(page).locator('.bv-hist canvas').focus();
+    // One bar to the right with the keyboard: a new typed point, asked again
+    // once the keys rest.
+    await root(page).locator('.bv-cut-handle').first().focus();
     await page.keyboard.press('ArrowRight');
+    await expect(line(page)).toHaveAttribute('data-state', 'unavailable');
     const [moved] = await page.evaluate(() => window.__ss.chart.model.cut.points);
     expect(moved).toBeGreaterThan(4);
-    await expect(line(page)).toHaveAttribute('data-state', 'unavailable');
+  });
+
+  test('SS-DRAG-004: a click on a cut line, with no drag, leaves it where it is and asks R nothing; a drag moves it by as much as the pointer moves, from where it took hold (#61)', async ({
+    page
+  }) => {
+    await open(page);
+    await page.evaluate(() => {
+      window.__runs = 0;
+      window.__ss.chart.setSettings({
+        connection: {
+          run: () => {
+            window.__runs += 1;
+            return Promise.resolve({ status: 'unavailable', reason: 'not-precomputed' });
+          }
+        }
+      });
+    });
+    expect(await page.evaluate(() => window.__runs)).toBe(1);
+    const median = caseOf('crp-median').points[0];
+    const canvas = root(page).locator('.bv-hist canvas');
+    await canvas.scrollIntoViewIfNeeded();
+    const box = await canvas.boundingBox();
+    const pixelOf = (value) =>
+      page.evaluate((value) => window.__ss.chart.charts[1].scales.x.getPixelForValue(value), value);
+    const at = await pixelOf(median);
+    const y = box.y + box.height / 2;
+    // A click six pixels right of the line.
+    await page.mouse.click(box.x + at + 6, y);
+    expect(await page.evaluate(() => window.__ss.chart.model.cut.points)).toEqual([median]);
+    expect(await page.evaluate(() => window.__ss.chart.model.cut.cut)).toBe('median');
+    expect(await page.evaluate(() => window.__runs)).toBe(1);
+    // Taken hold of six pixels to its right and moved forty: the line moves forty.
+    await page.mouse.move(box.x + at + 6, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + at + 46, y, { steps: 5 });
+    await page.mouse.up();
+    const [dropped] = await page.evaluate(() => window.__ss.chart.model.cut.points);
+    const expected = await page.evaluate(
+      (pixel) => window.__ss.chart.charts[1].scales.x.getValueForPixel(pixel),
+      at + 40
+    );
+    expect(Math.abs(dropped - expected)).toBeLessThan(0.05);
+    expect(await page.evaluate(() => window.__runs)).toBe(2);
+  });
+
+  test('SS-DRAG-005: each cut line is a slider of its own: at the tertiles the second line takes the focus and its arrows move it, the curves at once, R once the keys rest; it stops at its neighbours and inside the values (#61)', async ({
+    page
+  }) => {
+    await open(page, { settings: { group_by: { ...CRP, cut: 'tertiles' } } });
+    await page.evaluate(() => {
+      window.__runs = 0;
+      window.__ss.chart.setSettings({
+        connection: {
+          run: () => {
+            window.__runs += 1;
+            return Promise.resolve({ status: 'unavailable', reason: 'not-precomputed' });
+          }
+        }
+      });
+    });
+    const handles = root(page).locator('.bv-cut-handle');
+    await expect(handles).toHaveCount(2);
+    const [low, high] = caseOf('crp-tertiles').points;
+    const second = handles.nth(1);
+    await expect(second).toHaveAttribute('role', 'slider');
+    await expect(second).toHaveAttribute('aria-valuenow', String(high));
+    await expect(second).toHaveAttribute('aria-valuemin', String(low));
+    await second.focus();
+    const before = await page.evaluate(() => window.__runs);
+    for (let i = 0; i < 3; i += 1) await page.keyboard.press('ArrowRight');
+    // The curves have moved while the keys were pressed, and the focus stays.
+    await expect(handles.nth(1)).toBeFocused();
+    const moving = await page.evaluate(() => window.__ss.chart.model.cut.points);
+    expect(moving[0]).toBe(low);
+    expect(moving[1]).toBeGreaterThan(high);
+    // Once the keys rest, R is asked once, for typed points.
+    await expect.poll(() => page.evaluate(() => window.__runs)).toBe(before + 1);
+    await page.waitForTimeout(600);
+    expect(await page.evaluate(() => window.__runs)).toBe(before + 1);
+    expect(await page.evaluate(() => Array.isArray(window.__ss.chart.model.cut.cut))).toBe(true);
+    await expect(handles.nth(1)).toBeFocused();
+    // Far left: it stops short of the first line.
+    for (let i = 0; i < 40; i += 1) await page.keyboard.press('ArrowLeft');
+    await expect.poll(() => page.evaluate(() => window.__runs)).toBe(before + 2);
+    const stopped = await page.evaluate(() => window.__ss.chart.model.cut.points);
+    expect(stopped[1]).toBeGreaterThan(stopped[0]);
+    // The first line, to the far left: it stops at the least value.
+    await handles.first().focus();
+    await page.keyboard.press('Home');
+    await expect.poll(() => page.evaluate(() => window.__runs)).toBe(before + 3);
+    const least = await page.evaluate(() => Math.min(...window.__ss.chart.model.values));
+    expect(
+      (await page.evaluate(() => window.__ss.chart.model.cut.points))[0]
+    ).toBeGreaterThanOrEqual(Number(least.toPrecision(4)));
   });
 
   test('SS-DRAG-003: an answer asked for before the line was taken hold of is never shown: the line waits for the cut it is let go at (#61)', async ({
@@ -458,6 +562,22 @@ test.describe('stratified survival: the tables', () => {
       )
     );
     expectCurves(await curvesOf(page), caseOf('crp-median'));
+    // Outcome rows for participants neither table has are not used, and counted.
+    await page.evaluate(() =>
+      window.BioVizDemo.loadOutcomes('/site/data/synthetic-study/').then((outcomes) =>
+        window.__ss.chart.setData({
+          ...window.__ss.data,
+          outcomes: [
+            ...outcomes,
+            { USUBJID: 'NOBODY-1', PARAMCD: 'EFS', AVAL: '3', CNSR: '0' },
+            { USUBJID: 'NOBODY-2', PARAMCD: 'EFS', AVAL: '4', CNSR: '1' }
+          ]
+        })
+      )
+    );
+    await expect(root(page).locator('.sv-notes')).toContainText(
+      '2 rows not used: Outcome row for no such participant.'
+    );
     // An outcomes table without the column a setting names is refused by name.
     const message = await page.evaluate(() => {
       try {
@@ -489,6 +609,44 @@ test.describe('stratified survival: the tables', () => {
     await expectAnswer(page, entry);
     const [asked] = await page.evaluate(() => window.__ss.chart.statistics());
     expect(asked.args).toEqual(entry.args);
+    // Named alone, later, the event column reads the table the other way round,
+    // as it does when the chart is made: through setSettings and setData.
+    const later = await page.evaluate((outcomes) => {
+      const both = outcomes.map((row) => ({ ...row, CNSR: String(1 - Number(row.EVENT)) }));
+      const chart = window.BioViz.stratifiedSurvival('#chart', {
+        group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' }
+      }).init({ ...window.__ss.data, outcomes: both });
+      chart.setSettings({ event_col: 'EVENT' });
+      const fromSettings = [chart.settings.censor_col, chart.settings.event_col];
+      chart.setData({ ...window.__ss.data, outcomes }, { event_col: 'EVENT' });
+      return { fromSettings, fromData: [chart.settings.censor_col, chart.settings.event_col] };
+    }, entry.tables.outcomes);
+    expect(later).toEqual({ fromSettings: [null, 'EVENT'], fromData: [null, 'EVENT'] });
+  });
+
+  test('SS-STAT-010: where some participants have a value and no outcome, the median is the median of those drawn, as R’s Analyze_Screen takes it: the cut, each group’s count and R’s answer are the ones desktop R gives (#61)', async ({
+    page
+  }) => {
+    await open(page, { make: false });
+    const entry = caseOf('crp-median-30-without-outcome');
+    await page.evaluate(
+      ({ outcomes, results }) => {
+        window.__ss.chart = window.BioViz.stratifiedSurvival('#chart', {
+          group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+          connection: window.BioViz.r.createConnection({ results })
+        }).init({ ...window.__ss.data, outcomes });
+      },
+      { outcomes: entry.tables.outcomes, results: stored('crp-median-30-without-outcome') }
+    );
+    expect(await page.evaluate(() => window.__ss.chart.model.cut.points)).toEqual(entry.points);
+    expectCurves(await curvesOf(page), entry);
+    await expectAnswer(page, entry);
+    await expect(root(page).locator('.sv-notes')).toContainText(
+      '30 left out: No outcome for the endpoint.'
+    );
+    await expect(footnote(page)).toContainText(
+      'Only participants with an outcome for the endpoint are cut'
+    );
   });
 });
 
@@ -517,6 +675,17 @@ test.describe('stratified survival: listing and participant profile', () => {
     );
     expect(listed.sort()).toEqual(entry.ids.filter((_, i) => entry.group_of[i] === group).sort());
     await expect(footnote(page)).toContainText(`${group}: ${listed.length} participants listed.`);
+    // A click away from every curve lists nothing new.
+    await page.evaluate(() => window.__ss.chart.clearSelection());
+    await page.mouse.click(box.x + box.width - 60, box.y + 30);
+    expect(await page.evaluate(() => window.__ss.chart.host.currentTableData.length)).toBe(0);
+    // The legend hides neither a curve nor its marks.
+    const legendHidden = await page.evaluate(() => {
+      const chart = window.__ss.chart.charts[0];
+      chart.options.plugins.legend.onClick({}, { datasetIndex: 0 }, chart.legend);
+      return chart.data.datasets.map((_, index) => !chart.isDatasetVisible(index));
+    });
+    expect(legendHidden.every((hidden) => hidden === false)).toBe(true);
     // A count of the strip: those at risk at the second time.
     const strip = await stripOf(page);
     const time = strip.times[1];
@@ -613,6 +782,30 @@ test.describe('stratified survival: on a phone and on the site', () => {
     expect((await measure()).scrollWidth).toBeLessThanOrEqual((await measure()).viewport);
     await page.locator('.sv-sidebar-toggle').first().click();
     expect((await measure()).scrollWidth).toBeLessThanOrEqual((await measure()).viewport);
+    // Each count of the at-risk strip stays on one line; the strip scrolls in
+    // its own box when it is wider than the page.
+    const wrapped = await page.evaluate(() =>
+      [...document.querySelectorAll('#chart .bv-risk th, #chart .bv-risk td')]
+        .filter((cell) => {
+          // A text that wraps has more than one line box: rects at more than
+          // one height.
+          const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+          const tops = new Set();
+          for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            for (const rect of range.getClientRects()) tops.add(Math.round(rect.top));
+          }
+          return tops.size > 1;
+        })
+        .map((cell) => cell.textContent)
+    );
+    expect(wrapped).toEqual([]);
+    const strip = await page.evaluate(() => {
+      const wrap = document.querySelector('#chart .bv-risk-wrap');
+      return { overflow: getComputedStyle(wrap).overflowX, width: wrap.clientWidth };
+    });
+    expect(strip.overflow).toBe('auto');
     await captureEvidence(page.locator('#demo'), 'SS-SITE-001', 'demo-on-a-phone');
     await context.close();
   });

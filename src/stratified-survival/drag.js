@@ -23,13 +23,20 @@ export const dropPoint = (value) => Number(writePoint(value));
  * @param {number[]} points The cut points, ascending.
  * @param {number} index Which point is moved.
  * @param {number} value Where it is moved to.
- * @param {{drop?: boolean}} [options] `drop`: the line is let go, so the point
- *   lands as its label writes it.
+ * @param {{drop?: boolean, min?: number, max?: number}} [options] `drop`: the
+ *   line is let go, so the point lands as its label writes it. `min` and `max`:
+ *   the least and the greatest value cut, which a line stays between.
  * @returns {?number[]} The points.
  */
-export function movePoints(points, index, value, { drop = false } = {}) {
+export function movePoints(
+  points,
+  index,
+  value,
+  { drop = false, min = -Infinity, max = Infinity } = {}
+) {
   if (!Number.isFinite(value) || index < 0 || index >= points.length) return null;
-  const point = drop ? dropPoint(value) : value;
+  const inside = Math.min(max, Math.max(min, value));
+  const point = drop ? Math.min(max, Math.max(min, dropPoint(inside))) : inside;
   const below = index > 0 ? points[index - 1] : -Infinity;
   const above = index < points.length - 1 ? points[index + 1] : Infinity;
   if (!(point > below && point < above)) return null;

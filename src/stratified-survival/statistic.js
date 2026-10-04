@@ -96,6 +96,10 @@ export function survivalRequest({ name, settings, state, model }) {
  * @param {object} result What `connection.run` resolved to.
  * @param {object} [context]
  * @param {string} [context.scope] What the test covers, in a sentence.
+ * @param {string[]} [context.levels] The groups in the legend's order, which
+ *   the medians are listed in.
+ * @param {boolean} [context.highOverLow] Whether the groups are a cut's, so the
+ *   hazard ratio is the higher group's over the lower's and is named so.
  * @returns {{state: string, text: string, estimates: string[],
  *   remarks: Array<{kind: string, text: string}>, scope: ?string}}
  */
@@ -105,9 +109,32 @@ export function describeAnswer(result, context = {}) {
     const formatted = formatStatistic(value);
     const described = sentence(formatted.status, formatted.text);
     if (formatted.status === 'shown') {
-      described.estimates = (Array.isArray(value.estimates) ? value.estimates : [])
-        .filter((row) => row && typeof row === 'object')
-        .map((row) => (row.name === 'Median' ? formatMedian(row) : formatEstimate(row)).text);
+      const rows = (Array.isArray(value.estimates) ? value.estimates : []).filter(
+        (row) => row && typeof row === 'object'
+      );
+      // The medians in the legend's order, which for a cut runs low to high
+      // while R lists the groups high to low.
+      const order = context.levels || [];
+      const place = (row) => {
+        const at = order.indexOf(row.group);
+        return at < 0 ? order.length : at;
+      };
+      const medians = rows.filter((row) => row.name === 'Median');
+      medians.sort((a, b) => place(a) - place(b));
+      described.estimates = [
+        ...medians.map((row) => formatMedian(row).text),
+        ...rows
+          .filter((row) => row.name !== 'Median')
+          .map(
+            (row) =>
+              formatEstimate(
+                // For a cut, R's first group is the higher: the ratio says so.
+                row.name === 'Hazard ratio' && context.highOverLow
+                  ? { ...row, name: 'Hazard ratio, high over low' }
+                  : row
+              ).text
+          )
+      ];
     }
     described.remarks = remarksOf(value);
     described.scope = context.scope || null;

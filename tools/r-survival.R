@@ -140,8 +140,9 @@ group_of <- function(variable, keep, tables) {
 # records: an event, a censoring, or both.
 curve_of <- function(time, event) {
   fit <- survival::survfit(survival::Surv(time, event) ~ 1)
-  list(time = fit$time, n_risk = fit$n.risk, n_event = fit$n.event, n_censor = fit$n.censor,
-       surv = fit$surv)
+  # Lists, so a curve of one time is written as an array like any other.
+  list(time = as.list(fit$time), n_risk = as.list(fit$n.risk), n_event = as.list(fit$n.event),
+       n_censor = as.list(fit$n.censor), surv = as.list(fit$surv))
 }
 
 # A case: the view's rows for the participants the filters keep who have a
@@ -157,13 +158,16 @@ case <- function(name, group_by, filters = list(), tables = list(), flag = "CNSR
   people <- tables$participants
   keep <- rep(TRUE, nrow(people))
   for (column in names(filters)) keep <- keep & people[[column]] %in% filters[[column]]
-  groups <- group_of(group_by, keep, tables)
   outcomes <- tables$outcomes[tables$outcomes$PARAMCD == endpoint, ]
   at <- match(people$USUBJID, outcomes$USUBJID)
   time <- outcomes$AVAL[at]
   flags <- outcomes[[flag]][at]
   event <- if (flag == "CNSR") flags == 0 else flags == 1
-  used <- keep & !is.na(groups$values) & !is.na(time) & !is.na(flags) & time >= 0
+  # A cut's points are worked out on the participants kept who have an
+  # outcome, the ones drawn, as Analyze_Screen cuts them for its hazard ratio.
+  outcome <- !is.na(time) & !is.na(flags) & time >= 0
+  groups <- group_of(group_by, keep & outcome, tables)
+  used <- keep & !is.na(groups$values) & outcome
   levels <- if (is.null(groups$levels)) sort(unique(groups$values[used]), method = "radix") else groups$levels
   levels <- levels[levels %in% groups$values[used]]
   rows <- data.frame(USUBJID = people$USUBJID[used], time = time[used], group = groups$values[used],
@@ -223,6 +227,30 @@ no_event_tables <- local({
   )
 })
 
+# A group of one, and an event at time 0 with a censoring at time 0 beside it,
+# and ties: the curves' edge cases. R withholds the test (a group below its
+# minimum size); the curves are still each group's survfit() estimate.
+edge_tables <- local({
+  people <- data.frame(USUBJID = sprintf("E-%02d", 1:11), ARM = c("Solo", rep("Many", 10)),
+                       stringsAsFactors = FALSE)
+  list(
+    participants = people,
+    results = data.frame(USUBJID = people$USUBJID, VISIT = "Day 1", VISITNUM = 1, TEST = "X", STRESU = "u",
+                         STRESN = 1, stringsAsFactors = FALSE),
+    outcomes = data.frame(
+      USUBJID = people$USUBJID, PARAMCD = "EFS", PARAM = "Event-free survival (months)",
+      AVAL = c(4, 0, 0, 1, 2, 3, 3, 5, 6, 7, 8),
+      CNSR = c(0L, 0L, 1L, 0L, 1L, 0L, 0L, 1L, 0L, 1L, 0L), stringsAsFactors = FALSE
+    )
+  )
+})
+
+without_tables <- local({
+  crp_baseline <- result_at(study_results, study_people, "CRP", "Baseline")
+  highest <- study_people$USUBJID[order(-crp_baseline)][1:30]
+  list(outcomes = study_outcomes[!study_outcomes$USUBJID %in% highest, ])
+})
+
 cases <- list(
   case("crp-median", crp("median")),
   # Where the demo's cut line is dropped in the tests: the point as its label
@@ -231,10 +259,14 @@ cases <- list(
   case("crp-tertiles", crp("tertiles")),
   case("arm", "ARM"),
   case("crp-median-women", crp("median"), filters = list(SEX = "F")),
-  # CRP cut at 10 leaves 4 participants above it: below R's minimum group size.
+  # CRP cut at 10 leaves 2 participants above it: below R's minimum group size.
   case("crp-at-10", crp(list(10))),
   case("crp-median-event-flag", crp("median"), tables = event_tables, flag = "EVENT"),
-  case("no-events-in-one-arm", "ARM", tables = no_event_tables)
+  case("no-events-in-one-arm", "ARM", tables = no_event_tables),
+  case("a-group-of-one-and-an-event-at-0", "ARM", tables = edge_tables),
+  # The thirty participants with the highest CRP at Baseline have no outcome:
+  # the median is the median of the rest, the participants drawn.
+  case("crp-median-30-without-outcome", crp("median"), tables = without_tables)
 )
 
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")

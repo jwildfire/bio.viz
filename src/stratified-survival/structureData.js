@@ -28,9 +28,18 @@ export const LEFT_OUT = Object.freeze({
   NEGATIVE_TIME: 'Time is negative'
 });
 
+/** Why a row of the outcomes table is not used, as the chart says it. */
+export const OUTCOME_UNUSED = Object.freeze({
+  NO_PARTICIPANT: 'Outcome row for no such participant'
+});
+
 const grouping = (by) => (isCut(by) ? by : { col: by });
 const numberOf = (value) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  // A flag may be logical, as R's Analyze_Survival takes one.
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (value === 'TRUE' || value === 'true') return 1;
+  if (value === 'FALSE' || value === 'false') return 0;
   if (typeof value !== 'string' || value.trim() === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
@@ -153,10 +162,58 @@ export function buildSurvival(
   // through have no results. The core is not handed a table of no rows.
   if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
 
+  // The endpoint's rows of the outcomes table, by participant. A row for a
+  // participant neither table has, or with no id, is not used, and counted;
+  // one for a participant the filters set aside is theirs, and is not.
+  const outcomeId = settings.outcome_id_col || idCol;
+  const flag = flagOf(settings);
+  const participantIdCol = settings.participant_id_col || idCol;
+  const known = new Set(
+    (participants || results)
+      .map((row) => row[participants ? participantIdCol : idCol])
+      .filter((id) => !isBlank(id))
+      .map(String)
+  );
+  const byId = new Map();
+  let strangers = 0;
+  for (const row of outcomes) {
+    if (String(row[settings.endpoint_col]) !== state.endpoint) continue;
+    if (isBlank(row[outcomeId]) || !known.has(String(row[outcomeId]))) {
+      strangers += 1;
+      continue;
+    }
+    const id = String(row[outcomeId]);
+    byId.set(id, [...(byId.get(id) || []), row]);
+  }
+  // A participant's outcome for the endpoint, or why there is none to use.
+  const outcomeOf = (id) => {
+    const found = byId.get(String(id)) || [];
+    if (!found.length) return { reason: LEFT_OUT.NO_OUTCOME };
+    if (found.length > 1) return { reason: LEFT_OUT.SEVERAL_OUTCOMES };
+    const time = numberOf(found[0][settings.time_col]);
+    const flagged = numberOf(found[0][flag.col]);
+    if (time === null || flagged === null) return { reason: LEFT_OUT.MISSING_OUTCOME };
+    if (flagged !== 0 && flagged !== 1) return { reason: LEFT_OUT.NOT_A_FLAG };
+    if (time < 0) return { reason: LEFT_OUT.NEGATIVE_TIME };
+    return { time, flag: flagged, event: flag.field === 'censor' ? flagged === 0 : flagged === 1 };
+  };
+  const hasOutcome = (id) => !isBlank(id) && !outcomeOf(id).reason;
+
   // A cut variable's points are worked out on the participants the filters
-  // keep who have a value of it, whether or not they have an outcome.
+  // keep who have a value of it and an outcome for the endpoint: the ones the
+  // curves are drawn of, so a median cuts them in halves, as R's
+  // Analyze_Screen cuts a biomarker for its hazard ratio.
   const cut = isCut(state.groupBy)
-    ? cutOf({ results: rows, participants: kept }, state.groupBy, settings)
+    ? cutOf(
+        kept
+          ? {
+              results: rows,
+              participants: kept.filter((row) => hasOutcome(row[participantIdCol]))
+            }
+          : { results: rows.filter((row) => hasOutcome(row[idCol])), participants: null },
+        state.groupBy,
+        settings
+      )
     : null;
   const made = frame(
     { results: rows, participants: kept || undefined },
@@ -164,52 +221,24 @@ export function buildSurvival(
     config
   );
 
-  // The endpoint's rows of the outcomes table, by participant.
-  const outcomeId = settings.outcome_id_col || idCol;
-  const flag = flagOf(settings);
-  const byId = new Map();
-  for (const row of outcomes) {
-    if (String(row[settings.endpoint_col]) !== state.endpoint || isBlank(row[outcomeId])) continue;
-    const id = String(row[outcomeId]);
-    byId.set(id, [...(byId.get(id) || []), row]);
-  }
-
   const left = new Map();
   const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
   const records = [];
   const values = [];
   for (const record of made.data) {
     const id = String(record[idCol]);
+    const outcome = outcomeOf(id);
+    if (outcome.reason) {
+      leave(outcome.reason);
+      continue;
+    }
     if (cut) values.push(record.group);
-    const found = byId.get(id) || [];
-    if (!found.length) {
-      leave(LEFT_OUT.NO_OUTCOME);
-      continue;
-    }
-    if (found.length > 1) {
-      leave(LEFT_OUT.SEVERAL_OUTCOMES);
-      continue;
-    }
-    const time = numberOf(found[0][settings.time_col]);
-    const flagged = numberOf(found[0][flag.col]);
-    if (time === null || flagged === null) {
-      leave(LEFT_OUT.MISSING_OUTCOME);
-      continue;
-    }
-    if (flagged !== 0 && flagged !== 1) {
-      leave(LEFT_OUT.NOT_A_FLAG);
-      continue;
-    }
-    if (time < 0) {
-      leave(LEFT_OUT.NEGATIVE_TIME);
-      continue;
-    }
     records.push({
       [idCol]: id,
       group: cut ? groupLabel(record.group, cut) : String(record.group),
-      time,
-      flag: flagged,
-      event: flag.field === 'censor' ? flagged === 0 : flagged === 1
+      time: outcome.time,
+      flag: outcome.flag,
+      event: outcome.event
     });
   }
 
@@ -245,7 +274,10 @@ export function buildSurvival(
     bars: cut ? histogramOf(values) : [],
     participants: made.participants,
     dropped: [...made.dropped, ...[...left].map(([reason, n]) => ({ reason, n }))],
-    unused: made.unused,
+    unused: [
+      ...made.unused,
+      ...(strangers ? [{ reason: OUTCOME_UNUSED.NO_PARTICIPANT, n: strangers }] : [])
+    ],
     last
   };
 }
