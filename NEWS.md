@@ -31,7 +31,7 @@ This release adds two charts, survival rows in the biomarker screen, and three w
 
 ## Tests and provenance
 
-453 unit and 361 browser tests pass, and each of the 686 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.
+454 unit and 361 browser tests pass, and each of the 687 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.
 
 # bio.viz v0.1.0
 

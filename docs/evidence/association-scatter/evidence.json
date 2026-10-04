@@ -1,6 +1,6 @@
 {
   "module": "association-scatter",
-  "generatedAt": "2026-10-04T21:23:14.870Z",
+  "generatedAt": "2026-10-04T21:34:21.164Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37235838145",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37235838145"
+    "id": "37236598105",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37236598105"
   },
   "records": [
     {
