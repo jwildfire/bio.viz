@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { describeAnswer } from '../../src/cross-tab/statistic.js';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import {
   expectDropsCounted,
   expectFailureSaid,
@@ -198,6 +198,17 @@ test.describe('cross-tabulation: what is drawn', () => {
     await expect(line(page).locator('.bv-stat-result')).toHaveText(resultText(entry));
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'CT-DRAW-001', 'arm-by-response');
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate((titles) => window.__ct.chart.setSettings(titles), {
+      title: '{rows} by {columns}',
+      subtitle: '{n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    await captureGallery(page.locator('#chart .sv-main'), 'CT-DRAW-001');
   });
 
   test('CT-DRAW-002: column percentages are each count of its column’s total, and the bars then stack each column by the rows; with none there are no percentages (#44)', async ({

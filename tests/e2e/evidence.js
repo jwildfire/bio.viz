@@ -83,3 +83,45 @@ export const FIXED_DATE = new Date('2026-10-04T12:00:00Z');
  * animation may fix the clock.
  */
 export const fixClock = (page) => page.clock.setFixedTime(FIXED_DATE);
+
+/**
+ * The gallery's picture of a chart (#66): its frame, `root`, captured as the
+ * reader of a figure sees it, with its title and its own footnote, which says
+ * what stands behind its statistics, inside the capture. Waits for R's answer,
+ * and fails, rather than capture, when the frame lacks either.
+ * @param {import('@playwright/test').Locator} root The chart's frame, `.sv-main`.
+ * @param {string} requirementId The chart's DRAW-001 requirement.
+ */
+export async function captureGallery(root, requirementId) {
+  const page = root.page();
+  // What a reader works the chart with is left out, as the chart's own PNG
+  // leaves it out: the controls under it, the listing, the bar of downloads.
+  const hidden = await page.addStyleTag({ content: '.bv-no-picture{display:none !important}' });
+  const title = root.locator('.bv-title');
+  const automatic = root.locator('.bv-foot-line[data-automatic="true"]');
+  await expect(title).toBeVisible();
+  await expect(automatic).toBeVisible();
+  // The footnote names R's method and counts: R has answered.
+  await expect(automatic).toContainText('Statistics: ');
+  await expect(automatic).not.toContainText('waiting for R');
+  await expect(automatic).not.toContainText('unavailable');
+  const [frame, foot, heading] = await Promise.all([
+    root.boundingBox(),
+    automatic.boundingBox(),
+    title.boundingBox()
+  ]);
+  for (const [part, box] of [
+    ['the title', heading],
+    ['the chart’s own footnote', foot]
+  ]) {
+    expect(box.y, `${requirementId}: ${part} is inside the capture`).toBeGreaterThanOrEqual(
+      frame.y
+    );
+    expect(
+      box.y + box.height,
+      `${requirementId}: ${part} is inside the capture`
+    ).toBeLessThanOrEqual(frame.y + frame.height + 0.5);
+  }
+  await captureEvidence(root, requirementId, 'as-the-gallery-shows-it');
+  await hidden.evaluate((style) => style.remove());
+}

@@ -12,7 +12,7 @@ import {
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -439,6 +439,17 @@ test.describe('correlation matrix: what is drawn', () => {
       'CM-DRAW-001',
       'biomarkers-at-baseline'
     );
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate((titles) => window.__cm.chart.setSettings(titles), {
+      title: '{heading}',
+      subtitle: '{variables} variables, {n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    await captureGallery(root(page).locator('.sv-main'), 'CM-DRAW-001');
   });
 
   test('CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)', async ({

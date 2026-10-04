@@ -11,7 +11,7 @@ import {
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -225,6 +225,25 @@ test.describe('group comparison: what is drawn', () => {
     );
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'GC-DRAW-001', 'boxes-by-arm');
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate(
+      ({ results, ...titles }) =>
+        window.__gc.chart.setSettings({
+          ...titles,
+          connection: window.BioViz.r.createConnection({ results })
+        }),
+      {
+        results: stored('welch'),
+        title: '{value}: {measure} by {group}',
+        subtitle: 'At {visits}',
+        footnotes: [
+          'Synthetic study from gsm.bio: no real participant is shown.',
+          'Filters: {filters}.'
+        ]
+      }
+    );
+    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001');
   });
 
   test('GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)', async ({
