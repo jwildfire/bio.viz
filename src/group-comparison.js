@@ -1288,11 +1288,13 @@ class GroupComparison {
   /**
    * The table the chart drew from, one row per participant drawn, for the
    * table download (#67): which field of a row each column holds, and its
-   * heading.
+   * heading. In the overview, one row per participant, biomarker and visit
+   * drawn on its page of biomarkers (#78).
    * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
    */
   tableOf() {
-    const { model, state, settings } = this;
+    const { model, state, settings, overview } = this;
+    if (!model && overview) return this.overviewTable();
     if (!model || !model.panels) return { columns: [], rows: [] };
     const visits = model.panels.some((panel) => panel.visit !== null && panel.visit !== undefined);
     const columns = [{ value_col: settings.id_col, label: 'Participant' }];
@@ -1306,6 +1308,27 @@ class GroupComparison {
     });
     const rows = model.panels.flatMap((panel) =>
       panel.records.map((record) => ({ ...record, visit: panel.visit }))
+    );
+    return { columns, rows };
+  }
+
+  // The overview's table: every value drawn on its page of biomarkers, each
+  // row naming its biomarker and its visit. The overview draws no panel
+  // column; its values are of the one value type the controls choose.
+  overviewTable() {
+    const { overview, state, settings } = this;
+    const columns = [
+      { value_col: settings.id_col, label: 'Participant' },
+      { value_col: 'biomarker', label: 'Biomarker' },
+      { value_col: 'visit', label: 'Visit' }
+    ];
+    if (state.groupBy) columns.push({ value_col: 'x', label: this.labelOf(state.groupBy) });
+    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
+    columns.push({ value_col: 'y', label: VALUE_LABELS[state.valueType] || state.valueType });
+    const rows = overview.rows.flatMap((row) =>
+      row.model.panels.flatMap((panel) =>
+        panel.records.map((record) => ({ ...record, biomarker: row.measure, visit: panel.visit }))
+      )
     );
     return { columns, rows };
   }

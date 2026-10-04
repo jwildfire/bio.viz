@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-04T19:02:45.747Z",
+  "generatedAt": "2026-10-04T21:34:21.164Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37226711557",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37226711557"
+    "id": "37236598105",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37236598105"
   },
   "records": [
     {
@@ -821,6 +821,14 @@
       "screenshots": []
     },
     {
+      "test": "evidence pictures: the version each one draws CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, and no record is left without its picture (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-017"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
       "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
       "suite": "unit",
       "status": "pass",
@@ -874,6 +882,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-016"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {

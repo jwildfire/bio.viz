@@ -201,6 +201,20 @@ export async function verifyAgainstSource(directory, read) {
       );
     }
   }
+  // A release the record names is held to the same bytes at its own commit.
+  if (record.release) {
+    for (const entry of record.files || []) {
+      const theirs = Buffer.from(await read(record.release.commit, entry.source));
+      const file = path.join(directory, entry.file);
+      const ours = existsSync(file) ? readFileSync(file) : null;
+      if (!ours || !ours.equals(theirs)) {
+        problems.push(
+          `${entry.file}: differs from ${entry.source} at ${record.release.tag} ` +
+            `(${record.release.commit.slice(0, 7)}) of ${record.repository}.`
+        );
+      }
+    }
+  }
   if ((record.files || []).length === 0) problems.push(`${RECORD_FILE} records no files.`);
   return problems;
 }

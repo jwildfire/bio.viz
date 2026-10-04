@@ -361,6 +361,39 @@ describe('stratified survival: what R is asked, and what the line says', () => {
     expect(ONE_GROUP).toMatch(/^Statistics: no test\./);
   });
 
+  it('SS-STAT-011: a column’s groups are drawn in one order in every browser language, numbers in their names as numbers, and R is handed them in the legend’s order, so the hazard ratio is the legend’s first group’s over its second’s and says so (#78)', () => {
+    // The arms renamed as doses: by code point "10 mg" comes first, by name
+    // with numbers as numbers "2 mg" does.
+    const dose = caseOf('dose');
+    expect(dose.args.chrGroups).toEqual(['2 mg', '10 mg']);
+    const settings = settingsOf(dose);
+    const compare = String.prototype.localeCompare;
+    for (const locale of ['en', 'sv', 'de', 'tr']) {
+      String.prototype.localeCompare = function (other, _locales, options) {
+        return compare.call(this, other, locale, options);
+      };
+      try {
+        const model = modelOf(dose);
+        const request = survivalRequest({
+          name: settings.statistic,
+          settings,
+          state: stateOf(dose),
+          model
+        });
+        expect(model.levels, locale).toEqual(['2 mg', '10 mg']);
+        expect(request.args.chrGroups, locale).toEqual(model.levels);
+        expect(canonicalJson(request.args), locale).toBe(canonicalJson(dose.args));
+      } finally {
+        String.prototype.localeCompare = compare;
+      }
+    }
+    const described = describeAnswer(
+      { status: 'ok', value: dose.value },
+      { levels: ['2 mg', '10 mg'], highOverLow: false }
+    );
+    expect(described.estimates.at(-1)).toMatch(/^Hazard ratio \(2 mg \/ 10 mg\): 1\.228, /);
+  });
+
   it('SS-STAT-004: a hazard ratio R does not estimate is not printed, and R’s note says why, as R wrote it (#61)', () => {
     const value = caseOf('no-events-in-one-arm').value;
     const described = describeAnswer({ status: 'ok', value });

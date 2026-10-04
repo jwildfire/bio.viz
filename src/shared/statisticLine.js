@@ -36,7 +36,7 @@ export const sentence = (state, said) => ({
 // By Unicode code point, the order R's `sort(x, method = "radix")` puts text
 // in. An order both languages produce without a locale, so a list written by R
 // is the list written here.
-function byCodePoint(a, b) {
+export function byCodePoint(a, b) {
   const [first, second] = [[...a], [...b]];
   const shared = Math.min(first.length, second.length);
   for (let index = 0; index < shared; index += 1) {

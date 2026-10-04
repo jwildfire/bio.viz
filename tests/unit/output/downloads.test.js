@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { crc32 as zlibCrc32, deflateSync } from 'node:zlib';
 import { csvField, parseCsv, statisticsTable, toCsv } from '../../../src/shared/csv.js';
 import { crc32, pngChunks, readPng } from '../../../src/shared/png.js';
-import { DOWNLOAD_DEFAULTS } from '../../../src/shared/titles.js';
+import { DOWNLOAD_DEFAULTS, VERSION_SAID } from '../../../src/shared/titles.js';
 import { syncSettings as groupComparison } from '../../../src/group-comparison/configure.js';
 import { syncSettings as associationScatter } from '../../../src/association-scatter/configure.js';
 import { syncSettings as correlationMatrix } from '../../../src/correlation-matrix/configure.js';
@@ -139,7 +139,7 @@ describe('getting results out: the downloads', () => {
     });
   });
 
-  it('EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and its title and footnotes as international text, each chunk with its CRC, written after the header so any reader finds them (#67)', () => {
+  it('EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and as international text its title, its description and the software with its version, and no other text, each chunk with its CRC, written after the header so any reader finds them (#67, #78)', () => {
     // A PNG of one white pixel, made with node's zlib, its CRCs node's own.
     const chunkOf = (type, data) => {
       const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
@@ -170,16 +170,24 @@ describe('getting results out: the downloads', () => {
       text: {
         Title: 'CRP ≤ 2.783 — Arm, randomised',
         Description: 'Drawn on 2026-10-04.',
+        Software: `bio.viz ${VERSION_SAID}`,
         Empty: ''
       }
     });
     const read = readPng(written);
+    // The three the chart writes, and nothing else: an empty text is left out.
     expect(read).toEqual({
       width: 1,
       height: 1,
       perMetre: Math.round((2 * 96) / 0.0254),
-      text: { Title: 'CRP ≤ 2.783 — Arm, randomised', Description: 'Drawn on 2026-10-04.' }
+      text: {
+        Title: 'CRP ≤ 2.783 — Arm, randomised',
+        Description: 'Drawn on 2026-10-04.',
+        Software: `bio.viz ${VERSION_SAID}`
+      }
     });
+    // What a chart's download writes is held to these three in the page by
+    // EXP-SITE-001.
     // Each chunk's CRC is right.
     const view = new DataView(written.buffer);
     let at = 8;

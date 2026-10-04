@@ -116,9 +116,8 @@ export function cutNote(spec, cut) {
   }
   if (cut.merged) {
     said.push(
-      'The points differ only past four significant digits, so groups with the same bounds ' +
-        `are one, as R’s cut() makes them: ${cut.labels.length} groups, not ` +
-        `${cut.points.length + 1}.`
+      'The points differ only past four significant digits, so groups whose bounds are ' +
+        `written alike are one: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
     );
   }
   return said.join(' ');

@@ -18,7 +18,7 @@ describe('stratified survival: the API reference', () => {
   it('SS-SITE-003: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#61)', async () => {
     expect(entry).toMatchObject({
       kind: 'chart',
-      status: 'available',
+      status: 'experimental',
       demo: 'stratified-survival.js',
       matrix: 'stratified-survival.md',
       api: {

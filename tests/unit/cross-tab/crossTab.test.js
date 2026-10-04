@@ -6,9 +6,10 @@ import {
   TESTS,
   syncSettings
 } from '../../../src/cross-tab/configure.js';
-import { buildTable } from '../../../src/cross-tab/structureData.js';
+import { buildTable, percentText } from '../../../src/cross-tab/structureData.js';
 import { contingencyRequest, describeAnswer, scopeText } from '../../../src/cross-tab/statistic.js';
 import { createConnection } from '../../../src/r/index.js';
+import { categoryOrder } from '../../../src/shared/tables.js';
 import { canonicalJson } from '../../../src/r/canonical.js';
 import { participants, results } from '../core/study.js';
 
@@ -129,6 +130,28 @@ describe('cross-tabulation: the table', () => {
     expect(fromR.blank_code_points).toEqual(trimmed);
   });
 
+  it('CT-DATA-004: each percentage is printed to one decimal as R’s sprintf() prints it, a value exactly halfway to the even digit (6.25 as 6.2%), for every cell of every case (#78)', () => {
+    for (const { value, text } of fromR.percent_text) {
+      expect(percentText(value), String(value)).toBe(text);
+    }
+    expect(fromR.percent_text.find((sample) => sample.value === 6.25).text).toBe('6.2%');
+    for (const entry of fromR.cases) {
+      const model = modelOf(entry);
+      const at = (levels, name) => levels.indexOf(name);
+      for (const [percents, texts] of [
+        [model.percents.row, entry.row_percent_text],
+        [model.percents.col, entry.col_percent_text]
+      ]) {
+        entry.row_levels.forEach((row, i) =>
+          entry.col_levels.forEach((col, j) => {
+            const shown = percents[at(model.rowLevels, row)][at(model.colLevels, col)];
+            expect(percentText(shown), `${entry.case} ${row} | ${col}`).toBe(texts[i][j]);
+          })
+        );
+      }
+    }
+  });
+
   it('CT-DATA-002: the row and the column percentages are each count of its row’s or its column’s total, as desktop R works them out (#44)', () => {
     for (const entry of fromR.cases) {
       const model = modelOf(entry);
@@ -184,9 +207,10 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
     ]);
     expect(caseOf('arm-by-crp-change-median-chisq').dataId.baseline_visits).toEqual(['Baseline']);
 
-    // A column's categories are named in the key by code point, whatever order
-    // the table shows them in and whatever the browser's language: Week 10
-    // before Week 2, upper case before lower, ASCII before Ö.
+    // A column's categories are drawn, and named in the key, in one order
+    // whatever the browser's language, gsm.bio's: by name with numbers as
+    // numbers and A to Z read as a to z, otherwise by code point, so week 1
+    // before Week 2 before Week 10, and ASCII before Ö.
     const stages = caseOf('stage-by-grade-chisq');
     const requestIn = (locale) => {
       const compare = String.prototype.localeCompare;
@@ -209,13 +233,10 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
         String.prototype.localeCompare = compare;
       }
     };
-    const english = requestIn('en');
-    const swedish = requestIn('sv');
-    expect(english.shown.indexOf('Week 2')).toBeLessThan(english.shown.indexOf('Week 10'));
-    expect(english.shown).not.toEqual(swedish.shown);
-    for (const { request } of [english, swedish]) {
-      expect(request.args.chrRowGroups).toEqual(['Week 10', 'Week 2', 'week 1', 'Ödem']);
-      expect(request.args.chrColGroups).toEqual(['B', 'a']);
+    for (const { shown, request } of ['en', 'sv', 'de', 'tr'].map(requestIn)) {
+      expect(shown).toEqual(['week 1', 'Week 2', 'Week 10', 'Ödem']);
+      expect(request.args.chrRowGroups).toEqual(shown);
+      expect(request.args.chrColGroups).toEqual(['a', 'B']);
       expect(canonicalJson(request.args)).toBe(canonicalJson(stages.args));
       expect(canonicalJson(request.dataId)).toBe(canonicalJson(stages.dataId));
     }
@@ -228,12 +249,17 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
       "Pearson's Chi-squared test with Yates' continuity correction: p = 0.464 (n = 200). " +
         'Exploratory, unadjusted.'
     );
-    const fisher = describeAnswer({ status: 'ok', value: caseOf('arm-by-response-fisher').value });
+    const fisherCase = caseOf('arm-by-response-fisher');
+    const fisher = describeAnswer(
+      { status: 'ok', value: fisherCase.value },
+      { groups: { rows: fisherCase.args.chrRowGroups, cols: fisherCase.args.chrColGroups } }
+    );
     expect(fisher.text).toBe(
       "Fisher's Exact Test for Count Data: p = 0.464 (n = 200). Exploratory, unadjusted."
     );
+    // The odds ratio says which row is over which, and the odds of which column.
     expect(fisher.estimates).toEqual([
-      'odds ratio: 1.292, 95% confidence interval 0.6994 to 2.398.'
+      'odds ratio (Placebo / Treatment, odds of Non-responder against Responder): 1.292, 95% confidence interval 0.6994 to 2.398.'
     ]);
     expect(scopeText({ n: 91, filters: [{ label: 'Sex', values: ['F'] }] })).toBe(
       'This test is of the 91 participants in the table. Filters: Sex is F.'
@@ -288,6 +314,53 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
     expect(both.text).toMatch(/^Not computed: Arm = b has 3; Grade = > 10 has 2\./);
     // With no names given, R's words are printed as they are.
     expect(describeAnswer({ status: 'ok', value: small.value }).text).toMatch(/col = > 10/);
+  });
+
+  it('CT-STAT-014: a column’s categories are drawn in one order in every browser language, numbers in their names as numbers, and R is handed them in that order, so Fisher’s odds ratio is of the table drawn and says which row is over which (#78)', () => {
+    // The arms renamed as doses: by code point "10 mg" comes first, by name
+    // with numbers as numbers "2 mg" does.
+    const dose = caseOf('dose-by-response-fisher');
+    expect(dose.args.chrRowGroups).toEqual(['2 mg', '10 mg']);
+    // The order is gsm.bio's, as R sorts names on every rule it has.
+    const { given, sorted: inR } = fromR.category_order;
+    expect([...given].sort(categoryOrder)).toEqual(inR);
+    expect([...given].reverse().sort(categoryOrder)).toEqual(inR);
+    const compare = String.prototype.localeCompare;
+    for (const locale of ['en', 'sv', 'de', 'tr']) {
+      String.prototype.localeCompare = function (other, _locales, options) {
+        return compare.call(this, other, locale, options);
+      };
+      try {
+        const model = modelOf(dose);
+        const request = contingencyRequest({
+          name: settings.statistic,
+          test: 'fisher',
+          settings,
+          state: stateOf(dose),
+          model
+        });
+        // The table's first row is the first R is handed, in every language.
+        expect(model.rowLevels, locale).toEqual(['2 mg', '10 mg']);
+        expect(request.args.chrRowGroups, locale).toEqual(model.rowLevels);
+        expect(request.args.chrColGroups, locale).toEqual(model.colLevels);
+        expect(canonicalJson(request.args), locale).toBe(canonicalJson(dose.args));
+        // R's odds ratio is on the side of 1 the table drawn is: the odds of
+        // the first column in the first row over those in the second.
+        const [[a, b], [c, d]] = model.counts;
+        expect(Math.sign(Math.log((a * d) / (b * c)))).toBe(
+          Math.sign(Math.log(dose.value.estimates[0].estimate))
+        );
+      } finally {
+        String.prototype.localeCompare = compare;
+      }
+    }
+    const described = describeAnswer(
+      { status: 'ok', value: dose.value },
+      { groups: { rows: dose.args.chrRowGroups, cols: dose.args.chrColGroups } }
+    );
+    expect(described.estimates).toEqual([
+      'odds ratio (2 mg / 10 mg, odds of Non-responder against Responder): 1.292, 95% confidence interval 0.6994 to 2.398.'
+    ]);
   });
 
   it('CT-STAT-004: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its table (#44)', async () => {

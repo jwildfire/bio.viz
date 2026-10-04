@@ -17,7 +17,7 @@ import { frame } from '../core/frame.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 import { coreSettings } from '../shared/settings.js';
 import { LEFT_OUT, OUTCOME_UNUSED, listEndpoints, outcomesOf } from '../shared/outcomes.js';
-import { isBlank, keepFiltered, levelsOf } from '../shared/tables.js';
+import { categoriesOf, isBlank, keepFiltered } from '../shared/tables.js';
 
 // Why a participant with a group is not drawn, why an outcome row is not
 // used, and the endpoints of an outcomes table: the shared reading's
@@ -179,11 +179,12 @@ export function buildSurvival(
     });
   }
 
-  // The groups, low to high for a cut, by name for a column, those with
-  // someone drawn in them.
+  // The groups, low to high for a cut, by name with numbers as numbers for a
+  // column, the same in every browser language, those with someone drawn in
+  // them. R is handed a column's in this order.
   const levels = cut
     ? cut.labels.filter((label) => records.some((record) => record.group === label))
-    : levelsOf(records.map((record) => record.group));
+    : categoriesOf(records.map((record) => record.group));
   const last = records.reduce((most, record) => Math.max(most, record.time), 0);
   const times = settings.at_risk_times || timeTicks(last);
   const curves = levels.map((level) => {

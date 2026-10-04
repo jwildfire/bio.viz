@@ -31,7 +31,6 @@ const FIXTURE = '/tests/e2e/fixtures/cross-tab.html';
 const NO_R = 'Statistics are unavailable: no R is attached to this chart.';
 const CRP_MEDIAN = { measure: 'CRP', visit: 'Baseline', cut: 'median' };
 const CRP_TYPED = { measure: 'CRP', visit: 'Baseline', cut: [8] };
-const percentText = (value) => `${value.toFixed(1)}%`;
 
 const blockR = (page) =>
   page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
@@ -124,9 +123,9 @@ function expectTable(drawn, entry, percent = 'row') {
   const expected =
     percent === 'none'
       ? entry.counts.map((row) => row.map(() => null))
-      : (percent === 'row' ? entry.row_percent : entry.col_percent).map((row) =>
-          row.map(percentText)
-        );
+      : percent === 'row'
+        ? entry.row_percent_text
+        : entry.col_percent_text;
   expect(drawn.percents).toEqual(expected);
 }
 
@@ -236,7 +235,8 @@ test.describe('cross-tabulation: what is drawn', () => {
     const entry = caseOf('response-by-crp-median-chisq');
     expectTable(await tableOf(page), entry);
     await expect(footnote(page)).toContainText(
-      'CRP at Baseline is cut at its median, 2.783, worked out on the 200 participants with a value.'
+      'CRP at Baseline is cut at its median, 2.783, worked out on the 200 participants with a value. ' +
+        'Every participant the filters keep with a value is cut, whether or not they have a category the other way.'
     );
     const offered = await root(page)
       .locator('select[data-control="col-by"] option')
@@ -266,13 +266,45 @@ test.describe('cross-tabulation: the statistics line', () => {
       resultText(caseOf('arm-by-response-fisher'))
     );
     await expect(line(page).locator('.bv-stat-estimate')).toHaveText(
-      'odds ratio: 1.292, 95% confidence interval 0.6994 to 2.398.'
+      'odds ratio (Placebo / Treatment, odds of Non-responder against Responder): 1.292, 95% confidence interval 0.6994 to 2.398.'
     );
     const [asked] = await page.evaluate(() => window.__ct.chart.statistics());
     expect(keyed({ ...asked, value: asked.answer.value })).toEqual(
       keyed(caseOf('arm-by-response-fisher'))
     );
     await captureEvidence(root(page).locator('.sv-main'), 'CT-STAT-005', 'fisher-with-odds-ratio');
+  });
+
+  test('CT-STAT-015: with the arms named as doses, the table draws 2 mg before 10 mg, R is handed the rows in that order, and Fisher’s odds ratio is printed as R gave it for the table drawn, named 2 mg over 10 mg (#78)', async ({
+    page
+  }) => {
+    await open(page, { make: false });
+    const dose = caseOf('dose-by-response-fisher');
+    await page.evaluate((results) => {
+      const { data } = window.__ct;
+      const doses = { Placebo: '2 mg', Treatment: '10 mg' };
+      const participants = data.participants.map((row) => ({ ...row, ARM: doses[row.ARM] }));
+      const chart = window.BioViz.crossTab('#chart', {
+        row_by: 'ARM',
+        col_by: 'RESPONSE',
+        baseline_visits: 'Baseline',
+        test: 'fisher',
+        connection: window.BioViz.r.createConnection({ results })
+      });
+      window.__ct.chart = chart;
+      chart.init({ ...data, participants });
+    }, stored('dose-by-response-fisher'));
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const table = await tableOf(page);
+    expect(table.rows).toEqual(['2 mg', '10 mg']);
+    expect(table.cols).toEqual(['Non-responder', 'Responder']);
+    expect(table.counts).toEqual(dose.counts);
+    await expect(line(page).locator('.bv-stat-estimate')).toHaveText(
+      'odds ratio (2 mg / 10 mg, odds of Non-responder against Responder): 1.292, 95% confidence interval 0.6994 to 2.398.'
+    );
+    const [asked] = await page.evaluate(() => window.__ct.chart.statistics());
+    expect(asked.args.chrRowGroups).toEqual(table.rows);
+    expect(keyed({ ...asked, value: asked.answer.value })).toEqual(keyed(dose));
   });
 
   test('CT-STAT-006: R’s small-expected-count warning is printed with the result for a table with an expected count below 5, and not for one without (#44)', async ({

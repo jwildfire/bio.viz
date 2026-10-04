@@ -70,6 +70,10 @@ import { refuse } from './shared/settings.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
 
 const MODULE_CLASS = 'bv-stratified-survival';
+
+/** What the chart's Experimental banner says. */
+export const EXPERIMENTAL_NOTE =
+  'This chart is experimental: its curves are safety.viz’s Kaplan–Meier estimator, kmEstimate, which awaits its clinical review. It is tested and documented, but its behaviour and settings may change.';
 const STYLE_ID = 'bio-viz-stratified-survival-styles';
 const C = `.${MODULE_CLASS}`;
 const STYLES = `${lineStyles(C)}
@@ -171,6 +175,17 @@ class StratifiedSurvival {
       listingFile: 'bio.viz-stratified-survival-listing.csv'
     });
     const { kit } = this;
+    // The chart is experimental, as safety.viz marks its own: its curves are
+    // the kit's Kaplan–Meier estimator, which awaits its clinical review. The
+    // kit does not hand out its experimentalBanner, so the banner is made here
+    // in that function's markup, which the kit's styles draw.
+    const banner = kit.createElement('div', 'sv-experimental');
+    banner.setAttribute('role', 'note');
+    banner.append(
+      kit.createElement('span', 'sv-prototype-tag', 'Experimental'),
+      kit.createElement('span', 'sv-prototype-text', EXPERIMENTAL_NOTE)
+    );
+    this.main.prepend(banner);
     this.riskWrap = kit.createElement('div', 'bv-risk-wrap');
     this.histWrap = kit.createElement('div', 'bv-hist');
     this.histBox = kit.createElement('div', 'bv-hist-canvas');

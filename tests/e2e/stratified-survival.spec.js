@@ -150,6 +150,32 @@ async function expectAnswer(page, entry) {
 }
 
 test.describe('stratified survival: the page and the two bundles', () => {
+  test('SS-KIT-003: the chart carries safety.viz’s Experimental banner at its top, in the kit’s markup and styles, saying its curves are safety.viz’s estimator, which awaits its clinical review (#78)', async ({
+    page
+  }) => {
+    await open(page);
+    const banner = root(page).locator('.sv-main > .sv-experimental');
+    await expect(banner).toHaveCount(1);
+    await expect(banner).toHaveAttribute('role', 'note');
+    await expect(banner.locator('.sv-prototype-tag')).toHaveText('Experimental');
+    await expect(banner.locator('.sv-prototype-text')).toHaveText(
+      'This chart is experimental: its curves are safety.viz’s Kaplan–Meier estimator, kmEstimate, which awaits its clinical review. It is tested and documented, but its behaviour and settings may change.'
+    );
+    // First in the chart, above its titles, and drawn by the kit's styles.
+    const placed = await page.evaluate(() => {
+      const main = document.querySelector('#chart > .bv-stratified-survival .sv-main');
+      const shown = getComputedStyle(main.querySelector('.sv-experimental'));
+      return {
+        first: main.firstElementChild.classList.contains('sv-experimental'),
+        border: shown.borderLeftStyle
+      };
+    });
+    expect(placed).toEqual({ first: true, border: 'solid' });
+    // It stays when the chart draws again.
+    await page.evaluate(() => window.__ss.chart.setSettings({ group_by: 'ARM' }));
+    await expect(banner).toHaveCount(1);
+  });
+
   test('SS-KIT-001: the chart is built from safety.viz’s kit on the page, its curves the kit’s kmEstimate drawn with the kit’s Chart.js; without safety.viz it says what is missing (#61)', async ({
     page
   }) => {
@@ -771,6 +797,24 @@ test.describe('stratified survival: on a phone and on the site', () => {
     await expect(
       page.locator('#chart > .bv-stratified-survival .sv-main > .bv-statistic')
     ).toHaveAttribute('data-state', 'unavailable');
+  });
+
+  test('SS-SITE-004: the gallery card and the live demo mark the chart Experimental, with the reason, as the registry gives it (#78)', async ({
+    page
+  }) => {
+    await blockR(page);
+    await page.goto('/_site/gallery/index.html');
+    const card = page.locator('#charts [data-module="stratified-survival"]');
+    await expect(card.locator('.module-status .status-experimental')).toHaveText('Experimental');
+    await expect(card.locator('.module-status')).toContainText('awaits its clinical review');
+    await card.getByRole('link', { name: 'Live demo' }).click();
+    await expect(page.locator('.hero .module-status .status-experimental')).toHaveText(
+      'Experimental'
+    );
+    await expect(page.locator('#chart .sv-experimental')).toHaveCount(1);
+    // The other charts are not marked.
+    await page.goto('/_site/gallery/index.html');
+    await expect(page.locator('#charts .module-status')).toHaveCount(1);
   });
 
   test('SS-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#61)', async ({

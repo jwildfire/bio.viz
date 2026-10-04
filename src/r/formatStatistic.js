@@ -149,30 +149,51 @@ export function formatStatistic(statistic) {
 const figure = (value) => String(Number(value.toPrecision(4)));
 const isNumber = (value) => typeof value === 'number' && Number.isFinite(value);
 
+// A number or an infinity R gave: R's Inf and -Inf, as fisher.test() gives
+// for the odds ratio of a table with an empty cell. Not-a-number is neither.
+const isNumberOrInfinite = (value) => isNumber(value) || value === Infinity || value === -Infinity;
+
+// A bound as printed: its four figures, or the infinity R gave.
+const bound = (value) => {
+  if (value === Infinity) return 'infinity';
+  if (value === -Infinity) return 'minus infinity';
+  return figure(value);
+};
+
 /**
  * Formats one estimate R returned: one row of a result's `estimates`. The
  * numbers are printed to four significant figures and are otherwise R's: the
  * estimate, and its interval with the level R computed it at when R gave one.
+ * An infinite estimate or bound, as R gives the odds ratio of a two-by-two
+ * table with an empty cell, is printed in words: `infinite` (or `minus
+ * infinity`) for the estimate, `infinity` for a bound, the finite bound as it
+ * is.
  *
  * @param {{name?: string, group?: string, estimate?: number, lower?: number,
  *   upper?: number, level?: number}} estimate One row of `estimates`.
  * @returns {{status: 'shown'|'refused', text: string}} `shown`: the estimate
  *   with its name, what it is an estimate of, and its interval. `refused`: it
- *   has no name, no number, or half an interval.
+ *   has no name, no number (not-a-number among them), or half an interval.
  */
 export function formatEstimate(estimate) {
   const row = estimate && typeof estimate === 'object' ? estimate : {};
   const refuse = (what) => ({ status: 'refused', text: `Estimate not shown: ${what}.` });
   const name = text(row.name);
   if (!name) return refuse('it has no name');
-  if (!isNumber(row.estimate)) return refuse(`${name} is not a number`);
+  if (!isNumberOrInfinite(row.estimate)) return refuse(`${name} is not a number`);
   const group = text(row.group);
-  const lead = `${name}${group ? ` (${group})` : ''}: ${figure(row.estimate)}`;
+  const said = row.estimate === Infinity ? 'infinite' : bound(row.estimate);
+  const lead = `${name}${group ? ` (${group})` : ''}: ${said}`;
 
   const bounds = [row.lower, row.upper, row.level];
   const absent = (value) => value === undefined || value === null;
   if (bounds.every(absent)) return { status: 'shown', text: `${lead}.` };
-  if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
+  if (
+    !isNumberOrInfinite(row.lower) ||
+    !isNumberOrInfinite(row.upper) ||
+    !isNumber(row.level) ||
+    !(row.level > 0 && row.level < 1)
+  ) {
     return refuse(`the interval of ${name} is incomplete`);
   }
   // 0.95 is printed as 95%. The rounding removes what the multiplication adds
@@ -180,7 +201,7 @@ export function formatEstimate(estimate) {
   const percent = Number((row.level * 100).toPrecision(12));
   return {
     status: 'shown',
-    text: `${lead}, ${percent}% confidence interval ${figure(row.lower)} to ${figure(row.upper)}.`
+    text: `${lead}, ${percent}% confidence interval ${bound(row.lower)} to ${bound(row.upper)}.`
   };
 }
 

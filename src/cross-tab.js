@@ -84,6 +84,10 @@ const HINT =
   'Click a count to list its participants and open a participant’s profile. The bars are the ' +
   'same table, as percentages.';
 const CUT_KEY = 'bv-cut:';
+// Whose values a cut's points are worked out on.
+const CUT_WHO =
+  'Every participant the filters keep with a value is cut, whether or not they have a ' +
+  'category the other way.';
 const PERCENT_LABELS = Object.freeze({
   row: 'Of each row',
   col: 'Of each column',
@@ -469,7 +473,8 @@ class CrossTab {
       },
       {
         scope: scopeText({ n: model.total, filters: filtersForScope(this) }),
-        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) }
+        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) },
+        groups: { rows: request.args.chrRowGroups, cols: request.args.chrColGroups }
       }
     );
   }
@@ -511,10 +516,18 @@ class CrossTab {
   }
 
   // How each cut variable was cut, a sentence each.
+  // How each cut variable was cut and, for points worked out from the values,
+  // whose values: every participant the filters keep with one, whether or not
+  // they have a category the other way (#78 review).
   cutNotes(model) {
     return ['row', 'col']
       .filter((field) => model.cuts[field])
-      .map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
+      .map((field) => {
+        const cut = model.cuts[field];
+        const said = cutNote(cut.spec, cut);
+        if (Array.isArray(cut.cut) || !cut.n) return said;
+        return `${said} ${CUT_WHO}`;
+      });
   }
 
   // The two-way table: a count in each cell, with its percentage when one is
