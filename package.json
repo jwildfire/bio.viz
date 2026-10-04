@@ -19,6 +19,8 @@
     "evidence:update": "node scripts/evidence.mjs --update",
     "requirements": "node scripts/requirements.mjs",
     "requirements:check": "node scripts/requirements.mjs --check",
+    "specification": "node tools/write-specification-schema.mjs",
+    "specification:check": "node tools/write-specification-schema.mjs --check",
     "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R && Rscript tools/r-association-statistics.R && Rscript tools/r-matrix-statistics.R && Rscript tools/r-screen-statistics.R && Rscript tools/r-cut.R && Rscript tools/r-cross-tab.R && Rscript tools/r-survival.R",
     "fixtures:check": "node scripts/check-r-fixtures.mjs",
     "data:check": "node tools/vendor-synthetic-study.mjs --check",

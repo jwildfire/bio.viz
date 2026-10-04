@@ -24,6 +24,18 @@
     "EXP-DL-004": "The same for the biomarker screen.",
     "EXP-DL-005": "The same for the cross-tabulation.",
     "EXP-DL-006": "The same for the stratified survival chart.",
-    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing."
+    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing.",
+    "EXP-SPEC-001": "A specification names its format, its format version, the bio.viz version, the chart, every setting that is data and every filter in force as a column, an operator and values; the page's connection and way back, and anything that is not data, are not written.",
+    "EXP-SPEC-002": "Nothing in a specification is evaluated: code-like text in a setting or a filter is read as that text; a function, a number JSON cannot hold, undefined or an object that is not plain is refused with a sentence that says where it is; a key reaching an object's prototype is no setting.",
+    "EXP-SPEC-003": "A specification is refused with a sentence naming what is wrong when it is not one, is of another format version, names a chart bio.viz does not have, holds a setting the chart does not have in this version, or a filter whose operator is not `in`; one written by another version is read when its settings are still settings; a filter in force is laid onto the chart's filters as where it starts.",
+    "EXP-SPEC-004": "The format has a JSON schema, committed as `src/data/specification.schema.json` and written from each chart's own settings; `npm test` fails when it is stale; it holds a written specification and refuses an unknown chart, an unknown setting of a chart, an unknown operator and an unknown member.",
+    "EXP-SPEC-005": "The group comparison writes its specification, held by the schema, as its controls and filters now read; made again from it by `BioViz.fromSpecification`, the chart draws the same view, asks R the same and writes the same specification.",
+    "EXP-SPEC-006": "The same for the association scatter.",
+    "EXP-SPEC-007": "The same for the correlation matrix.",
+    "EXP-SPEC-008": "The same for the biomarker screen.",
+    "EXP-SPEC-009": "The same for the cross-tabulation.",
+    "EXP-SPEC-010": "The same for the stratified survival chart.",
+    "EXP-SPEC-011": "In the page, a chart made from a specification holding code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart.",
+    "EXP-SPEC-012": "The site publishes the format's schema at `schema/specification.json`, the committed file."
   }
 }

@@ -74,6 +74,13 @@ export { crossTab } from './cross-tab.js';
 export { stratifiedSurvival } from './stratified-survival.js';
 
 /**
+ * A chart made from its specification, the JSON a chart's `specification()`
+ * writes: `BioViz.fromSpecification(element, spec)`. Nothing in a
+ * specification is evaluated.
+ */
+export { fromSpecification } from './specification.js';
+
+/**
  * The chart list: every chart above, in safety.viz's portfolio manifest format
  * (version 2), with the tables it takes and the column each of its column
  * settings reads, so safety.viz's demo app can list and draw bio.viz's charts

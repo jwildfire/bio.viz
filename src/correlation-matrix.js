@@ -61,7 +61,8 @@ import {
   writeStatistic,
   drawSafely,
   checkTables,
-  writeTitles
+  writeTitles,
+  specificationOf
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -1020,6 +1021,36 @@ class CorrelationMatrix {
       details.append(note);
     });
     this.listingWrap.append(details);
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      mode: state.mode,
+      visit: state.visit,
+      biomarkers: state.biomarkers ? [...state.biomarkers] : null,
+      measure: state.measure,
+      visits: state.visits ? [...state.visits] : null,
+      value_type: state.valueType,
+      view: state.view,
+      method: state.method,
+      min_pairs: state.minPairs
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

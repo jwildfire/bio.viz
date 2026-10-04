@@ -189,7 +189,7 @@ BioViz.crossTab('#chart', {
 }).init({ results, participants });
 ```
 
-Under the footnotes each chart offers a PNG of itself with its title and footnotes drawn in, the statistics R returned as CSV and the table it drew from as CSV. A placeholder is filled with text, and nothing in a setting is evaluated. The placeholders each chart has, and the footnote's wording, are in [docs/output.md](docs/output.md), published as the [API reference](https://jwildfire.github.io/bio.viz/dev/output/api.html).
+Under the footnotes each chart offers a PNG of itself with its title and footnotes drawn in, the statistics R returned as CSV and the table it drew from as CSV. A placeholder is filled with text, and nothing in a setting is evaluated. A chart's `specification()` writes its settings and filters as JSON data, and `BioViz.fromSpecification(element, spec)` makes the same chart from it. The placeholders each chart has, and the footnote's wording, are in [docs/output.md](docs/output.md), published as the [API reference](https://jwildfire.github.io/bio.viz/dev/output/api.html).
 
 ## Naming a variable and getting one row per participant
 

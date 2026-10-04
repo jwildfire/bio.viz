@@ -12,6 +12,7 @@ import { checkOutcomes } from './outcomes.js';
 import { VERSION, automaticFootnote, dateDrawn, fillText } from './titles.js';
 import { statisticsTable, toCsv } from './csv.js';
 import { drawFrame } from './png.js';
+import { writeSpecification } from './specification.js';
 
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
@@ -936,3 +937,42 @@ ${C} .bv-toolbar:empty{display:none}
 ${C} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${C} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
 ${C} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
+
+// ---- The specification -----------------------------------------------------------
+
+/**
+ * A chart's specification (#68): every setting, as its controls now read, and
+ * every filter in force, as JSON data (src/shared/specification.js). The chart's
+ * `viewSettings()` says what its controls read as settings.
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function specificationOf(chart) {
+  const settings = {
+    ...chart.settings,
+    ...(typeof chart.viewSettings === 'function' ? chart.viewSettings() : {})
+  };
+  // The filters offered, as the chart offers them, each without where it
+  // starts: where a filter is now is in the specification's filters.
+  const specs = chart.filterSpecs || [];
+  if (specs.length || settings.filters !== null) {
+    settings.filters = specs.map((spec) => ({
+      value_col: spec.value_col,
+      label: spec.label,
+      ...(spec.all === false ? { all: false } : {}),
+      ...(spec.multiple ? { multiple: true } : {})
+    }));
+  }
+  const filters = specs
+    .map((spec) => ({
+      column: spec.value_col,
+      selection: (chart.state.filters || {})[spec.value_col]
+    }))
+    .filter(({ selection }) => selection !== null && selection !== undefined && selection !== '')
+    .map(({ column, selection }) => ({
+      column,
+      values: (Array.isArray(selection) ? selection : [selection]).map(String)
+    }))
+    .filter(({ values }) => values.length);
+  return writeSpecification({ chart: chart.module, version: VERSION, settings, filters });
+}

@@ -11,3 +11,9 @@ export {
   placeholdersIn
 } from './shared/titles.js';
 export { parseCsv, toCsv } from './shared/csv.js';
+export { readChartSpecification as readSpecification } from './specification.js';
+export {
+  FILTER_OPERATORS,
+  SPECIFICATION_FORMAT,
+  SPECIFICATION_VERSION
+} from './shared/specification.js';

@@ -41,3 +41,7 @@ site/vendor/
 # safety.viz's portfolio manifest format, copied byte for byte by
 # tools/vendor-portfolio-schema.mjs, with its record.
 src/data/schema/
+
+# Written by tools/write-specification-schema.mjs, and checked against it by the
+# unit tests: the tool is its formatter.
+src/data/specification.schema.json

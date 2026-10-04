@@ -59,7 +59,8 @@ import {
   syncHost,
   toolbarStyles,
   writeStatistic,
-  writeTitles
+  writeTitles,
+  specificationOf
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { checkOutcomes, laidOver } from './shared/outcomes.js';
@@ -1102,6 +1103,29 @@ class StratifiedSurvival {
 
   railSettings() {
     return railSettings(this, 'linear');
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      endpoint: state.endpoint,
+      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
   }
 
   /**

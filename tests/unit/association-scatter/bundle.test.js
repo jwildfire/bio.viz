@@ -78,6 +78,7 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
       'src/shared/paging.js',
       'src/shared/png.js',
       'src/shared/settings.js',
+      'src/shared/specification.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
       'src/shared/titles.js',

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
+import Ajv2020 from 'ajv/dist/2020.js';
 import { captureEvidence } from './evidence.js';
 import { parseCsv, statisticsTable } from '../../src/shared/csv.js';
 import { readPng } from '../../src/shared/png.js';
@@ -549,5 +550,171 @@ test.describe('getting results out: the downloads of every chart', () => {
     ).toHaveCount(0);
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
+  });
+});
+
+// ---- Specifications (#68) ---------------------------------------------------------
+
+const schema = readJson('../../src/data/specification.schema.json');
+const validateSpecification = new Ajv2020({ allErrors: true }).compile(schema);
+const SPECIFICATIONS = [
+  'EXP-SPEC-005',
+  'EXP-SPEC-006',
+  'EXP-SPEC-007',
+  'EXP-SPEC-008',
+  'EXP-SPEC-009',
+  'EXP-SPEC-010'
+];
+
+// What a chart draws, for two charts to be held equal: what it asked R, the
+// table it drew from, and its title, subtitle and footnotes.
+const viewOf = (page) =>
+  page.evaluate(() => {
+    const chart = window.__shown;
+    const text = (selector) =>
+      [...chart.root.querySelectorAll(selector)].map((element) => element.textContent);
+    return {
+      asked: chart
+        .statistics()
+        .map(({ name, args, dataId, rows }) => ({ name, args, dataId, rows })),
+      table: chart.tableOf(),
+      titles: text('.bv-titles > *'),
+      footnotes: text('.bv-foot-line'),
+      controls: [...chart.root.querySelectorAll('.sv-controls select')].map((select) => [
+        select.dataset.control || select.dataset.filter || select.getAttribute('aria-label'),
+        select.value
+      ])
+    };
+  });
+
+test.describe('getting results out: specifications of every chart', () => {
+  CHARTS.forEach((chart, index) => {
+    test(`${SPECIFICATIONS[index]}: the ${chart.module.replace('-', ' ')} writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)`, async ({
+      page
+    }) => {
+      const errors = watch(page);
+      await blockR(page);
+      await openChart(page, chart, {
+        title: chart.title,
+        subtitle: chart.subtitle,
+        footnotes: ['Filters: {filters}.']
+      });
+      // The reader moves a control and a filter: the specification is of what
+      // the controls now read, not of the settings the chart was made with.
+      await page.evaluate((name) => {
+        const shown = window[name].chart;
+        const controls = [
+          ...shown.root.querySelectorAll('.sv-controls select[data-control]')
+        ].filter((select) => select.options.length > 1);
+        const moved = controls[0];
+        moved.value = [...moved.options].find((option) => option.value !== moved.value).value;
+        moved.dispatchEvent(new Event('change'));
+        const filter = shown.root.querySelector('.sv-controls select[data-filter="SEX"]');
+        filter.value = 'F';
+        filter.dispatchEvent(new Event('change'));
+        window.__shown = shown;
+      }, `__${chart.global}`);
+      const written = await page.evaluate(() => window.__shown.specification());
+      expect(validateSpecification(written), JSON.stringify(validateSpecification.errors)).toBe(
+        true
+      );
+      expect(written).toMatchObject({
+        format: 'bio.viz specification',
+        format_version: 1,
+        bio_viz_version: pkg.version,
+        chart: chart.module
+      });
+      expect(written.filters).toEqual([{ column: 'SEX', operator: 'in', values: ['F'] }]);
+      expect(JSON.parse(JSON.stringify(written))).toEqual(written);
+      const before = await viewOf(page);
+      expect(before.footnotes[0]).toBe('Filters: SEX is F.');
+
+      // Made again, in the same element, from the specification's JSON text.
+      await page.evaluate(
+        ({ name, text }) => {
+          const old = window[name].chart;
+          const connection = old.connection;
+          old.destroy();
+          window.__shown = window.BioViz.fromSpecification('#chart', text, { connection }).init(
+            window[name].data
+          );
+        },
+        { name: `__${chart.global}`, text: JSON.stringify(written) }
+      );
+      await expect
+        .poll(async () => (await viewOf(page)).footnotes.at(-1))
+        .toBe(before.footnotes.at(-1));
+      const after = await viewOf(page);
+      expect(after).toEqual(before);
+      expect(await page.evaluate(() => window.__shown.specification())).toEqual(written);
+      expect(errors).toEqual([]);
+    });
+  });
+
+  test('EXP-SPEC-011: in the page, a chart made from a specification that holds code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart (#68)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart);
+    const result = await page.evaluate(() => {
+      const base = window.__ct.chart.specification();
+      window.__ct.chart.destroy();
+      const evil = {
+        ...base,
+        settings: {
+          ...base.settings,
+          title: '<img src=x onerror="window.__pwned = 1">${window.__pwned = 2}',
+          footnotes: ['{{constructor.constructor("window.__pwned = 3")()}}']
+        },
+        filters: [
+          { column: 'SEX', operator: 'in', values: ['<script>window.__pwned = 4</script>'] }
+        ]
+      };
+      const made = window.BioViz.fromSpecification('#chart', evil).init(window.__ct.data);
+      const said = {
+        title: made.root.querySelector('.bv-title').textContent,
+        footnote: made.root.querySelector('.bv-foot-line').textContent,
+        images: document.querySelectorAll('#chart img, #chart script').length,
+        pwned: window.__pwned
+      };
+      made.destroy();
+      const refused = (spec) => {
+        try {
+          window.BioViz.fromSpecification('#chart', spec);
+          return null;
+        } catch (error) {
+          return error.message;
+        }
+      };
+      return {
+        said,
+        unknown: refused({ ...base, settings: { ...base.settings, margins: true } }),
+        operator: refused({
+          ...base,
+          filters: [{ column: 'SEX', operator: 'not', values: ['F'] }]
+        }),
+        empty: document.querySelector('#chart').children.length
+      };
+    });
+    expect(result.said).toEqual({
+      title: '<img src=x onerror="window.__pwned = 1">${window.__pwned = 2}',
+      footnote: '{{constructor.constructor("window.__pwned = 3")()}}',
+      images: 0,
+      pwned: undefined
+    });
+    expect(result.unknown).toMatch(
+      /holds `margins`, which is not a setting of that chart in this version\.$/
+    );
+    expect(result.operator).toMatch(/has the operator "not"; the operators are "in"/);
+    expect(result.empty).toBe(0);
+  });
+
+  test('EXP-SPEC-012: the site publishes the format’s schema at schema/specification.json, the committed file (#68)', async ({
+    page
+  }) => {
+    const response = await page.goto('/_site/schema/specification.json');
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual(schema);
   });
 });

@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T08:53:02.807Z",
+  "generatedAt": "2026-10-04T09:07:05.366Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -183,7 +183,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-001"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-001-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-002: the association scatter draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -191,7 +191,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-002"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-002-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-003: the correlation matrix draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -199,7 +199,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-003"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-003-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-004: the biomarker screen draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -207,7 +207,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-004"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-004-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-005: the cross tab draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -215,7 +215,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-005"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-005-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-006: the stratified survival draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -223,7 +223,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-006"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-006-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-SITE-001: the association scatter demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
@@ -271,6 +271,70 @@
       "status": "pass",
       "requirementIds": ["EXP-SITE-001"],
       "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-005: the group comparison writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-005"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-006: the association scatter writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-006"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-007: the correlation matrix writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-007"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-008: the biomarker screen writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-008"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-009: the cross tab writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-009"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-010: the stratified survival writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-010"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-011: in the page, a chart made from a specification that holds code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-011"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-012: the site publishes the format’s schema at schema/specification.json, the committed file (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-012"],
+      "issueRefs": [68],
       "screenshots": []
     },
     {
@@ -647,6 +711,38 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-001: a specification names its format, its version, the bio.viz version, the chart, every setting that is data and every filter in force as a column, an operator and values; the page’s connection and way back, and anything not data, are not written (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-001"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-002: nothing in a specification is evaluated: code-like text in a setting or a filter is read as that text; a function, a number JSON cannot hold, undefined or an object that is not plain is refused with a sentence that says where it is (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-002"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-003: a specification is refused, with a sentence that names what is wrong, when it is not one, is of another format version, names a chart bio.viz does not have, holds a setting the chart does not have in this version, or a filter whose operator is not `in`; one written by another version is read when its settings are still settings (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-003"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-004: the format has a JSON schema, committed and written from each chart’s own settings, so it names exactly the settings each chart has; it holds a written specification and refuses an unknown chart, an unknown setting of a chart, an unknown operator and a member that is not one (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-004"],
+      "issueRefs": [68],
       "screenshots": []
     },
     {

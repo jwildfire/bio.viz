@@ -2,7 +2,7 @@
 
 What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders the chart fills from the view it draws, and one footnote the chart always writes last, saying when and by what the figure was drawn and what stands behind each statistic it printed. The rules are written once, in `src/shared/titles.js`, and every chart follows them; a page or a widget that writes the same words reaches them as `BioViz.output`.
 
-Under the footnotes each chart offers three downloads: a PNG of the chart with its title and footnotes drawn in, the statistics R returned as CSV, and the table the chart drew from as CSV. The specification a chart is written to and rebuilt from comes next, under the same requirement ([obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361)).
+Under the footnotes each chart offers three downloads: a PNG of the chart with its title and footnotes drawn in, the statistics R returned as CSV, and the table the chart drew from as CSV. And every chart writes its specification, its settings and filters as JSON data, from which `BioViz.fromSpecification` makes the same chart again: the format gsm.bio's batch runner reads ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)). All of it is the requirement [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361).
 
 ## At a glance
 
@@ -118,6 +118,69 @@ The table the chart drew from, one row per participant drawn, with the headings 
 
 Every CSV file, the listing's export among them, is written by RFC 4180: records end in CRLF, and a field or a heading that holds a comma, a double quote, a carriage return or a line feed is written between double quotes with each double quote doubled. A heading that holds a comma is one heading ([bio.viz#39](https://github.com/jwildfire/bio.viz/issues/39)). An empty field is a value the participant does not have; `TRUE` and `FALSE` are written as R reads them.
 
+## Specifications
+
+A chart's `specification()` returns what it draws as JSON data, and `BioViz.fromSpecification(element, specification)` makes the same chart from it. The tables are not in it: the chart made from it is given them with `init`, as any chart is.
+
+```js
+const saved = JSON.stringify(chart.specification());
+// later, or on another page, or in gsm.bio's batch runner:
+BioViz.fromSpecification('#chart', saved, { connection }).init({ results, participants });
+```
+
+```json
+{
+  "format": "bio.viz specification",
+  "format_version": 1,
+  "bio_viz_version": "0.1.0",
+  "chart": "cross-tab",
+  "settings": {
+    "row_by": "ARM",
+    "col_by": "RESPONSE",
+    "percent": "row",
+    "test": "chisq",
+    "title": "{rows} by {columns}",
+    "filters": [{ "value_col": "SEX", "label": "Sex" }],
+    "…": "every other setting the chart has"
+  },
+  "filters": [{ "column": "SEX", "operator": "in", "values": ["F"] }]
+}
+```
+
+| Member            | What it is                                                                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`          | `"bio.viz specification"`: what the object is.                                                                                                                                                                                |
+| `format_version`  | `1`: the version of this format. A specification of another format version is refused, with a sentence that says which it is.                                                                                                 |
+| `bio_viz_version` | The bio.viz version that wrote it. It is not checked: a specification from another version is read if what it holds is still what this version has.                                                                           |
+| `chart`           | The chart: `group-comparison`, `association-scatter`, `correlation-matrix`, `biomarker-screen`, `cross-tab` or `stratified-survival`.                                                                                         |
+| `settings`        | Every setting of the chart, by the names in its reference, as its controls now read: the biomarker, the visit, the groups, the test and so on, with its title, subtitle and footnotes. Left out, a setting keeps its default. |
+| `filters`         | Every filter in force: `{ column, operator, values }`, the column of the participant table it reads, `"in"`, and the values it lets through. A filter at All is not in force and is not listed.                               |
+
+The chart writes every setting it has, as the controls now read, so a chart made from its specification opens on the same view and writes the same specification again. The filters a chart offers are in its `filters` setting, each without where it starts; where each is now is in the specification's `filters`, and reading one lays it back onto its filter as where that filter starts.
+
+### Nothing is evaluated
+
+A specification is data: text, numbers, `true`, `false`, `null`, lists and objects. It holds no function, expression or template that runs, and a title or a value that looks like code is text, filled and drawn as text. Two settings are the page's and never written: `connection`, the connection to R, and `back`, a way back; the page gives them again, as the third argument of `fromSpecification`. Anything else that is not data is refused.
+
+### What is refused
+
+Each with a sentence that names what is wrong:
+
+- an object that is not a specification, or of another format version;
+- a chart bio.viz does not have;
+- a setting the chart does not have in this version: an older or newer specification is read when every setting it holds is still a setting, and otherwise refused naming the ones that are not;
+- a setting whose value the chart refuses, with the chart's own sentence;
+- a filter whose operator is not `in`, or that names no column or no values;
+- anything that is not data.
+
+### The schema
+
+The format is a JSON Schema (2020-12), committed as `src/data/specification.schema.json` and published at [`schema/specification.json`](https://jwildfire.github.io/bio.viz/dev/schema/specification.json). It is written from each chart's own settings by `node tools/write-specification-schema.mjs`, so it names, for each chart, exactly the settings it has; the unit tests fail when the committed file is not what the charts make, and every specification the browser tests write is validated against it. gsm.bio's batch runner reads specifications by this schema.
+
+## `fromSpecification(element, specification, page)`
+
+Makes the chart a specification names in an element, with its settings and filters. `specification` is the object or its JSON text; `page` holds what a specification never does, `connection` and `back`, and nothing else. Returns the chart; give it the tables with `init`.
+
 ## The functions of `BioViz.output`
 
 The rules above, for a page or a widget that writes the same words beside a chart.
@@ -160,6 +223,22 @@ Rows as CSV by RFC 4180, with a heading row: `columns` is a list of `{ value_col
 
 CSV read back by RFC 4180, every field as text: a list of records, the heading row first. The inverse of `toCsv`.
 
+## `readSpecification(specification)`
+
+Reads a specification without making a chart, with every check `fromSpecification` makes: returns `{ chart, settings, version }`, the chart's name, the settings it would be made with and the version that wrote it, or refuses with a sentence.
+
+## `SPECIFICATION_FORMAT`
+
+What a specification says it is: `bio.viz specification`.
+
+## `SPECIFICATION_VERSION`
+
+The version of the format this library writes and reads: `1`.
+
+## `FILTER_OPERATORS`
+
+The operators a filter may have: `in`, the values it lets through.
+
 ## `TITLE_DEFAULTS`
 
 The three settings' defaults, which every chart has: `{ title: null, subtitle: null, footnotes: null }`.
@@ -167,6 +246,7 @@ The three settings' defaults, which every chart has: `{ title: null, subtitle: n
 ## What is not here
 
 - A vector figure (SVG or PDF) from the browser: the PNG is the page's drawing. Vector figures come from gsm.bio's static twins ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)).
-- The specification a chart is written to and rebuilt from ([bio.viz#68](https://github.com/jwildfire/bio.viz/issues/68)).
+- The interface that collects specifications while someone explores, into a book of them: that belongs to an app.
+- Running a specification against a dataset, or one across every biomarker: gsm.bio's batch runner ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)).
 - Rich text in a title or a footnote: they are plain text. A line break, bold or a link is not drawn.
 - A footnote placed anywhere but under the chart, or the chart's own footnote turned off.
