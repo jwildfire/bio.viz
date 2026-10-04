@@ -89,6 +89,8 @@
 <tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
 <tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls.</td></tr>
 <tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the chart to its container, for a page that changes the container&#39;s size without resizing the window.</td></tr>
+<tr><td data-label="Method"><code>chart.specification()</code></td><td data-label="What it does">The chart as JSON data: every setting as its controls now read, and every filter in force. <code>BioViz.fromSpecification</code> makes the same chart from it (<a href="../output/api.html#specifications">specifications</a>).</td></tr>
+<tr><td data-label="Method"><code>chart.fileOf(kind)</code></td><td data-label="What it does">One of the <a href="#downloads">downloads</a> as a file, without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>.</td></tr>
 <tr><td data-label="Method"><code>chart.destroy()</code></td><td data-label="What it does">Takes the chart down and empties its element. A destroyed chart cannot be used again.</td></tr>
 <tr><td data-label="Method"><code>chart.statistics()</code></td><td data-label="What it does">What the chart has asked R for the panels now drawn, and what R answered: see <a href="#what-r-is-asked">what R is asked</a>. It draws nothing.</td></tr>
 <tr><td data-label="Method"><code>chart.brush(region)</code></td><td data-label="What it does">Selects a region, as a drag does: <code>{ x: [from, to], y: [from, to] }</code> in the values&#39; own units, with <code>panel</code>, a panel&#39;s title, when there are panels.</td></tr>
@@ -395,7 +397,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c76881151d18d350be3bc5be7a5e6f8bd87aad45"><code>c768811</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/15cf0ea6b611ab7cbd8055dbc0e2af0e2efa69a1"><code>15cf0ea</code></a>.
       </p>
       <p>
         Built in the open — follow the

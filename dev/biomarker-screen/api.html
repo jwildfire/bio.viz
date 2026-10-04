@@ -111,6 +111,8 @@
 <tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
 <tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls, and asks R again.</td></tr>
 <tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits a chart a row opened to its container.</td></tr>
+<tr><td data-label="Method"><code>chart.specification()</code></td><td data-label="What it does">The chart as JSON data: every setting as its controls now read, and every filter in force. <code>BioViz.fromSpecification</code> makes the same chart from it (<a href="../output/api.html#specifications">specifications</a>).</td></tr>
+<tr><td data-label="Method"><code>chart.fileOf(kind)</code></td><td data-label="What it does">One of the <a href="#downloads">downloads</a> as a file, without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>.</td></tr>
 <tr><td data-label="Method"><code>chart.destroy()</code></td><td data-label="What it does">Takes the chart down, with a chart a row had opened, and empties its element. A destroyed chart cannot be used again.</td></tr>
 <tr><td data-label="Method"><code>chart.statistics()</code></td><td data-label="What it does">What the chart has asked R for the screen now drawn, and what R answered: see <a href="#what-r-is-asked">what R is asked</a>. It draws nothing.</td></tr>
 <tr><td data-label="Method"><code>chart.open(biomarker)</code></td><td data-label="What it does">Opens a biomarker&#39;s own chart, as a click on its row does. Returns that chart.</td></tr>
@@ -159,6 +161,7 @@
 <tr><td data-label="Setting"><code>stratified_survival</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the stratified survival chart a row of a hazard ratio opens, laid under what the screen carries across.</td></tr>
 <tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
 <tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>page</code></td><td data-label="Default"><code>0</code></td><td data-label="Meaning">The page of rows it opens on, from 0, when <code>limit</code> makes more than one. A specification keeps it.</td></tr>
 <tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr>
 <tr><td data-label="Setting"><code>downloads</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether the downloads are offered under the chart: the PNG, the statistics and the table (<a href="#downloads">downloads</a>).</td></tr>
 <tr><td data-label="Setting"><code>png_scale</code></td><td data-label="Default"><code>2</code></td><td data-label="Meaning">The PNG&#39;s resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.</td></tr></tbody></table>
@@ -352,7 +355,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c76881151d18d350be3bc5be7a5e6f8bd87aad45"><code>c768811</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/15cf0ea6b611ab7cbd8055dbc0e2af0e2efa69a1"><code>15cf0ea</code></a>.
       </p>
       <p>
         Built in the open — follow the
