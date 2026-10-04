@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-04T22:44:09.602Z",
+  "generatedAt": "2026-10-04T23:00:48.379Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37242131075",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242131075"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -124,7 +127,7 @@
     {
       "test": "GC-CTRL-006: the levels of the group are chosen in the sidebar, and a level left out is not drawn (#9)",
       "suite": "browser",
-      "status": "fail",
+      "status": "pass",
       "requirementIds": ["GC-CTRL-006"],
       "issueRefs": [9],
       "screenshots": []
