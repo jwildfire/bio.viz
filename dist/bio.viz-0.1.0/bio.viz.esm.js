@@ -1376,9 +1376,9 @@ var isText3 = (value) => typeof value === "string" && value.trim() !== "";
 var refuse4 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
-var VERSION2 = true ? "0.1.0" : "unbuilt";
+var VERSION = true ? "0.1.0" : "unbuilt";
 var DEVELOPMENT = true ? true : true;
-var VERSION_SAID = DEVELOPMENT ? `${VERSION2} with development changes` : VERSION2;
+var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
 var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
 var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
 function checkDownloads(settings) {

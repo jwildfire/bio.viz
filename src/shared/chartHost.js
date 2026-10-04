@@ -9,7 +9,7 @@
 // slots; a chart's own file decides what is drawn and what R is asked.
 
 import { checkOutcomes } from './outcomes.js';
-import { VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
+import { VERSION, VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
 import { statisticsTable, toCsv } from './csv.js';
 import { drawFrame } from './png.js';
 import { writeSpecification } from './specification.js';
