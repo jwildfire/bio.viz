@@ -1665,6 +1665,9 @@ var BioViz = (() => {
     const settings = given2 || {};
     return settings.event_col !== void 0 && settings.event_col !== null && !("censor_col" in settings) ? { ...settings, censor_col: null } : settings;
   }
+  function laidOver(current, given2) {
+    return { ...current, ...flaggedSettings(given2) };
+  }
   function checkOutcomeSettings(settings) {
     for (const key of ["outcome_id_col", "endpoint_label_col", "censor_col", "event_col"]) {
       columnOrNull(settings, key);
@@ -1713,22 +1716,33 @@ var BioViz = (() => {
       };
     });
   }
+  var OUTCOME_UNUSED = Object.freeze({
+    NO_PARTICIPANT: "Outcome row for no such participant"
+  });
   var numberOf = (value) => {
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "boolean") return value ? 1 : 0;
+    if (value === "TRUE" || value === "true") return 1;
+    if (value === "FALSE" || value === "false") return 0;
     if (typeof value !== "string" || value.trim() === "") return null;
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
   };
-  function outcomesOf(outcomes, settings, endpoint) {
+  function outcomesOf(outcomes, settings, endpoint, known = null) {
     const idCol = settings.outcome_id_col || settings.id_col;
     const flag = flagOf(settings);
     const byId = /* @__PURE__ */ new Map();
+    let strangers = 0;
     for (const row of outcomes) {
-      if (String(row[settings.endpoint_col]) !== endpoint || isBlank2(row[idCol])) continue;
+      if (String(row[settings.endpoint_col]) !== endpoint) continue;
+      if (isBlank2(row[idCol]) || known && !known.has(String(row[idCol]))) {
+        strangers += 1;
+        continue;
+      }
       const id = String(row[idCol]);
       byId.set(id, [...byId.get(id) || [], row]);
     }
-    return (id) => {
+    const outcomeOf = (id) => {
       const found = byId.get(String(id)) || [];
       if (!found.length) return { reason: LEFT_OUT.NO_OUTCOME };
       if (found.length > 1) return { reason: LEFT_OUT.SEVERAL_OUTCOMES };
@@ -1743,6 +1757,8 @@ var BioViz = (() => {
         event: flag.field === "censor" ? flagged === 0 : flagged === 1
       };
     };
+    outcomeOf.strangers = strangers;
+    return outcomeOf;
   }
 
   // src/shared/chartHost.js
@@ -7039,9 +7055,10 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 
   // src/stratified-survival/drag.js
   var dropPoint = (value) => Number(writePoint(value));
-  function movePoints(points, index, value, { drop = false } = {}) {
+  function movePoints(points, index, value, { drop = false, min = -Infinity, max = Infinity } = {}) {
     if (!Number.isFinite(value) || index < 0 || index >= points.length) return null;
-    const point = drop ? dropPoint(value) : value;
+    const inside = Math.min(max, Math.max(min, value));
+    const point = drop ? Math.min(max, Math.max(min, dropPoint(inside))) : inside;
     const below = index > 0 ? points[index - 1] : -Infinity;
     const above = index < points.length - 1 ? points[index + 1] : Infinity;
     if (!(point > below && point < above)) return null;
@@ -7091,7 +7108,25 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       const formatted = formatStatistic(value);
       const described = sentence(formatted.status, formatted.text);
       if (formatted.status === "shown") {
-        described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && typeof row === "object").map((row) => (row.name === "Median" ? formatMedian(row) : formatEstimate(row)).text);
+        const rows = (Array.isArray(value.estimates) ? value.estimates : []).filter(
+          (row) => row && typeof row === "object"
+        );
+        const order2 = context.levels || [];
+        const place = (row) => {
+          const at = order2.indexOf(row.group);
+          return at < 0 ? order2.length : at;
+        };
+        const medians = rows.filter((row) => row.name === "Median");
+        medians.sort((a, b) => place(a) - place(b));
+        described.estimates = [
+          ...medians.map((row) => formatMedian(row).text),
+          ...rows.filter((row) => row.name !== "Median").map(
+            (row) => formatEstimate(
+              // For a cut, R's first group is the higher: the ratio says so.
+              row.name === "Hazard ratio" && context.highOverLow ? { ...row, name: "Hazard ratio, high over low" } : row
+            ).text
+          )
+        ];
       }
       described.remarks = remarksOf(value);
       described.scope = context.scope || null;
@@ -7162,25 +7197,38 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       last: 0
     };
     if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
-    const cut = isCut(state.groupBy) ? cutOf({ results: rows, participants: kept }, state.groupBy, settings) : null;
+    const participantIdCol = settings.participant_id_col || idCol;
+    const known = new Set(
+      (participants || results).map((row) => row[participants ? participantIdCol : idCol]).filter((id) => !isBlank2(id)).map(String)
+    );
+    const outcomeOf = outcomesOf(outcomes, settings, state.endpoint, known);
+    const strangers = outcomeOf.strangers;
+    const hasOutcome = (id) => !isBlank2(id) && !outcomeOf(id).reason;
+    const cut = isCut(state.groupBy) ? cutOf(
+      kept ? {
+        results: rows,
+        participants: kept.filter((row) => hasOutcome(row[participantIdCol]))
+      } : { results: rows.filter((row) => hasOutcome(row[idCol])), participants: null },
+      state.groupBy,
+      settings
+    ) : null;
     const made = frame(
       { results: rows, participants: kept || void 0 },
       { group: grouping(state.groupBy) },
       config
     );
-    const outcomeOf = outcomesOf(outcomes, settings, state.endpoint);
     const left = /* @__PURE__ */ new Map();
     const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
     const records = [];
     const values = [];
     for (const record of made.data) {
       const id = String(record[idCol]);
-      if (cut) values.push(record.group);
       const outcome = outcomeOf(id);
       if (outcome.reason) {
         leave(outcome.reason);
         continue;
       }
+      if (cut) values.push(record.group);
       records.push({
         [idCol]: id,
         group: cut ? groupLabel(record.group, cut) : String(record.group),
@@ -7216,7 +7264,10 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       bars: cut ? histogramOf(values) : [],
       participants: made.participants,
       dropped: [...made.dropped, ...[...left].map(([reason, n]) => ({ reason, n }))],
-      unused: made.unused,
+      unused: [
+        ...made.unused,
+        ...strangers ? [{ reason: OUTCOME_UNUSED.NO_PARTICIPANT, n: strangers }] : []
+      ],
       last
     };
   }
@@ -7234,7 +7285,7 @@ ${C2} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
 ${C2} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
 ${C2} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C2} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
-${C2} .bv-risk th,${C2} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right}
+${C2} .bv-risk th,${C2} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right;white-space:nowrap}
 ${C2} .bv-risk thead th{background:#f6f8fa;font-weight:600;padding:.2rem .5rem}
 ${C2} .bv-risk tbody th{text-align:left;background:#f6f8fa}
 ${C2} .bv-risk button{display:block;width:100%;margin:0;border:0;background:transparent;padding:.25rem .5rem;font:inherit;text-align:inherit;color:inherit;cursor:pointer}
@@ -7242,7 +7293,9 @@ ${C2} .bv-risk button:hover{background:#f4f8fc}
 ${C2} .bv-risk button:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
 ${C2} .bv-swatch{display:inline-block;width:.7rem;height:.7rem;margin-right:.35rem;border-radius:2px;vertical-align:-1px}
 ${C2} .bv-hist{margin:0 0 .6rem}
-${C2} .bv-hist-canvas{height:150px;position:relative;touch-action:none}
+${C2} .bv-hist-canvas{height:150px;position:relative;touch-action:pan-y}
+${C2} .bv-cut-handle{position:absolute;width:18px;margin-left:-9px;cursor:ew-resize;border-radius:3px}
+${C2} .bv-cut-handle:focus-visible{outline:2px solid #0b62a4;outline-offset:0}
 ${C2} .bv-hist-canvas canvas{cursor:ew-resize}
 ${C2} .bv-hist-canvas canvas:focus-visible{outline:2px solid #0b62a4;outline-offset:2px}
 ${C2} .bv-cut-counts{margin:.25rem 0 0;font-size:.8rem;color:#52616f}
@@ -7254,6 +7307,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
   var CUT_KEY2 = "bv-cut:";
   var MOVED_KEY = "bv-cut:moved";
   var GRIP = 10;
+  var TOUCH_GRIP = 24;
+  var BUDGE = 3;
+  var SETTLE = 400;
   var uncutLabel = (spec) => {
     const plain5 = { ...spec };
     delete plain5.cut;
@@ -7311,10 +7367,8 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       this.riskWrap.after(this.histWrap);
       this.listenToHistogram();
       this.canvas.addEventListener("click", (event) => {
-        const chart = this.curvesChart;
-        if (!chart) return;
-        const [hit] = chart.getElementsAtEventForMode(event, "nearest", { intersect: false }, false);
-        if (hit) this.listGroup(chart.data.datasets[hit.datasetIndex].level);
+        const level = this.curveAt(event);
+        if (level !== null) this.listGroup(level);
       });
       mountToolbar(this);
     }
@@ -7337,7 +7391,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
      * @returns {StratifiedSurvival} The chart, for chaining.
      */
     setData(data, settings) {
-      const next = settings === void 0 || settings === null ? this.settings : syncSettings4({ ...this.settings, ...settings });
+      const next = settings === void 0 || settings === null ? this.settings : syncSettings4(laidOver(this.settings, settings));
       const given2 = Array.isArray(data) ? { results: data } : data || {};
       const read2 = readGiven(this, given2, next);
       const outcomes = readOutcomesGiven(this, given2.outcomes, next);
@@ -7359,7 +7413,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
      */
     setSettings(settings) {
       const given2 = settings || {};
-      const next = syncSettings4({ ...this.settings, ...given2 });
+      const next = syncSettings4(laidOver(this.settings, given2));
       checkTables(this.tables, next);
       if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
       this.settings = next;
@@ -7536,6 +7590,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       this.riskWrap.innerHTML = "";
       this.multiplesWrap.innerHTML = "";
       this.cutCounts.textContent = "";
+      this.clearHandles();
       this.histWrap.classList.add("sv-hidden");
       this.statLine.textContent = "";
       this.statLine.dataset.state = "empty";
@@ -7603,7 +7658,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
             n: model.records.length,
             endpoint: this.endpointLabel(state.endpoint),
             filters: filtersForScope(this)
-          })
+          }),
+          levels: model.levels,
+          highOverLow: isCut(drawing.groupBy)
         }
       );
     }
@@ -7632,7 +7689,13 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     }
     cutNotes(model) {
       if (!model.cut) return [];
-      return [cutNote(model.cut.spec, model.cut)];
+      const said = [cutNote(model.cut.spec, model.cut)];
+      if (!Array.isArray(model.cut.cut)) {
+        said.push(
+          "Only participants with an outcome for the endpoint are cut, as R\u2019s Analyze_Screen cuts them."
+        );
+      }
+      return said;
     }
     colorOf(index) {
       return PALETTE[index % PALETTE.length];
@@ -7690,6 +7753,10 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
           plugins: {
             legend: {
               position: "bottom",
+              // A curve and its censor marks are one: the legend names them
+              // and hides neither.
+              onClick: () => {
+              },
               labels: { filter: (item) => datasets[item.datasetIndex].kind === "curve" },
               title: { display: true, text: this.labelOf(state.groupBy) }
             },
@@ -7724,6 +7791,30 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       );
       this.charts.push(chart);
       this.curvesChart = chart;
+    }
+    // The group whose curve passes within a few pixels of a pointer event, or
+    // null: the curve's height at that time is its last step at or before it.
+    curveAt(event) {
+      const chart = this.curvesChart;
+      if (!chart || !this.model) return null;
+      const box = this.canvas.getBoundingClientRect();
+      const x = event.clientX - box.left;
+      const y = event.clientY - box.top;
+      const { left, right, top, bottom } = chart.chartArea;
+      if (x < left || x > right || y < top - 6 || y > bottom + 6) return null;
+      const time = chart.scales.x.getValueForPixel(x);
+      let best = null;
+      let nearest = 8;
+      for (const curve of this.model.curves) {
+        if (time > curve.estimate.maxTime) continue;
+        const step = [...curve.estimate.points].reverse().find((point) => point.time <= time);
+        const away = Math.abs(chart.scales.y.getPixelForValue(step ? step.surv : 1) - y);
+        if (away <= nearest) {
+          nearest = away;
+          best = curve.level;
+        }
+      }
+      return best;
     }
     // The at-risk strip: for each group, how many are at risk at each time of
     // the axis. A group's name lists its participants, and a count lists the
@@ -7851,23 +7942,72 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       this.cutCounts.textContent = `Values each side of the cut: ${counts.join(" \xB7 ")}.`;
       this.histCanvas.setAttribute(
         "aria-label",
-        `Histogram of ${uncutLabel(model.cut.spec)}, cut at ${points.map((point) => Number(point.toPrecision(4))).join(" and ")}. Left and right arrows move the cut line.`
+        `Histogram of ${uncutLabel(model.cut.spec)}, cut at ${points.map((point) => writePoint(point)).join(" and ")}.`
       );
+      this.drawHandles(chart, model);
+    }
+    // A slider over each cut line, for the keyboard: it takes the focus, says
+    // where its line is and how far it can go, and its arrow keys move the line.
+    drawHandles(chart, model) {
+      const { kit } = this;
+      this.clearHandles();
+      const points = model.cut.points;
+      const { min, max } = this.cutRange(model);
+      const { top, bottom } = chart.chartArea;
+      points.forEach((point, index) => {
+        const handle = kit.createElement("div", "bv-cut-handle");
+        handle.tabIndex = 0;
+        handle.dataset.index = String(index);
+        handle.setAttribute("role", "slider");
+        handle.setAttribute(
+          "aria-label",
+          `${uncutLabel(model.cut.spec)}: cut point ${index + 1} of ${points.length}`
+        );
+        handle.setAttribute("aria-orientation", "horizontal");
+        handle.setAttribute("aria-valuemin", String(index > 0 ? points[index - 1] : min));
+        handle.setAttribute(
+          "aria-valuemax",
+          String(index < points.length - 1 ? points[index + 1] : max)
+        );
+        handle.setAttribute("aria-valuenow", String(point));
+        handle.setAttribute("aria-valuetext", writePoint(point));
+        handle.style.left = `${chart.scales.x.getPixelForValue(point)}px`;
+        handle.style.top = `${top}px`;
+        handle.style.height = `${bottom - top}px`;
+        handle.addEventListener("keydown", (event) => this.keyCut(event, index));
+        handle.addEventListener("keyup", () => this.settleCut());
+        handle.addEventListener("blur", () => {
+          if (!this.redrawing) this.keyIndex = null;
+        });
+        this.histBox.append(handle);
+        if (this.keyIndex === index) handle.focus();
+      });
+    }
+    // Takes the sliders away, as a redraw does, without letting their focus go.
+    clearHandles() {
+      this.redrawing = true;
+      this.histBox.querySelectorAll(".bv-cut-handle").forEach((handle) => handle.remove());
+      this.redrawing = false;
+    }
+    // The least and the greatest value cut: a line stays between them.
+    cutRange(model = this.model) {
+      if (!model || !model.bars.length) return { min: -Infinity, max: Infinity };
+      return { min: model.bars[0].from, max: model.bars[model.bars.length - 1].to };
     }
     // ---- Moving a cut line ---------------------------------------------------------
     listenToHistogram() {
       const canvas = this.histCanvas;
+      const box = this.histBox;
       const valueAt = (event) => {
         const chart = this.histChart;
         if (!chart) return null;
-        const box = canvas.getBoundingClientRect();
-        return chart.scales.x.getValueForPixel(event.clientX - box.left);
+        const box2 = canvas.getBoundingClientRect();
+        return chart.scales.x.getValueForPixel(event.clientX - box2.left);
       };
-      canvas.addEventListener("pointerdown", (event) => {
+      box.addEventListener("pointerdown", (event) => {
         const chart = this.histChart;
         if (!chart || !this.model || !this.model.cut) return;
-        const box = canvas.getBoundingClientRect();
-        const x = event.clientX - box.left;
+        const x = event.clientX - canvas.getBoundingClientRect().left;
         const points = this.model.cut.points;
         let nearest = -1;
         let distance = Infinity;
@@ -7878,37 +8018,82 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
             nearest = index;
           }
         });
-        if (nearest < 0 || distance > GRIP) return;
+        const grip = event.pointerType === "touch" ? TOUCH_GRIP : GRIP;
+        if (nearest < 0 || distance > grip) return;
         event.preventDefault();
-        if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+        if (box.setPointerCapture) box.setPointerCapture(event.pointerId);
         this.holdCut(nearest);
+        this.drag.grab = { x: event.clientX, offset: points[nearest] - valueAt(event), moved: false };
       });
-      canvas.addEventListener("pointermove", (event) => {
-        if (!this.drag) return;
+      box.addEventListener("pointermove", (event) => {
+        if (!this.drag || !this.drag.grab) return;
+        const { grab } = this.drag;
+        if (!grab.moved && Math.abs(event.clientX - grab.x) < BUDGE) return;
         const value = valueAt(event);
-        if (value !== null) this.moveCut(this.drag.index, value);
+        if (value === null) return;
+        grab.moved = true;
+        this.moveCut(this.drag.index, value + grab.offset);
+        if (this.drag) this.drag.grab = grab;
       });
-      const letGo = (event) => {
-        if (!this.drag) return;
-        const value = valueAt(event);
-        this.dropCut(this.drag.index, value === null ? this.drag.points[this.drag.index] : value);
+      const letGo = () => {
+        if (!this.drag || !this.drag.grab) return;
+        const { index, points, grab } = this.drag;
+        if (!grab.moved) {
+          this.drag = null;
+          return;
+        }
+        this.dropCut(index, points[index]);
       };
-      canvas.addEventListener("pointerup", letGo);
-      canvas.addEventListener("pointercancel", letGo);
-      canvas.addEventListener("keydown", (event) => {
-        if (!this.model || !this.model.cut || !this.model.bars.length) return;
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        const [first] = this.model.bars;
-        const step = (first.to - first.from) * (event.key === "ArrowLeft" ? -1 : 1);
-        const index = this.drag ? this.drag.index : 0;
-        this.dropCut(index, this.model.cut.points[index] + step);
-      });
+      box.addEventListener("pointerup", letGo);
+      box.addEventListener("pointercancel", letGo);
+    }
+    // A key on a line's slider: the arrows move it by one bar of the histogram,
+    // Page Up and Page Down by five, Home and End to as far as it can go. The
+    // curves follow at once; R is asked once the keys have rested.
+    keyCut(event, index) {
+      if (!this.model || !this.model.cut || !this.model.bars.length) return;
+      const [first] = this.model.bars;
+      const bar = first.to - first.from;
+      const points = this.drag ? this.drag.points : this.model.cut.points;
+      const { min, max } = this.cutRange();
+      const steps = {
+        ArrowLeft: -bar,
+        ArrowDown: -bar,
+        ArrowRight: bar,
+        ArrowUp: bar,
+        PageDown: -5 * bar,
+        PageUp: 5 * bar
+      };
+      let target;
+      if (event.key in steps) target = points[index] + steps[event.key];
+      else if (event.key === "Home") target = index > 0 ? points[index - 1] : min;
+      else if (event.key === "End") target = index < points.length - 1 ? points[index + 1] : max;
+      else return;
+      event.preventDefault();
+      clearTimeout(this.settleTimer);
+      this.keyIndex = index;
+      if (this.drag && this.drag.index !== index) this.drag = null;
+      const below = index > 0 ? points[index - 1] : -Infinity;
+      const above = index < points.length - 1 ? points[index + 1] : Infinity;
+      const room = Math.max(below, Math.min(above, target));
+      const nudge = (above - below) * 1e-9 || 1e-9;
+      const placed = room <= below ? below + nudge : room >= above ? above - nudge : room;
+      this.moveCut(index, placed);
+    }
+    // The keys have stopped: after a short rest, the line is let go where it is.
+    settleCut() {
+      clearTimeout(this.settleTimer);
+      if (!this.drag || this.drag.grab) return;
+      const { index } = this.drag;
+      this.settleTimer = setTimeout(() => {
+        if (!this.drag || this.drag.grab || this.drag.index !== index) return;
+        this.dropCut(index, this.drag.points[index]);
+      }, SETTLE);
     }
     // Take hold of a cut line: the line stops showing R's answer for the old cut.
     holdCut(index) {
       if (!this.model || !this.model.cut) return;
-      this.drag = { index, points: [...this.model.cut.points] };
+      this.drag = { index, points: [...this.model.cut.points], model: this.model };
     }
     /**
      * Move a cut line, as dragging it does: the curves, the strip and the
@@ -7921,9 +8106,9 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     moveCut(index, value) {
       if (!this.drag) this.holdCut(index);
       if (!this.drag) return null;
-      const points = movePoints(this.drag.points, index, value);
+      const points = movePoints(this.drag.points, index, value, this.cutRange(this.drag.model));
       if (!points) return null;
-      this.drag = { index, points };
+      this.drag = { ...this.drag, index, points };
       drawSafely(this, () => this.draw({ ask: false }));
       return points;
     }
@@ -7937,9 +8122,11 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
      */
     dropCut(index, value) {
       const from = this.drag ? this.drag.points : this.model && this.model.cut && this.model.cut.points;
+      const range = this.cutRange(this.drag ? this.drag.model : this.model);
       this.drag = null;
+      clearTimeout(this.settleTimer);
       const spec = this.groupingOf(this.state.groupBy);
-      const points = from && isCut(spec) ? movePoints(from, index, value, { drop: true }) : null;
+      const points = from && isCut(spec) ? movePoints(from, index, value, { drop: true, ...range }) : null;
       if (!points) {
         this.render();
         return null;
@@ -8419,7 +8606,6 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       { ...coreSettings(settings), required: [] }
     );
     const outcomeOf = hazard ? outcomesOf(outcomes || [], settings, state.endpoint) : null;
-    const gaps = /* @__PURE__ */ new Map();
     const named2 = made.data.map((record) => {
       const row = {
         [settings.id_col]: record[settings.id_col],
@@ -8427,7 +8613,6 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       };
       if (!hazard) return { ...row, [extra.name]: record[extraKey] };
       const outcome = outcomeOf(record[settings.id_col]);
-      if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
       return {
         ...row,
         time: outcome.reason ? null : outcome.time,
@@ -8435,6 +8620,13 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
       };
     });
     const records = named2.filter((record) => drawn.rows.some((row) => record[row.name] !== null));
+    const gaps = /* @__PURE__ */ new Map();
+    if (hazard) {
+      for (const record of records) {
+        const outcome = outcomeOf(record[settings.id_col]);
+        if (outcome.reason) gaps.set(outcome.reason, (gaps.get(outcome.reason) || 0) + 1);
+      }
+    }
     return {
       ...model,
       records,
@@ -8611,7 +8803,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
           outcomes: readOutcomesGiven(this, given2.outcomes, this.settings)
         };
       } else {
-        const next = syncSettings5({ ...this.settings, ...settings });
+        const next = syncSettings5(laidOver(this.settings, settings));
         this.tables = {
           ...readGiven(this, given2, next),
           outcomes: readOutcomesGiven(this, given2.outcomes, next)
@@ -8634,7 +8826,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
      */
     setSettings(settings) {
       const given2 = settings || {};
-      const next = syncSettings5({ ...this.settings, ...given2 });
+      const next = syncSettings5(laidOver(this.settings, given2));
       checkTables(this.tables, next);
       if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
       this.close();
@@ -8675,6 +8867,11 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         (spec) => this.kit.normalizeFilterSpec(spec)
       );
       this.endpoints = this.tables.outcomes ? listEndpoints(this.tables.outcomes, settings) : [];
+      if (this.tables.outcomes && settings.endpoint !== null && !this.endpoints.some((entry) => entry.endpoint === settings.endpoint)) {
+        console.warn(
+          `The initial endpoint [${settings.endpoint}] does not exist. Defaulting to the first.`
+        );
+      }
       if (results.length && settings.visit !== null && !this.visits.includes(settings.visit)) {
         console.warn(
           `The initial visit [${settings.visit}] does not exist. Defaulting to the first.`
@@ -9081,8 +9278,10 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       const head = kit.createElement("div", "bv-screen-head");
       head.setAttribute("aria-hidden", "true");
       const ticks = kit.createElement("div", "bv-ticks");
-      range.ticks.forEach((tick) => {
-        const label2 = kit.createElement("span", "bv-tick", String(tick).replace("-", "\u2212"));
+      const every = range.ticks.length > 7 ? 2 : 1;
+      range.ticks.forEach((tick, index) => {
+        if (index % every !== 0 && index !== range.ticks.length - 1) return;
+        const label2 = kit.createElement("span", "bv-tick", shown(tick).replace("-", "\u2212"));
         const at = placeOf(tick, range);
         label2.style.left = `${at}%`;
         if (at === 0) label2.style.transform = "none";

@@ -19,7 +19,7 @@ import {
   scopeText,
   survivalRequest
 } from '../../../src/stratified-survival/statistic.js';
-import { dropPoint } from '../../../src/stratified-survival/drag.js';
+import { dropPoint, movePoints } from '../../../src/stratified-survival/drag.js';
 import { createConnection } from '../../../src/r/index.js';
 import { canonicalJson } from '../../../src/r/canonical.js';
 import { participants, readStudyTable, results } from '../core/study.js';
@@ -102,7 +102,11 @@ describe('stratified survival: settings', () => {
 
 describe('stratified survival: who is drawn, and each curve', () => {
   it('SS-DATA-001: each participant drawn is in desktop R’s group, with R’s time and event, for every case (#61)', () => {
-    expect(fromR.cases.length).toBeGreaterThanOrEqual(8);
+    expect(fromR.cases.length).toBeGreaterThanOrEqual(9);
+    // The edges: a group of one, and an event and a censoring at time 0.
+    const edge = caseOf('a-group-of-one-and-an-event-at-0');
+    expect(edge.curves.find((curve) => curve.group === 'Solo').n_risk).toEqual([1]);
+    expect(edge.time_of).toContain(0);
     for (const entry of fromR.cases) {
       const model = modelOf(entry);
       expect(
@@ -199,6 +203,29 @@ describe('stratified survival: who is drawn, and each curve', () => {
     expect(listEndpoints(outcomes, settings)).toEqual([
       { endpoint: 'EFS', label: 'Event-free survival (months)' }
     ]);
+    // An outcome row for a participant neither table has is not used, and
+    // counted; a flag may be logical, as R's Analyze_Survival takes one.
+    const more = buildSurvival(
+      {
+        results: results.filter((result) => ids.includes(result.USUBJID)),
+        participants: kept,
+        outcomes: [
+          row(ids[0], '3', true),
+          row(ids[1], '4', 'FALSE'),
+          row('NOBODY-1', '5', '0'),
+          row('NOBODY-2', '6', '1'),
+          { ...row(ids[2], '7', '0'), PARAMCD: 'OS' }
+        ]
+      },
+      settings,
+      { endpoint: 'EFS', groupBy: 'ARM', filters: {} },
+      { kmEstimate: kit.kmEstimate }
+    );
+    expect(more.records.map((record) => [record.USUBJID, record.flag, record.event])).toEqual([
+      [ids[0], 1, false],
+      [ids[1], 0, true]
+    ]);
+    expect(more.unused).toContainEqual({ reason: 'Outcome row for no such participant', n: 2 });
   });
 
   it('SS-RISK-001: the at-risk strip counts, at each time of the axis, the participants of a group whose time is at or after it, and those are the ones a cell lists (#61)', () => {
@@ -231,6 +258,12 @@ describe('stratified survival: who is drawn, and each curve', () => {
     expect(dropPoint(4.0123456)).toBe(4.012);
     expect(dropPoint(3.99996)).toBe(4);
     expect(dropPoint(0.000123456)).toBe(0.0001235);
+    // A line stays inside the values and between its neighbours.
+    const range = { min: 0.5, max: 16.7 };
+    expect(movePoints([2.783], 0, -24.07, range)).toEqual([0.5]);
+    expect(movePoints([2.783], 0, 99, range)).toEqual([16.7]);
+    expect(movePoints([2, 3, 5], 1, 1.5, range)).toBe(null);
+    expect(movePoints([2, 3, 5], 1, 4.2, { ...range, drop: true })).toEqual([2, 4.2, 5]);
   });
 });
 
@@ -285,22 +318,37 @@ describe('stratified survival: what R is asked, and what the line says', () => {
   });
 
   it('SS-STAT-003: R’s log-rank test is printed with its method and counts, each group’s median with its log-log interval, a median R did not reach as not reached, and, for two groups, the hazard ratio with its interval (#61)', () => {
-    const median = describeAnswer({ status: 'ok', value: caseOf('crp-median').value });
+    const median = describeAnswer(
+      { status: 'ok', value: caseOf('crp-median').value },
+      { levels: ['≤ 2.783', '> 2.783'], highOverLow: true }
+    );
     expect(median.state).toBe('shown');
     expect(median.text).toBe(
       'Log-rank test: p < 0.001 (> 2.783 n = 100, ≤ 2.783 n = 100). Exploratory, unadjusted.'
     );
-    // A cut's groups go to R high to low: the hazard ratio is high over low,
-    // as the biomarker screen's is.
+    // The medians in the legend's order, low to high; the hazard ratio is the
+    // higher group's over the lower's, and says so.
     expect(median.estimates).toEqual([
-      'Median (> 2.783): 8.28, 95% confidence interval 5.24 to 9.71.',
       'Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.',
-      'Hazard ratio (> 2.783 / ≤ 2.783): 3.523, 95% confidence interval 2.43 to 5.107.'
+      'Median (> 2.783): 8.28, 95% confidence interval 5.24 to 9.71.',
+      'Hazard ratio, high over low (> 2.783 / ≤ 2.783): 3.523, 95% confidence interval 2.43 to 5.107.'
     ]);
+    // A column's: its first group's hazard over its second's, as R names them.
+    const arm = describeAnswer(
+      { status: 'ok', value: caseOf('arm').value },
+      { levels: ['Placebo', 'Treatment'], highOverLow: false }
+    );
+    expect(arm.estimates.at(-1)).toMatch(/^Hazard ratio \(Placebo \/ Treatment\): /);
     // Three groups: medians, and no hazard ratio.
-    const tertiles = describeAnswer({ status: 'ok', value: caseOf('crp-tertiles').value });
+    const tertiles = describeAnswer(
+      { status: 'ok', value: caseOf('crp-tertiles').value },
+      { levels: caseOf('crp-tertiles').groups, highOverLow: true }
+    );
     expect(tertiles.estimates).toHaveLength(3);
     expect(tertiles.estimates.every((line) => line.startsWith('Median ('))).toBe(true);
+    expect(tertiles.estimates.map((line) => line.slice(8, line.indexOf(')')))).toEqual(
+      caseOf('crp-tertiles').groups
+    );
     expect(
       scopeText({
         n: 91,
@@ -333,5 +381,24 @@ describe('stratified survival: what R is asked, and what the line says', () => {
     expect(described.state).toBe('withheld');
     expect(described.text.startsWith(value.reason)).toBe(true);
     expect(described.text).not.toMatch(/p [=<]/);
+  });
+});
+
+describe('stratified survival: what the chart reads of the kit', () => {
+  it('SS-KIT-002: the chart reads no band of the kit’s estimate: nothing of its source reads the lower or upper bound or the standard error that kmEstimate also returns (#61)', () => {
+    const files = [
+      'src/stratified-survival.js',
+      'src/stratified-survival/configure.js',
+      'src/stratified-survival/drag.js',
+      'src/stratified-survival/statistic.js',
+      'src/stratified-survival/structureData.js'
+    ];
+    const source = files
+      .map((file) => readFileSync(new URL(`../../../${file}`, import.meta.url), 'utf8'))
+      .join('\n');
+    expect(source).toContain('kmEstimate');
+    expect(
+      source.match(/\.(lo|hi|se)\b|\[['"](lo|hi|se)['"]\]|\{[^}]*\b(lo|hi|se)\b[^}]*\}\s*=/g)
+    ).toBe(null);
   });
 });

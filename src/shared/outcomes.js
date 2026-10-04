@@ -47,6 +47,18 @@ export function flaggedSettings(given) {
 }
 
 /**
+ * A chart's settings with a caller's laid over them, as `setSettings` and
+ * `setData` lay them: naming an event column, and not the censor column,
+ * reads the outcomes table the other way round, as it does when a chart is made.
+ * @param {object} current The chart's settings.
+ * @param {object} given The caller's.
+ * @returns {object} The settings to check.
+ */
+export function laidOver(current, given) {
+  return { ...current, ...flaggedSettings(given) };
+}
+
+/**
  * Checks the settings of the outcomes table, laid over the defaults: the
  * columns, exactly one flag, and the endpoint.
  * @param {object} settings The settings.
@@ -130,8 +142,17 @@ export function listEndpoints(outcomes, settings) {
   });
 }
 
+/** Why a row of the outcomes table is not used, as a chart says it. */
+export const OUTCOME_UNUSED = Object.freeze({
+  NO_PARTICIPANT: 'Outcome row for no such participant'
+});
+
 const numberOf = (value) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  // A flag may be logical, as R's Analyze_Survival takes one.
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (value === 'TRUE' || value === 'true') return 1;
+  if (value === 'FALSE' || value === 'false') return 0;
   if (typeof value !== 'string' || value.trim() === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
@@ -143,19 +164,27 @@ const numberOf = (value) => {
  * @param {object[]} outcomes The outcomes table.
  * @param {object} settings The chart's settings.
  * @param {string} endpoint The endpoint.
- * @returns {(id: string) => ({time: number, flag: number, event: boolean}|{reason: string})}
- *   The outcome of a participant, by id.
+ * @param {?Set<string>} [known] The participants the tables have, by id: a
+ *   row for anyone else, or with no id, is not used, and counted as
+ *   `strangers` on the function returned.
+ * @returns {((id: string) => ({time: number, flag: number, event: boolean}|{reason: string}))
+ *   & {strangers: number}} The outcome of a participant, by id.
  */
-export function outcomesOf(outcomes, settings, endpoint) {
+export function outcomesOf(outcomes, settings, endpoint, known = null) {
   const idCol = settings.outcome_id_col || settings.id_col;
   const flag = flagOf(settings);
   const byId = new Map();
+  let strangers = 0;
   for (const row of outcomes) {
-    if (String(row[settings.endpoint_col]) !== endpoint || isBlank(row[idCol])) continue;
+    if (String(row[settings.endpoint_col]) !== endpoint) continue;
+    if (isBlank(row[idCol]) || (known && !known.has(String(row[idCol])))) {
+      strangers += 1;
+      continue;
+    }
     const id = String(row[idCol]);
     byId.set(id, [...(byId.get(id) || []), row]);
   }
-  return (id) => {
+  const outcomeOf = (id) => {
     const found = byId.get(String(id)) || [];
     if (!found.length) return { reason: LEFT_OUT.NO_OUTCOME };
     if (found.length > 1) return { reason: LEFT_OUT.SEVERAL_OUTCOMES };
@@ -170,4 +199,6 @@ export function outcomesOf(outcomes, settings, endpoint) {
       event: flag.field === 'censor' ? flagged === 0 : flagged === 1
     };
   };
+  outcomeOf.strangers = strangers;
+  return outcomeOf;
 }

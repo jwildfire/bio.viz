@@ -16,12 +16,13 @@
 import { frame } from '../core/frame.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 import { coreSettings } from '../shared/settings.js';
-import { LEFT_OUT, listEndpoints, outcomesOf } from '../shared/outcomes.js';
-import { keepFiltered, levelsOf } from '../shared/tables.js';
+import { LEFT_OUT, OUTCOME_UNUSED, listEndpoints, outcomesOf } from '../shared/outcomes.js';
+import { isBlank, keepFiltered, levelsOf } from '../shared/tables.js';
 
-// Why a participant with a group is not drawn, and the endpoints of an
-// outcomes table: the shared reading's (src/shared/outcomes.js).
-export { LEFT_OUT, listEndpoints };
+// Why a participant with a group is not drawn, why an outcome row is not
+// used, and the endpoints of an outcomes table: the shared reading's
+// (src/shared/outcomes.js).
+export { LEFT_OUT, OUTCOME_UNUSED, listEndpoints };
 
 const grouping = (by) => (isCut(by) ? by : { col: by });
 
@@ -119,10 +120,35 @@ export function buildSurvival(
   // through have no results. The core is not handed a table of no rows.
   if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
 
+  // Each participant's outcome for the endpoint. A row for a participant
+  // neither table has, or with no id, is not used, and counted; one for a
+  // participant the filters set aside is theirs, and is not.
+  const participantIdCol = settings.participant_id_col || idCol;
+  const known = new Set(
+    (participants || results)
+      .map((row) => row[participants ? participantIdCol : idCol])
+      .filter((id) => !isBlank(id))
+      .map(String)
+  );
+  const outcomeOf = outcomesOf(outcomes, settings, state.endpoint, known);
+  const strangers = outcomeOf.strangers;
+  const hasOutcome = (id) => !isBlank(id) && !outcomeOf(id).reason;
+
   // A cut variable's points are worked out on the participants the filters
-  // keep who have a value of it, whether or not they have an outcome.
+  // keep who have a value of it and an outcome for the endpoint: the ones the
+  // curves are drawn of, so a median cuts them in halves, as R's
+  // Analyze_Screen cuts a biomarker for its hazard ratio.
   const cut = isCut(state.groupBy)
-    ? cutOf({ results: rows, participants: kept }, state.groupBy, settings)
+    ? cutOf(
+        kept
+          ? {
+              results: rows,
+              participants: kept.filter((row) => hasOutcome(row[participantIdCol]))
+            }
+          : { results: rows.filter((row) => hasOutcome(row[idCol])), participants: null },
+        state.groupBy,
+        settings
+      )
     : null;
   const made = frame(
     { results: rows, participants: kept || undefined },
@@ -130,20 +156,18 @@ export function buildSurvival(
     config
   );
 
-  // Each participant's outcome for the endpoint.
-  const outcomeOf = outcomesOf(outcomes, settings, state.endpoint);
   const left = new Map();
   const leave = (reason) => left.set(reason, (left.get(reason) || 0) + 1);
   const records = [];
   const values = [];
   for (const record of made.data) {
     const id = String(record[idCol]);
-    if (cut) values.push(record.group);
     const outcome = outcomeOf(id);
     if (outcome.reason) {
       leave(outcome.reason);
       continue;
     }
+    if (cut) values.push(record.group);
     records.push({
       [idCol]: id,
       group: cut ? groupLabel(record.group, cut) : String(record.group),
@@ -185,7 +209,10 @@ export function buildSurvival(
     bars: cut ? histogramOf(values) : [],
     participants: made.participants,
     dropped: [...made.dropped, ...[...left].map(([reason, n]) => ({ reason, n }))],
-    unused: made.unused,
+    unused: [
+      ...made.unused,
+      ...(strangers ? [{ reason: OUTCOME_UNUSED.NO_PARTICIPANT, n: strangers }] : [])
+    ],
     last
   };
 }

@@ -26,7 +26,7 @@
 // interval and, for two groups, the hazard ratio with its interval.
 
 import { createConnection } from './r/connection.js';
-import { cutGroup } from './core/cut.js';
+import { cutGroup, writePoint } from './core/cut.js';
 import { UNUSED } from './core/reasons.js';
 import { label as variableLabel } from './core/variable.js';
 import { syncSettings } from './stratified-survival/configure.js';
@@ -61,7 +61,7 @@ import {
   writeStatistic
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
-import { checkOutcomes } from './shared/outcomes.js';
+import { checkOutcomes, laidOver } from './shared/outcomes.js';
 import { refuse } from './shared/settings.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
 
@@ -74,7 +74,7 @@ ${C} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
 ${C} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
 ${C} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
-${C} .bv-risk th,${C} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right}
+${C} .bv-risk th,${C} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right;white-space:nowrap}
 ${C} .bv-risk thead th{background:#f6f8fa;font-weight:600;padding:.2rem .5rem}
 ${C} .bv-risk tbody th{text-align:left;background:#f6f8fa}
 ${C} .bv-risk button{display:block;width:100%;margin:0;border:0;background:transparent;padding:.25rem .5rem;font:inherit;text-align:inherit;color:inherit;cursor:pointer}
@@ -82,7 +82,9 @@ ${C} .bv-risk button:hover{background:#f4f8fc}
 ${C} .bv-risk button:focus-visible{outline:2px solid #0b62a4;outline-offset:-2px}
 ${C} .bv-swatch{display:inline-block;width:.7rem;height:.7rem;margin-right:.35rem;border-radius:2px;vertical-align:-1px}
 ${C} .bv-hist{margin:0 0 .6rem}
-${C} .bv-hist-canvas{height:150px;position:relative;touch-action:none}
+${C} .bv-hist-canvas{height:150px;position:relative;touch-action:pan-y}
+${C} .bv-cut-handle{position:absolute;width:18px;margin-left:-9px;cursor:ew-resize;border-radius:3px}
+${C} .bv-cut-handle:focus-visible{outline:2px solid #0b62a4;outline-offset:0}
 ${C} .bv-hist-canvas canvas{cursor:ew-resize}
 ${C} .bv-hist-canvas canvas:focus-visible{outline:2px solid #0b62a4;outline-offset:2px}
 ${C} .bv-cut-counts{margin:.25rem 0 0;font-size:.8rem;color:#52616f}
@@ -102,8 +104,16 @@ export const NEEDS_OUTCOMES =
   'with a time and a flag, as `init({ results, participants, outcomes })`.';
 const CUT_KEY = 'bv-cut:';
 const MOVED_KEY = 'bv-cut:moved';
-// How near a cut line, in pixels, a press must be to take hold of it.
+// How near a cut line, in pixels, a press must be to take hold of it: with a
+// mouse, and with a finger.
 const GRIP = 10;
+const TOUCH_GRIP = 24;
+// How far, in pixels, a pointer held on a line must move before it drags it:
+// less is a click, which leaves the line where it is.
+const BUDGE = 3;
+// How long, in milliseconds, the keys must rest before R is asked for a line
+// moved from the keyboard.
+const SETTLE = 400;
 
 // A cut variable in words, without its cut: the variable the histogram shows.
 const uncutLabel = (spec) => {
@@ -168,12 +178,11 @@ class StratifiedSurvival {
     this.chartWrap.after(this.riskWrap);
     this.riskWrap.after(this.histWrap);
     this.listenToHistogram();
-    // A click on a curve, or on one of its censor marks, lists its group.
+    // A click on a curve lists its group: on the step the curve draws at that
+    // time, within a few pixels; a click away from every curve lists nothing.
     this.canvas.addEventListener('click', (event) => {
-      const chart = this.curvesChart;
-      if (!chart) return;
-      const [hit] = chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, false);
-      if (hit) this.listGroup(chart.data.datasets[hit.datasetIndex].level);
+      const level = this.curveAt(event);
+      if (level !== null) this.listGroup(level);
     });
     mountToolbar(this);
   }
@@ -201,7 +210,7 @@ class StratifiedSurvival {
     const next =
       settings === undefined || settings === null
         ? this.settings
-        : syncSettings({ ...this.settings, ...settings });
+        : syncSettings(laidOver(this.settings, settings));
     const given = Array.isArray(data) ? { results: data } : data || {};
     const read = readGiven(this, given, next);
     const outcomes = readOutcomesGiven(this, given.outcomes, next);
@@ -224,7 +233,7 @@ class StratifiedSurvival {
    */
   setSettings(settings) {
     const given = settings || {};
-    const next = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings(laidOver(this.settings, given));
     checkTables(this.tables, next);
     if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
     this.settings = next;
@@ -423,6 +432,7 @@ class StratifiedSurvival {
     this.riskWrap.innerHTML = '';
     this.multiplesWrap.innerHTML = '';
     this.cutCounts.textContent = '';
+    this.clearHandles();
     this.histWrap.classList.add('sv-hidden');
     this.statLine.textContent = '';
     this.statLine.dataset.state = 'empty';
@@ -492,7 +502,9 @@ class StratifiedSurvival {
           n: model.records.length,
           endpoint: this.endpointLabel(state.endpoint),
           filters: filtersForScope(this)
-        })
+        }),
+        levels: model.levels,
+        highOverLow: isCut(drawing.groupBy)
       }
     );
   }
@@ -527,7 +539,13 @@ class StratifiedSurvival {
 
   cutNotes(model) {
     if (!model.cut) return [];
-    return [cutNote(model.cut.spec, model.cut)];
+    const said = [cutNote(model.cut.spec, model.cut)];
+    if (!Array.isArray(model.cut.cut)) {
+      said.push(
+        'Only participants with an outcome for the endpoint are cut, as R’s Analyze_Screen cuts them.'
+      );
+    }
+    return said;
   }
 
   colorOf(index) {
@@ -587,6 +605,9 @@ class StratifiedSurvival {
         plugins: {
           legend: {
             position: 'bottom',
+            // A curve and its censor marks are one: the legend names them
+            // and hides neither.
+            onClick: () => {},
             labels: { filter: (item) => datasets[item.datasetIndex].kind === 'curve' },
             title: { display: true, text: this.labelOf(state.groupBy) }
           },
@@ -628,6 +649,31 @@ class StratifiedSurvival {
     );
     this.charts.push(chart);
     this.curvesChart = chart;
+  }
+
+  // The group whose curve passes within a few pixels of a pointer event, or
+  // null: the curve's height at that time is its last step at or before it.
+  curveAt(event) {
+    const chart = this.curvesChart;
+    if (!chart || !this.model) return null;
+    const box = this.canvas.getBoundingClientRect();
+    const x = event.clientX - box.left;
+    const y = event.clientY - box.top;
+    const { left, right, top, bottom } = chart.chartArea;
+    if (x < left || x > right || y < top - 6 || y > bottom + 6) return null;
+    const time = chart.scales.x.getValueForPixel(x);
+    let best = null;
+    let nearest = 8;
+    for (const curve of this.model.curves) {
+      if (time > curve.estimate.maxTime) continue;
+      const step = [...curve.estimate.points].reverse().find((point) => point.time <= time);
+      const away = Math.abs(chart.scales.y.getPixelForValue(step ? step.surv : 1) - y);
+      if (away <= nearest) {
+        nearest = away;
+        best = curve.level;
+      }
+    }
+    return best;
   }
 
   // The at-risk strip: for each group, how many are at risk at each time of
@@ -759,26 +805,80 @@ class StratifiedSurvival {
     this.histCanvas.setAttribute(
       'aria-label',
       `Histogram of ${uncutLabel(model.cut.spec)}, cut at ` +
-        `${points.map((point) => Number(point.toPrecision(4))).join(' and ')}. ` +
-        'Left and right arrows move the cut line.'
+        `${points.map((point) => writePoint(point)).join(' and ')}.`
     );
+    this.drawHandles(chart, model);
+  }
+
+  // A slider over each cut line, for the keyboard: it takes the focus, says
+  // where its line is and how far it can go, and its arrow keys move the line.
+  drawHandles(chart, model) {
+    const { kit } = this;
+    this.clearHandles();
+    const points = model.cut.points;
+    const { min, max } = this.cutRange(model);
+    const { top, bottom } = chart.chartArea;
+    points.forEach((point, index) => {
+      const handle = kit.createElement('div', 'bv-cut-handle');
+      handle.tabIndex = 0;
+      handle.dataset.index = String(index);
+      handle.setAttribute('role', 'slider');
+      handle.setAttribute(
+        'aria-label',
+        `${uncutLabel(model.cut.spec)}: cut point ${index + 1} of ${points.length}`
+      );
+      handle.setAttribute('aria-orientation', 'horizontal');
+      handle.setAttribute('aria-valuemin', String(index > 0 ? points[index - 1] : min));
+      handle.setAttribute(
+        'aria-valuemax',
+        String(index < points.length - 1 ? points[index + 1] : max)
+      );
+      handle.setAttribute('aria-valuenow', String(point));
+      handle.setAttribute('aria-valuetext', writePoint(point));
+      handle.style.left = `${chart.scales.x.getPixelForValue(point)}px`;
+      handle.style.top = `${top}px`;
+      handle.style.height = `${bottom - top}px`;
+      handle.addEventListener('keydown', (event) => this.keyCut(event, index));
+      handle.addEventListener('keyup', () => this.settleCut());
+      // Leaving the slider leaves it: a redraw that replaces it does not.
+      handle.addEventListener('blur', () => {
+        if (!this.redrawing) this.keyIndex = null;
+      });
+      this.histBox.append(handle);
+      if (this.keyIndex === index) handle.focus();
+    });
+  }
+
+  // Takes the sliders away, as a redraw does, without letting their focus go.
+  clearHandles() {
+    this.redrawing = true;
+    this.histBox.querySelectorAll('.bv-cut-handle').forEach((handle) => handle.remove());
+    this.redrawing = false;
+  }
+
+  // The least and the greatest value cut: a line stays between them.
+  cutRange(model = this.model) {
+    if (!model || !model.bars.length) return { min: -Infinity, max: Infinity };
+    return { min: model.bars[0].from, max: model.bars[model.bars.length - 1].to };
   }
 
   // ---- Moving a cut line ---------------------------------------------------------
 
   listenToHistogram() {
     const canvas = this.histCanvas;
+    // The box holds the canvas and the sliders over its lines: a press on a
+    // slider is a press on its line.
+    const box = this.histBox;
     const valueAt = (event) => {
       const chart = this.histChart;
       if (!chart) return null;
       const box = canvas.getBoundingClientRect();
       return chart.scales.x.getValueForPixel(event.clientX - box.left);
     };
-    canvas.addEventListener('pointerdown', (event) => {
+    box.addEventListener('pointerdown', (event) => {
       const chart = this.histChart;
       if (!chart || !this.model || !this.model.cut) return;
-      const box = canvas.getBoundingClientRect();
-      const x = event.clientX - box.left;
+      const x = event.clientX - canvas.getBoundingClientRect().left;
       const points = this.model.cut.points;
       let nearest = -1;
       let distance = Infinity;
@@ -789,38 +889,90 @@ class StratifiedSurvival {
           nearest = index;
         }
       });
-      if (nearest < 0 || distance > GRIP) return;
+      const grip = event.pointerType === 'touch' ? TOUCH_GRIP : GRIP;
+      if (nearest < 0 || distance > grip) return;
       event.preventDefault();
-      if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+      if (box.setPointerCapture) box.setPointerCapture(event.pointerId);
       this.holdCut(nearest);
+      // The line moves by as much as the pointer does from where it took hold,
+      // not to the pointer: a press beside the line does not move it.
+      this.drag.grab = { x: event.clientX, offset: points[nearest] - valueAt(event), moved: false };
     });
-    canvas.addEventListener('pointermove', (event) => {
-      if (!this.drag) return;
+    box.addEventListener('pointermove', (event) => {
+      if (!this.drag || !this.drag.grab) return;
+      const { grab } = this.drag;
+      if (!grab.moved && Math.abs(event.clientX - grab.x) < BUDGE) return;
       const value = valueAt(event);
-      if (value !== null) this.moveCut(this.drag.index, value);
+      if (value === null) return;
+      grab.moved = true;
+      this.moveCut(this.drag.index, value + grab.offset);
+      // moveCut keeps the hold; the grab is carried with it.
+      if (this.drag) this.drag.grab = grab;
     });
-    const letGo = (event) => {
-      if (!this.drag) return;
-      const value = valueAt(event);
-      this.dropCut(this.drag.index, value === null ? this.drag.points[this.drag.index] : value);
+    const letGo = () => {
+      if (!this.drag || !this.drag.grab) return;
+      const { index, points, grab } = this.drag;
+      if (!grab.moved) {
+        // A click: the line stays where it is, and R is not asked.
+        this.drag = null;
+        return;
+      }
+      this.dropCut(index, points[index]);
     };
-    canvas.addEventListener('pointerup', letGo);
-    canvas.addEventListener('pointercancel', letGo);
-    canvas.addEventListener('keydown', (event) => {
-      if (!this.model || !this.model.cut || !this.model.bars.length) return;
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      event.preventDefault();
-      const [first] = this.model.bars;
-      const step = (first.to - first.from) * (event.key === 'ArrowLeft' ? -1 : 1);
-      const index = this.drag ? this.drag.index : 0;
-      this.dropCut(index, this.model.cut.points[index] + step);
-    });
+    box.addEventListener('pointerup', letGo);
+    box.addEventListener('pointercancel', letGo);
+  }
+
+  // A key on a line's slider: the arrows move it by one bar of the histogram,
+  // Page Up and Page Down by five, Home and End to as far as it can go. The
+  // curves follow at once; R is asked once the keys have rested.
+  keyCut(event, index) {
+    if (!this.model || !this.model.cut || !this.model.bars.length) return;
+    const [first] = this.model.bars;
+    const bar = first.to - first.from;
+    const points = this.drag ? this.drag.points : this.model.cut.points;
+    const { min, max } = this.cutRange();
+    const steps = {
+      ArrowLeft: -bar,
+      ArrowDown: -bar,
+      ArrowRight: bar,
+      ArrowUp: bar,
+      PageDown: -5 * bar,
+      PageUp: 5 * bar
+    };
+    let target;
+    if (event.key in steps) target = points[index] + steps[event.key];
+    else if (event.key === 'Home') target = index > 0 ? points[index - 1] : min;
+    else if (event.key === 'End') target = index < points.length - 1 ? points[index + 1] : max;
+    else return;
+    event.preventDefault();
+    clearTimeout(this.settleTimer);
+    this.keyIndex = index;
+    if (this.drag && this.drag.index !== index) this.drag = null;
+    // As far as the line can go: short of its neighbours, inside the values.
+    const below = index > 0 ? points[index - 1] : -Infinity;
+    const above = index < points.length - 1 ? points[index + 1] : Infinity;
+    const room = Math.max(below, Math.min(above, target));
+    const nudge = (above - below) * 1e-9 || 1e-9;
+    const placed = room <= below ? below + nudge : room >= above ? above - nudge : room;
+    this.moveCut(index, placed);
+  }
+
+  // The keys have stopped: after a short rest, the line is let go where it is.
+  settleCut() {
+    clearTimeout(this.settleTimer);
+    if (!this.drag || this.drag.grab) return;
+    const { index } = this.drag;
+    this.settleTimer = setTimeout(() => {
+      if (!this.drag || this.drag.grab || this.drag.index !== index) return;
+      this.dropCut(index, this.drag.points[index]);
+    }, SETTLE);
   }
 
   // Take hold of a cut line: the line stops showing R's answer for the old cut.
   holdCut(index) {
     if (!this.model || !this.model.cut) return;
-    this.drag = { index, points: [...this.model.cut.points] };
+    this.drag = { index, points: [...this.model.cut.points], model: this.model };
   }
 
   /**
@@ -834,9 +986,9 @@ class StratifiedSurvival {
   moveCut(index, value) {
     if (!this.drag) this.holdCut(index);
     if (!this.drag) return null;
-    const points = movePoints(this.drag.points, index, value);
+    const points = movePoints(this.drag.points, index, value, this.cutRange(this.drag.model));
     if (!points) return null;
-    this.drag = { index, points };
+    this.drag = { ...this.drag, index, points };
     drawSafely(this, () => this.draw({ ask: false }));
     return points;
   }
@@ -853,9 +1005,12 @@ class StratifiedSurvival {
     const from = this.drag
       ? this.drag.points
       : this.model && this.model.cut && this.model.cut.points;
+    const range = this.cutRange(this.drag ? this.drag.model : this.model);
     this.drag = null;
+    clearTimeout(this.settleTimer);
     const spec = this.groupingOf(this.state.groupBy);
-    const points = from && isCut(spec) ? movePoints(from, index, value, { drop: true }) : null;
+    const points =
+      from && isCut(spec) ? movePoints(from, index, value, { drop: true, ...range }) : null;
     if (!points) {
       this.render();
       return null;

@@ -68,7 +68,7 @@ import {
   drawSafely,
   checkTables
 } from './shared/chartHost.js';
-import { OUTCOME_DEFAULTS, checkOutcomes, listEndpoints } from './shared/outcomes.js';
+import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -219,7 +219,7 @@ class BiomarkerScreen {
     } else {
       // The tables and the settings that read them change together: the
       // tables are checked against the new settings, which are then laid over.
-      const next = syncSettings({ ...this.settings, ...settings });
+      const next = syncSettings(laidOver(this.settings, settings));
       this.tables = {
         ...readGiven(this, given, next),
         outcomes: readOutcomesGiven(this, given.outcomes, next)
@@ -243,7 +243,7 @@ class BiomarkerScreen {
    */
   setSettings(settings) {
     const given = settings || {};
-    const next = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings(laidOver(this.settings, given));
     // The tables must still have the columns the new settings name; if not, the
     // settings are refused and nothing changes, a chart opened in place included.
     checkTables(this.tables, next);
