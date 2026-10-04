@@ -147,13 +147,22 @@ result_at <- function(measure, visit) {
   rows$STRESN[match(participants$USUBJID, rows$USUBJID)]
 }
 
+# Whether a value is missing as the chart reads it: NA, empty, or white space
+# alone. The white space is what JavaScript's String.prototype.trim() removes,
+# all of it and nothing more: trimws()'s default, [ \t\r\n], misses the
+# non-breaking space and the other Unicode spaces, and PCRE's [\h\v] adds
+# U+0085 and U+180E and lacks U+FEFF.
+# The characters themselves, so the pattern is UTF-8 and PCRE reads it so.
+JS_SPACE <- "[\t-\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]"
+is_blank <- function(value) is.na(value) | trimws(value, whitespace = JS_SPACE) == ""
+
 # A variable's category for every participant: a column's value, or a cut
 # biomarker's group, worked out on the participants kept.
 category_of <- function(variable, keep, people = participants) {
   if (is.character(variable)) {
     # A value that is empty or only white space is missing, as the chart reads it.
     value <- people[[variable]]
-    value[!is.na(value) & trimws(value) == ""] <- NA
+    value[is_blank(value)] <- NA
     return(list(values = value, levels = NULL))
   }
   # The baseline is the result at Baseline, the one baseline visit the cases
@@ -223,7 +232,8 @@ crp <- function(cut) list(measure = "CRP", visit = "Baseline", value = "raw", cu
 levels_people <- local({
   i <- seq_len(48)
   grade <- c("a", "B")[((i - 1) %/% 4) %% 2 + 1]
-  grade[i %% 7 == 0] <- " "
+  # White space alone: a space, a non-breaking space, an em space.
+  grade[i %% 7 == 0] <- c(" ", "\u00a0", "\u2003")[(i[i %% 7 == 0] / 7 - 1) %% 3 + 1]
   data.frame(
     USUBJID = sprintf("L-%02d", i),
     STAGE = c("Week 2", "Week 10", "week 1", "\u00d6dem")[(i - 1) %% 4 + 1],
@@ -269,9 +279,18 @@ made_by <- list(
 
 # Text is written in ASCII: the sign ≤ of a cut's label as its JSON escape.
 ascii <- function(text) gsub("≤", "\\u2264", text, fixed = TRUE)
+# Every character of the Basic Multilingual Plane the recipe reads as white
+# space alone, by its code point (NUL, which no R string holds, and the
+# surrogates left out): the unit tests hold it to JavaScript's trim().
+blank_code_points <- local({
+  code <- setdiff(1:65535, 55296:57343)
+  code[is_blank(intToUtf8(code, multiple = TRUE))]
+})
+
 lines <- c(
   "{",
   paste0("  \"made_by\": ", to_json(made_by), ","),
+  paste0("  \"blank_code_points\": ", to_json(as.list(as.integer(blank_code_points))), ","),
   "  \"cases\": [",
   paste0("    ", vapply(cases, function(entry) ascii(to_json(entry)), character(1)),
          c(rep(",", length(cases) - 1), "")),

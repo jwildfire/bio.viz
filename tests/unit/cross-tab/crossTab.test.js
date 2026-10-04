@@ -109,9 +109,24 @@ describe('cross-tabulation: the table', () => {
     // A value of white space alone is missing, as R's recipe reads it: the
     // participants with one are not in the table.
     const stages = caseOf('stage-by-grade-chisq');
-    expect(stages.tables.participants.filter((row) => row.GRADE.trim() === '')).toHaveLength(6);
+    const blanks = stages.tables.participants.filter((row) => row.GRADE.trim() === '');
+    expect(blanks.map((row) => row.GRADE)).toEqual(
+      expect.arrayContaining([' ', '\u00a0', '\u2003'])
+    );
+    expect(blanks).toHaveLength(6);
     expect(stages.total).toBe(42);
-    expect(modelOf(stages).colLevels).not.toContain(' ');
+    for (const space of [' ', '\u00a0', '\u2003']) {
+      expect(modelOf(stages).colLevels).not.toContain(space);
+      expect(stages.col_levels).not.toContain(space);
+    }
+    // The white space R's recipe reads as nothing is exactly what
+    // JavaScript's trim() removes, character for character.
+    const trimmed = [];
+    for (let code = 1; code <= 0xffff; code += 1) {
+      if (code >= 0xd800 && code <= 0xdfff) continue;
+      if (String.fromCharCode(code).trim() === '') trimmed.push(code);
+    }
+    expect(fromR.blank_code_points).toEqual(trimmed);
   });
 
   it('CT-DATA-002: the row and the column percentages are each count of its row’s or its column’s total, as desktop R works them out (#44)', () => {

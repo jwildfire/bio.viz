@@ -85,7 +85,11 @@ const FIXTURES = [
     body: ['results', 'recipes']
   },
   { script: 'tools/r-cut.R', committed: 'tests/fixtures/cut-r.json', body: 'cases' },
-  { script: 'tools/r-cross-tab.R', committed: 'tests/fixtures/cross-tab-r.json', body: 'cases' }
+  {
+    script: 'tools/r-cross-tab.R',
+    committed: 'tests/fixtures/cross-tab-r.json',
+    body: ['cases', 'blank_code_points']
+  }
 ];
 const requireR = process.argv.includes('--require-r');
 
