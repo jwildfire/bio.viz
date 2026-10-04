@@ -1,0 +1,16 @@
+{
+  "schema": "safety.viz portfolio manifest format",
+  "repository": "https://github.com/jwildfire/safety.viz",
+  "ref": "dev",
+  "commit": "096cc26d48e5d3cd1bf03eb78249658974c7a307",
+  "version": "1.9.0",
+  "merged_to_dev": true,
+  "files": [
+    {
+      "file": "portfolio.json",
+      "source": "src/data/schema/portfolio.json",
+      "sha256": "3be184c321766795fac81ee0fed1350425d9cc33d3ec7a72fea44f577a65cfa1",
+      "bytes": 9494
+    }
+  ]
+}

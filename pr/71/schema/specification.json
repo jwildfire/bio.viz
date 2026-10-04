@@ -1,0 +1,448 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jwildfire.github.io/bio.viz/schema/specification.json",
+  "title": "bio.viz chart specification",
+  "description": "A bio.viz chart written as data: the chart, the bio.viz version that wrote it, its settings and the filters in force. Nothing in it is evaluated. Written by tools/write-specification-schema.mjs from each chart’s settings; documented in docs/output.md.",
+  "type": "object",
+  "required": [
+    "format",
+    "format_version",
+    "chart"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "bio.viz specification"
+    },
+    "format_version": {
+      "const": 1
+    },
+    "bio_viz_version": {
+      "type": "string",
+      "description": "The bio.viz version that wrote it."
+    },
+    "chart": {
+      "enum": [
+        "group-comparison",
+        "association-scatter",
+        "correlation-matrix",
+        "biomarker-screen",
+        "cross-tab",
+        "stratified-survival"
+      ]
+    },
+    "settings": {
+      "type": "object",
+      "description": "Settings of the chart, by name; a setting left out keeps its default.",
+      "additionalProperties": {
+        "$ref": "#/$defs/data"
+      }
+    },
+    "filters": {
+      "type": "array",
+      "description": "The filters in force.",
+      "items": {
+        "$ref": "#/$defs/filter"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "group-comparison"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "start_value",
+                "visits",
+                "value_type",
+                "group_by",
+                "levels",
+                "color_by",
+                "panel_by",
+                "mark",
+                "y_scale",
+                "measures",
+                "groups",
+                "max_levels",
+                "filters",
+                "overview_limit",
+                "details",
+                "page_size",
+                "statistic",
+                "test",
+                "pairwise",
+                "waiting_note",
+                "profile",
+                "profile_details",
+                "studyday_col",
+                "normal_col_high",
+                "normal_col_low",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "association-scatter"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "x",
+                "y",
+                "color_by",
+                "panel_by",
+                "x_scale",
+                "y_scale",
+                "fit",
+                "measures",
+                "numbers",
+                "groups",
+                "max_levels",
+                "filters",
+                "details",
+                "page_size",
+                "statistic",
+                "method",
+                "fit_statistic",
+                "waiting_note",
+                "profile",
+                "profile_details",
+                "studyday_col",
+                "normal_col_high",
+                "normal_col_low",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "correlation-matrix"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "mode",
+                "visit",
+                "biomarkers",
+                "measure",
+                "visits",
+                "value_type",
+                "view",
+                "limit",
+                "measures",
+                "max_levels",
+                "filters",
+                "statistic",
+                "method",
+                "min_pairs",
+                "waiting_note",
+                "scatter",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "biomarker-screen"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "comparison",
+                "visit",
+                "value_type",
+                "group_by",
+                "levels",
+                "with",
+                "method",
+                "outcome_id_col",
+                "endpoint_col",
+                "endpoint_label_col",
+                "time_col",
+                "censor_col",
+                "event_col",
+                "endpoint",
+                "adjustment",
+                "sort",
+                "limit",
+                "measures",
+                "groups",
+                "numbers",
+                "max_levels",
+                "filters",
+                "statistic",
+                "waiting_note",
+                "group_comparison",
+                "association_scatter",
+                "stratified_survival",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "cross-tab"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "row_by",
+                "col_by",
+                "percent",
+                "cuts",
+                "measures",
+                "groups",
+                "max_levels",
+                "filters",
+                "details",
+                "page_size",
+                "statistic",
+                "test",
+                "waiting_note",
+                "profile",
+                "profile_details",
+                "studyday_col",
+                "normal_col_high",
+                "normal_col_low",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "chart": {
+            "const": "stratified-survival"
+          }
+        },
+        "required": [
+          "chart"
+        ]
+      },
+      "then": {
+        "properties": {
+          "settings": {
+            "propertyNames": {
+              "enum": [
+                "id_col",
+                "measure_col",
+                "value_col",
+                "visit_col",
+                "visit_order_col",
+                "unit_col",
+                "participant_id_col",
+                "baseline_visits",
+                "baseline_stat",
+                "outcome_id_col",
+                "endpoint_col",
+                "endpoint_label_col",
+                "time_col",
+                "censor_col",
+                "event_col",
+                "endpoint",
+                "group_by",
+                "cuts",
+                "at_risk_times",
+                "measures",
+                "groups",
+                "max_levels",
+                "filters",
+                "details",
+                "page_size",
+                "statistic",
+                "waiting_note",
+                "profile",
+                "profile_details",
+                "studyday_col",
+                "normal_col_high",
+                "normal_col_low",
+                "title",
+                "subtitle",
+                "footnotes",
+                "downloads",
+                "png_scale"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "data": {
+      "description": "Data only: text, a number, true, false, null, a list or an object of these.",
+      "type": [
+        "null",
+        "boolean",
+        "number",
+        "string",
+        "array",
+        "object"
+      ],
+      "items": {
+        "$ref": "#/$defs/data"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/data"
+      }
+    },
+    "filter": {
+      "type": "object",
+      "required": [
+        "column",
+        "operator",
+        "values"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "enum": [
+            "in"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
