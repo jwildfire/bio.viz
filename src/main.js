@@ -64,6 +64,7 @@ export { biomarkerScreen } from './biomarker-screen.js';
  * Built from safety.viz's kit, which the page loads beside this bundle.
  */
 export { crossTab } from './cross-tab.js';
+export { stratifiedSurvival } from './stratified-survival.js';
 
 /**
  * The chart list: every chart above, in safety.viz's portfolio manifest format

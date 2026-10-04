@@ -1,0 +1,1056 @@
+{
+  "module": "stratified-survival",
+  "generatedAt": "2026-10-04T06:35:51.803Z",
+  "environment": {
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
+    "playwright": "1.61.1",
+    "chromium": "149.0.7827.55"
+  },
+  "run": {
+    "id": "37183228614",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37183228614"
+  },
+  "records": [
+    {
+      "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-002: the home page holds at a 390px-wide viewport with no horizontal scroll (#1)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-002"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-003: the gallery is reached from the home page and lists the published charts, or says that none is published yet (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-004: the gallery lists each shared part, and its two links lead to that module’s evidence page and API reference (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-006: the connection to R’s evidence page lists every RCON- and PVAL- requirement with the tests that prove it (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-007: a screenshot a test captured is shown under its requirement on the evidence page (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: every module has an API reference page that documents each name it exports (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-009: the connection to R’s API reference documents createConnection and formatStatistic (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-012"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-013: each module’s evidence page holds at a 390px-wide viewport with no horizontal scroll (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-013"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-014: each module’s API reference holds at a 390px-wide viewport, with its tables restacked (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-014"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-015: the site serves the synthetic study, and the gallery gives its row counts and the commit it was copied from (#7)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAG-001: dragging the cut line moves the curves at once and asks R nothing; letting it go makes the cut a typed point, as its label writes it, held by the Groups control, and asks R once (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAG-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAG-002: dropped at 4, R’s stored answer for the cut at 4 is found and printed: its log-rank test, its medians and its hazard ratio; the arrow keys move the line too (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAG-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAG-003: an answer asked for before the line was taken hold of is never shown: the line waits for the cut it is let go at (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAG-003"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAG-004: a click on a cut line, with no drag, leaves it where it is and asks R nothing; a drag moves it by as much as the pointer moves, from where it took hold (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAG-004"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAG-005: each cut line is a slider of its own: at the tertiles the second line takes the focus and its arrows move it, the curves at once, R once the keys rest; it stops at its neighbours and inside the values (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAG-005"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-DRAW-001: event-free survival by CRP at Baseline cut at its median: each group’s curve is R’s survfit() estimate, step for step, with its censored times marked, and high CRP has the worse survival, as the study was planted (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAW-001"],
+      "issueRefs": [61],
+      "screenshots": ["SS-DRAW-001-crp-median.png"]
+    },
+    {
+      "test": "SS-DRAW-002: groups from a column are drawn by name, and a cut at its tertiles makes three curves, low to high, each R’s; a column has no histogram (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-DRAW-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-EVENT-001: an outcomes table flagged by event, 1 for an event, is read the other way round: the same curves, and R is asked with strEventCol and finds its answer (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-EVENT-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-FAIL-001: when drawing fails the chart says so in its element and keeps its controls, leaving nothing half drawn, and draws again once it can (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-FAIL-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-HIST-001: for a cut biomarker the histogram shows the values the points were worked out on, with a line at each point and how many values fall in each group (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-HIST-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-KIT-001: the chart is built from safety.viz’s kit on the page, its curves the kit’s kmEstimate drawn with the kit’s Chart.js; without safety.viz it says what is missing (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-KIT-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-LIST-001: a click on a curve lists its group’s participants, and a count of the at-risk strip those it counts, the ones R puts there; a row opens that participant’s profile (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-LIST-001"],
+      "issueRefs": [61],
+      "screenshots": ["SS-LIST-001-participants-at-risk.png"]
+    },
+    {
+      "test": "SS-LIVE-001: with R and the survival package started in this browser, the log-rank p, each median with its interval and the hazard ratio with its interval are desktop R’s, before and after the cut line is moved to 4 (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-LIVE-001"],
+      "issueRefs": [61],
+      "screenshots": ["SS-LIVE-001-r-in-the-browser.png"]
+    },
+    {
+      "test": "SS-LIVE-002: by arm, a column, R in the browser is desktop R’s (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-LIVE-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-MOBILE-001: at 390px the controls are folded away, the at-risk strip fits or scrolls inside its own box, and the page does not scroll sideways (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-MOBILE-001"],
+      "issueRefs": [61],
+      "screenshots": ["SS-MOBILE-001-the-curves-on-a-phone.png"]
+    },
+    {
+      "test": "SS-NEED-001: loaded without an outcomes table, the chart says it needs one, draws nothing and keeps its controls (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-NEED-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-RISK-002: the at-risk strip counts, at each time of the axis, the participants of each group whose time is at or after it, as R’s survfit() counts them at risk (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-RISK-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-SITE-001"],
+      "issueRefs": [61],
+      "screenshots": ["SS-SITE-001-demo-on-a-phone.png"]
+    },
+    {
+      "test": "SS-SITE-002: the gallery lists the chart with links to its live demo, its evidence page and its API reference, and the demo opens on event-free survival by CRP at Baseline cut at its median (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-SITE-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-STAT-006: with no R attached the line says statistics are unavailable, the curves are still drawn, and nothing is fetched (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-006"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-STAT-007: R’s answers stored in the page are found for the women alone and for a column, and a group below R’s minimum size prints R’s reason (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-007"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-STAT-008: where R does not estimate the hazard ratio, it is not printed, and R’s note says why (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-008"],
+      "issueRefs": [61],
+      "screenshots": ["SS-STAT-008-hazard-ratio-not-estimable.png"]
+    },
+    {
+      "test": "SS-STAT-009: once the connection is replaced, a late answer from the old one changes neither the line nor what chart.statistics() reports (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-009"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "SS-STAT-010: where some participants have a value and no outcome, the median is the median of those drawn, as R’s Analyze_Screen takes it: the cut, each group’s count and R’s answer are the ones desktop R gives (#61)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-010"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the page is the reference file, rendered: its title, sections, tables and code (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference page CORE-SITE-009: the sections are listed at the top, each linked to its place on the page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-MAN-006: an export listed as data is documented as one, under one heading, and its fields are not held one by one (#32)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-006"],
+      "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a constant whose value the reference does not give is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a function the reference documents that the bundle does not export is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a namespace in the surface stands for each of its members, and a constant carries its value (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a parameter the source documents and the reference leaves out is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: a reference that documents every export, parameter and constant has no problems (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export no module claims, a surface the bundle lacks and an empty surface are each a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: an export with no heading in the reference is a problem (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the committed references document everything the committed bundle exports (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code CORE-SITE-010: the connection’s reference is held to the parameters its source documents (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-010"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "API reference: held to the code GC-SITE-004: a chart’s reference names every setting the chart has, and a setting it leaves out is a problem (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-SITE-004"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer buildRun builds GitHub Actions run provenance from the environment (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence flags status drift and test-set changes, ignoring screenshots (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer compareEvidence ignores provenance so --check never drifts on generatedAt/environment/run (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a requirement row with no test named for it is reported (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer CORE-SITE-011: a test that names a requirement in no matrix is reported with the test (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-011"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer moduleForFile routes test files to modules by path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizePlaywright walks nested suites into browser-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer normalizeVitest maps assertion results to unit-suite records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName extracts requirement IDs and issue refs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer parseTestName recognizes any requirement-ID prefix, not just SH (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence normalizer provenance lives in dedicated top-level keys; the records array stays timestamp-free (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: a requirement with no test says so, and the summary counts it (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: each requirement shows the tests named for it, unit or browser, with the result each recorded (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: tests that carry none of the module’s requirements are listed apart, as run with every module (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-006: with every requirement tested and passing the summary says every test is passing (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-006"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: a screenshot is shown under the requirement it was captured for, and only there (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-007"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: results recorded on a developer’s machine say so, and absent provenance is not invented (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page CORE-SITE-008: the page says when and where the results were recorded and links the run (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-008"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "evidence page the page links the module’s requirement matrix and its committed evidence set (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a chart’s card shows its picture once that screenshot is committed, and no picture before (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: a registered chart is listed under Charts with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-003: with no chart registered the gallery says that no chart is published yet (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-003"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-004: the registry as committed lists the core and the connection to R as shared parts (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-004"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-015: the gallery says what each table of the synthetic study holds, its rows, and the commit it was copied from (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-015"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [26],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page links each module’s evidence page and API reference, and the gallery (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page says there are no charts yet only while none is published (#9)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks a relative link points at the repository, and a link to another reference file at its page (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a fenced block is code, escaped and left as written, and a # inside it is not a heading (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: a table keeps each column heading on every cell, so it can restack on a narrow screen (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: headings get the anchors GitHub gives them, repeated ones numbered (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: blocks CORE-SITE-009: paragraphs join their lines, and bullet and numbered lists keep theirs apart (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-009"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline keeps a code span inside a link label, and links a bare address in angle brackets (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline mdText strips the marks and keeps the words (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline reads nothing inside a code span as a link or as emphasis (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "markdown: inline renders code, links, bold and italic, and escapes everything else (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry that does not say whether it is a chart or a shared part is refused (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: an entry without its matrix or its API reference is refused, as is a name registered twice (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "module registry CORE-SITE-005: the registry as committed is well formed (#7)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-005"],
+      "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-001: the page has a button that starts R, the stated tolerance and the versions desktop R used (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-001"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-002: the recorded megabytes, requests and seconds are shown for cold, reload and warm, with how they were measured (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-002"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "R check page RCON-PAGE-003: with no recorded measurement the page says so and prints no number in its place (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PAGE-003"],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "repo hygiene no source or test file carries a machine-specific absolute path (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags added and removed requirement IDs (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard flags changed requirement text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: freshness guard reports fresh when the committed set matches a fresh extraction (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing ignores the header, separator, and non-requirement content (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing keeps an escaped pipe inside a requirement cell as a single row (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: matrix parsing maps each requirement ID to its reviewed text (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: requirement set wraps the parsed map with module + matrix provenance (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices passes when every matrix file is registered, ignoring the README and non-markdown files (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "requirements-lib: unregistered matrices reports a matrix file no module in site/config.json names (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages CORE-SITE-001: the home page names the library and its version (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-001"],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages escapeHtml escapes the five HTML-significant characters (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages renderShell fills title, description, version and root, and leaves no token behind (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages summarizeModule counts requirement rows and passing test records (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page links to the R check page (#3)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [3],
+      "screenshots": []
+    },
+    {
+      "test": "site pages the home page lists each registered module with its counts and a link to its matrix (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links flags internal links and asset references that do not resolve (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "site validation: internal links passes a site whose internal links all resolve, ignoring external and fragment links (#1)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": [],
+      "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: settings SS-CFG-001: every setting has a default; the outcomes table is read by its time and one flag, censored or event, never both; the groups are a column or a cut variable (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-CFG-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: the API reference SS-SITE-003: the reference names every setting the chart has, with its default, and a setting it leaves out is a problem (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-SITE-003"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what R is asked, and what the line says SS-STAT-001: R is asked once per view, with one row per participant drawn, and the function, the arguments, the identity and the row count desktop R’s recipe writes; the flag goes under the name the table reads it by (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what R is asked, and what the line says SS-STAT-002: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its view (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what R is asked, and what the line says SS-STAT-003: R’s log-rank test is printed with its method and counts, each group’s median with its log-log interval, a median R did not reach as not reached, and, for two groups, the hazard ratio with its interval (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-003"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what R is asked, and what the line says SS-STAT-004: a hazard ratio R does not estimate is not printed, and R’s note says why, as R wrote it (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-004"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what R is asked, and what the line says SS-STAT-005: a group below R’s minimum size prints R’s reason and counts, and no number (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-STAT-005"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: what the chart reads of the kit SS-KIT-002: the chart reads no band of the kit’s estimate: nothing of its source reads the lower or upper bound or the standard error that kmEstimate also returns (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-KIT-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-CURVE-001: each group’s curve is safety.viz’s kmEstimate, and its steps are R’s survfit() estimate: the same event times, numbers at risk, events and survival, and the same censored times (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-CURVE-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-CUT-001: for a cut variable the histogram holds every value the points were worked out on, and a cut line dropped becomes a typed point as its label writes it (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-CUT-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-DATA-001: each participant drawn is in desktop R’s group, with R’s time and event, for every case (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-DATA-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-DATA-002: the outcomes table is read either way round: a flag of events gives the same participants, groups and curves as ADaM’s CNSR (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-DATA-002"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-DATA-003: a participant with a group and no usable outcome is left out and counted by reason: no row, more than one, a time or flag that is missing or not a number, a flag that is not 0 or 1, a time below 0 (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-DATA-003"],
+      "issueRefs": [61],
+      "screenshots": []
+    },
+    {
+      "test": "stratified survival: who is drawn, and each curve SS-RISK-001: the at-risk strip counts, at each time of the axis, the participants of a group whose time is at or after it, and those are the ones a cell lists (#61)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["SS-RISK-001"],
+      "issueRefs": [61],
+      "screenshots": []
+    }
+  ]
+}

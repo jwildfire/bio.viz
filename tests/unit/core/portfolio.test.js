@@ -53,9 +53,11 @@ const refusesNull = (configuration, key) => {
   }
 };
 
+// The available charts, but for one that says why it is left out of the list.
 const charts = config.modules.filter(
-  (entry) => entry.kind === 'chart' && entry.status === 'available'
+  (entry) => entry.kind === 'chart' && entry.status === 'available' && entry.portfolio !== false
 );
+const leftOut = config.modules.filter((entry) => entry.portfolio === false);
 const exportName = (module) => module.replace(/-(\w)/g, (match, letter) => letter.toUpperCase());
 
 describe('the chart list', () => {
@@ -108,9 +110,14 @@ describe('the chart list', () => {
       expect(entry.export, chart.module).toBe(exportName(chart.module));
       expect(typeof bioViz[entry.export], chart.module).toBe('function');
     }
-    // Every chart the bundle exports is listed.
+    // Every chart the bundle exports is listed, but for one the registry says
+    // is left out, and says why.
     const exported = Object.keys(bioViz).filter((key) => typeof bioViz[key] === 'function');
-    expect(Object.values(manifest.modules).map((entry) => entry.export)).toEqual(exported);
+    expect(Object.values(manifest.modules).map((entry) => entry.export)).toEqual(
+      exported.filter((name) => !leftOut.some((entry) => exportName(entry.module) === name))
+    );
+    expect(leftOut.map((entry) => entry.module)).toEqual(['stratified-survival']);
+    expect(leftOut[0].portfolioNote).toMatch(/outcomes table/);
   });
 
   it('CORE-MAN-004: every entry names bio.viz, is listed in the declared biomarker group, and takes the results table from labs and vitals and the participant table, optional, from the subject-level file (#32)', () => {

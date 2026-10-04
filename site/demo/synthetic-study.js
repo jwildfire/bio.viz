@@ -10,6 +10,8 @@
 // It is the planned day of the visit, worked out here, not a column of the
 // study.
 //
+// `loadOutcomes` reads the study's outcomes table, for the survival chart.
+//
 // `withArmSex` adds one column to the participant rows, for a page that wants a
 // category with more than two levels: `ARM_SEX`, the participant's arm and sex
 // joined by a space ("Placebo F"). Every category of the study has two levels,
@@ -61,6 +63,11 @@
       ]).then(function (tables) {
         return { results: withDay(tables[0]), participants: tables[1] };
       });
+    },
+    // The study's outcomes table: one row per participant and endpoint, with
+    // the time (AVAL) and ADaM's censor flag (CNSR).
+    loadOutcomes: function (folder) {
+      return read(folder + 'synthetic_outcomes.csv');
     }
   };
 })();

@@ -9,7 +9,8 @@ export const CHARTS = {
   as: { fixture: 'association-scatter', name: '__as' },
   cm: { fixture: 'correlation-matrix', name: '__cm' },
   bs: { fixture: 'biomarker-screen', name: '__bs' },
-  ct: { fixture: 'cross-tab', name: '__ct' }
+  ct: { fixture: 'cross-tab', name: '__ct' },
+  ss: { fixture: 'stratified-survival', name: '__ss' }
 };
 
 const blockR = (page) =>
