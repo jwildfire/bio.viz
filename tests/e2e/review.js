@@ -8,7 +8,8 @@ export const CHARTS = {
   gc: { fixture: 'group-comparison', name: '__gc' },
   as: { fixture: 'association-scatter', name: '__as' },
   cm: { fixture: 'correlation-matrix', name: '__cm' },
-  bs: { fixture: 'biomarker-screen', name: '__bs' }
+  bs: { fixture: 'biomarker-screen', name: '__bs' },
+  ct: { fixture: 'cross-tab', name: '__ct' }
 };
 
 const blockR = (page) =>

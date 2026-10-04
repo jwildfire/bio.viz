@@ -94,6 +94,22 @@
         "source": ["src/biomarker-screen.js"],
         "settings": "src/biomarker-screen/configure.js"
       }
+    },
+    {
+      "module": "cross-tab",
+      "title": "Cross-tabulation",
+      "kind": "chart",
+      "status": "available",
+      "blurb": "Is this category associated with that one? A two-way table of counts with its row and column totals and percentages, beside stacked bars of the same numbers, and R's chi-square or Fisher's exact test of it, with R's warning when an expected count is too small for chi-square. Either variable is a column or a biomarker cut at its median, tertiles, quartiles or typed points. Click a count to list its participants and open a participant's profile.",
+      "matrix": "cross-tab.md",
+      "demo": "cross-tab.js",
+      "hero": "CT-DRAW-001-arm-by-response.png",
+      "api": {
+        "doc": "cross-tab.md",
+        "surface": ["crossTab"],
+        "source": ["src/cross-tab.js"],
+        "settings": "src/cross-tab/configure.js"
+      }
     }
   ]
 }

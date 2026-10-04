@@ -1,0 +1,124 @@
+// What the cross-tabulation draws, worked out from the tables: the categories
+// of the rows and of the columns, the two-way table of counts with its totals,
+// and its row and column percentages.
+//
+// Pure functions: no page and no chart. Who is in the table comes from the
+// core's frame; a cut variable's groups from the shared cut rule.
+//
+// The numbers are descriptions of the table, and nothing more: counts, totals
+// and percentages. None of them tests anything. The test, chi-square or
+// Fisher's exact, is R's, and is asked for through the connection.
+
+import { frame } from '../core/frame.js';
+import { cutOf, groupLabel, isCut } from '../shared/cut.js';
+import { coreSettings } from '../shared/settings.js';
+import { keepFiltered, levelsOf } from '../shared/tables.js';
+
+const grouping = (by) => (isCut(by) ? by : { col: by });
+
+/**
+ * Everything the table is: who is in it, the categories each way, the counts
+ * with their totals and percentages, and, for a cut variable, how it was cut.
+ *
+ * @param {{results: object[], participants: ?object[]}} tables The tables.
+ * @param {object} settings The chart's settings (syncSettings).
+ * @param {object} state What the controls are set to: `rowBy`, `colBy` (each
+ *   a column's name or a cut variable) and `filters`.
+ * @param {object} [options]
+ * @param {Function} [options.filterMatches] safety.viz's test of one value
+ *   against one filter's selection.
+ * @returns {object} `{ records, rowLevels, colLevels, counts, rowTotals,
+ *   colTotals, total, percents: { row, col }, cuts, participants, dropped,
+ *   unused, filtered }`. `records` holds one per participant in the table: the
+ *   id, `row` and `col`, each as text.
+ */
+export function buildTable({ results, participants }, settings, state, options = {}) {
+  const config = coreSettings(settings);
+  const { participants: kept, results: rows } = keepFiltered(
+    { results, participants },
+    settings,
+    state.filters,
+    options.filterMatches
+  );
+  const empty = {
+    records: [],
+    rowLevels: [],
+    colLevels: [],
+    counts: [],
+    rowTotals: [],
+    colTotals: [],
+    total: 0,
+    percents: { row: [], col: [] },
+    cuts: {},
+    participants: kept ? kept.length : 0,
+    dropped: [],
+    unused: [],
+    filtered: kept ? kept.length : null
+  };
+  // Nobody left: the filters let no participant through, or those they let
+  // through have no results. The core is not handed a table of no rows.
+  if (!rows.length || !state.rowBy || !state.colBy) return empty;
+
+  // A cut variable's points are worked out on the participants the filters
+  // keep who have a value of it.
+  const cuts = {};
+  for (const [field, by] of [
+    ['row', state.rowBy],
+    ['col', state.colBy]
+  ]) {
+    if (isCut(by)) cuts[field] = cutOf({ results: rows, participants: kept }, by, settings);
+  }
+  const made = frame(
+    { results: rows, participants: kept || undefined },
+    { row: grouping(state.rowBy), col: grouping(state.colBy) },
+    config
+  );
+  const records = made.data.map((record) => {
+    const out = { [config.id_col]: record[config.id_col] };
+    for (const field of ['row', 'col']) {
+      out[field] = cuts[field] ? groupLabel(record[field], cuts[field]) : String(record[field]);
+    }
+    return out;
+  });
+  // The categories each way: a cut's low to high, a column's by name, those
+  // with someone in the table.
+  const levelsFor = (field) =>
+    cuts[field]
+      ? cuts[field].labels.filter((label) => records.some((record) => record[field] === label))
+      : levelsOf(records.map((record) => record[field]));
+  const rowLevels = levelsFor('row');
+  const colLevels = levelsFor('col');
+  const counts = rowLevels.map((row) =>
+    colLevels.map(
+      (col) => records.filter((record) => record.row === row && record.col === col).length
+    )
+  );
+  const sum = (values) => values.reduce((total, value) => total + value, 0);
+  const rowTotals = counts.map(sum);
+  const colTotals = colLevels.map((_, j) => sum(counts.map((row) => row[j])));
+  return {
+    ...empty,
+    records,
+    rowLevels,
+    colLevels,
+    counts,
+    rowTotals,
+    colTotals,
+    total: sum(rowTotals),
+    percents: {
+      row: counts.map((row, i) => row.map((n) => (100 * n) / rowTotals[i])),
+      col: counts.map((row) => row.map((n, j) => (100 * n) / colTotals[j]))
+    },
+    cuts,
+    participants: made.participants,
+    dropped: made.dropped,
+    unused: made.unused
+  };
+}
+
+/**
+ * A percentage as the table writes it: one decimal place, as a percentage.
+ * @param {number} value A percentage from 0 to 100.
+ * @returns {string} `34.0%`.
+ */
+export const percentText = (value) => `${value.toFixed(1)}%`;

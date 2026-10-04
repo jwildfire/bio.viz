@@ -36,7 +36,8 @@ test.describe('bio.viz core', () => {
       'group-comparison',
       'association-scatter',
       'correlation-matrix',
-      'biomarker-screen'
+      'biomarker-screen',
+      'cross-tab'
     ]);
     // `$schema` is relative, so it resolves beside the published list.
     const schemaUrl = new URL(list.$schema, published.url()).pathname;

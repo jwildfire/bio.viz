@@ -58,6 +58,14 @@ export { correlationMatrix } from './correlation-matrix.js';
 export { biomarkerScreen } from './biomarker-screen.js';
 
 /**
+ * The cross-tabulation: a two-way table of counts with its totals and
+ * percentages, beside stacked bars of the same numbers, and R's chi-square or
+ * Fisher's exact test of it. Either variable is a column or a cut biomarker.
+ * Built from safety.viz's kit, which the page loads beside this bundle.
+ */
+export { crossTab } from './cross-tab.js';
+
+/**
  * The chart list: every chart above, in safety.viz's portfolio manifest format
  * (version 2), with the tables it takes and the column each of its column
  * settings reads, so safety.viz's demo app can list and draw bio.viz's charts

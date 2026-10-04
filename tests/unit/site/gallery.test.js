@@ -168,7 +168,8 @@ describe('module registry', () => {
       ['group-comparison', 'chart'],
       ['association-scatter', 'chart'],
       ['correlation-matrix', 'chart'],
-      ['biomarker-screen', 'chart']
+      ['biomarker-screen', 'chart'],
+      ['cross-tab', 'chart']
     ]);
   });
 

@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is the first release, [released on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)); its site is the released one, <https://jwildfire.github.io/bio.viz/>. It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. The others follow: cross-tabulation, with a shared rule for cutting a biomarker into groups, and stratified survival.
+Version 0.1.0 is the first release, [released on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)); its site is the released one, <https://jwildfire.github.io/bio.viz/>. It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. On `dev`, for v0.2.0: a shared rule for cutting a biomarker into groups, and the [cross-tabulation](https://jwildfire.github.io/bio.viz/dev/cross-tab/), a two-way table with R's chi-square or Fisher's exact test. Stratified survival follows.
 
 ## How it fits together
 
@@ -138,6 +138,25 @@ Across every biomarker, where is the signal? One row per biomarker for a compari
 ```
 
 The settings, the order of the rows, what R is asked and what a row opens are in [docs/biomarker-screen.md](docs/biomarker-screen.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/) opens on the difference the synthetic study was planted with.
+
+## The cross-tabulation
+
+Is this category associated with that one? A two-way table of counts with its totals and its row or column percentages, beside stacked bars of the same numbers, and R's chi-square or Fisher's exact test of it, with R's own warning when an expected count is below 5. Either variable is a column, or a biomarker cut by the shared cut rule. A click on a count lists that cell's participants.
+
+```html
+<script>
+  BioViz.crossTab('#chart', {
+    row_by: 'RESPONSE',
+    col_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+    test: 'chisq',
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+    })
+  }).init({ results, participants });
+</script>
+```
+
+The settings, what R is asked and the key a stored result is found by are in [docs/cross-tab.md](docs/cross-tab.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/cross-tab/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/cross-tab/) opens on arm by response.
 
 ## Naming a variable and getting one row per participant
 
