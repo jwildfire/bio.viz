@@ -1,13 +1,16 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T08:53:02.807Z",
+  "generatedAt": "2026-10-04T09:00:30.786Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37190714220",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37190714220"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -183,7 +186,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-001"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-001-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-002: the association scatter draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -191,7 +194,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-002"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-002-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-003: the correlation matrix draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -199,7 +202,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-003"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-003-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-004: the biomarker screen draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -207,7 +210,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-004"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-004-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-005: the cross tab draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -215,7 +218,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-005"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-005-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-DRAW-006: the stratified survival draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
@@ -223,7 +226,7 @@
       "status": "pass",
       "requirementIds": ["EXP-DRAW-006"],
       "issueRefs": [66],
-      "screenshots": []
+      "screenshots": ["EXP-DRAW-006-titled-and-footnoted.png"]
     },
     {
       "test": "EXP-SITE-001: the association scatter demo shows its title, subtitle and footnotes, every placeholder filled, with the chart’s own footnote last; at 390px the page does not scroll sideways (#66)",
