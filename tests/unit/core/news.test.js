@@ -28,7 +28,14 @@ describe('the release log', () => {
     if (upcoming.length) expect(all[0]).toBe(upcoming[0]);
     const released = all.filter((section) => !section.heading.endsWith('(Upcoming)'));
     expect(released.length).toBeGreaterThan(0);
-    expect(released[0].heading).toBe(`# bio.viz v${pkg.version}`);
+    // While a release is prepared the package is already its version, and its
+    // section is the upcoming one; otherwise the newest released section is the
+    // package's version (#75).
+    if (upcoming.length && upcoming[0].heading === `# bio.viz v${pkg.version} (Upcoming)`) {
+      expect(released[0].heading).not.toBe(`# bio.viz v${pkg.version}`);
+    } else {
+      expect(released[0].heading).toBe(`# bio.viz v${pkg.version}`);
+    }
     for (const section of released) {
       expect(section.body, section.heading).not.toMatch(/jwildfire\.github\.io\/bio\.viz\/dev\//);
     }

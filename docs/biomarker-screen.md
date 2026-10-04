@@ -13,7 +13,7 @@ It is the way in to the single charts: find the biomarker here, then open its ch
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.biomarkerScreen('#chart', {
     baseline_visits: 'Baseline',

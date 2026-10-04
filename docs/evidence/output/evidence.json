@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T16:29:58.780Z",
+  "generatedAt": "2026-10-04T19:02:45.747Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37216945291",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37216945291"
+    "id": "37226711557",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37226711557"
   },
   "records": [
     {
@@ -981,7 +981,7 @@
       "screenshots": []
     },
     {
-      "test": "getting results out: what the #69 review found EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while the release log has an upcoming section, and never in a tagged build (#69 review)",
+      "test": "getting results out: what the #69 review found EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while its version is released and another is upcoming, never while a release is prepared or once it is promoted, and never in a tagged build (#69 review, #75)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["EXP-AUTO-005"],
