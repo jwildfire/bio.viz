@@ -15,6 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { TITLE_DEFAULTS } from '../shared/titles.js';
 
 /** What the percentages are of: each row's total, each column's, or none. */
 export const PERCENTS = Object.freeze(['row', 'col', 'none']);
@@ -64,7 +65,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   profile_details: null,
   studyday_col: null,
   normal_col_high: null,
-  normal_col_low: null
+  normal_col_low: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS
 });
 
 /**

@@ -253,10 +253,16 @@ const footnote = (page) => root(page).locator('.sv-footnote');
 const rowAt = (page, biomarker) =>
   root(page).locator(`.bv-screen-row[data-biomarker="${biomarker}"]`);
 const drill = (page) => page.locator('#chart > .bv-screen-drill');
+// What the screen says, but the one sentence of the chart's own footnote that
+// names the date drawn and the bio.viz version (#66), which are no statistic;
+// the rest of the footnotes, R's methods and counts among them, is read.
 const said = (page) =>
   root(page).evaluate((chart) =>
     [
-      chart.innerText,
+      chart.innerText.replace(
+        /Drawn on \d{4}-\d{2}-\d{2} by bio\.viz \d+\.\d+\.\d+(?: with development changes)?\./g,
+        ''
+      ),
       ...[...chart.querySelectorAll('[aria-label], [title]')].map(
         (element) =>
           `${element.getAttribute('aria-label') || ''} ${element.getAttribute('title') || ''}`

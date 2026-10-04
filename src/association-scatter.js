@@ -69,7 +69,8 @@ import {
   toolbarStyles,
   writeStatistic,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -882,6 +883,7 @@ class AssociationScatter {
         request,
         (description, answer) => {
           if (answer) asked.answer = answer;
+          writeTitles(this);
           show(coefficient, description);
         },
         {
@@ -910,6 +912,7 @@ class AssociationScatter {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         // The lines are drawn only from R's own answer for the rows on screen.
         chart.$fit = answer ? fitCurves(answer, state) : null;
         chart.draw();
@@ -928,6 +931,20 @@ class AssociationScatter {
         scale: scaleOf(state.fit)
       }
     );
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      x: state.x ? this.titleOf(state.x) : '',
+      y: state.y ? this.titleOf(state.y) : '',
+      n: model ? model.drawn : ''
+    };
   }
 
   /**

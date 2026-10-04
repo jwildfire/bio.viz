@@ -45,7 +45,8 @@ import {
   renderPager,
   toolbarStyles,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles
 } from './shared/chartHost.js';
 import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
@@ -1220,6 +1221,7 @@ class GroupComparison {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         show(description);
       },
       { scope: this.scope(panel, model) }
@@ -1246,6 +1248,33 @@ class GroupComparison {
         }))
       }
     });
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model, overview } = this;
+    // The participants drawn: in the one biomarker's panels, or, in the
+    // overview, anywhere on its page of biomarkers.
+    const panels = model
+      ? model.panels
+      : overview
+        ? overview.rows.flatMap((row) => row.model.panels)
+        : [];
+    const ids = new Set();
+    for (const panel of panels) {
+      for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
+    }
+    return {
+      measure: state.measure ?? 'every biomarker',
+      visits: (state.visits || []).join(', '),
+      value: VALUE_LABELS[state.valueType] || state.valueType,
+      group: state.groupBy ? this.labelOf(state.groupBy) : '',
+      n: model || overview ? ids.size : ''
+    };
   }
 
   /**

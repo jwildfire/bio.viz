@@ -15,6 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { TITLE_DEFAULTS } from '../shared/titles.js';
 import { checkGrouping, isCut } from '../shared/cut.js';
 
 // What every chart's settings share is in src/shared/settings.js; the two this
@@ -81,7 +82,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   profile_details: null,
   studyday_col: null,
   normal_col_high: null,
-  normal_col_low: null
+  normal_col_low: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS
 });
 
 /**

@@ -29,6 +29,13 @@ export * as r from './r/index.js';
 export * as core from './core/index.js';
 
 /**
+ * What every chart does to get its results out: a title, subtitle or footnote
+ * template's placeholders filled as text, and the footnote each chart writes
+ * last. `BioViz.output.fillText`, `BioViz.output.automaticFootnote`.
+ */
+export * as output from './output.js';
+
+/**
  * The group comparison chart: one value across the levels of a category, as
  * boxes, violins or points. Built from safety.viz's kit, which the page loads
  * beside this bundle.

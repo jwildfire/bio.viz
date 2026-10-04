@@ -17,6 +17,7 @@ import {
   textList,
   variableSetting
 } from '../shared/settings.js';
+import { TITLE_DEFAULTS } from '../shared/titles.js';
 
 /**
  * What a row of the screen is: a difference between two groups, a correlation
@@ -86,7 +87,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // The charts a row opens, and settings laid under what the screen carries across.
   group_comparison: null,
   association_scatter: null,
-  stratified_survival: null
+  stratified_survival: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS
 });
 
 /**

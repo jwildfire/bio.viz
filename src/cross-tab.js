@@ -51,7 +51,8 @@ import {
   showListing,
   syncHost,
   toolbarStyles,
-  writeStatistic
+  writeStatistic,
+  writeTitles
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
@@ -460,6 +461,7 @@ class CrossTab {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         show(description);
       },
       {
@@ -710,6 +712,20 @@ class CrossTab {
 
   railSettings() {
     return railSettings(this, 'linear');
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      rows: state.rowBy ? this.labelOf(state.rowBy) : '',
+      columns: state.colBy ? this.labelOf(state.colBy) : '',
+      n: model ? model.total : ''
+    };
   }
 
   /**

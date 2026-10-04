@@ -287,6 +287,7 @@ describe('API reference: held to the code', () => {
     expect(params.createConnection).toEqual([
       'options',
       'options.results',
+      'options.computedBy',
       'options.browser',
       'options.browser.source',
       'options.browser.sourceUrl',

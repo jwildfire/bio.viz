@@ -9,6 +9,7 @@
 // slots; a chart's own file decides what is drawn and what R is asked.
 
 import { checkOutcomes } from './outcomes.js';
+import { VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
 
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
@@ -93,7 +94,13 @@ ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
 ${root} .sv-rail{max-width:100%;overflow-x:auto}
-${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}
+${root} .bv-titles{margin:0 0 .6rem;max-width:100%}
+${root} .bv-titles:empty{display:none}
+${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
+${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
+${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
+${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -122,6 +129,12 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
   chart.statLine = kit.createElement('div', 'bv-statistic');
   chart.statLine.setAttribute('role', 'status');
   chart.footnote.after(chart.statLine);
+  // The title and subtitle above everything the chart draws, and its
+  // footnotes under it, before the listing (#66).
+  chart.titleBlock = kit.createElement('div', 'bv-titles');
+  chart.main.prepend(chart.titleBlock);
+  chart.footBlock = kit.createElement('div', 'bv-foot');
+  chart.listingWrap.before(chart.footBlock);
 
   // What the kit's listing and participant rail read and keep.
   chart.host = {
@@ -301,6 +314,7 @@ export function drawSafely(chart, draw) {
   chart.footnote.classList.remove('bv-failure');
   try {
     draw();
+    writeTitles(chart);
   } catch (error) {
     if (chart.desk) chart.desk.begin();
     chart.asked = [];
@@ -326,7 +340,133 @@ export function drawSafely(chart, draw) {
     chart.footnote.textContent = `This chart could not be drawn: ${message}`;
     chart.footnote.classList.add('bv-failure');
     console.error(error);
+    writeTitles(chart);
   }
+}
+
+// ---- The title, the subtitle and the footnotes -------------------------------------
+
+/**
+ * What every chart's placeholders hold, beside its own: the date drawn, the
+ * bio.viz version and the filters in force, in words.
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function sharedPlaceholders(chart) {
+  const filters =
+    chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
+  return {
+    date: dateDrawn(),
+    version: VERSION_SAID,
+    filters: filters.length
+      ? filters.map(({ label, values }) => `${label} is ${values.join(' or ')}`).join('; ')
+      : 'none'
+  };
+}
+
+/**
+ * The values a chart's title, subtitle and footnotes are filled from: what
+ * every chart has, and the chart's own (`chart.placeholders()`).
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function placeholderValues(chart) {
+  let own = {};
+  try {
+    own = typeof chart.placeholders === 'function' ? chart.placeholders() || {} : {};
+  } catch (error) {
+    // The title is still drawn, its own placeholders left as written; the
+    // error is the chart's, and is said where a developer will see it.
+    console.error('bio.viz: the chart’s placeholders could not be read.', error);
+    own = {};
+  }
+  return { ...sharedPlaceholders(chart), ...own };
+}
+
+/**
+ * The title, subtitle and footnotes as they read now, filled, with the
+ * footnote the chart writes last.
+ * @param {object} chart The chart.
+ * @returns {{title: ?string, subtitle: ?string, footnotes: string[]}}
+ */
+export function titlesOf(chart) {
+  const parts = partsOf(chart);
+  const joined = (runs) => (runs === null ? null : runs.map((run) => run.text).join(''));
+  return {
+    title: joined(parts.title),
+    subtitle: joined(parts.subtitle),
+    footnotes: parts.footnotes.map(joined)
+  };
+}
+
+// The title, subtitle and footnotes as runs of text, each placeholder's value a
+// run of its own. A title or subtitle of only white space is none.
+function partsOf(chart) {
+  const { settings } = chart;
+  const values = placeholderValues(chart);
+  const filled = (template) =>
+    typeof template !== 'string' || template.trim() === '' ? null : fillParts(template, values);
+  return {
+    title: filled(settings.title),
+    subtitle: filled(settings.subtitle),
+    footnotes: [
+      ...(settings.footnotes || []).map(filled).filter(Boolean),
+      [
+        {
+          text: automaticFootnote({
+            date: values.date,
+            version: VERSION_SAID,
+            asked: chart.asked || [],
+            of: chart.footnoteCounts
+          }),
+          value: false
+        }
+      ]
+    ]
+  };
+}
+
+// Text into an element as text: each placeholder's value in a <bdi>, so a value
+// written right to left keeps to itself.
+function writeRuns(kit, element, runs) {
+  for (const run of runs) {
+    if (run.value) {
+      const isolated = document.createElement('bdi');
+      isolated.textContent = run.text;
+      element.append(isolated);
+    } else element.append(document.createTextNode(run.text));
+  }
+}
+
+/**
+ * Writes the title, the subtitle and the footnotes, as text. A chart calls it
+ * when it has drawn, which drawSafely does, and when an answer from R arrives.
+ * @param {object} chart The chart, with `titleBlock` and `footBlock`.
+ */
+export function writeTitles(chart) {
+  if (!chart.titleBlock || !chart.footBlock) return;
+  const { kit } = chart;
+  const said = partsOf(chart);
+  chart.titleBlock.innerHTML = '';
+  if (said.title !== null) {
+    const title = kit.createElement('div', 'bv-title');
+    title.setAttribute('role', 'heading');
+    title.setAttribute('aria-level', '2');
+    writeRuns(kit, title, said.title);
+    chart.titleBlock.append(title);
+  }
+  if (said.subtitle !== null) {
+    const subtitle = kit.createElement('p', 'bv-subtitle');
+    writeRuns(kit, subtitle, said.subtitle);
+    chart.titleBlock.append(subtitle);
+  }
+  chart.footBlock.innerHTML = '';
+  said.footnotes.forEach((runs, index) => {
+    const line = kit.createElement('p', 'bv-foot-line');
+    writeRuns(kit, line, runs);
+    if (index === said.footnotes.length - 1) line.dataset.automatic = 'true';
+    chart.footBlock.append(line);
+  });
 }
 
 /** The settings the kit's listing and rail read, after the chart's settings change. */
