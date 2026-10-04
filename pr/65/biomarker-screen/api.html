@@ -184,7 +184,7 @@
 <tr><td data-label="Comparison"><code>correlation</code></td><td data-label="Opens">The <a href="../association-scatter/api.html">association scatter</a></td><td data-label="Carried across">The biomarker along the bottom and the fixed variable up the side, and the method.</td></tr>
 <tr><td data-label="Comparison"><code>hazard</code></td><td data-label="Opens">The <a href="../stratified-survival/api.html">stratified survival chart</a></td><td data-label="Carried across">The biomarker at the visit with the value type, cut at its median (<code>cut: &#39;median&#39;</code>), the endpoint, and the outcomes table&#39;s column settings.</td></tr></tbody></table>
 <p>Each is given the screen&#39;s connection itself, so R is started once for all of them, the filters as they are set, and the column settings. Anything else the opened chart should have is given in the setting <code>group_comparison</code>, <code>association_scatter</code> or <code>stratified_survival</code> and laid under those.</p>
-<p>The opened chart asks R for its own statistics, as it always does. On the same rows they are the row&#39;s: the group comparison&#39;s Welch p-value is the row&#39;s unadjusted p-value, the scatter&#39;s coefficient is the row&#39;s estimate, and the survival chart&#39;s hazard ratio, the higher group&#39;s over the lower&#39;s, is the row&#39;s. The survival chart works out its median on the participants the filters keep who have a value, and R on those who also have an outcome; where every participant with a value has an outcome, as in the synthetic study, the two cuts are one.</p>
+<p>The opened chart asks R for its own statistics, as it always does. On the same rows they are the row&#39;s: the group comparison&#39;s Welch p-value is the row&#39;s unadjusted p-value, the scatter&#39;s coefficient is the row&#39;s estimate, and the survival chart&#39;s hazard ratio, the higher group&#39;s over the lower&#39;s, is the row&#39;s. The survival chart works out its median as R does, on the participants the filters keep who have both a value and an outcome, so where some have a value and no outcome the row and the chart still cut at one point, with the same participants High and Low.</p>
 <p>Back to the biomarker screen takes the chart down and shows the screen again exactly as it was, on the same page, with the keyboard on the row that was opened. Nothing is drawn again and R is not asked again.</p>
 <h2 id="what-r-is-asked">What R is asked</h2>
 <p>For the screen, one call:</p>
@@ -328,7 +328,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/752565917a9556c6a325be3e5c43631dad4577b8"><code>7525659</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/a94e743dd9dfbe13e44a0db94566e3eec97a1bdf"><code>a94e743</code></a>.
       </p>
       <p>
         Built in the open — follow the
