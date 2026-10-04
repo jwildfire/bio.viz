@@ -26,12 +26,12 @@
       studyday_col: 'DAY',
       // What the first test costs on this page, said while R starts.
       waiting_note:
-        'The first test starts R in this browser and installs the survival package: about 16 MB to download, once, and a few seconds.'
+        'The first test starts R in this browser and installs the survival package: about 26 MB to download, once, and a few seconds.'
     },
     // R in the browser, given gsm.bio's statistics functions as vendored, and
     // the survival package, which its survival test calls.
     browser: { sourceUrl: '../vendor/gsm.bio/statistics.R', packages: ['survival'] },
-    megabytes: 16,
+    megabytes: 26,
     tables: function (study, outcomes) {
       return { results: study.results, participants: study.participants, outcomes: outcomes };
     }
