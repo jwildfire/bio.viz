@@ -62,7 +62,8 @@ import {
   drawSafely,
   checkTables,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -297,7 +298,10 @@ class CorrelationMatrix {
   // What the chart opens on: the settings, where the tables have what they name.
   seedState() {
     const { settings, measures, visits } = this;
+    // Null is every one, and so is a list of none the tables have; an empty
+    // list is a selection of none (#71 review).
     const among = (chosen, list) => {
+      if (Array.isArray(chosen) && !chosen.length) return [];
       const kept = (chosen || []).filter((entry) => list.includes(entry));
       return kept.length ? kept : null;
     };
@@ -313,7 +317,7 @@ class CorrelationMatrix {
       view: settings.view,
       method: settings.method,
       minPairs: settings.min_pairs,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 

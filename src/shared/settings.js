@@ -35,10 +35,15 @@ export function fieldList(value, setting) {
   return list.map((entry) => fieldSpec(entry, setting));
 }
 
-export function textList(value, setting) {
+// A name, or a list of names. With `empty`, an empty list is a selection of
+// none, which a chart whose control can be emptied draws as such (#71 review).
+export function textList(value, setting, { empty = false } = {}) {
   if (value === null || value === undefined) return null;
   const list = Array.isArray(value) ? value : [value];
-  if (!list.length || !list.every((entry) => isText(entry) || typeof entry === 'number')) {
+  if (
+    (!list.length && !empty) ||
+    !list.every((entry) => isText(entry) || typeof entry === 'number')
+  ) {
     refuse(`\`${setting}\` must be a name, or a list of names.`);
   }
   return [...new Set(list.map(String))];

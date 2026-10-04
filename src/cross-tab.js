@@ -53,7 +53,9 @@ import {
   toolbarStyles,
   writeStatistic,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters,
+  cutsOffered
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
@@ -279,7 +281,7 @@ class CrossTab {
       colBy,
       percent: settings.percent,
       test: settings.test,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -722,9 +724,13 @@ class CrossTab {
    */
   viewSettings() {
     const { state } = this;
+    const row = this.groupingOf(state.rowBy);
+    const col = this.groupingOf(state.colBy);
     return {
-      row_by: this.groupingOf(state.rowBy),
-      col_by: this.groupingOf(state.colBy),
+      row_by: row,
+      col_by: col,
+      // Every cut the Rows and Columns controls offer stays offered (#71 review).
+      cuts: cutsOffered(this.cutOptions, [row, col]),
       percent: state.percent,
       test: state.test
     };

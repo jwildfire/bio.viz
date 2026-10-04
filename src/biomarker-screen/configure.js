@@ -74,6 +74,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   sort: 'estimate',
   // The most rows on a page.
   limit: 20,
+  // The page of rows it opens on, from 0 (#71 review).
+  page: 0,
   // What the controls offer.
   measures: null,
   groups: null,
@@ -125,6 +127,9 @@ export function syncSettings(overrides) {
     refuse(`\`adjustment\` must be one of ${ADJUSTMENTS.join(', ')}.`);
   }
   if (!SORTS.includes(settings.sort)) refuse(`\`sort\` must be one of ${SORTS.join(', ')}.`);
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse('`page` must be a whole number, from 0: the page of rows it opens on.');
+  }
   if (!Number.isInteger(settings.limit) || settings.limit < 1) {
     refuse('`limit` must be a whole number, one or more.');
   }

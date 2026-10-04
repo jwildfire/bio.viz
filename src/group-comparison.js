@@ -47,7 +47,8 @@ import {
   drawSafely,
   checkTables,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
@@ -356,7 +357,7 @@ class GroupComparison {
     return {
       // No biomarker named, or one the table does not have: the overview.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: 0,
+      page: settings.page,
       visits: [...this.visits.start],
       valueType: settings.value_type,
       groupBy,
@@ -367,7 +368,7 @@ class GroupComparison {
       yScale: settings.y_scale,
       test: settings.test,
       pairwise: settings.pairwise,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -1269,7 +1270,8 @@ class GroupComparison {
       mark: state.mark,
       y_scale: state.yScale,
       test: state.test,
-      pairwise: state.pairwise
+      pairwise: state.pairwise,
+      page: state.page || 0
     };
   }
 

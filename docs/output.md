@@ -157,14 +157,14 @@ BioViz.fromSpecification('#chart', saved, { connection }).init({ results, partic
 }
 ```
 
-| Member            | What it is                                                                                                                                                                                                                    |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`          | `"bio.viz specification"`: what the object is.                                                                                                                                                                                |
-| `format_version`  | `1`: the version of this format. A specification of another format version is refused, with a sentence that says which it is.                                                                                                 |
-| `bio_viz_version` | The bio.viz version that wrote it. It is not checked: a specification from another version is read if what it holds is still what this version has.                                                                           |
-| `chart`           | The chart: `group-comparison`, `association-scatter`, `correlation-matrix`, `biomarker-screen`, `cross-tab` or `stratified-survival`.                                                                                         |
-| `settings`        | Every setting of the chart, by the names in its reference, as its controls now read: the biomarker, the visit, the groups, the test and so on, with its title, subtitle and footnotes. Left out, a setting keeps its default. |
-| `filters`         | Every filter in force: `{ column, operator, values }`, the column of the participant table it reads, `"in"`, and the values it lets through. A filter at All is not in force and is not listed.                               |
+| Member            | What it is                                                                                                                                                                                                                                                                 |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`          | `"bio.viz specification"`: what the object is.                                                                                                                                                                                                                             |
+| `format_version`  | `1`: the version of this format. A specification of another format version is refused, with a sentence that says which it is.                                                                                                                                              |
+| `bio_viz_version` | The bio.viz version that wrote it: text, and needed. It is not compared: a specification from another version is read if what it holds is still what this version has (below).                                                                                             |
+| `chart`           | The chart: `group-comparison`, `association-scatter`, `correlation-matrix`, `biomarker-screen`, `cross-tab` or `stratified-survival`.                                                                                                                                      |
+| `settings`        | Every setting of the chart, by the names in its reference, as its controls now read: the biomarker, the visit, the groups, the test and so on, with its title, subtitle and footnotes. Left out, a setting keeps its default.                                              |
+| `filters`         | Every filter in force: `{ column, operator, values }`, the column of the participant table it reads, `"in"`, and the values it lets through. A filter at All is not listed; a filter of several values unticked to none is listed with no values, and lets nobody through. |
 
 The chart writes every setting it has, as the controls now read, so a chart made from its specification opens on the same view and writes the same specification again. The filters a chart offers are in its `filters` setting, each without where it starts; where each is now is in the specification's `filters`, and reading one lays it back onto its filter as where that filter starts.
 
@@ -180,8 +180,77 @@ Each with a sentence that names what is wrong:
 - a chart bio.viz does not have;
 - a setting the chart does not have in this version: an older or newer specification is read when every setting it holds is still a setting, and otherwise refused naming the ones that are not;
 - a setting whose value the chart refuses, with the chart's own sentence;
-- a filter whose operator is not `in`, or that names no column or no values;
+- a filter whose operator is not `in`, that names no column, or a column another filter is on, or a value twice;
+- `__proto__`, `constructor` or `prototype` as a column, or as the column a setting names;
+- an object whose property is a getter or a setter, or that nests more than 64 deep;
 - anything that is not data.
+
+### The filter rules
+
+- A filter reads a column of the participant table, and only that table: a column the results table alone has is not a filter. The participant's id is never a filter.
+- A value is compared as text: `35` and `"35"` are one value.
+- A filter lets through the participants whose value is one of its values. Filters together are combined with AND: a participant passes when every filter lets them through.
+- A filter that is not listed is at All. A column is filtered once: a specification that lists one twice is refused.
+
+### The value shapes
+
+Every value is JSON data, in one of these shapes, as each chart's reference gives its settings:
+
+| Shape                 | Written as                                                                             | For                                               |
+| --------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| A column              | its name, `"ARM"`                                                                      | `row_by`, `group_by`, `color_by`, every `*_col`   |
+| A column with a label | `{ "value_col": "ARM", "label": "Arm" }`                                               | `groups`, `filters`, `numbers`, `details`         |
+| A biomarker           | its name, `"CRP"`                                                                      | `start_value`, `measure`                          |
+| A list of names       | `["Week 4", "Week 8"]`; `[]` is none, where a control can be emptied, `null` every one | `visits`, `levels`, `biomarkers`, `measures`      |
+| A variable            | `{ "measure": "CRP", "visit": "Baseline", "value": "raw" }` or `{ "col": "AGE" }`      | `x`, `y`, `with`                                  |
+| A cut variable        | a variable with `"cut"`: `"median"`, `"tertiles"`, `"quartiles"` or `[2.5, 4]`         | `group_by`, `row_by`, `col_by`, `cuts`            |
+| A choice              | one of the words the setting lists                                                     | `test`, `percent`, `comparison`, `method`, `sort` |
+| A number              | `20`, `0`                                                                              | `limit`, `page`, `png_scale`                      |
+| Text                  | `"{rows} by {columns}"`                                                                | `title`, `subtitle`, `footnotes`                  |
+
+Which setting holds the biomarker each chart draws:
+
+| Chart                 | The biomarker                                              |
+| --------------------- | ---------------------------------------------------------- |
+| `group-comparison`    | `start_value`, at `visits` with `value_type`               |
+| `association-scatter` | `x` and `y`, each a variable                               |
+| `correlation-matrix`  | `biomarkers` at `visit`, or `measure` at `visits` (`mode`) |
+| `biomarker-screen`    | every biomarker (`measures`), at `visit` with `value_type` |
+| `cross-tab`           | `row_by` or `col_by`, when either is a cut variable        |
+| `stratified-survival` | `group_by`, when it is a cut variable                      |
+
+Every setting's default is in the chart's reference and in the schema, as each setting's `default`: a setting left out of a specification takes it.
+
+### A list of specifications
+
+Several specifications together are a JSON array of specification objects, each read on its own: `[{ "format": "bio.viz specification", … }, …]`. gsm.bio's batch runner reads such a list.
+
+### What the data cannot draw
+
+A specification may ask for something the tables do not have: a grouping by a column they lack, a filter on one, a value a filter does not offer. The chart then draws what it can, as it would from settings, and says what it did not draw, in a line above it and in `chart.notices`, a list a caller such as gsm.bio's batch runner can read once the chart has drawn on its tables:
+
+```js
+const chart = BioViz.fromSpecification('#chart', spec).init(tables);
+chart.notices;
+// [{ kind: 'setting', name: 'row_by', asked: 'NOPE', drawn: 'ARM',
+//    said: 'Rows: NOPE is not in the tables, so the chart draws ARM.' },
+//  { kind: 'filter', name: 'SEX', asked: ['X'], drawn: null,
+//    said: 'Filter SEX: X is not one of its values, so it is at All.' }]
+```
+
+`kind` is `setting` or `filter`; `name` the setting or the column; `asked` what the specification asked for; `drawn` what the chart draws instead, `null` for none or All; `said` the sentence. A chart's own specification, read back on the same tables, has no notices.
+
+### What a specification holds of the view, and what it does not
+
+It holds every setting as the controls read: the groupings, the visits, the test, the filters, the page of the group comparison's overview and of the screen (`page`), the screen's order (`sort`), and the cut variables the Rows, Columns and Groups controls offer (`cuts`), a line moved on the survival chart among them. Made from it on the same tables, a chart opens on the same view and writes the same specification again.
+
+It does not hold what a reader does in passing, which ends when the chart draws again: a chart opened in place of another (a screen's row, a matrix's cell), the participants listed from a cell, a box, a region or a curve, the participant profile open beside it, and a cut line while it is being dragged.
+
+### Versions
+
+`format_version` changes when a member of the format, or the meaning of a setting, changes; a specification of another format version is refused. Within one format version, a release of bio.viz that adds a setting gives it a default that keeps the old behaviour, so a specification written before it is read and draws as it did; one that holds a setting a release has removed is refused, naming the setting.
+
+The schema's `$id`, https://jwildfire.github.io/bio.viz/schema/specification.json, resolves once a release with specifications is published from `main`; until then the file is at `dev/schema/specification.json`.
 
 ### The schema
 
@@ -260,7 +329,7 @@ The three settings' defaults, which every chart has: `{ title: null, subtitle: n
 ## What is not here
 
 - A vector figure (SVG or PDF) from the browser: the PNG is the page's drawing. Vector figures come from gsm.bio's static twins ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)).
-- The interface that collects specifications while someone explores, into a book of them: that belongs to an app.
+- The interface that collects specifications while someone explores belongs to an app.
 - Running a specification against a dataset, or one across every biomarker: gsm.bio's batch runner ([obot.roadmap#362](https://github.com/jwildfire/obot.roadmap/issues/362)).
 - Rich text in a title or a footnote: they are plain text. A line break, bold or a link is not drawn.
 - A footnote placed anywhere but under the chart, or the chart's own footnote turned off.

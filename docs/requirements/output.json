@@ -54,6 +54,14 @@
     "EXP-SPEC-009": "The same for the cross-tabulation.",
     "EXP-SPEC-010": "The same for the stratified survival chart.",
     "EXP-SPEC-011": "In the page, a chart made from a specification holding code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart.",
-    "EXP-SPEC-012": "The site publishes the format's schema at `schema/specification.json`, the committed file."
+    "EXP-SPEC-012": "The site publishes the format's schema at `schema/specification.json`, the committed file.",
+    "EXP-SPEC-013": "A selection emptied by hand round-trips: every Visit of the group comparison and every biomarker of the correlation matrix unticked write `[]`, which the reader takes, and the chart made again draws the same nothing.",
+    "EXP-SPEC-014": "A filter of several values emptied by hand writes `values: []` and comes back empty, letting nobody through.",
+    "EXP-SPEC-015": "What a specification asks for that the data cannot draw is said above the chart and listed in `chart.notices`: a filter on a column the participant table lacks, a value a filter does not offer, a grouping the tables lack, a filter on the id column; a filter named twice is refused.",
+    "EXP-SPEC-016": "A specification opens on the same page of the group comparison's overview and of the screen, in the screen's order, and the survival chart's Groups keep the cut it opened on after a moved line.",
+    "EXP-SPEC-017": "Reading a specification makes every check making the chart makes: a value the chart refuses is refused with the chart's sentence, and an empty selection the chart can draw is read.",
+    "EXP-SPEC-018": "An object given as a specification is read once, own data properties only: a getter or a setter is refused, a Proxy's traps run once each and only the copy is checked, and nesting deeper than 64 is refused.",
+    "EXP-SPEC-019": "`__proto__`, `constructor` and `prototype` are no column: a filter on one, or a setting naming one, is refused by the reader and the schema.",
+    "EXP-SPEC-020": "The reader and the schema agree: `bio_viz_version` is text, a filter names a column once and each value once, a column's name is not blank, `settings.filters` is a list or null; the schema gives every setting's default and is written from the one chart list."
   }
 }

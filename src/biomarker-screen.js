@@ -68,7 +68,8 @@ import {
   drawSafely,
   checkTables,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
@@ -350,6 +351,8 @@ class BiomarkerScreen {
       : this.endpoints[0]
         ? this.endpoints[0].endpoint
         : null;
+    // The page the settings name is the one the next rows open on.
+    this.pageFromSettings = true;
     return {
       comparison: this.comparisons().includes(settings.comparison)
         ? settings.comparison
@@ -363,8 +366,8 @@ class BiomarkerScreen {
       method: settings.method,
       adjustment: settings.adjustment,
       sort: settings.sort,
-      page: 0,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      page: settings.page,
+      filters: startFilters(this)
     };
   }
 
@@ -618,7 +621,10 @@ class BiomarkerScreen {
     const round = this.desk.begin();
     this.asked = [];
     this.answer = null;
-    this.state.page = 0;
+    // New rows open on their first page, but for the first rows after the
+    // settings named a page (#71 review).
+    if (this.pageFromSettings) this.pageFromSettings = false;
+    else this.state.page = 0;
     this.notes.innerHTML = '';
     this.screenWrap.innerHTML = '';
     this.screenWrap.hidden = true;
@@ -951,7 +957,8 @@ class BiomarkerScreen {
       with: state.with ? settingOf(state.with) : null,
       method: state.method,
       adjustment: state.adjustment,
-      sort: state.sort
+      sort: state.sort,
+      page: state.page || 0
     };
   }
 

@@ -60,7 +60,9 @@ import {
   toolbarStyles,
   writeStatistic,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters,
+  cutsOffered
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { checkOutcomes, laidOver } from './shared/outcomes.js';
@@ -331,7 +333,7 @@ class StratifiedSurvival {
     return {
       endpoint: named ? named.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
       groupBy,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -1112,9 +1114,13 @@ class StratifiedSurvival {
    */
   viewSettings() {
     const { state } = this;
+    const group = state.groupBy ? this.groupingOf(state.groupBy) : null;
     return {
       endpoint: state.endpoint,
-      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null
+      group_by: group,
+      // Every cut the Groups control offers stays offered, the one a moved line
+      // left among them (#71 review).
+      cuts: cutsOffered(this.cutOptions, [group])
     };
   }
 

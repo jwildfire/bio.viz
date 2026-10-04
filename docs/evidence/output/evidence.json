@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T10:45:06.826Z",
+  "generatedAt": "2026-10-04T11:12:32.237Z",
   "environment": {
     "os": "darwin 23.6.0",
     "node": "v24.14.0",
@@ -319,6 +319,110 @@
       "status": "pass",
       "requirementIds": ["EXP-SITE-001"],
       "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-005: the group comparison writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-005"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-006: the association scatter writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-006"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-007: the correlation matrix writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-007"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-008: the biomarker screen writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-008"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-009: the cross tab writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-009"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-010: the stratified survival writes its specification, held by the schema, as its controls and filters now read; made again from it, the chart draws the same view, asks R the same, and writes the same specification (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-010"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-011: a filter value that looks like code and is in the data is drawn as text, and filters by it (#71 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-011"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-011: in the page, a chart made from a specification that holds code-like text draws it as text and runs nothing; one with a setting the chart does not have, or an operator that is not `in`, is refused with a sentence and makes no chart (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-011"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-012: the site publishes the format’s schema at schema/specification.json, the committed file (#68)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-012"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-013: a selection emptied by hand round-trips: every Visit unticked in the group comparison, and every biomarker of the correlation matrix, write [] that the reader takes, and the chart made again draws the same nothing (#71 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-013"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-014: a filter of several values emptied by hand writes values [] and comes back empty, letting nobody through, not as All (#71 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-014"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-015: what a specification asks for that the data cannot draw is said on the chart and listed in chart.notices: a filter on a column the participant table does not have, a value a filter does not offer, a grouping the tables do not have, a filter on the id column; a filter named twice is refused (#71 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-015"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-SPEC-016: a specification opens on the same page of the group comparison’s overview and of the screen, in the screen’s order, and the survival chart’s Groups keep the cut it opened on after a moved line (#71 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-016"],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -754,6 +858,38 @@
       "screenshots": []
     },
     {
+      "test": "getting results out: specifications EXP-SPEC-001: a specification names its format, its version, the bio.viz version, the chart, every setting that is data and every filter in force as a column, an operator and values; the page’s connection and way back, and anything not data, are not written (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-001"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-002: nothing in a specification is evaluated: code-like text in a setting or a filter is read as that text; a function, a number JSON cannot hold, undefined or an object that is not plain is refused with a sentence that says where it is (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-002"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-003: a specification is refused, with a sentence that names what is wrong, when it is not one, is of another format version, names a chart bio.viz does not have, holds a setting the chart does not have in this version, or a filter whose operator is not `in`; one written by another version is read when its settings are still settings (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-003"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: specifications EXP-SPEC-004: the format has a JSON schema, committed and written from each chart’s own settings, so it names exactly the settings each chart has; it holds a written specification and refuses an unknown chart, an unknown setting of a chart, an unknown operator and a member that is not one (#68)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-004"],
+      "issueRefs": [68],
+      "screenshots": []
+    },
+    {
       "test": "getting results out: the downloads EXP-CSV-001: a CSV is written by RFC 4180: CRLF between records; a field or a heading that holds a comma, a double quote, a carriage return or a line feed is quoted, with each double quote doubled; and it reads back field for field, a heading with a comma one heading (#67, #39)",
       "suite": "unit",
       "status": "pass",
@@ -862,6 +998,38 @@
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["EXP-CSV-004"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #71 review found EXP-SPEC-017: reading a specification makes every check making the chart makes: a setting’s value the chart refuses is refused with the chart’s own sentence, and an empty selection the chart can draw is read (#71 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-017"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #71 review found EXP-SPEC-018: an object given as a specification is read once, own data properties only: a getter or a setter is refused, a Proxy’s traps run once each and the copy alone is checked, and nesting deeper than 64 is refused with a sentence (#71 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-018"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #71 review found EXP-SPEC-019: `__proto__`, `constructor` and `prototype` are no column: a filter on one, or a setting that names one as its column, is refused by the reader and the schema (#71 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-019"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #71 review found EXP-SPEC-020: the reader and the schema agree: `bio_viz_version` is text, a filter names one column once with its values each once, a column’s name is not blank, `settings.filters` is a list or null, and the schema gives every setting’s default (#71 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-SPEC-020"],
       "issueRefs": [],
       "screenshots": []
     },

@@ -71,7 +71,8 @@ import {
   drawSafely,
   checkTables,
   writeTitles,
-  specificationOf
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -325,7 +326,7 @@ class AssociationScatter {
       yScale: settings.y_scale,
       fit: settings.fit,
       method: settings.method,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 

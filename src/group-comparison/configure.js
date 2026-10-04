@@ -66,6 +66,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   filters: null,
   // The overview of every biomarker: the most drawn at a time.
   overview_limit: 12,
+  // The page of the overview it opens on, from 0 (#71 review).
+  page: 0,
   // The listing of participants.
   details: null,
   page_size: 10,
@@ -131,6 +133,9 @@ export function syncSettings(overrides) {
       refuse(`\`${key}\` must be a whole number, one or more.`);
     }
   }
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse('`page` must be a whole number, from 0: the page of the overview it opens on.');
+  }
   if (!TESTS.includes(settings.test)) refuse(`\`test\` must be one of ${TESTS.join(', ')}.`);
   if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
   if (settings.statistic !== null && !isText(settings.statistic)) {
@@ -138,8 +143,8 @@ export function syncSettings(overrides) {
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
-  settings.visits = textList(settings.visits, 'visits');
-  settings.levels = textList(settings.levels, 'levels');
+  settings.visits = textList(settings.visits, 'visits', { empty: true });
+  settings.levels = textList(settings.levels, 'levels', { empty: true });
   settings.measures = textList(settings.measures, 'measures');
   settings.groups = fieldList(settings.groups, 'groups');
   settings.filters = fieldList(settings.filters, 'filters');

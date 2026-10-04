@@ -3,12 +3,12 @@
 // against the settings of the chart it names, and the chart is made with them.
 // Nothing in it is evaluated.
 
-import { DEFAULT_SETTINGS as GROUP_COMPARISON } from './group-comparison/configure.js';
-import { DEFAULT_SETTINGS as ASSOCIATION_SCATTER } from './association-scatter/configure.js';
-import { DEFAULT_SETTINGS as CORRELATION_MATRIX } from './correlation-matrix/configure.js';
-import { DEFAULT_SETTINGS as BIOMARKER_SCREEN } from './biomarker-screen/configure.js';
-import { DEFAULT_SETTINGS as CROSS_TAB } from './cross-tab/configure.js';
-import { DEFAULT_SETTINGS as STRATIFIED_SURVIVAL } from './stratified-survival/configure.js';
+import * as groupComparisonSettings from './group-comparison/configure.js';
+import * as associationScatterSettings from './association-scatter/configure.js';
+import * as correlationMatrixSettings from './correlation-matrix/configure.js';
+import * as biomarkerScreenSettings from './biomarker-screen/configure.js';
+import * as crossTabSettings from './cross-tab/configure.js';
+import * as stratifiedSurvivalSettings from './stratified-survival/configure.js';
 import { groupComparison } from './group-comparison.js';
 import { associationScatter } from './association-scatter.js';
 import { correlationMatrix } from './correlation-matrix.js';
@@ -19,17 +19,28 @@ import { PAGE_SETTINGS, readSpecification } from './shared/specification.js';
 
 // Each chart a specification may name: its settings' defaults, and the
 // function that makes it.
+// The one list of charts a specification may name: the schema is written from
+// it too (tools/write-specification-schema.mjs).
 const CHARTS = {
-  'group-comparison': { defaults: GROUP_COMPARISON, make: groupComparison },
-  'association-scatter': { defaults: ASSOCIATION_SCATTER, make: associationScatter },
-  'correlation-matrix': { defaults: CORRELATION_MATRIX, make: correlationMatrix },
-  'biomarker-screen': { defaults: BIOMARKER_SCREEN, make: biomarkerScreen },
-  'cross-tab': { defaults: CROSS_TAB, make: crossTab },
-  'stratified-survival': { defaults: STRATIFIED_SURVIVAL, make: stratifiedSurvival }
+  'group-comparison': { ...groupComparisonSettings, make: groupComparison },
+  'association-scatter': { ...associationScatterSettings, make: associationScatter },
+  'correlation-matrix': { ...correlationMatrixSettings, make: correlationMatrix },
+  'biomarker-screen': { ...biomarkerScreenSettings, make: biomarkerScreen },
+  'cross-tab': { ...crossTabSettings, make: crossTab },
+  'stratified-survival': { ...stratifiedSurvivalSettings, make: stratifiedSurvival }
 };
-const DEFAULTS = Object.fromEntries(
-  Object.entries(CHARTS).map(([name, entry]) => [name, entry.defaults])
+
+/** Each chart a specification may name, and its settings' defaults. */
+export const CHART_SETTINGS = Object.freeze(
+  Object.fromEntries(Object.entries(CHARTS).map(([name, entry]) => [name, entry.DEFAULT_SETTINGS]))
 );
+
+// Read, and every setting checked as the chart checks it, on a copy.
+function readChecked(specification) {
+  const read = readSpecification(specification, CHART_SETTINGS);
+  CHARTS[read.chart].syncSettings(JSON.parse(JSON.stringify(read.settings)));
+  return read;
+}
 
 /**
  * Makes the chart a specification names, with its settings and filters, in an
@@ -45,7 +56,8 @@ const DEFAULTS = Object.fromEntries(
  * @returns {object} The chart.
  */
 export function fromSpecification(element, specification, page = {}) {
-  const { chart, settings } = readSpecification(specification, DEFAULTS);
+  const read = readChecked(specification);
+  const { chart, settings } = read;
   const given = page === null || page === undefined ? {} : page;
   const others = Object.keys(given).filter((key) => !PAGE_SETTINGS.includes(key));
   if (others.length) {
@@ -54,7 +66,11 @@ export function fromSpecification(element, specification, page = {}) {
         `specification, and \`${others[0]}\` is not one: give it in the specification's settings.`
     );
   }
-  return CHARTS[chart].make(element, { ...settings, ...given });
+  const made = CHARTS[chart].make(element, { ...settings, ...given });
+  // What the specification asked for, held to what the chart draws once it has
+  // its tables (chart.notices).
+  made.requested = { settings: read.settings, filters: read.filters };
+  return made;
 }
 
 /**
@@ -63,4 +79,7 @@ export function fromSpecification(element, specification, page = {}) {
  * @param {object|string} specification The specification, or its JSON text.
  * @returns {{chart: string, settings: object, version: ?string}}
  */
-export const readChartSpecification = (specification) => readSpecification(specification, DEFAULTS);
+export const readChartSpecification = (specification) => {
+  const { chart, settings, version } = readChecked(specification);
+  return { chart, settings, version };
+};

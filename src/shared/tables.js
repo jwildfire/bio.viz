@@ -130,7 +130,12 @@ export function categoryColumns({ results, participants }, settings) {
 export function filterColumns({ participants }, settings, categories) {
   if (!participants || !participants.length) return [];
   if (settings.filters) {
-    return settings.filters.filter((spec) => spec.value_col in participants[0]);
+    // A column the participant table has, by its own name, and never the
+    // participant's id, which is no filter (#71 review).
+    const id = settings.participant_id_col || settings.id_col;
+    return settings.filters.filter(
+      (spec) => Object.hasOwn(participants[0], spec.value_col) && spec.value_col !== id
+    );
   }
   return categories
     .filter((column) => column.table === 'participants')
@@ -145,6 +150,9 @@ export function filterColumns({ participants }, settings, categories) {
 export function listVisits(results, settings) {
   const config = coreSettings(settings);
   const all = visitsInOrder(results, config);
+  // Null is every visit, and so is a list of none the table has; an empty
+  // list is a selection of none (#71 review).
+  if (Array.isArray(settings.visits) && !settings.visits.length) return { all, start: [] };
   const asked = (settings.visits || []).filter((visit) => all.includes(visit));
   return { all, start: asked.length ? asked : all };
 }

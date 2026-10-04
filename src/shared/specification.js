@@ -28,6 +28,10 @@ export const SPECIFICATION_VERSION = 1;
 export const FILTER_OPERATORS = Object.freeze(['in']);
 /** The settings a specification never holds: they are the page's, not data. */
 export const PAGE_SETTINGS = Object.freeze(['connection', 'back']);
+/** Names no column may have: they would reach an object's prototype. */
+export const NO_COLUMN = Object.freeze(['__proto__', 'constructor', 'prototype']);
+/** How deep a specification may nest: deeper than any chart's settings. */
+export const MOST_NESTED = 64;
 
 const refuse = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
@@ -79,6 +83,59 @@ export function notData(value, where) {
 const copy = (value) => JSON.parse(JSON.stringify(value));
 
 /**
+ * A specification given as an object, copied in one pass: each own enumerable
+ * property read once, by its descriptor, so a getter, a setter or a Proxy's
+ * traps cannot answer twice, and everything after is checked on the copy alone.
+ * A getter or a setter is refused, and so is nesting deeper than MOST_NESTED.
+ * @param {*} value
+ * @param {string} where Where the value is, for the sentence.
+ * @param {number} [depth]
+ * @returns {*} The copy, of plain objects and arrays.
+ */
+export function snapshot(value, where = 'the specification', depth = 0) {
+  if (value === null || typeof value !== 'object') return value;
+  if (depth > MOST_NESTED) {
+    refuse(
+      `the specification is nested more than ${MOST_NESTED} deep, which no chart’s settings are.`
+    );
+  }
+  const array = Array.isArray(value);
+  if (!array && !isPlainObject(value)) {
+    const problem = notData(value, where);
+    if (problem) refuse(`${problem}.`);
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const read = (key, descriptor, at) => {
+    if ('get' in descriptor || 'set' in descriptor) {
+      refuse(
+        `${at} is a getter or a setter, which is not data: a specification holds only text, numbers, true, false, null, lists and objects.`
+      );
+    }
+    return snapshot(descriptor.value, at, depth + 1);
+  };
+  if (array) {
+    const length = descriptors.length ? descriptors.length.value : 0;
+    const out = [];
+    for (let i = 0; i < length; i += 1) {
+      const descriptor = descriptors[i];
+      out.push(descriptor ? read(i, descriptor, `${where}[${i}]`) : undefined);
+    }
+    return out;
+  }
+  const out = {};
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!descriptor.enumerable) continue;
+    // A key that would set the copy's prototype is kept as a property of its own.
+    Object.defineProperty(out, key, {
+      value: read(key, descriptor, `${where}.${key}`),
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
+  }
+  return out;
+}
+/**
  * A chart's specification.
  * @param {object} parts
  * @param {string} parts.chart The chart's name: `cross-tab`.
@@ -123,6 +180,7 @@ export function writeSpecification({ chart, version, settings, filters = [] }) {
  */
 export function readSpecification(specification, charts) {
   let spec = specification;
+  if (typeof spec !== 'string') spec = snapshot(spec);
   if (typeof spec === 'string') {
     try {
       spec = JSON.parse(spec);
@@ -150,6 +208,9 @@ export function readSpecification(specification, charts) {
   if (extra.length) {
     refuse(`a specification has no \`${extra[0]}\`: it holds ${known.join(', ')}.`);
   }
+  if (!isText(spec.bio_viz_version)) {
+    refuse('a specification’s `bio_viz_version` is text, the version that wrote it.');
+  }
   if (!isText(spec.chart) || !Object.prototype.hasOwnProperty.call(charts, spec.chart)) {
     refuse(
       `this specification names the chart ${JSON.stringify(spec.chart)}, which bio.viz does not ` +
@@ -169,6 +230,15 @@ export function readSpecification(specification, charts) {
         `holds ${names}, which ${unknown.length === 1 ? 'is not a setting' : 'are not settings'} of that chart in this version.`
     );
   }
+  if ('filters' in settings && settings.filters !== null && !Array.isArray(settings.filters)) {
+    refuse('the setting `filters` of a specification is a list of filters, or null.');
+  }
+  // A setting that names a column by a name no column may have.
+  for (const [key, value] of Object.entries(settings)) {
+    if (typeof value === 'string' && NO_COLUMN.includes(value)) {
+      refuse(`\`${key}\` names \`${value}\`, which is no column’s name.`);
+    }
+  }
   const filters = spec.filters === undefined ? [] : spec.filters;
   if (!Array.isArray(filters))
     refuse('a specification’s `filters` is a list of { column, operator, values }.');
@@ -182,20 +252,33 @@ export function readSpecification(specification, charts) {
     if (keys.length)
       refuse(`${where} has \`${keys[0]}\`: a filter is { column, operator, values }.`);
     if (!isText(filter.column)) refuse(`${where} must name its column.`);
+    if (NO_COLUMN.includes(filter.column)) {
+      refuse(`${where} is on \`${filter.column}\`, which is no column’s name.`);
+    }
+    const before = filters.findIndex((other) => other && other.column === filter.column);
+    if (before < index) {
+      refuse(
+        `${where} is on ${filter.column}, which filter ${before + 1} is already on: a column is filtered once.`
+      );
+    }
     if (!FILTER_OPERATORS.includes(filter.operator)) {
       refuse(
         `${where}, on ${filter.column}, has the operator ${JSON.stringify(filter.operator)}; ` +
           `the operators are ${FILTER_OPERATORS.map((entry) => `"${entry}"`).join(', ')}: in, the values it lets through.`
       );
     }
+    // An empty list lets nobody through: a filter of several values emptied.
     if (
       !Array.isArray(filter.values) ||
-      !filter.values.length ||
       !filter.values.every((value) => typeof value === 'string' || typeof value === 'number')
     ) {
       refuse(
         `${where}, on ${filter.column}, must list the values it lets through: text or numbers.`
       );
+    }
+    const twice = filter.values.map(String).find((value, at, all) => all.indexOf(value) !== at);
+    if (twice !== undefined) {
+      refuse(`${where}, on ${filter.column}, names ${twice} twice: a value is listed once.`);
     }
     const specs = Array.isArray(read.filters) ? read.filters : read.filters ? [read.filters] : [];
     const at = specs.findIndex((entry) =>
@@ -207,11 +290,16 @@ export function readSpecification(specification, charts) {
     const started = {
       ...(at >= 0 && typeof specs[at] === 'object' ? specs[at] : { value_col: filter.column }),
       start: values.length === 1 ? values[0] : values,
-      ...(values.length > 1 ? { multiple: true } : {})
+      ...(values.length !== 1 ? { multiple: true } : {})
     };
     if (at >= 0) specs[at] = started;
     else specs.push(started);
     read.filters = specs;
   });
-  return { chart: spec.chart, settings: read, version: spec.bio_viz_version ?? null };
+  return {
+    chart: spec.chart,
+    settings: read,
+    version: spec.bio_viz_version,
+    filters: filters.map(({ column, values }) => ({ column, values: values.map(String) }))
+  };
 }

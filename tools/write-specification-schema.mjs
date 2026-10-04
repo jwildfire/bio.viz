@@ -6,14 +6,10 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_SETTINGS as groupComparison } from '../src/group-comparison/configure.js';
-import { DEFAULT_SETTINGS as associationScatter } from '../src/association-scatter/configure.js';
-import { DEFAULT_SETTINGS as correlationMatrix } from '../src/correlation-matrix/configure.js';
-import { DEFAULT_SETTINGS as biomarkerScreen } from '../src/biomarker-screen/configure.js';
-import { DEFAULT_SETTINGS as crossTab } from '../src/cross-tab/configure.js';
-import { DEFAULT_SETTINGS as stratifiedSurvival } from '../src/stratified-survival/configure.js';
+import { CHART_SETTINGS } from '../src/specification.js';
 import {
   FILTER_OPERATORS,
+  NO_COLUMN,
   PAGE_SETTINGS,
   SPECIFICATION_FORMAT,
   SPECIFICATION_VERSION
@@ -21,14 +17,8 @@ import {
 
 export const SCHEMA_FILE = 'src/data/specification.schema.json';
 
-const CHARTS = {
-  'group-comparison': groupComparison,
-  'association-scatter': associationScatter,
-  'correlation-matrix': correlationMatrix,
-  'biomarker-screen': biomarkerScreen,
-  'cross-tab': crossTab,
-  'stratified-survival': stratifiedSurvival
-};
+// The charts and their settings, from the one list src/specification.js makes them from.
+const CHARTS = CHART_SETTINGS;
 
 /** The schema, as an object. */
 export function specificationSchema() {
@@ -41,17 +31,24 @@ export function specificationSchema() {
     description:
       'A bio.viz chart written as data: the chart, the bio.viz version that wrote it, its settings and the filters in force. Nothing in it is evaluated. Written by tools/write-specification-schema.mjs from each chart’s settings; documented in docs/output.md.',
     type: 'object',
-    required: ['format', 'format_version', 'chart'],
+    required: ['format', 'format_version', 'bio_viz_version', 'chart'],
     additionalProperties: false,
     properties: {
       format: { const: SPECIFICATION_FORMAT },
       format_version: { const: SPECIFICATION_VERSION },
-      bio_viz_version: { type: 'string', description: 'The bio.viz version that wrote it.' },
+      bio_viz_version: {
+        type: 'string',
+        pattern: '\\S',
+        description: 'The bio.viz version that wrote it.'
+      },
       chart: { enum: Object.keys(CHARTS) },
       settings: {
         type: 'object',
         description: 'Settings of the chart, by name; a setting left out keeps its default.',
-        additionalProperties: { $ref: '#/$defs/data' }
+        properties: { filters: { type: ['array', 'null'] } },
+        additionalProperties: {
+          allOf: [{ $ref: '#/$defs/data' }, { not: { enum: [...NO_COLUMN] } }]
+        }
       },
       filters: {
         type: 'array',
@@ -62,7 +59,15 @@ export function specificationSchema() {
     allOf: Object.entries(CHARTS).map(([chart, defaults]) => ({
       if: { properties: { chart: { const: chart } }, required: ['chart'] },
       then: {
-        properties: { settings: { propertyNames: { enum: settingsOf(defaults) } } }
+        properties: {
+          settings: {
+            propertyNames: { enum: settingsOf(defaults) },
+            // Each setting's default, as the chart has it.
+            properties: Object.fromEntries(
+              settingsOf(defaults).map((key) => [key, { default: defaults[key] }])
+            )
+          }
+        }
       }
     })),
     $defs: {
@@ -77,9 +82,14 @@ export function specificationSchema() {
         required: ['column', 'operator', 'values'],
         additionalProperties: false,
         properties: {
-          column: { type: 'string', minLength: 1 },
+          column: { type: 'string', pattern: '\\S', not: { enum: [...NO_COLUMN] } },
           operator: { enum: [...FILTER_OPERATORS] },
-          values: { type: 'array', minItems: 1, items: { type: ['string', 'number'] } }
+          values: {
+            type: 'array',
+            uniqueItems: true,
+            description: 'The values it lets through; none lets nobody through.',
+            items: { type: ['string', 'number'] }
+          }
         }
       }
     }

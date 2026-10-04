@@ -109,6 +109,8 @@ ${root} .bv-downloads[hidden]{display:none}
 ${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
 ${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-notices{margin:0 0 .6rem;padding:.4rem .6rem;border-left:3px solid #d97706;background:#fff8eb;font-size:.8rem;color:#5c3b00}
+${root} .bv-notices:empty{display:none}
 ${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
 
 /**
@@ -146,6 +148,11 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
   // footnotes under it, before the listing (#66).
   chart.titleBlock = kit.createElement('div', 'bv-titles');
   chart.main.prepend(chart.titleBlock);
+  // What a specification asked for that the data could not draw (#71 review).
+  chart.notices = [];
+  chart.noticeBlock = kit.createElement('div', 'bv-notices bv-no-picture');
+  chart.noticeBlock.setAttribute('role', 'status');
+  chart.titleBlock.after(chart.noticeBlock);
   chart.footBlock = kit.createElement('div', 'bv-foot');
   chart.listingWrap.before(chart.footBlock);
   // The downloads, under the footnotes and out of the picture (#67).
@@ -484,6 +491,109 @@ export function writeTitles(chart) {
     chart.footBlock.append(line);
   });
   syncDownloads(chart);
+  writeNotices(chart);
+}
+
+// ---- What a specification asked for that the data could not draw -------------------
+
+/** What a setting is called in a notice: its control's name, or the setting. */
+const SETTING_NAMES = Object.freeze({
+  row_by: 'Rows',
+  col_by: 'Columns',
+  group_by: 'Groups',
+  color_by: 'Colour',
+  panel_by: 'Panels',
+  start_value: 'Biomarker',
+  measure: 'Biomarker',
+  biomarkers: 'Biomarkers',
+  visit: 'Visit',
+  visits: 'Visits',
+  endpoint: 'Endpoint',
+  comparison: 'Compare',
+  x: 'X axis',
+  y: 'Y axis',
+  with: 'With'
+});
+
+const said = (value) =>
+  typeof value === 'string'
+    ? value
+    : Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+      ? value.join(', ')
+      : JSON.stringify(value);
+
+/**
+ * What a chart made from a specification draws other than the specification
+ * asks, setting by setting and filter by filter, once the chart has its
+ * tables: `{ kind, name, asked, drawn, said }`, `kind` `setting` or `filter`.
+ * @param {object} chart The chart, made by `fromSpecification`.
+ * @returns {object[]}
+ */
+export function noticesOf(chart) {
+  const { requested, settings } = chart;
+  if (!requested) return [];
+  const notices = [];
+  const view = typeof chart.viewSettings === 'function' ? chart.viewSettings() : {};
+  for (const key of Object.keys(view)) {
+    if (!Object.hasOwn(requested.settings, key)) continue;
+    const asked = settings[key];
+    if (asked === null || asked === undefined) continue;
+    const drawn = view[key];
+    if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
+    const name = SETTING_NAMES[key] || `\`${key}\``;
+    notices.push({
+      kind: 'setting',
+      name: key,
+      asked,
+      drawn,
+      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
+    });
+  }
+  const id = settings.participant_id_col || settings.id_col;
+  for (const filter of requested.filters || []) {
+    const spec = (chart.filterSpecs || []).find((entry) => entry.value_col === filter.column);
+    if (!spec) {
+      notices.push({
+        kind: 'filter',
+        name: filter.column,
+        asked: filter.values,
+        drawn: null,
+        said:
+          filter.column === id
+            ? `Filter ${filter.column}: the participant id is not a filter.`
+            : `Filter ${filter.column}: the participant table has no such column, so it is not a filter.`
+      });
+      continue;
+    }
+    const now = (chart.state.filters || {})[filter.column];
+    const drawn =
+      now === null || now === undefined || now === ''
+        ? null
+        : (Array.isArray(now) ? now : [now]).map(String);
+    if (drawn !== null && JSON.stringify(drawn) === JSON.stringify(filter.values)) continue;
+    const missing = filter.values.filter((value) => !(drawn || []).includes(value));
+    notices.push({
+      kind: 'filter',
+      name: filter.column,
+      asked: filter.values,
+      drawn,
+      said: `Filter ${filter.column}: ${missing.join(', ')} ${missing.length === 1 ? 'is not one of its values' : 'are not among its values'}, so it is at ${drawn === null ? 'All' : drawn.join(', ')}.`
+    });
+  }
+  return notices;
+}
+
+// The notices, worked out once the chart has drawn on its first tables, and
+// said above the chart.
+function writeNotices(chart) {
+  if (!chart.noticeBlock) return;
+  if (chart.requested && !chart.noticed && chart.tables && chart.tables.results.length) {
+    chart.noticed = true;
+    chart.notices = noticesOf(chart);
+  }
+  chart.noticeBlock.textContent = chart.notices.length
+    ? `Not drawn as the specification asks: ${chart.notices.map((notice) => notice.said).join(' ')}`
+    : '';
 }
 
 // ---- The downloads -------------------------------------------------------------
@@ -1047,10 +1157,53 @@ export function specificationOf(chart) {
       selection: (chart.state.filters || {})[spec.value_col]
     }))
     .filter(({ selection }) => selection !== null && selection !== undefined && selection !== '')
+    // A filter of several values unticked to none is in force, and lets nobody
+    // through: it is written with no values (#71 review).
     .map(({ column, selection }) => ({
       column,
       values: (Array.isArray(selection) ? selection : [selection]).map(String)
-    }))
-    .filter(({ values }) => values.length);
+    }));
   return writeSpecification({ chart: chart.module, version: VERSION, settings, filters });
+}
+
+/**
+ * Where each filter starts, as the kit reads the filters, with one more case
+ * the kit reads as All: a filter of several values that starts at none, which
+ * a reader who unticks every value leaves, and a specification writes (#71
+ * review).
+ * @param {object} chart The chart, with `kit`, `filterSpecs` and `settings`.
+ * @returns {object} What each filter is set to, by its column.
+ */
+export function startFilters(chart) {
+  const state = chart.kit.initFilterState(chart.filterSpecs);
+  for (const spec of chart.settings.filters || []) {
+    if (
+      spec &&
+      spec.multiple &&
+      Array.isArray(spec.start) &&
+      !spec.start.length &&
+      Object.hasOwn(state, spec.value_col)
+    ) {
+      state[spec.value_col] = [];
+    }
+  }
+  return state;
+}
+
+/**
+ * The cut variables a chart's controls offer, but the ones drawn: the `cuts`
+ * a specification keeps so the controls offer the same again.
+ * @param {Array<{spec: object}>} options The chart's cut options.
+ * @param {Array<*>} drawn The groupings drawn, which their own settings hold.
+ * @returns {?object[]}
+ */
+export function cutsOffered(options, drawn) {
+  const written = new Set(drawn.map((entry) => JSON.stringify(entry)));
+  const cuts = [];
+  for (const { spec } of options || []) {
+    const key = JSON.stringify(spec);
+    if (written.has(key) || cuts.some((entry) => JSON.stringify(entry) === key)) continue;
+    cuts.push(spec);
+  }
+  return cuts.length ? cuts : null;
 }

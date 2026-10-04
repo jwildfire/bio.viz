@@ -490,13 +490,13 @@ function formatMedian(estimate) {
     if (!absent(row[part]) && !isNumber(row[part])) return refuse8(`${name} is not a number`);
   }
   if (!(row.level > 0 && row.level < 1)) return refuse8(`the interval of ${name} has no level`);
-  const said = (value) => absent(value) ? "not reached" : figure(value);
+  const said2 = (value) => absent(value) ? "not reached" : figure(value);
   const group = text(row.group);
   const percent = Number((row.level * 100).toPrecision(12));
-  const interval = absent(row.lower) && absent(row.upper) ? "not reached" : `${said(row.lower)} to ${said(row.upper)}`;
+  const interval = absent(row.lower) && absent(row.upper) ? "not reached" : `${said2(row.lower)} to ${said2(row.upper)}`;
   return {
     status: "shown",
-    text: `${name}${group ? ` (${group})` : ""}: ${said(row.estimate)}, ${percent}% confidence interval ${interval}.`
+    text: `${name}${group ? ` (${group})` : ""}: ${said2(row.estimate)}, ${percent}% confidence interval ${interval}.`
   };
 }
 function formatComparison(comparison) {
@@ -596,9 +596,9 @@ function formatPair(row) {
   const names = [text(given2.x), text(given2.y)];
   const pair = names.every(Boolean) ? names : null;
   const counted = isCount(given2.counts);
-  const whole = (status, said) => ({
+  const whole = (status, said2) => ({
     status,
-    text: said,
+    text: said2,
     pair,
     n: counted ? given2.counts : null,
     estimate: null,
@@ -1475,8 +1475,8 @@ function methodsOf(value) {
     if (!entry || typeof entry !== "object") return;
     if (isText3(entry.method) && !methods.includes(entry.method)) methods.push(entry.method);
     if (isText3(entry.adjustment) && entry.adjustment !== "none") {
-      const said = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
-      if (!adjustments.includes(said)) adjustments.push(said);
+      const said2 = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
+      if (!adjustments.includes(said2)) adjustments.push(said2);
     }
   };
   take(value);
@@ -1513,9 +1513,9 @@ function automaticFootnote({ date, version: version2, asked = [], of }) {
     return failed2 ? `${drawn} Statistics: R reported an error.` : `${drawn} Statistics: unavailable, as the line under the chart says.`;
   }
   const sources = [...new Set(ok.map(sourceText))];
-  const said = ok.map((answer) => answerText(answer, of)).join("; ");
+  const said2 = ok.map((answer) => answerText(answer, of)).join("; ");
   const missing = answers.length - ok.length;
-  return `${drawn} Statistics: ${said}; ${sources.join("; ")}.` + (missing ? ` ${missing} of ${answers.length} could not be computed.` : "");
+  return `${drawn} Statistics: ${said2}; ${sources.join("; ")}.` + (missing ? ` ${missing} of ${answers.length} could not be computed.` : "");
 }
 
 // src/shared/csv.js
@@ -1658,6 +1658,18 @@ function statisticsTable(asked) {
   return { columns: order2.map((key) => ({ value_col: key, label: key })), rows };
 }
 
+// src/group-comparison/configure.js
+var configure_exports = {};
+__export(configure_exports, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS2,
+  MARKS: () => MARKS,
+  TESTS: () => TESTS,
+  Y_SCALES: () => Y_SCALES,
+  coreSettings: () => coreSettings,
+  fieldSpec: () => fieldSpec,
+  syncSettings: () => syncSettings
+});
+
 // src/shared/settings.js
 var isText4 = (value) => typeof value === "string" && value.trim() !== "";
 var isPlainObject4 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -1682,10 +1694,10 @@ function fieldList(value, setting) {
   const list = Array.isArray(value) ? value : [value];
   return list.map((entry) => fieldSpec(entry, setting));
 }
-function textList2(value, setting) {
+function textList2(value, setting, { empty = false } = {}) {
   if (value === null || value === void 0) return null;
   const list = Array.isArray(value) ? value : [value];
-  if (!list.length || !list.every((entry) => isText4(entry) || typeof entry === "number")) {
+  if (!list.length && !empty || !list.every((entry) => isText4(entry) || typeof entry === "number")) {
     refuse6(`\`${setting}\` must be a name, or a list of names.`);
   }
   return [...new Set(list.map(String))];
@@ -1814,18 +1826,18 @@ function cutNote(spec, cut) {
   if (!cut.n) return `${words} has no value to cut, so it makes no groups.`;
   const asked = cut.asked.map(writePoint);
   const sentence2 = `${words} is cut at its ${cut.cut}, ${listed2(asked)}, worked out on the ${cut.n} participant${cut.n === 1 ? "" : "s"} with a value.`;
-  const said = [sentence2];
+  const said2 = [sentence2];
   if (cut.repeated) {
-    said.push(
+    said2.push(
       `The points repeat, so they make ${cut.points.length + 1} groups, not ${cut.asked.length + 1}.`
     );
   }
   if (cut.merged) {
-    said.push(
+    said2.push(
       `The points differ only past four significant digits, so groups with the same bounds are one, as R\u2019s cut() makes them: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
     );
   }
-  return said.join(" ");
+  return said2.join(" ");
 }
 
 // src/group-comparison/configure.js
@@ -1861,6 +1873,8 @@ var DEFAULT_SETTINGS2 = Object.freeze({
   filters: null,
   // The overview of every biomarker: the most drawn at a time.
   overview_limit: 12,
+  // The page of the overview it opens on, from 0 (#71 review).
+  page: 0,
   // The listing of participants.
   details: null,
   page_size: 10,
@@ -1915,14 +1929,17 @@ function syncSettings(overrides) {
       refuse6(`\`${key}\` must be a whole number, one or more.`);
     }
   }
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse6("`page` must be a whole number, from 0: the page of the overview it opens on.");
+  }
   if (!TESTS.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS.join(", ")}.`);
   if (typeof settings.pairwise !== "boolean") refuse6("`pairwise` must be true or false.");
   if (settings.statistic !== null && !isText4(settings.statistic)) {
     refuse6("`statistic` must be the name of an R function, or null for no statistics line.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.visits = textList2(settings.visits, "visits");
-  settings.levels = textList2(settings.levels, "levels");
+  settings.visits = textList2(settings.visits, "visits", { empty: true });
+  settings.levels = textList2(settings.levels, "levels", { empty: true });
   settings.measures = textList2(settings.measures, "measures");
   settings.groups = fieldList(settings.groups, "groups");
   settings.filters = fieldList(settings.filters, "filters");
@@ -1932,6 +1949,14 @@ function syncSettings(overrides) {
 }
 
 // src/association-scatter/configure.js
+var configure_exports2 = {};
+__export(configure_exports2, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS3,
+  FITS: () => FITS,
+  METHODS: () => METHODS,
+  SCALES: () => SCALES,
+  syncSettings: () => syncSettings2
+});
 var SCALES = Object.freeze(["linear", "log"]);
 var FITS = Object.freeze(["none", "identity", "linear", "smooth"]);
 var METHODS = Object.freeze(["pearson", "spearman"]);
@@ -2034,6 +2059,15 @@ function syncSettings2(overrides) {
 }
 
 // src/correlation-matrix/configure.js
+var configure_exports3 = {};
+__export(configure_exports3, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS4,
+  METHODS: () => METHODS2,
+  MODES: () => MODES,
+  SCATTER_LIMIT: () => SCATTER_LIMIT,
+  VIEWS: () => VIEWS,
+  syncSettings: () => syncSettings3
+});
 var MODES = Object.freeze(["biomarkers", "visits"]);
 var VIEWS = Object.freeze(["grid", "scatters"]);
 var METHODS2 = Object.freeze(["pearson", "spearman"]);
@@ -2115,12 +2149,23 @@ function syncSettings3(overrides) {
     refuse6("`scatter` must be an object of settings for the association scatter, or null.");
   }
   settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
-  settings.biomarkers = textList2(settings.biomarkers, "biomarkers");
-  settings.visits = textList2(settings.visits, "visits");
+  settings.biomarkers = textList2(settings.biomarkers, "biomarkers", { empty: true });
+  settings.visits = textList2(settings.visits, "visits", { empty: true });
   settings.measures = textList2(settings.measures, "measures");
   settings.filters = fieldList(settings.filters, "filters");
   return settings;
 }
+
+// src/biomarker-screen/configure.js
+var configure_exports4 = {};
+__export(configure_exports4, {
+  ADJUSTMENTS: () => ADJUSTMENTS2,
+  COMPARISONS: () => COMPARISONS,
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS5,
+  METHODS: () => METHODS3,
+  SORTS: () => SORTS,
+  syncSettings: () => syncSettings4
+});
 
 // src/shared/tables.js
 var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
@@ -2201,13 +2246,17 @@ function categoryColumns({ results, participants }, settings) {
 function filterColumns({ participants }, settings, categories) {
   if (!participants || !participants.length) return [];
   if (settings.filters) {
-    return settings.filters.filter((spec) => spec.value_col in participants[0]);
+    const id = settings.participant_id_col || settings.id_col;
+    return settings.filters.filter(
+      (spec) => Object.hasOwn(participants[0], spec.value_col) && spec.value_col !== id
+    );
   }
   return categories.filter((column) => column.table === "participants").map(({ value_col, label: label2 }) => ({ value_col, label: label2 }));
 }
 function listVisits(results, settings) {
   const config = coreSettings(settings);
   const all = visits(results, config);
+  if (Array.isArray(settings.visits) && !settings.visits.length) return { all, start: [] };
   const asked = (settings.visits || []).filter((visit) => all.includes(visit));
   return { all, start: asked.length ? asked : all };
 }
@@ -2457,6 +2506,8 @@ var DEFAULT_SETTINGS5 = Object.freeze({
   sort: "estimate",
   // The most rows on a page.
   limit: 20,
+  // The page of rows it opens on, from 0 (#71 review).
+  page: 0,
   // What the controls offer.
   measures: null,
   groups: null,
@@ -2499,6 +2550,9 @@ function syncSettings4(overrides) {
     refuse6(`\`adjustment\` must be one of ${ADJUSTMENTS2.join(", ")}.`);
   }
   if (!SORTS.includes(settings.sort)) refuse6(`\`sort\` must be one of ${SORTS.join(", ")}.`);
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse6("`page` must be a whole number, from 0: the page of rows it opens on.");
+  }
   if (!Number.isInteger(settings.limit) || settings.limit < 1) {
     refuse6("`limit` must be a whole number, one or more.");
   }
@@ -2527,6 +2581,13 @@ function syncSettings4(overrides) {
 }
 
 // src/cross-tab/configure.js
+var configure_exports5 = {};
+__export(configure_exports5, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS6,
+  PERCENTS: () => PERCENTS,
+  TESTS: () => TESTS2,
+  syncSettings: () => syncSettings5
+});
 var PERCENTS = Object.freeze(["row", "col", "none"]);
 var TESTS2 = Object.freeze(["chisq", "fisher", "none"]);
 var DEFAULT_SETTINGS6 = Object.freeze({
@@ -2627,6 +2688,12 @@ function syncSettings5(overrides) {
 }
 
 // src/stratified-survival/configure.js
+var configure_exports6 = {};
+__export(configure_exports6, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS7,
+  flagOf: () => flagOf,
+  syncSettings: () => syncSettings6
+});
 var DEFAULT_SETTINGS7 = Object.freeze({
   // Columns of the results table, and of the participant table.
   id_col: "USUBJID",
@@ -2924,6 +2991,8 @@ var SPECIFICATION_FORMAT = "bio.viz specification";
 var SPECIFICATION_VERSION = 1;
 var FILTER_OPERATORS = Object.freeze(["in"]);
 var PAGE_SETTINGS = Object.freeze(["connection", "back"]);
+var NO_COLUMN = Object.freeze(["__proto__", "constructor", "prototype"]);
+var MOST_NESTED = 64;
 var refuse7 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
@@ -2952,6 +3021,48 @@ function notData(value, where) {
   return `${where} is ${kind}, which is not data: a specification holds only text, numbers, true, false, null, lists and objects`;
 }
 var copy = (value) => JSON.parse(JSON.stringify(value));
+function snapshot(value, where = "the specification", depth = 0) {
+  if (value === null || typeof value !== "object") return value;
+  if (depth > MOST_NESTED) {
+    refuse7(
+      `the specification is nested more than ${MOST_NESTED} deep, which no chart\u2019s settings are.`
+    );
+  }
+  const array = Array.isArray(value);
+  if (!array && !isPlainObject5(value)) {
+    const problem = notData(value, where);
+    if (problem) refuse7(`${problem}.`);
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const read2 = (key, descriptor, at) => {
+    if ("get" in descriptor || "set" in descriptor) {
+      refuse7(
+        `${at} is a getter or a setter, which is not data: a specification holds only text, numbers, true, false, null, lists and objects.`
+      );
+    }
+    return snapshot(descriptor.value, at, depth + 1);
+  };
+  if (array) {
+    const length = descriptors.length ? descriptors.length.value : 0;
+    const out2 = [];
+    for (let i = 0; i < length; i += 1) {
+      const descriptor = descriptors[i];
+      out2.push(descriptor ? read2(i, descriptor, `${where}[${i}]`) : void 0);
+    }
+    return out2;
+  }
+  const out = {};
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!descriptor.enumerable) continue;
+    Object.defineProperty(out, key, {
+      value: read2(key, descriptor, `${where}.${key}`),
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
+  }
+  return out;
+}
 function writeSpecification({ chart, version: version2, settings, filters = [] }) {
   const written = {};
   for (const [key, value] of Object.entries(settings)) {
@@ -2973,6 +3084,7 @@ function writeSpecification({ chart, version: version2, settings, filters = [] }
 }
 function readSpecification(specification, charts) {
   let spec = specification;
+  if (typeof spec !== "string") spec = snapshot(spec);
   if (typeof spec === "string") {
     try {
       spec = JSON.parse(spec);
@@ -2999,6 +3111,9 @@ function readSpecification(specification, charts) {
   if (extra.length) {
     refuse7(`a specification has no \`${extra[0]}\`: it holds ${known.join(", ")}.`);
   }
+  if (!isText5(spec.bio_viz_version)) {
+    refuse7("a specification\u2019s `bio_viz_version` is text, the version that wrote it.");
+  }
   if (!isText5(spec.chart) || !Object.prototype.hasOwnProperty.call(charts, spec.chart)) {
     refuse7(
       `this specification names the chart ${JSON.stringify(spec.chart)}, which bio.viz does not have. Its charts are ${Object.keys(charts).join(", ")}.`
@@ -3016,6 +3131,14 @@ function readSpecification(specification, charts) {
       `this specification of the ${spec.chart} chart${isText5(spec.bio_viz_version) ? `, written by bio.viz ${spec.bio_viz_version},` : ""} holds ${names}, which ${unknown.length === 1 ? "is not a setting" : "are not settings"} of that chart in this version.`
     );
   }
+  if ("filters" in settings && settings.filters !== null && !Array.isArray(settings.filters)) {
+    refuse7("the setting `filters` of a specification is a list of filters, or null.");
+  }
+  for (const [key, value] of Object.entries(settings)) {
+    if (typeof value === "string" && NO_COLUMN.includes(value)) {
+      refuse7(`\`${key}\` names \`${value}\`, which is no column\u2019s name.`);
+    }
+  }
   const filters = spec.filters === void 0 ? [] : spec.filters;
   if (!Array.isArray(filters))
     refuse7("a specification\u2019s `filters` is a list of { column, operator, values }.");
@@ -3029,15 +3152,28 @@ function readSpecification(specification, charts) {
     if (keys.length)
       refuse7(`${where} has \`${keys[0]}\`: a filter is { column, operator, values }.`);
     if (!isText5(filter.column)) refuse7(`${where} must name its column.`);
+    if (NO_COLUMN.includes(filter.column)) {
+      refuse7(`${where} is on \`${filter.column}\`, which is no column\u2019s name.`);
+    }
+    const before = filters.findIndex((other) => other && other.column === filter.column);
+    if (before < index) {
+      refuse7(
+        `${where} is on ${filter.column}, which filter ${before + 1} is already on: a column is filtered once.`
+      );
+    }
     if (!FILTER_OPERATORS.includes(filter.operator)) {
       refuse7(
         `${where}, on ${filter.column}, has the operator ${JSON.stringify(filter.operator)}; the operators are ${FILTER_OPERATORS.map((entry) => `"${entry}"`).join(", ")}: in, the values it lets through.`
       );
     }
-    if (!Array.isArray(filter.values) || !filter.values.length || !filter.values.every((value) => typeof value === "string" || typeof value === "number")) {
+    if (!Array.isArray(filter.values) || !filter.values.every((value) => typeof value === "string" || typeof value === "number")) {
       refuse7(
         `${where}, on ${filter.column}, must list the values it lets through: text or numbers.`
       );
+    }
+    const twice = filter.values.map(String).find((value, at2, all) => all.indexOf(value) !== at2);
+    if (twice !== void 0) {
+      refuse7(`${where}, on ${filter.column}, names ${twice} twice: a value is listed once.`);
     }
     const specs = Array.isArray(read2.filters) ? read2.filters : read2.filters ? [read2.filters] : [];
     const at = specs.findIndex(
@@ -3047,13 +3183,18 @@ function readSpecification(specification, charts) {
     const started = {
       ...at >= 0 && typeof specs[at] === "object" ? specs[at] : { value_col: filter.column },
       start: values.length === 1 ? values[0] : values,
-      ...values.length > 1 ? { multiple: true } : {}
+      ...values.length !== 1 ? { multiple: true } : {}
     };
     if (at >= 0) specs[at] = started;
     else specs.push(started);
     read2.filters = specs;
   });
-  return { chart: spec.chart, settings: read2, version: spec.bio_viz_version ?? null };
+  return {
+    chart: spec.chart,
+    settings: read2,
+    version: spec.bio_viz_version,
+    filters: filters.map(({ column, values }) => ({ column, values: values.map(String) }))
+  };
 }
 
 // src/shared/chartHost.js
@@ -3130,6 +3271,8 @@ ${root} .bv-downloads[hidden]{display:none}
 ${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
 ${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-notices{margin:0 0 .6rem;padding:.4rem .6rem;border-left:3px solid #d97706;background:#fff8eb;font-size:.8rem;color:#5c3b00}
+${root} .bv-notices:empty{display:none}
 ${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
 function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   const { kit } = chart;
@@ -3148,6 +3291,10 @@ function mountShell(chart, { moduleClass, styleId, styles, listingFile }) {
   chart.listingWrap.classList.add("bv-no-picture");
   chart.titleBlock = kit.createElement("div", "bv-titles");
   chart.main.prepend(chart.titleBlock);
+  chart.notices = [];
+  chart.noticeBlock = kit.createElement("div", "bv-notices bv-no-picture");
+  chart.noticeBlock.setAttribute("role", "status");
+  chart.titleBlock.after(chart.noticeBlock);
   chart.footBlock = kit.createElement("div", "bv-foot");
   chart.listingWrap.before(chart.footBlock);
   chart.module = moduleClass.replace(/^bv-/, "");
@@ -3353,28 +3500,102 @@ function writeRuns(kit, element, runs) {
 function writeTitles(chart) {
   if (!chart.titleBlock || !chart.footBlock) return;
   const { kit } = chart;
-  const said = partsOf(chart);
+  const said2 = partsOf(chart);
   chart.titleBlock.innerHTML = "";
-  if (said.title !== null) {
+  if (said2.title !== null) {
     const title = kit.createElement("div", "bv-title");
     title.setAttribute("role", "heading");
     title.setAttribute("aria-level", "2");
-    writeRuns(kit, title, said.title);
+    writeRuns(kit, title, said2.title);
     chart.titleBlock.append(title);
   }
-  if (said.subtitle !== null) {
+  if (said2.subtitle !== null) {
     const subtitle = kit.createElement("p", "bv-subtitle");
-    writeRuns(kit, subtitle, said.subtitle);
+    writeRuns(kit, subtitle, said2.subtitle);
     chart.titleBlock.append(subtitle);
   }
   chart.footBlock.innerHTML = "";
-  said.footnotes.forEach((runs, index) => {
+  said2.footnotes.forEach((runs, index) => {
     const line = kit.createElement("p", "bv-foot-line");
     writeRuns(kit, line, runs);
-    if (index === said.footnotes.length - 1) line.dataset.automatic = "true";
+    if (index === said2.footnotes.length - 1) line.dataset.automatic = "true";
     chart.footBlock.append(line);
   });
   syncDownloads(chart);
+  writeNotices(chart);
+}
+var SETTING_NAMES = Object.freeze({
+  row_by: "Rows",
+  col_by: "Columns",
+  group_by: "Groups",
+  color_by: "Colour",
+  panel_by: "Panels",
+  start_value: "Biomarker",
+  measure: "Biomarker",
+  biomarkers: "Biomarkers",
+  visit: "Visit",
+  visits: "Visits",
+  endpoint: "Endpoint",
+  comparison: "Compare",
+  x: "X axis",
+  y: "Y axis",
+  with: "With"
+});
+var said = (value) => typeof value === "string" ? value : Array.isArray(value) && value.every((entry) => typeof entry === "string") ? value.join(", ") : JSON.stringify(value);
+function noticesOf(chart) {
+  const { requested, settings } = chart;
+  if (!requested) return [];
+  const notices = [];
+  const view = typeof chart.viewSettings === "function" ? chart.viewSettings() : {};
+  for (const key of Object.keys(view)) {
+    if (!Object.hasOwn(requested.settings, key)) continue;
+    const asked = settings[key];
+    if (asked === null || asked === void 0) continue;
+    const drawn = view[key];
+    if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
+    const name = SETTING_NAMES[key] || `\`${key}\``;
+    notices.push({
+      kind: "setting",
+      name: key,
+      asked,
+      drawn,
+      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === void 0 ? "none" : said(drawn)}.`
+    });
+  }
+  const id = settings.participant_id_col || settings.id_col;
+  for (const filter of requested.filters || []) {
+    const spec = (chart.filterSpecs || []).find((entry) => entry.value_col === filter.column);
+    if (!spec) {
+      notices.push({
+        kind: "filter",
+        name: filter.column,
+        asked: filter.values,
+        drawn: null,
+        said: filter.column === id ? `Filter ${filter.column}: the participant id is not a filter.` : `Filter ${filter.column}: the participant table has no such column, so it is not a filter.`
+      });
+      continue;
+    }
+    const now = (chart.state.filters || {})[filter.column];
+    const drawn = now === null || now === void 0 || now === "" ? null : (Array.isArray(now) ? now : [now]).map(String);
+    if (drawn !== null && JSON.stringify(drawn) === JSON.stringify(filter.values)) continue;
+    const missing = filter.values.filter((value) => !(drawn || []).includes(value));
+    notices.push({
+      kind: "filter",
+      name: filter.column,
+      asked: filter.values,
+      drawn,
+      said: `Filter ${filter.column}: ${missing.join(", ")} ${missing.length === 1 ? "is not one of its values" : "are not among its values"}, so it is at ${drawn === null ? "All" : drawn.join(", ")}.`
+    });
+  }
+  return notices;
+}
+function writeNotices(chart) {
+  if (!chart.noticeBlock) return;
+  if (chart.requested && !chart.noticed && chart.tables && chart.tables.results.length) {
+    chart.noticed = true;
+    chart.notices = noticesOf(chart);
+  }
+  chart.noticeBlock.textContent = chart.notices.length ? `Not drawn as the specification asks: ${chart.notices.map((notice) => notice.said).join(" ")}` : "";
 }
 var DOWNLOAD_LABELS = Object.freeze({
   png: "PNG",
@@ -3399,7 +3620,7 @@ async function downloadFile(chart, kind) {
     return { name, blob: new Blob([toCsv(rows, columns)], { type: "text/csv;charset=utf-8" }) };
   }
   if (kind === "png") {
-    const said = titlesOf(chart);
+    const said2 = titlesOf(chart);
     const scale = chart.settings.png_scale;
     const charts = (chart.charts || []).filter(
       (made) => made && made.options && typeof made.resize === "function"
@@ -3416,8 +3637,8 @@ async function downloadFile(chart, kind) {
         // What a reader works the chart with is marked to be left out.
         leaveOut: (element) => element.classList.contains("bv-no-picture"),
         text: {
-          Title: [said.title, said.subtitle].filter(Boolean).join(" \u2014 "),
-          Description: said.footnotes.join("\n"),
+          Title: [said2.title, said2.subtitle].filter(Boolean).join(" \u2014 "),
+          Description: said2.footnotes.join("\n"),
           Software: `bio.viz ${VERSION_SAID}`
         }
       });
@@ -3461,11 +3682,11 @@ function mountDownloads(chart) {
   chart.footBlock.after(chart.downloadBar);
   chart.fileOf = (kind) => downloadFile(chart, kind);
 }
-function sayFailure(chart, said) {
+function sayFailure(chart, said2) {
   const old = chart.downloadBar.querySelector(".bv-download-error");
   if (old) old.remove();
-  if (!said) return;
-  const line = chart.kit.createElement("p", "bv-download-error", said);
+  if (!said2) return;
+  const line = chart.kit.createElement("p", "bv-download-error", said2);
   line.setAttribute("role", "alert");
   chart.downloadBar.append(line);
 }
@@ -3554,7 +3775,7 @@ function writeStatistic(kit, line, description) {
   line.innerHTML = "";
   line.append(kit.createElement("p", "bv-stat-result", description.text));
   description.estimates.forEach(
-    (said) => line.append(kit.createElement("p", "bv-stat-estimate", said))
+    (said2) => line.append(kit.createElement("p", "bv-stat-estimate", said2))
   );
   if (description.table) line.append(statTable(description.table, kit));
   description.remarks.forEach(({ kind, text: text2 }) => {
@@ -3730,16 +3951,35 @@ function specificationOf(chart) {
   })).filter(({ selection }) => selection !== null && selection !== void 0 && selection !== "").map(({ column, selection }) => ({
     column,
     values: (Array.isArray(selection) ? selection : [selection]).map(String)
-  })).filter(({ values }) => values.length);
+  }));
   return writeSpecification({ chart: chart.module, version: VERSION, settings, filters });
+}
+function startFilters(chart) {
+  const state = chart.kit.initFilterState(chart.filterSpecs);
+  for (const spec of chart.settings.filters || []) {
+    if (spec && spec.multiple && Array.isArray(spec.start) && !spec.start.length && Object.hasOwn(state, spec.value_col)) {
+      state[spec.value_col] = [];
+    }
+  }
+  return state;
+}
+function cutsOffered(options, drawn) {
+  const written = new Set(drawn.map((entry) => JSON.stringify(entry)));
+  const cuts = [];
+  for (const { spec } of options || []) {
+    const key = JSON.stringify(spec);
+    if (written.has(key) || cuts.some((entry) => JSON.stringify(entry) === key)) continue;
+    cuts.push(spec);
+  }
+  return cuts.length ? cuts : null;
 }
 
 // src/shared/statisticLine.js
 var WAITING = "Statistics: waiting for R\u2026";
 var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
-var sentence = (state, said) => ({
+var sentence = (state, said2) => ({
   state,
-  text: said,
+  text: said2,
   estimates: [],
   remarks: [],
   scope: null
@@ -3771,8 +4011,8 @@ var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value
   (entry) => typeof entry === "string" && entry.trim() !== ""
 );
 var remarksOf = (value) => [
-  ...texts(value.warnings).map((said) => ({ kind: "warning", text: `R warned: ${said}` })),
-  ...texts(value.notes).map((said) => ({ kind: "note", text: `R\u2019s note: ${said}` }))
+  ...texts(value.warnings).map((said2) => ({ kind: "warning", text: `R warned: ${said2}` })),
+  ...texts(value.notes).map((said2) => ({ kind: "note", text: `R\u2019s note: ${said2}` }))
 ];
 function failureOf(result) {
   if (result && result.status === "unavailable") {
@@ -3790,11 +4030,11 @@ function createDesk({
   connection,
   note = null,
   describe: describe2,
-  waiting = (said) => sentence("waiting", said)
+  waiting = (said2) => sentence("waiting", said2)
 }) {
   let current = 0;
   let retired = false;
-  const withNote = (said) => note && !hasAnswered(connection) ? `${said} ${note}` : said;
+  const withNote = (said2) => note && !hasAnswered(connection) ? `${said2} ${note}` : said2;
   return {
     idle: withNote,
     retire() {
@@ -3907,7 +4147,7 @@ function pairsOf(value) {
     }))
   };
 }
-var plain = (state, said) => ({ ...sentence(state, said), pairs: null });
+var plain = (state, said2) => ({ ...sentence(state, said2), pairs: null });
 function describeAnswer(result, context = {}) {
   if (result && result.status === "ok") {
     const value = result.value && typeof result.value === "object" ? result.value : {};
@@ -3932,24 +4172,24 @@ function noTestText(groups, several) {
 }
 function scopeText({ group, n, panel, color, filters = [] }) {
   const named2 = group.includes(",") ? `${group},` : group;
-  const said = [
+  const said2 = [
     `This test compares the levels of ${named2} on the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
-    said.push("Each panel has a test of its own, and they are not adjusted for one another.");
+    said2.push("Each panel has a test of its own, and they are not adjusted for one another.");
   }
   if (color) {
-    said.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
+    said2.push(`Colour by ${color} is not part of it: each level of ${named2} is tested whole.`);
   }
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function createStatisticDesk({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeAnswer,
-    waiting: (said) => plain("waiting", said)
+    waiting: (said2) => plain("waiting", said2)
   });
 }
 
@@ -4477,7 +4717,7 @@ var GroupComparison = class {
     return {
       // No biomarker named, or one the table does not have: the overview.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: 0,
+      page: settings.page,
       visits: [...this.visits.start],
       valueType: settings.value_type,
       groupBy,
@@ -4488,7 +4728,7 @@ var GroupComparison = class {
       yScale: settings.y_scale,
       test: settings.test,
       pairwise: settings.pairwise,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -5293,7 +5533,8 @@ var GroupComparison = class {
       mark: state.mark,
       y_scale: state.yScale,
       test: state.test,
-      pairwise: state.pairwise
+      pairwise: state.pairwise,
+      page: state.page || 0
     };
   }
   /**
@@ -5715,7 +5956,7 @@ function correlationRequest({ name, method, settings, state, panel }) {
     rows: panel.records.length
   };
 }
-var plain2 = (state, said) => ({ ...sentence(state, said), table: null });
+var plain2 = (state, said2) => ({ ...sentence(state, said2), table: null });
 function groupsTable(value, { color, name }) {
   const rows = Array.isArray(value.rows) ? value.rows.filter((row) => row && "group" in row) : [];
   if (!rows.length) return null;
@@ -5794,21 +6035,21 @@ function scaleText({ xScale, yScale, x, y, method }) {
   return `${which}: R was given ${given2}. ${ON_A_LOGARITHM[method] || ""}`.trim();
 }
 function scopeText2({ n, panel, color, filters = [] }) {
-  const said = [
+  const said2 = [
     `This coefficient is of the ${n} participant${n === 1 ? "" : "s"} ` + (panel ? `drawn in this panel (${panel}).` : "drawn.")
   ];
   if (panel) {
-    said.push(
+    said2.push(
       "Each panel has a coefficient of its own, and they are not adjusted for one another."
     );
   }
   if (color) {
-    said.push(
+    said2.push(
       `It takes every level of ${color} together; the table gives each level its own, and they are not adjusted for one another.`
     );
   }
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function fitRequest({ name, fit, settings, state, panel }) {
   return {
@@ -5949,7 +6190,7 @@ function createStatisticDesk2({ connection, note = null }) {
     connection,
     note,
     describe: (result, context) => isFit(context) ? describeFit(result, context) : describeCorrelation(result, context),
-    waiting: (said, context) => plain2("waiting", isFit(context) ? said.replace(/^Statistics/, "Fitted line") : said)
+    waiting: (said2, context) => plain2("waiting", isFit(context) ? said2.replace(/^Statistics/, "Fitted line") : said2)
   });
 }
 
@@ -6152,7 +6393,7 @@ var AssociationScatter = class {
       yScale: settings.y_scale,
       fit: settings.fit,
       method: settings.method,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -7236,7 +7477,7 @@ function matrixRequest({ name, method, minPairs, settings, state, model }) {
     rows: model.records.length
   };
 }
-var plain3 = (state, said) => ({ ...sentence(state, said), table: null, pairs: null });
+var plain3 = (state, said2) => ({ ...sentence(state, said2), table: null, pairs: null });
 function pairsOf2(value) {
   const rows = Array.isArray(value && value.rows) ? value.rows : [];
   const pairs = /* @__PURE__ */ new Map();
@@ -7287,22 +7528,22 @@ function cellText(pair, labels, name) {
   const lead = `${labels.row} and ${labels.column}`;
   if (!pair) return `${lead}.`;
   const { formatted, warning } = pair;
-  const said = formatted.status === "shown" ? `${lead}: ${name} ${formatted.text}` : `${lead}: ${formatted.text}`;
-  return warning ? `${said} R warned: ${warning}.` : said;
+  const said2 = formatted.status === "shown" ? `${lead}: ${name} ${formatted.text}` : `${lead}: ${formatted.text}`;
+  return warning ? `${said2} R warned: ${warning}.` : said2;
 }
 function scopeText3({ n, filters = [] }) {
-  const said = [
+  const said2 = [
     `${n} participant${n === 1 ? " is" : "s are"} in the frame. A cell is of the ones who have both of its values, so each cell has its own count, and the cells are not adjusted for one another.`
   ];
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function createStatisticDesk3({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeMatrix,
-    waiting: (said) => plain3("waiting", said)
+    waiting: (said2) => plain3("waiting", said2)
   });
 }
 
@@ -7506,6 +7747,7 @@ var CorrelationMatrix = class {
   seedState() {
     const { settings, measures, visits: visits2 } = this;
     const among = (chosen, list) => {
+      if (Array.isArray(chosen) && !chosen.length) return [];
       const kept = (chosen || []).filter((entry) => list.includes(entry));
       return kept.length ? kept : null;
     };
@@ -7521,7 +7763,7 @@ var CorrelationMatrix = class {
       view: settings.view,
       method: settings.method,
       minPairs: settings.min_pairs,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -7911,9 +8153,9 @@ var CorrelationMatrix = class {
       const labels = { row: row.label, column: column.label };
       button.innerHTML = "";
       button.dataset.status = pair ? pair.formatted.status : "empty";
-      const said = `${cellText(pair, labels, name)} Open the scatter.`;
-      button.setAttribute("aria-label", said);
-      button.title = said;
+      const said2 = `${cellText(pair, labels, name)} Open the scatter.`;
+      button.setAttribute("aria-label", said2);
+      button.title = said2;
       const mini = scatters && button.dataset.side === "mark";
       if (mini) {
         const wrap = kit.createElement("span", "bv-mini");
@@ -8437,9 +8679,9 @@ function describeAnswer2(result, context = {}) {
   return sentence(failure.state, failure.text);
 }
 function scopeText4({ n, endpoint, filters = [] }) {
-  const said = [`This test is of the ${n} participant${n === 1 ? "" : "s"} drawn, on ${endpoint}.`];
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  const said2 = [`This test is of the ${n} participant${n === 1 ? "" : "s"} drawn, on ${endpoint}.`];
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function createStatisticDesk4({ connection, note = null }) {
   return createDesk({ connection, note, describe: describeAnswer2 });
@@ -8799,7 +9041,7 @@ var StratifiedSurvival = class {
     return {
       endpoint: named2 ? named2.endpoint : endpoints[0] ? endpoints[0].endpoint : null,
       groupBy,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
   repairState(opening) {
@@ -8993,13 +9235,13 @@ var StratifiedSurvival = class {
   }
   cutNotes(model) {
     if (!model.cut) return [];
-    const said = [cutNote(model.cut.spec, model.cut)];
+    const said2 = [cutNote(model.cut.spec, model.cut)];
     if (!Array.isArray(model.cut.cut)) {
-      said.push(
+      said2.push(
         "Only participants with an outcome for the endpoint are cut, as R\u2019s Analyze_Screen cuts them."
       );
     }
-    return said;
+    return said2;
   }
   colorOf(index) {
     return PALETTE[index % PALETTE.length];
@@ -9517,9 +9759,13 @@ var StratifiedSurvival = class {
    */
   viewSettings() {
     const { state } = this;
+    const group = state.groupBy ? this.groupingOf(state.groupBy) : null;
     return {
       endpoint: state.endpoint,
-      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null
+      group_by: group,
+      // Every cut the Groups control offers stays offered, the one a moved line
+      // left among them (#71 review).
+      cuts: cutsOffered(this.cutOptions, [group])
     };
   }
   /**
@@ -9662,7 +9908,7 @@ function screenRequest({ name, settings, state, model }) {
     rows: model.records.length
   };
 }
-var plain4 = (state, said) => ({ ...sentence(state, said), table: null, rows: null });
+var plain4 = (state, said2) => ({ ...sentence(state, said2), table: null, rows: null });
 function rowsOf(value, groups = null) {
   const rows = Array.isArray(value && value.rows) ? value.rows : [];
   const number = (given2) => typeof given2 === "number" && Number.isFinite(given2) ? given2 : null;
@@ -9730,18 +9976,18 @@ function describeScreen(result, context = {}) {
   return described;
 }
 function scopeText5({ n, filters = [] }) {
-  const said = [
+  const said2 = [
     `${n} participant${n === 1 ? " is" : "s are"} in the frame. A row is of the ones who have its biomarker, so each row has its own counts.`
   ];
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function createStatisticDesk5({ connection, note = null }) {
   return createDesk({
     connection,
     note,
     describe: describeScreen,
-    waiting: (said) => plain4("waiting", said)
+    waiting: (said2) => plain4("waiting", said2)
   });
 }
 
@@ -10163,6 +10409,7 @@ var BiomarkerScreen = class {
     const given2 = settings.with ? axisOf(settings.with) : null;
     const fallback = this.numbers.length ? axisOf({ col: this.numbers[0].value_col }) : this.measures.length && visits2.length ? axisOf({ measure: this.measures[0], value: "raw", visit: visits2[0] }) : null;
     const endpoint = this.endpoints.some((entry) => entry.endpoint === settings.endpoint) ? settings.endpoint : this.endpoints[0] ? this.endpoints[0].endpoint : null;
+    this.pageFromSettings = true;
     return {
       comparison: this.comparisons().includes(settings.comparison) ? settings.comparison : "difference",
       endpoint,
@@ -10174,8 +10421,8 @@ var BiomarkerScreen = class {
       method: settings.method,
       adjustment: settings.adjustment,
       sort: settings.sort,
-      page: 0,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      page: settings.page,
+      filters: startFilters(this)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -10399,7 +10646,8 @@ var BiomarkerScreen = class {
     const round = this.desk.begin();
     this.asked = [];
     this.answer = null;
-    this.state.page = 0;
+    if (this.pageFromSettings) this.pageFromSettings = false;
+    else this.state.page = 0;
     this.notes.innerHTML = "";
     this.screenWrap.innerHTML = "";
     this.screenWrap.hidden = true;
@@ -10686,7 +10934,8 @@ var BiomarkerScreen = class {
       with: state.with ? settingOf(state.with) : null,
       method: state.method,
       adjustment: state.adjustment,
-      sort: state.sort
+      sort: state.sort,
+      page: state.page || 0
     };
   }
   /**
@@ -10969,9 +11218,9 @@ function describeAnswer3(result, context = {}) {
   return sentence(failure.state, failure.text);
 }
 function scopeText6({ n, filters = [] }) {
-  const said = [`This test is of the ${n} participant${n === 1 ? "" : "s"} in the table.`];
-  if (filters.length) said.push(filtersSaid(filters));
-  return said.join(" ");
+  const said2 = [`This test is of the ${n} participant${n === 1 ? "" : "s"} in the table.`];
+  if (filters.length) said2.push(filtersSaid(filters));
+  return said2.join(" ");
 }
 function createStatisticDesk6({ connection, note = null }) {
   return createDesk({ connection, note, describe: describeAnswer3 });
@@ -11255,7 +11504,7 @@ var CrossTab = class {
       colBy,
       percent: settings.percent,
       test: settings.test,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
   // After the tables or the settings change, a control may hold something that
@@ -11650,9 +11899,13 @@ var CrossTab = class {
    */
   viewSettings() {
     const { state } = this;
+    const row = this.groupingOf(state.rowBy);
+    const col = this.groupingOf(state.colBy);
     return {
-      row_by: this.groupingOf(state.rowBy),
-      col_by: this.groupingOf(state.colBy),
+      row_by: row,
+      col_by: col,
+      // Every cut the Rows and Columns controls offer stays offered (#71 review).
+      cuts: cutsOffered(this.cutOptions, [row, col]),
       percent: state.percent,
       test: state.test
     };
@@ -11752,18 +12005,24 @@ function crossTab(element, settings) {
 
 // src/specification.js
 var CHARTS = {
-  "group-comparison": { defaults: DEFAULT_SETTINGS2, make: groupComparison },
-  "association-scatter": { defaults: DEFAULT_SETTINGS3, make: associationScatter },
-  "correlation-matrix": { defaults: DEFAULT_SETTINGS4, make: correlationMatrix },
-  "biomarker-screen": { defaults: DEFAULT_SETTINGS5, make: biomarkerScreen },
-  "cross-tab": { defaults: DEFAULT_SETTINGS6, make: crossTab },
-  "stratified-survival": { defaults: DEFAULT_SETTINGS7, make: stratifiedSurvival }
+  "group-comparison": { ...configure_exports, make: groupComparison },
+  "association-scatter": { ...configure_exports2, make: associationScatter },
+  "correlation-matrix": { ...configure_exports3, make: correlationMatrix },
+  "biomarker-screen": { ...configure_exports4, make: biomarkerScreen },
+  "cross-tab": { ...configure_exports5, make: crossTab },
+  "stratified-survival": { ...configure_exports6, make: stratifiedSurvival }
 };
-var DEFAULTS = Object.fromEntries(
-  Object.entries(CHARTS).map(([name, entry]) => [name, entry.defaults])
+var CHART_SETTINGS = Object.freeze(
+  Object.fromEntries(Object.entries(CHARTS).map(([name, entry]) => [name, entry.DEFAULT_SETTINGS]))
 );
+function readChecked(specification) {
+  const read2 = readSpecification(specification, CHART_SETTINGS);
+  CHARTS[read2.chart].syncSettings(JSON.parse(JSON.stringify(read2.settings)));
+  return read2;
+}
 function fromSpecification(element, specification, page = {}) {
-  const { chart, settings } = readSpecification(specification, DEFAULTS);
+  const read2 = readChecked(specification);
+  const { chart, settings } = read2;
   const given2 = page === null || page === void 0 ? {} : page;
   const others = Object.keys(given2).filter((key) => !PAGE_SETTINGS.includes(key));
   if (others.length) {
@@ -11771,9 +12030,14 @@ function fromSpecification(element, specification, page = {}) {
       `bio.viz: fromSpecification takes the page's ${PAGE_SETTINGS.join(" and ")} beside the specification, and \`${others[0]}\` is not one: give it in the specification's settings.`
     );
   }
-  return CHARTS[chart].make(element, { ...settings, ...given2 });
+  const made = CHARTS[chart].make(element, { ...settings, ...given2 });
+  made.requested = { settings: read2.settings, filters: read2.filters };
+  return made;
 }
-var readChartSpecification = (specification) => readSpecification(specification, DEFAULTS);
+var readChartSpecification = (specification) => {
+  const { chart, settings, version: version2 } = readChecked(specification);
+  return { chart, settings, version: version2 };
+};
 
 // src/data/portfolio.json
 var portfolio_default = {
