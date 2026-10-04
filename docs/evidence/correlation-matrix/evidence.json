@@ -1,6 +1,6 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-04T12:02:34.087Z",
+  "generatedAt": "2026-10-04T16:29:58.780Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37200721924",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37200721924"
+    "id": "37216945291",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37216945291"
   },
   "records": [
     {
@@ -42,7 +42,10 @@
       "status": "pass",
       "requirementIds": ["CM-DRAW-001"],
       "issueRefs": [27],
-      "screenshots": ["CM-DRAW-001-biomarkers-at-baseline.png"]
+      "screenshots": [
+        "CM-DRAW-001-as-the-gallery-shows-it.png",
+        "CM-DRAW-001-biomarkers-at-baseline.png"
+      ]
     },
     {
       "test": "CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)",

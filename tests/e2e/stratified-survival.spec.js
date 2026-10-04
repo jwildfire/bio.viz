@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { describeAnswer } from '../../src/stratified-survival/statistic.js';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { expectFailureSaid, expectReplacedConnectionDead } from './review.js';
 
 // The stratified survival chart in a real page (#61): safety.viz's vendored
@@ -228,6 +228,17 @@ test.describe('stratified survival: what is drawn', () => {
     await expectAnswer(page, entry);
     expect(errors).toEqual([]);
     await captureEvidence(root(page).locator('.sv-main'), 'SS-DRAW-001', 'crp-median');
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate((titles) => window.__ss.chart.setSettings(titles), {
+      title: '{endpoint} by {group}',
+      subtitle: '{n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    await captureGallery(root(page).locator('.sv-main'), 'SS-DRAW-001');
   });
 
   test('SS-DRAW-002: groups from a column are drawn by name, and a cut at its tertiles makes three curves, low to high, each R’s; a column has no histogram (#61)', async ({

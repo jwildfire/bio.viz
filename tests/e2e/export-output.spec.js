@@ -1277,3 +1277,41 @@ test.describe('getting results out: what the #71 review found', () => {
     });
   });
 });
+
+test.describe('getting results out: the gallery’s pictures', () => {
+  test('EXP-SITE-003: the built gallery shows every chart in a picture of its frame with its title and footnotes, its own last, and at 390px the page does not scroll sideways (#66)', async ({
+    page
+  }) => {
+    await page.goto('/_site/gallery/index.html');
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll('li.module[data-module]')]
+        .filter((card) => card.querySelector('h3'))
+        .map((card) => {
+          const picture = card.querySelector('.module-hero img');
+          return {
+            module: card.dataset.module,
+            src: picture ? picture.getAttribute('src') : null
+          };
+        })
+    );
+    const charts = config.modules
+      .filter((entry) => entry.kind === 'chart')
+      .map((entry) => entry.module);
+    for (const module of charts) {
+      const card = cards.find((entry) => entry.module === module);
+      expect(card, module).toBeDefined();
+      expect(card.src, module).toMatch(/-DRAW-001-as-the-gallery-shows-it\.png$/);
+    }
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.module-hero img')].every(
+            (picture) => picture.complete && picture.naturalWidth > 0
+          )
+        )
+      )
+      .toBe(true);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => layout(page)).toEqual({ viewport: 390, scrollWidth: 390 });
+  });
+});

@@ -14,7 +14,7 @@ import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { formatScreenRow } from '../../src/r/formatStatistic.js';
 import { axisRange, placeOf } from '../../src/biomarker-screen/structureData.js';
 import { shown as shownValue } from '../../src/shared/chartHost.js';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import {
   CASES as SCREEN_CASES,
   SCREEN_STATISTICS,
@@ -428,6 +428,17 @@ test.describe('biomarker screen: what is drawn', () => {
       'BS-DRAW-001',
       'the-planted-difference'
     );
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate((titles) => window.__bs.chart.setSettings(titles), {
+      title: '{heading}',
+      subtitle: '{biomarkers} biomarkers, {n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    await captureGallery(root(page).locator('.sv-main'), 'BS-DRAW-001');
   });
 
   test('BS-DRAW-002: every row is a button named by the shared formatter’s sentence; the caption and the line say what the estimate is, which test, and by what adjustment across how many biomarkers, once (#36)', async ({

@@ -62,6 +62,8 @@
     "EXP-SPEC-017": "Reading a specification makes every check making the chart makes: a value the chart refuses is refused with the chart's sentence, and an empty selection the chart can draw is read.",
     "EXP-SPEC-018": "An object given as a specification is read once, own data properties only: a getter or a setter is refused, a Proxy's traps run once each and only the copy is checked, and nesting deeper than 64 is refused.",
     "EXP-SPEC-019": "`__proto__`, `constructor` and `prototype` are no column: a filter on one, or a setting naming one, is refused by the reader and the schema.",
-    "EXP-SPEC-020": "The reader and the schema agree: `bio_viz_version` is text, a filter names a column once and each value once, a column's name is not blank, `settings.filters` is a list or null; the schema gives every setting's default and is written from the one chart list."
+    "EXP-SPEC-020": "The reader and the schema agree: `bio_viz_version` is text, a filter names a column once and each value once, a column's name is not blank, `settings.filters` is a list or null; the schema gives every setting's default and is written from the one chart list.",
+    "EXP-SITE-002": "Every chart's picture in the gallery is a capture of its frame taken by `captureGallery`, which fails rather than capture when the frame lacks its title or its own footnote, or when R has not answered.",
+    "EXP-SITE-003": "The built gallery shows every chart in that picture, its title and footnotes drawn in, and at 390px the page does not scroll sideways."
   }
 }
