@@ -107,6 +107,7 @@ biomarker_screen_key <- function(dfFrame, lView) {
   if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
   lDataId$baseline_stat <- lView$baseline_stat
   if (identical(lView$comparison, "correlation")) lDataId$with <- lapply(lView$with, chart_text)
+  if (identical(lView$comparison, "hazard")) lDataId$endpoint <- chart_text(lView$endpoint)
   if (length(lView$filters) > 0) {
     lDataId$filters <- lapply(lView$filters, function(xValues) {
       as.list(sort(unique(chart_text(xValues)), method = "radix"))
@@ -116,6 +117,11 @@ biomarker_screen_key <- function(dfFrame, lView) {
   if (identical(lView$comparison, "difference")) {
     lArgs$strGroupCol <- lView$group_by
     lArgs$chrGroups <- as.list(chart_text(lView$groups))
+  } else if (identical(lView$comparison, "hazard")) {
+    # Each biomarker is cut at its median by Analyze_Screen itself; the frame
+    # holds the time and the flag, censored or event, as the table reads it.
+    lArgs$strTimeCol <- "time"
+    if (identical(lView$flag, "event")) lArgs$strEventCol <- "event" else lArgs$strCensorCol <- "censor"
   } else {
     lArgs$strWithCol <- lView$with_name
     lArgs$strCorMethod <- lView$method
@@ -159,6 +165,9 @@ read_view <- function(case) {
   if (identical(case$comparison, "difference")) {
     lView$group_by <- case$group_by
     lView$groups <- several(case$groups)
+  } else if (identical(case$comparison, "hazard")) {
+    lView$endpoint <- case$endpoint
+    lView$flag <- case$flag
   } else {
     lView$with <- read_with(case)
     lView$with_name <- case$with_name
@@ -172,7 +181,11 @@ read_view <- function(case) {
 read_frame <- function(case) {
   rows <- read_text(case$file)
   lView <- read_view(case)
-  numeric <- c(lView$biomarkers, if (identical(case$comparison, "correlation")) lView$with_name)
+  numeric <- c(
+    lView$biomarkers,
+    if (identical(case$comparison, "correlation")) lView$with_name,
+    if (identical(case$comparison, "hazard")) c("time", lView$flag)
+  )
   for (column in numeric) rows[[column]] <- as.numeric(rows[[column]])
   rows
 }

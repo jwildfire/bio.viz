@@ -67,10 +67,13 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     // comparison chart's overview and the biomarker screen use it.
     // src/shared/cut.js (#43) is how a cut variable makes groups: the group
     // comparison chart uses it, and this chart, whose axes are numbers, does not.
+    // src/shared/outcomes.js (#62) is how an outcomes table is read: the
+    // stratified survival chart and the biomarker screen use it.
     const everything = sourceFiles('src/shared');
     expect(everything).toEqual([
       'src/shared/chartHost.js',
       'src/shared/cut.js',
+      'src/shared/outcomes.js',
       'src/shared/paging.js',
       'src/shared/settings.js',
       'src/shared/statisticLine.js',
@@ -79,7 +82,12 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     ]);
     const shared = everything.filter(
       (file) =>
-        !['src/shared/variables.js', 'src/shared/paging.js', 'src/shared/cut.js'].includes(file)
+        ![
+          'src/shared/variables.js',
+          'src/shared/paging.js',
+          'src/shared/cut.js',
+          'src/shared/outcomes.js'
+        ].includes(file)
     );
     const reached = (files) => new Set(files.flatMap(importsOf));
     const fromScatter = reached(scatter);

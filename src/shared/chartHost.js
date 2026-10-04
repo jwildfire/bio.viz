@@ -8,6 +8,8 @@
 // which holds `kit`, `settings`, `tables`, `state`, `host` and the shell's
 // slots; a chart's own file decides what is drawn and what R is asked.
 
+import { checkOutcomes } from './outcomes.js';
+
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
 export const PALETTE = [
@@ -256,6 +258,33 @@ export function readGiven(chart, data, settings = chart.settings) {
     results: tables.results,
     participants: tables.participants && tables.participants.length ? tables.participants : null
   };
+}
+
+/**
+ * The outcomes table a chart was given, checked: an array of records with the
+ * columns the settings name, or null when there is none or it is empty. A
+ * table the chart cannot read is refused with a `TypeError`, and its message is
+ * shown in the chart's element.
+ *
+ * @param {object} chart The chart.
+ * @param {*} outcomes What `init` or `setData` was given as `outcomes`.
+ * @param {object} settings The settings the table is read with.
+ * @returns {?object[]} The outcomes table.
+ */
+export function readOutcomesGiven(chart, outcomes, settings) {
+  if (outcomes === undefined || outcomes === null) return null;
+  try {
+    if (!isRecordTable(outcomes)) {
+      throw new TypeError('bio.viz: `outcomes` must be an array of records, one object per row.');
+    }
+    checkOutcomes(outcomes, settings);
+  } catch (error) {
+    chart.destroyCharts();
+    chart.element.innerHTML = '';
+    chart.element.append(chart.kit.createElement('div', 'sv-warning', error.message));
+    throw error;
+  }
+  return outcomes.length ? outcomes : null;
 }
 
 /**

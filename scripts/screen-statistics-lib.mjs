@@ -17,6 +17,8 @@ import vm from 'node:vm';
 import { syncSettings } from '../src/biomarker-screen/configure.js';
 import { screenRequest } from '../src/biomarker-screen/statistic.js';
 import { buildScreen, groupsOf } from '../src/biomarker-screen/structureData.js';
+import { cutPoints } from '../src/core/cut.js';
+import { flagOf, listEndpoints } from '../src/shared/outcomes.js';
 import { listMeasures, listVisits } from '../src/shared/tables.js';
 import { axisOf, settingOf } from '../src/shared/variables.js';
 import { sha256 } from './vendor-lib.mjs';
@@ -29,6 +31,7 @@ export const SCREEN_STATISTICS = {
   sources: {
     results: 'site/data/synthetic-study/synthetic_results.csv',
     participants: 'site/data/synthetic-study/synthetic_participants.csv',
+    outcomes: 'site/data/synthetic-study/synthetic_outcomes.csv',
     study: 'site/demo/synthetic-study.js',
     demo: 'site/demo/biomarker-screen.js'
   }
@@ -47,12 +50,14 @@ export const VIEW = Object.freeze({
   levels: null,
   with: null,
   method: 'pearson',
+  endpoint: 'EFS',
   adjustment: 'BH',
   filters: {}
 });
 
 const IL10 = { measure: 'IL-10', visit: 'Baseline' };
 const CORRELATION = { comparison: 'correlation', visit: 'Baseline', valueType: 'raw', with: IL10 };
+const HAZARD = { comparison: 'hazard', visit: 'Baseline', valueType: 'raw' };
 
 // One view of the demo. `view` is laid over the view every case starts from.
 export const CASES = [
@@ -101,6 +106,38 @@ export const CASES = [
     view: { ...CORRELATION, method: 'spearman' }
   },
   {
+    case: 'hazard-baseline',
+    says: 'Every biomarker at Baseline, as its result, cut at its median, hazard ratio of high against low on event-free survival, Benjamini-Hochberg: CRP was planted with the survival effect',
+    view: HAZARD
+  },
+  {
+    case: 'hazard-baseline-holm',
+    says: 'The same, adjusted by Holm',
+    view: { ...HAZARD, adjustment: 'holm' }
+  },
+  {
+    case: 'hazard-baseline-women',
+    says: 'The same, with the filter Sex set to F',
+    view: { ...HAZARD, filters: { SEX: 'F' } }
+  },
+  {
+    case: 'hazard-baseline-age-35',
+    says: 'The same among the four participants aged 35: every row has a group too small',
+    view: { ...HAZARD, filters: { AGE: '35' } }
+  },
+  {
+    case: 'hazard-baseline-30-without-outcome',
+    says: 'The hazard screen with the event-free survival rows of the thirty participants with the highest CRP at Baseline taken out: each biomarker is cut at the median of those with an outcome',
+    view: HAZARD,
+    outcomes: 'without-30'
+  },
+  {
+    case: 'hazard-baseline-no-events-in-low-crp',
+    says: 'The hazard screen with every participant at or below the median of CRP at Baseline censored: CRP’s Low half has no event, and its hazard ratio is not estimable',
+    view: HAZARD,
+    outcomes: 'no-events-in-low-crp'
+  },
+  {
     case: 'correlation-age',
     says: 'Every biomarker’s change to Week 4 against age, a participant-level number',
     view: { comparison: 'correlation', with: { col: 'AGE' } }
@@ -124,10 +161,11 @@ export function readDemo(sources) {
     results: demo.withDay(demo.parse(sources.results)),
     participants: demo.parse(sources.participants)
   };
+  const outcomes = demo.parse(sources.outcomes);
   // Copied out of the script's own realm, so they are ordinary objects here.
   return JSON.parse(
     JSON.stringify({
-      tables: demo.biomarkerScreen.tables(study),
+      tables: demo.biomarkerScreen.tables(study, outcomes),
       settings: demo.biomarkerScreen.settings
     })
   );
@@ -147,15 +185,54 @@ export function stateOf(demo, entry) {
   };
 }
 
+// CRP at Baseline for each participant with a result, by id.
+function crpAtBaseline(tables) {
+  return new Map(
+    tables.results
+      .filter((row) => row.TEST === 'CRP' && row.VISIT === 'Baseline')
+      .map((row) => [row.USUBJID, Number(row.STRESN)])
+  );
+}
+
+/**
+ * The outcomes table a case is drawn on: the demo's, or the demo's changed as
+ * the case says. Worked out from the demo's own tables, not typed.
+ *   without-30            the rows of the thirty participants with the highest
+ *                         CRP at Baseline taken out
+ *   no-events-in-low-crp  every participant whose CRP at Baseline is at or
+ *                         below its median censored, so CRP's Low half has no event
+ */
+export function outcomesFor(demo, entry) {
+  const outcomes = demo.tables.outcomes;
+  if (!entry.outcomes) return outcomes;
+  const crp = crpAtBaseline(demo.tables);
+  if (entry.outcomes === 'without-30') {
+    const highest = new Set(
+      [...crp]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 30)
+        .map(([id]) => id)
+    );
+    return outcomes.filter((row) => !highest.has(row.USUBJID));
+  }
+  if (entry.outcomes === 'no-events-in-low-crp') {
+    const [median] = cutPoints([...crp.values()], 'median').points;
+    return outcomes.map((row) => (crp.get(row.USUBJID) <= median ? { ...row, CNSR: '1' } : row));
+  }
+  throw new Error(`${entry.case}: no outcomes rule ${entry.outcomes}.`);
+}
+
 // The case's frame: what the screen is of, and the rows R is handed.
 function modelOf(demo, entry) {
   const config = syncSettings({ ...demo.settings, visit: null });
   const state = stateOf(demo, entry);
+  const tables = { ...demo.tables, outcomes: outcomesFor(demo, entry) };
   const offered = {
-    measures: listMeasures(demo.tables.results, config),
-    visits: listVisits(demo.tables.results, config).all
+    measures: listMeasures(tables.results, config),
+    visits: listVisits(tables.results, config).all,
+    endpoints: listEndpoints(tables.outcomes, config)
   };
-  const model = buildScreen(demo.tables, config, state, offered);
+  const model = buildScreen(tables, config, state, offered);
   if (model.message || !model.records.length) {
     throw new Error(`${entry.case}: the view has no screen (${model.message}).`);
   }
@@ -214,7 +291,12 @@ export function deriveScreenStatistics(sources) {
   // docs/biomarker-screen.md, and the unit tests hold it to the chart's.
   const cases = CASES.map((entry) => {
     const { config, state, model } = modelOf(demo, entry);
-    const columns = [config.id_col, ...model.rows.map((row) => row.name), model.extra];
+    const hazard = state.comparison === 'hazard';
+    const columns = [
+      config.id_col,
+      ...model.rows.map((row) => row.name),
+      ...(hazard ? model.outcomeFields : [model.extra])
+    ];
     const file = `${entry.case}.csv`;
     files.push({
       file,
@@ -241,6 +323,8 @@ export function deriveScreenStatistics(sources) {
       fixed.col ?? '',
       state.comparison === 'correlation' ? model.extra : '',
       state.method,
+      hazard ? state.endpoint : '',
+      hazard ? flagOf(config).field : '',
       state.adjustment,
       list(config.baseline_visits),
       config.baseline_stat,
@@ -268,6 +352,8 @@ export function deriveScreenStatistics(sources) {
         'with_col',
         'with_name',
         'method',
+        'endpoint',
+        'flag',
         'adjustment',
         'baseline_visits',
         'baseline_stat',
@@ -285,8 +371,9 @@ export function deriveScreenStatistics(sources) {
       rule:
         "Each case is the gallery's biomarker screen demo in one view. Its file is the frame " +
         'the chart hands R for that view: one row per participant, the id, one column per ' +
-        'biomarker of the screen at its visit with its value type, and the column of groups or ' +
-        "the variable correlated with, made by the core's frame from the vendored synthetic " +
+        'biomarker of the screen at its visit with its value type, and the column of groups, ' +
+        'the variable correlated with, or for a hazard ratio the time and the flag of the ' +
+        "endpoint, made by the core's frame from the vendored synthetic " +
         'study with the demo page’s own settings. A participant with some of the biomarkers is ' +
         'kept, with an empty cell for each value they do not have.',
       derived_from: Object.values(SCREEN_STATISTICS.sources).map((file) => ({ file })),

@@ -1,7 +1,7 @@
 {
   "fixture": "tests/fixtures/screen-statistics",
   "derived_by": "tools/derive-screen-statistics.mjs",
-  "rule": "Each case is the gallery's biomarker screen demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id, one column per biomarker of the screen at its visit with its value type, and the column of groups or the variable correlated with, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the biomarkers is kept, with an empty cell for each value they do not have.",
+  "rule": "Each case is the gallery's biomarker screen demo in one view. Its file is the frame the chart hands R for that view: one row per participant, the id, one column per biomarker of the screen at its visit with its value type, and the column of groups, the variable correlated with, or for a hazard ratio the time and the flag of the endpoint, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A participant with some of the biomarkers is kept, with an empty cell for each value they do not have.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
@@ -12,12 +12,16 @@
       "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09"
     },
     {
+      "file": "site/data/synthetic-study/synthetic_outcomes.csv",
+      "sha256": "118343dc83ad8f8d42afa49bfe40cdc54ce65d32afac4fc4255a5f672ec0f1f0"
+    },
+    {
       "file": "site/demo/synthetic-study.js",
       "sha256": "0695f363da6abe0390d135ec31e15e3bfd2f1cbc88f09aedc9252606322fb4ff"
     },
     {
       "file": "site/demo/biomarker-screen.js",
-      "sha256": "88ee8641c572ebec8bf5b59cc422bee57347d74c982a9a79ab9389d05893f387"
+      "sha256": "0a70688364bbbc325f404a437436b578b73c960a079a4db080110e951624e8c5"
     }
   ],
   "cases": [
@@ -56,6 +60,30 @@
     {
       "case": "correlation-il-10-spearman",
       "says": "The same with Spearman’s coefficient: no interval in any row"
+    },
+    {
+      "case": "hazard-baseline",
+      "says": "Every biomarker at Baseline, as its result, cut at its median, hazard ratio of high against low on event-free survival, Benjamini-Hochberg: CRP was planted with the survival effect"
+    },
+    {
+      "case": "hazard-baseline-holm",
+      "says": "The same, adjusted by Holm"
+    },
+    {
+      "case": "hazard-baseline-women",
+      "says": "The same, with the filter Sex set to F"
+    },
+    {
+      "case": "hazard-baseline-age-35",
+      "says": "The same among the four participants aged 35: every row has a group too small"
+    },
+    {
+      "case": "hazard-baseline-30-without-outcome",
+      "says": "The hazard screen with the event-free survival rows of the thirty participants with the highest CRP at Baseline taken out: each biomarker is cut at the median of those with an outcome"
+    },
+    {
+      "case": "hazard-baseline-no-events-in-low-crp",
+      "says": "The hazard screen with every participant at or below the median of CRP at Baseline censored: CRP’s Low half has no event, and its hazard ratio is not estimable"
     },
     {
       "case": "correlation-age",
@@ -100,12 +128,36 @@
       "sha256": "cbbe3732b1ada6c7ded5ea05ca9ddb7b1b047c670fc9977e0447150942cd459a"
     },
     {
+      "file": "hazard-baseline.csv",
+      "sha256": "fdf984533b80e08f0ec3008fa56e39234f6232b7e875b0f74b205ec1fba76671"
+    },
+    {
+      "file": "hazard-baseline-holm.csv",
+      "sha256": "fdf984533b80e08f0ec3008fa56e39234f6232b7e875b0f74b205ec1fba76671"
+    },
+    {
+      "file": "hazard-baseline-women.csv",
+      "sha256": "f38db886ac4d7ef541a0dec5940eb37cf591f3ce98269674e573ce4f0fabcc4b"
+    },
+    {
+      "file": "hazard-baseline-age-35.csv",
+      "sha256": "9f08dd127860a49c04abccaa36ec6d66b57451aa0934a7e8f17b6f846811a3fc"
+    },
+    {
+      "file": "hazard-baseline-30-without-outcome.csv",
+      "sha256": "1e6bfbc3d4489ef6dfeb061f514373c1f0545863841eadcb30675a5df683ecc1"
+    },
+    {
+      "file": "hazard-baseline-no-events-in-low-crp.csv",
+      "sha256": "8dd10336e58095dc84a9309e16972855b3b9abcaeea773a23853712daeec583a"
+    },
+    {
       "file": "correlation-age.csv",
       "sha256": "e93c79d16033134f4febf034e7663af6401bedc4d88fd45df48ea985f7e0aa78"
     },
     {
       "file": "cases.csv",
-      "sha256": "52970287d2d66fab1003cc5fffd0e9e8321f73f85f5743c593a0b427ee939062"
+      "sha256": "eaf1e7299a8dd74b07a76a56e7593f6d7ea805d40becf05a838b66893a897e99"
     }
   ]
 }

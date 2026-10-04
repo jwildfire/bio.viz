@@ -22,13 +22,22 @@ import {
   remarksOf,
   sentence
 } from '../shared/statisticLine.js';
+import { flagOf } from '../shared/outcomes.js';
 import { settingOf } from '../shared/variables.js';
 
 /** What the Compare control calls each comparison. */
 export const COMPARISON_LABELS = Object.freeze({
   difference: 'Difference between two groups',
-  correlation: 'Correlation with one variable'
+  correlation: 'Correlation with one variable',
+  hazard: 'Hazard ratio, high against low'
 });
+
+/**
+ * The two groups of a hazard row, as R's Analyze_Screen names them: each
+ * biomarker cut at its median, a value on the median low. The hazard ratio is
+ * High's hazard over Low's.
+ */
+export const HAZARD_GROUPS = Object.freeze(['High', 'Low']);
 
 /** What the Method control calls each coefficient. */
 export const METHOD_LABELS = Object.freeze({ pearson: 'Pearson', spearman: 'Spearman' });
@@ -39,7 +48,8 @@ export const ADJUSTMENT_LABELS = Object.freeze({ BH: 'Benjamini-Hochberg', holm:
 /** What a row's estimate is called, by the comparison. */
 export const ESTIMATE_NAMES = Object.freeze({
   difference: 'Standardised difference (Hedges’ g)',
-  correlation: { pearson: 'Pearson’s r', spearman: 'Spearman’s rho' }
+  correlation: { pearson: 'Pearson’s r', spearman: 'Spearman’s rho' },
+  hazard: 'Hazard ratio, High / Low'
 });
 
 // ---- What R is asked ---------------------------------------------------------------
@@ -58,15 +68,25 @@ export const ESTIMATE_NAMES = Object.freeze({
 export function screenRequest({ name, settings, state, model }) {
   const filters = filtersInForce(state.filters);
   const difference = state.comparison === 'difference';
+  const hazard = state.comparison === 'hazard';
+  const flag = hazard ? flagOf(settings).field : null;
+  const of = () => {
+    if (difference) return { strGroupCol: state.groupBy, chrGroups: [...state.levels] };
+    if (hazard) {
+      return {
+        strTimeCol: 'time',
+        ...(flag === 'censor' ? { strCensorCol: 'censor' } : { strEventCol: 'event' })
+      };
+    }
+    return { strWithCol: model.extra, strCorMethod: state.method };
+  };
   return {
     name,
     data: model.records,
     args: {
       chrCols: model.rows.map((row) => row.name),
       strComparison: state.comparison,
-      ...(difference
-        ? { strGroupCol: state.groupBy, chrGroups: [...state.levels] }
-        : { strWithCol: model.extra, strCorMethod: state.method }),
+      ...of(),
       strPAdjust: state.adjustment
     },
     dataId: {
@@ -76,7 +96,9 @@ export function screenRequest({ name, settings, state, model }) {
       ...(settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {}),
       baseline_stat: settings.baseline_stat,
       // What the column correlated with is: its name in the frame is a label.
-      ...(difference ? {} : { with: settingOf(state.with) }),
+      ...(state.comparison === 'correlation' ? { with: settingOf(state.with) } : {}),
+      // What the rows' outcome is: the endpoint of the outcomes table.
+      ...(hazard ? { endpoint: state.endpoint } : {}),
       ...(Object.keys(filters).length ? { filters } : {})
     },
     rows: model.records.length

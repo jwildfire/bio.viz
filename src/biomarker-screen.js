@@ -2,12 +2,14 @@
 // R's estimate and its interval on one shared axis and R's p-values beside it,
 // unadjusted and adjusted across the rows; and the way into the single charts.
 //
-//   BioViz.biomarkerScreen('#chart', {}).init({ results, participants });
+//   BioViz.biomarkerScreen('#chart', {}).init({ results, participants, outcomes });
 //
-// The comparison is a standardised difference between two groups, or a
-// correlation with one fixed variable. A row opens the matching single chart
-// for its biomarker, in place, with a way back: the group comparison for a
-// difference, the association scatter for a correlation.
+// The comparison is a standardised difference between two groups, a
+// correlation with one fixed variable, or, with an outcomes table, a hazard
+// ratio for high against low on an endpoint, each biomarker cut at its median.
+// A row opens the matching single chart for its biomarker, in place, with a way
+// back: the group comparison for a difference, the association scatter for a
+// correlation, the stratified survival chart for a hazard ratio.
 //
 // The lifecycle is safety.viz's (init, setData, setSettings, render, resize,
 // destroy), and the chart is built as the other three are: from safety.viz's
@@ -20,6 +22,7 @@
 
 import { associationScatter } from './association-scatter.js';
 import { groupComparison } from './group-comparison.js';
+import { stratifiedSurvival } from './stratified-survival.js';
 import { createConnection } from './r/connection.js';
 import { UNUSED } from './core/reasons.js';
 import { VALUE_TYPES } from './core/variable.js';
@@ -34,6 +37,7 @@ import {
   ADJUSTMENT_LABELS,
   COMPARISON_LABELS,
   ESTIMATE_NAMES,
+  HAZARD_GROUPS,
   METHOD_LABELS,
   createStatisticDesk,
   scopeText,
@@ -51,17 +55,20 @@ import {
 import {
   VALUE_LABELS,
   addFilterControls,
+  shown,
   downloadCsv,
   filtersForScope,
   findKit,
   lineStyles,
   mountShell,
   readGiven,
+  readOutcomesGiven,
   renderPager,
   writeStatistic,
   drawSafely,
   checkTables
 } from './shared/chartHost.js';
+import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -115,9 +122,19 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
 
 const BACK = 'Back to the biomarker screen';
-const HINT =
-  'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ' +
-  'share one axis without units, with nought marked.';
+/** What the Compare control says when there is no outcomes table to compare on. */
+export const NO_OUTCOMES =
+  'A hazard ratio needs an outcomes table: give `outcomes`, one row per participant and ' +
+  'endpoint, with a time and a flag, as `init({ results, participants, outcomes })`.';
+const HAZARD_NOTE =
+  'Each biomarker is cut at its median, as R’s Analyze_Screen cuts it, a value on the median ' +
+  'low: the hazard ratio is the high group’s hazard over the low group’s.';
+const OPEN_HINT =
+  'Click a row, or press Enter on it, to open that biomarker in its own chart. The estimates ';
+// What the axis marks: nought, or for a hazard ratio's logarithmic axis, 1.
+const HINT = OPEN_HINT + 'share one axis without units, with nought marked.';
+const HAZARD_HINT =
+  OPEN_HINT + 'share one logarithmic axis without units, with 1, no difference, marked.';
 const COLUMN = 'c:';
 const MEASURE = 'm:';
 
@@ -130,8 +147,9 @@ class BiomarkerScreen {
     this.element = typeof element === 'string' ? document.querySelector(element) : element;
     if (!this.element) throw new Error(`bio.viz: biomarker screen target not found: ${element}`);
     this.settings = syncSettings(settings);
-    this.tables = { results: [], participants: null };
+    this.tables = { results: [], participants: null, outcomes: null };
     this.model = null;
+    this.endpoints = [];
     this.measures = [];
     this.visits = [];
     this.categories = [];
@@ -195,12 +213,20 @@ class BiomarkerScreen {
    */
   setData(data, settings) {
     this.close();
+    const given = Array.isArray(data) ? { results: data } : data || {};
     if (settings === undefined || settings === null) {
-      this.tables = readGiven(this, data);
+      this.tables = {
+        ...readGiven(this, given),
+        outcomes: readOutcomesGiven(this, given.outcomes, this.settings)
+      };
     } else {
       // The tables and the settings that read them change together: the
       // tables are checked against the new settings, which are then laid over.
-      this.tables = readGiven(this, data, syncSettings({ ...this.settings, ...settings }));
+      const next = syncSettings(laidOver(this.settings, settings));
+      this.tables = {
+        ...readGiven(this, given, next),
+        outcomes: readOutcomesGiven(this, given.outcomes, next)
+      };
       this.setSettings(settings);
     }
     this.readTables();
@@ -220,10 +246,11 @@ class BiomarkerScreen {
    */
   setSettings(settings) {
     const given = settings || {};
-    const next = syncSettings({ ...this.settings, ...given });
+    const next = syncSettings(laidOver(this.settings, given));
     // The tables must still have the columns the new settings name; if not, the
     // settings are refused and nothing changes, a chart opened in place included.
     checkTables(this.tables, next);
+    if (this.tables.outcomes) checkOutcomes(this.tables.outcomes, next);
     this.close();
     this.settings = next;
     if ('connection' in given || 'waiting_note' in given) this.connect();
@@ -237,6 +264,7 @@ class BiomarkerScreen {
       levels: ['levels'],
       with: ['with'],
       method: ['method'],
+      endpoint: ['endpoint'],
       adjustment: ['adjustment'],
       sort: ['sort', 'page'],
       filters: ['filters']
@@ -261,6 +289,16 @@ class BiomarkerScreen {
     this.filterSpecs = filterColumns(this.tables, settings, this.categories).map((spec) =>
       this.kit.normalizeFilterSpec(spec)
     );
+    this.endpoints = this.tables.outcomes ? listEndpoints(this.tables.outcomes, settings) : [];
+    if (
+      this.tables.outcomes &&
+      settings.endpoint !== null &&
+      !this.endpoints.some((entry) => entry.endpoint === settings.endpoint)
+    ) {
+      console.warn(
+        `The initial endpoint [${settings.endpoint}] does not exist. Defaulting to the first.`
+      );
+    }
     if (results.length && settings.visit !== null && !this.visits.includes(settings.visit)) {
       console.warn(
         `The initial visit [${settings.visit}] does not exist. Defaulting to the first.`
@@ -269,7 +307,13 @@ class BiomarkerScreen {
   }
 
   offered() {
-    return { measures: this.measures, visits: this.visits };
+    return { measures: this.measures, visits: this.visits, endpoints: this.endpoints };
+  }
+
+  // The comparisons the Compare control offers: a hazard ratio only with an
+  // outcomes table to compare on.
+  comparisons() {
+    return COMPARISONS.filter((entry) => entry !== 'hazard' || this.endpoints.length);
   }
 
   // The columns of groups a difference can compare: the category columns with
@@ -299,8 +343,16 @@ class BiomarkerScreen {
       : this.measures.length && visits.length
         ? axisOf({ measure: this.measures[0], value: 'raw', visit: visits[0] })
         : null;
+    const endpoint = this.endpoints.some((entry) => entry.endpoint === settings.endpoint)
+      ? settings.endpoint
+      : this.endpoints[0]
+        ? this.endpoints[0].endpoint
+        : null;
     return {
-      comparison: settings.comparison,
+      comparison: this.comparisons().includes(settings.comparison)
+        ? settings.comparison
+        : 'difference',
+      endpoint,
       visit: visits.includes(settings.visit) ? settings.visit : (visits[0] ?? null),
       valueType: settings.value_type,
       groupBy,
@@ -323,6 +375,10 @@ class BiomarkerScreen {
     if (!columns.includes(state.groupBy)) state.groupBy = opening.groupBy;
     state.levels = groupsOf(this.tables, state.groupBy, state.levels).levels;
     if (!this.hasVariable(state.with)) state.with = opening.with;
+    if (!this.comparisons().includes(state.comparison)) state.comparison = 'difference';
+    if (!this.endpoints.some((entry) => entry.endpoint === state.endpoint)) {
+      state.endpoint = opening.endpoint;
+    }
   }
 
   // ---- Controls ---------------------------------------------------------------
@@ -348,7 +404,7 @@ class BiomarkerScreen {
     select(
       'comparison',
       'Compare',
-      COMPARISONS.map((entry) => [entry, COMPARISON_LABELS[entry]]),
+      this.comparisons().map((entry) => [entry, COMPARISON_LABELS[entry]]),
       state.comparison,
       (next) => {
         state.comparison = next;
@@ -357,6 +413,11 @@ class BiomarkerScreen {
       },
       screen
     );
+    // Without an outcomes table there is no hazard ratio to offer, and the
+    // screen says why.
+    if (!this.endpoints.length) {
+      screen.append(kit.createElement('small', 'bv-control-note bv-no-outcomes', NO_OUTCOMES));
+    }
     select(
       'value-type',
       'Value',
@@ -422,6 +483,19 @@ class BiomarkerScreen {
             'deviations: swap the groups to turn the axis round.'
         )
       );
+    } else if (state.comparison === 'hazard') {
+      select(
+        'endpoint',
+        'Endpoint',
+        this.endpoints.map((entry) => [entry.endpoint, entry.label]),
+        state.endpoint,
+        (next) => {
+          state.endpoint = next;
+          redraw(true);
+        },
+        screen
+      );
+      screen.append(kit.createElement('small', 'bv-control-note', HAZARD_NOTE));
     } else {
       const options = [
         ...this.numbers.map((spec) => [`${COLUMN}${spec.value_col}`, spec.label]),
@@ -575,7 +649,7 @@ class BiomarkerScreen {
     }
     // What R's methods are, and where they differ, R says in its own notes on
     // the statistics line.
-    this.footnote.textContent = HINT;
+    this.footnote.textContent = state.comparison === 'hazard' ? HAZARD_HINT : HINT;
     this.drawRows();
     if (!settings.statistic) return;
 
@@ -598,7 +672,12 @@ class BiomarkerScreen {
         this.drawRows();
       },
       {
-        groups: state.comparison === 'difference' ? state.levels : null,
+        groups:
+          state.comparison === 'difference'
+            ? state.levels
+            : state.comparison === 'hazard'
+              ? [...HAZARD_GROUPS]
+              : null,
         scope: scopeText({ n: model.records.length, filters: filtersForScope(this) })
       }
     );
@@ -623,6 +702,12 @@ class BiomarkerScreen {
     if (model.filtered !== null && model.filtered < this.tables.participants.length) {
       add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
     }
+    (model.outcomeGaps || []).forEach((entry) =>
+      add(
+        `${entry.n} with no outcome to use: ${entry.reason}. R leaves them out of every row.`,
+        true
+      )
+    );
     if (model.left) add(model.left);
     if (model.baselineVisits && state.valueType !== 'raw') {
       add(`Baseline visit: ${model.baselineVisits.join(', ')}.`);
@@ -632,6 +717,10 @@ class BiomarkerScreen {
   // The estimate's name, as the axis and the caption call it.
   estimateName() {
     const { state } = this;
+    if (state.comparison === 'hazard') {
+      const endpoint = this.endpoints.find((entry) => entry.endpoint === state.endpoint);
+      return `${ESTIMATE_NAMES.hazard}, on ${endpoint ? endpoint.label : state.endpoint}`;
+    }
     return state.comparison === 'difference'
       ? `${ESTIMATE_NAMES.difference}, ${state.levels[0]} less ${state.levels[1]}`
       : `${ESTIMATE_NAMES.correlation[state.method]} with ${variableName(state.with)}`;
@@ -680,7 +769,9 @@ class BiomarkerScreen {
         'p',
         'bv-screen-caption',
         `Each row: ${this.estimateName()}${level ? `, with its ${level} confidence interval` : ''}` +
-          ' on one axis without units. ' +
+          (range.log
+            ? ' on one logarithmic axis, with 1, no difference, marked. '
+            : ' on one axis without units. ') +
           (method
             ? `p: ${method}, unadjusted, and adjusted by ${adjustment} across the ${over} ` +
               `biomarker${over === 1 ? '' : 's'} with a p-value. Exploratory, adjusted (${adjustment}).`
@@ -692,8 +783,13 @@ class BiomarkerScreen {
     const head = kit.createElement('div', 'bv-screen-head');
     head.setAttribute('aria-hidden', 'true');
     const ticks = kit.createElement('div', 'bv-ticks');
-    range.ticks.forEach((tick) => {
-      const label = kit.createElement('span', 'bv-tick', String(tick).replace('-', '−'));
+    // A wide axis is labelled at every other tick, so the labels do not crowd,
+    // counted from the reference line's tick, which is always labelled.
+    const every = range.ticks.length > 7 ? 2 : 1;
+    const anchor = Math.max(range.ticks.indexOf(range.reference ?? 0), 0);
+    range.ticks.forEach((tick, index) => {
+      if ((index - anchor) % every !== 0) return;
+      const label = kit.createElement('span', 'bv-tick', shown(tick).replace('-', '−'));
       const at = placeOf(tick, range);
       label.style.left = `${at}%`;
       // The labels at the two ends stay inside the axis.
@@ -732,15 +828,18 @@ class BiomarkerScreen {
     button.type = 'button';
     button.dataset.biomarker = row.biomarker;
     button.dataset.status = formatted.status;
-    const opens =
-      this.state.comparison === 'difference' ? 'the group comparison' : 'the association scatter';
+    const opens = {
+      difference: 'the group comparison',
+      correlation: 'the association scatter',
+      hazard: 'the stratified survival chart'
+    }[this.state.comparison];
     const outside = row.inAdjustment ? '' : ' Not in the adjustment.';
     button.setAttribute('aria-label', `${formatted.text}${outside} Open in ${opens}.`);
     button.onclick = () => this.openRow(row.biomarker);
     button.append(kit.createElement('span', 'bv-screen-name', row.biomarker));
     const track = kit.createElement('span', 'bv-track');
     const zero = kit.createElement('span', 'bv-zero');
-    zero.style.left = `${placeOf(0, range)}%`;
+    zero.style.left = `${placeOf(range.reference ?? 0, range)}%`;
     track.append(zero);
     if (formatted.status === 'shown' && row.estimate !== null) {
       if (row.lower !== null && row.upper !== null) {
@@ -791,6 +890,7 @@ class BiomarkerScreen {
   // What the counts column holds: each group's, for a difference, or the one count.
   countsHeading() {
     const { state } = this;
+    if (state.comparison === 'hazard') return `n, ${HAZARD_GROUPS.join(' / ')}`;
     return state.comparison === 'difference' && state.levels.length === 2
       ? `n, ${state.levels[0]} / ${state.levels[1]}`
       : 'n';
@@ -798,7 +898,7 @@ class BiomarkerScreen {
 
   // A row's counts, as R gave them.
   countsOf(row) {
-    if (this.state.comparison === 'difference' && row.groupCounts)
+    if (this.state.comparison !== 'correlation' && row.groupCounts)
       return row.groupCounts.join(' / ');
     return row.n === null ? '' : String(row.n);
   }
@@ -848,9 +948,10 @@ class BiomarkerScreen {
   /**
    * Open a biomarker's single chart in place of the screen, as a click on its
    * row does: the group comparison for a difference, at the same visit, value,
-   * groups and test, or the association scatter for a correlation, against the
-   * same variable with the same method; with the same connection and filters,
-   * and a way back.
+   * groups and test; the association scatter for a correlation, against the
+   * same variable with the same method; or the stratified survival chart for a
+   * hazard ratio, the biomarker cut at its median on the same endpoint; with the
+   * same connection and filters, and a way back.
    * @param {string} biomarker The biomarker, by its name.
    * @returns {object} The chart that was opened.
    */
@@ -890,32 +991,51 @@ class BiomarkerScreen {
       filters,
       back: { label: BACK, action: () => this.close() }
     };
+    const outcomes = Object.fromEntries(
+      Object.keys(OUTCOME_DEFAULTS).map((key) => [key, settings[key]])
+    );
     const chart =
-      state.comparison === 'difference'
-        ? groupComparison(holder, {
+      state.comparison === 'hazard'
+        ? stratifiedSurvival(holder, {
             ...carried,
-            ...(settings.group_comparison || {}),
-            // What the screen carries across: the biomarker, its visit and
-            // value, the two groups, Welch's test, the connection and filters.
-            start_value: biomarker,
-            visits: state.valueType === 'baseline' ? null : [state.visit],
-            value_type: state.valueType,
-            group_by: state.groupBy,
-            levels: [...state.levels],
-            test: 't',
+            ...outcomes,
+            ...(settings.stratified_survival || {}),
+            // What the screen carries across: the biomarker at its visit and
+            // value, cut at its median, the endpoint, the connection and filters.
+            group_by: {
+              measure: biomarker,
+              value: state.valueType,
+              ...(state.valueType === 'baseline' ? {} : { visit: state.visit }),
+              cut: 'median'
+            },
+            endpoint: state.endpoint,
             ...common
           }).init(this.tables)
-        : associationScatter(holder, {
-            ...carried,
-            numbers: settings.numbers,
-            ...(settings.association_scatter || {}),
-            // The biomarker along the bottom and the variable up the side, with
-            // the same coefficient.
-            x: settingOf(row.axis),
-            y: settingOf(state.with),
-            method: state.method,
-            ...common
-          }).init(this.tables);
+        : state.comparison === 'difference'
+          ? groupComparison(holder, {
+              ...carried,
+              ...(settings.group_comparison || {}),
+              // What the screen carries across: the biomarker, its visit and
+              // value, the two groups, Welch's test, the connection and filters.
+              start_value: biomarker,
+              visits: state.valueType === 'baseline' ? null : [state.visit],
+              value_type: state.valueType,
+              group_by: state.groupBy,
+              levels: [...state.levels],
+              test: 't',
+              ...common
+            }).init(this.tables)
+          : associationScatter(holder, {
+              ...carried,
+              numbers: settings.numbers,
+              ...(settings.association_scatter || {}),
+              // The biomarker along the bottom and the variable up the side, with
+              // the same coefficient.
+              x: settingOf(row.axis),
+              y: settingOf(state.with),
+              method: state.method,
+              ...common
+            }).init(this.tables);
     this.drilled = { chart, holder, biomarker };
     const back = holder.querySelector('.bv-back');
     if (back) back.focus();
@@ -944,7 +1064,8 @@ class BiomarkerScreen {
 
   /**
    * The chart a row has opened, or null while the screen is shown.
-   * @returns {?object} The group comparison or the association scatter.
+   * @returns {?object} The group comparison, the association scatter or the
+   *   stratified survival chart.
    */
   opened() {
     return this.drilled ? this.drilled.chart : null;

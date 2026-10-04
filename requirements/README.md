@@ -11,7 +11,7 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 | [group-comparison.md](group-comparison.md)       | group-comparison    |  148 |
 | [association-scatter.md](association-scatter.md) | association-scatter |   87 |
 | [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   74 |
-| [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   70 |
+| [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   78 |
 | [cross-tab.md](cross-tab.md)                     | cross-tab           |   31 |
 | [stratified-survival.md](stratified-survival.md) | stratified-survival |   38 |
 

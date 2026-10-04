@@ -260,6 +260,36 @@
           "domain": "subject",
           "column": "USUBJID",
           "required": false
+        },
+        "outcome_id_col": {
+          "domain": "bds",
+          "column": null,
+          "required": false
+        },
+        "endpoint_col": {
+          "domain": "bds",
+          "column": "PARAMCD",
+          "required": true
+        },
+        "endpoint_label_col": {
+          "domain": "bds",
+          "column": "PARAM",
+          "required": false
+        },
+        "time_col": {
+          "domain": "bds",
+          "column": "AVAL",
+          "required": true
+        },
+        "censor_col": {
+          "domain": "bds",
+          "column": "CNSR",
+          "required": true
+        },
+        "event_col": {
+          "domain": "bds",
+          "column": null,
+          "required": false
         }
       }
     },

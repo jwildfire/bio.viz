@@ -178,7 +178,8 @@ describe('biomarker screen: how R’s answer is described', () => {
     expect(JSON.stringify(mixed)).toBe(before);
     expect(COMPARISON_LABELS).toEqual({
       difference: 'Difference between two groups',
-      correlation: 'Correlation with one variable'
+      correlation: 'Correlation with one variable',
+      hazard: 'Hazard ratio, high against low'
     });
     expect(ADJUSTMENT_LABELS).toEqual({ BH: 'Benjamini-Hochberg', holm: 'Holm' });
   });

@@ -16,57 +16,15 @@
 import { frame } from '../core/frame.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 import { coreSettings } from '../shared/settings.js';
+import { LEFT_OUT, OUTCOME_UNUSED, listEndpoints, outcomesOf } from '../shared/outcomes.js';
 import { isBlank, keepFiltered, levelsOf } from '../shared/tables.js';
-import { flagOf } from './configure.js';
 
-/** Why a participant with a group is not drawn, as the chart says it. */
-export const LEFT_OUT = Object.freeze({
-  NO_OUTCOME: 'No outcome for the endpoint',
-  SEVERAL_OUTCOMES: 'More than one outcome row for the endpoint',
-  MISSING_OUTCOME: 'Time or flag is missing or not a number',
-  NOT_A_FLAG: 'Flag is not 0 or 1',
-  NEGATIVE_TIME: 'Time is negative'
-});
-
-/** Why a row of the outcomes table is not used, as the chart says it. */
-export const OUTCOME_UNUSED = Object.freeze({
-  NO_PARTICIPANT: 'Outcome row for no such participant'
-});
+// Why a participant with a group is not drawn, why an outcome row is not
+// used, and the endpoints of an outcomes table: the shared reading's
+// (src/shared/outcomes.js).
+export { LEFT_OUT, OUTCOME_UNUSED, listEndpoints };
 
 const grouping = (by) => (isCut(by) ? by : { col: by });
-const numberOf = (value) => {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-  // A flag may be logical, as R's Analyze_Survival takes one.
-  if (typeof value === 'boolean') return value ? 1 : 0;
-  if (value === 'TRUE' || value === 'true') return 1;
-  if (value === 'FALSE' || value === 'false') return 0;
-  if (typeof value !== 'string' || value.trim() === '') return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-};
-
-/**
- * The endpoints of an outcomes table, by name with numbers as numbers, each
- * with its label where the table has one.
- * @param {object[]} outcomes The outcomes table.
- * @param {object} settings The chart's settings.
- * @returns {Array<{endpoint: string, label: string}>}
- */
-export function listEndpoints(outcomes, settings) {
-  return levelsOf(outcomes.map((row) => row[settings.endpoint_col])).map((endpoint) => {
-    const labelled = settings.endpoint_label_col
-      ? outcomes.find(
-          (row) =>
-            String(row[settings.endpoint_col]) === endpoint &&
-            !isBlank(row[settings.endpoint_label_col])
-        )
-      : null;
-    return {
-      endpoint,
-      label: labelled ? String(labelled[settings.endpoint_label_col]) : endpoint
-    };
-  });
-}
 
 /**
  * Times to count the at-risk strip at: from 0 to the last time, in steps of 1,
@@ -162,11 +120,9 @@ export function buildSurvival(
   // through have no results. The core is not handed a table of no rows.
   if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
 
-  // The endpoint's rows of the outcomes table, by participant. A row for a
-  // participant neither table has, or with no id, is not used, and counted;
-  // one for a participant the filters set aside is theirs, and is not.
-  const outcomeId = settings.outcome_id_col || idCol;
-  const flag = flagOf(settings);
+  // Each participant's outcome for the endpoint. A row for a participant
+  // neither table has, or with no id, is not used, and counted; one for a
+  // participant the filters set aside is theirs, and is not.
   const participantIdCol = settings.participant_id_col || idCol;
   const known = new Set(
     (participants || results)
@@ -174,29 +130,8 @@ export function buildSurvival(
       .filter((id) => !isBlank(id))
       .map(String)
   );
-  const byId = new Map();
-  let strangers = 0;
-  for (const row of outcomes) {
-    if (String(row[settings.endpoint_col]) !== state.endpoint) continue;
-    if (isBlank(row[outcomeId]) || !known.has(String(row[outcomeId]))) {
-      strangers += 1;
-      continue;
-    }
-    const id = String(row[outcomeId]);
-    byId.set(id, [...(byId.get(id) || []), row]);
-  }
-  // A participant's outcome for the endpoint, or why there is none to use.
-  const outcomeOf = (id) => {
-    const found = byId.get(String(id)) || [];
-    if (!found.length) return { reason: LEFT_OUT.NO_OUTCOME };
-    if (found.length > 1) return { reason: LEFT_OUT.SEVERAL_OUTCOMES };
-    const time = numberOf(found[0][settings.time_col]);
-    const flagged = numberOf(found[0][flag.col]);
-    if (time === null || flagged === null) return { reason: LEFT_OUT.MISSING_OUTCOME };
-    if (flagged !== 0 && flagged !== 1) return { reason: LEFT_OUT.NOT_A_FLAG };
-    if (time < 0) return { reason: LEFT_OUT.NEGATIVE_TIME };
-    return { time, flag: flagged, event: flag.field === 'censor' ? flagged === 0 : flagged === 1 };
-  };
+  const outcomeOf = outcomesOf(outcomes, settings, state.endpoint, known);
+  const strangers = outcomeOf.strangers;
   const hasOutcome = (id) => !isBlank(id) && !outcomeOf(id).reason;
 
   // A cut variable's points are worked out on the participants the filters
