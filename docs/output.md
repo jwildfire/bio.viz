@@ -27,7 +27,7 @@ Under it, the two footnotes and the chart's own:
 
 > Synthetic study from gsm.bio.
 > Filters: none.
-> Drawn on 2026-10-04 by bio.viz 0.1.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
+> Drawn on 2026-10-04 by bio.viz 0.1.0 with development changes. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
 
 ## The settings
 
@@ -48,7 +48,8 @@ A placeholder is a name in braces: `{measure}`. When the chart draws, each one i
 - A placeholder is replaced by text, once, from left to right. Nothing in a template or in a value is evaluated: there are no expressions, no functions and no templates that run, and a value is never read for placeholders of its own. `${…}`, `<script>` and `{{…}}` are shown as they are written.
 - A name the chart does not have is left as written, braces and all, so a slip in a setting shows on the page instead of disappearing.
 - A value that is null is written as nothing; a number as it reads.
-- What comes out is written on the page as text, never as markup.
+- What comes out is written on the page as text, never as markup; each value is set apart in a `<bdi>`, so a value written right to left keeps its direction to itself.
+- A title or a subtitle of only white space is none.
 
 Every chart fills these three:
 
@@ -56,7 +57,7 @@ Every chart fills these three:
 | ----------- | ----------------------------------------------------------------------- |
 | `{filters}` | The filters in force, in words (`Sex is F; Arm is Placebo`), or `none`. |
 | `{date}`    | The date drawn, in UTC, as ISO 8601: `2026-10-04`.                      |
-| `{version}` | The bio.viz version.                                                    |
+| `{version}` | The bio.viz version, as the chart's own footnote says it.               |
 
 Each chart adds its own, listed in its reference under Titles and footnotes: [group comparison](group-comparison.md#titles-and-footnotes), [association scatter](association-scatter.md#titles-and-footnotes), [correlation matrix](correlation-matrix.md#titles-and-footnotes), [biomarker screen](biomarker-screen.md#titles-and-footnotes), [cross-tabulation](cross-tab.md#titles-and-footnotes) and [stratified survival](stratified-survival.md#titles-and-footnotes). Every chart has `{n}`, the participants it draws.
 
@@ -68,9 +69,9 @@ The title and the subtitle are drawn at the top of the chart's own frame, above 
 
 The last footnote is the chart's, and it says three things:
 
-1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.1.0.`
-2. For every statistic printed, R's method and the counts R used, as R returned them: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
-3. Which R computed them: `computed by R in this browser`, or, for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0, stored with the page` when the connection was told the versions (`computedBy`, below), and `stored with the page` when it was not.
+1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.1.0.` A build with changes made since that release says so, `bio.viz 0.1.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true on the integration branch while the release log has an upcoming section, and set false when a release is prepared; a unit test fails when the two disagree, and when a tagged build says it holds development changes.
+2. For every statistic printed, every method R used, the counts R used, as R returned them, and every adjustment of its p-values (`p-values adjusted by Holm`, `by Benjamini-Hochberg`); with a pairwise test, the overall test first, `Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction (…), p-values adjusted by Holm`. Its form: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
+3. Which R computed them, as the connection says: `computed by R in this browser` for R started in the page; for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page` when the connection was told the versions and the date (`computedBy`, below), and `stored with the page` when it was not; for any other form, `computed by R`.
 
 While an answer is on its way it says `Statistics: waiting for R.`, and it is written again when the answer arrives. A chart that asked R nothing says `No statistic was asked of R.`; one whose answer did not come says that statistics are unavailable, or that R reported an error, as the statistics line under the chart says in full.
 
@@ -133,6 +134,10 @@ BioViz.output.fillText('${1 + 1} {unknown}', {});
 // '${1 + 1} {unknown}'
 ```
 
+## `fillParts(template, values)`
+
+The template filled, as its runs of text: `[{ text, value }]`, each placeholder's value a run of its own (`value: true`), so a page can set values apart, as the charts do with `<bdi>`, without reading anything as markup.
+
 ## `placeholdersIn(template)`
 
 The names of the placeholders a template holds, each once, in the order written.
@@ -150,7 +155,7 @@ The footnote a chart writes last.
 
 ## `countsText(counts, of)`
 
-R's counts as the footnote writes them: a number as `n = 200`; an object of up to four groups as `Placebo n = 95, Treatment n = 91`; more as `n = 179 to 186 across 12 biomarkers`, with `of` naming what they are of. Null when R returned none.
+R's counts as the footnote writes them: a number as `n = 200`; an object of up to four groups as `Placebo n = 95, Treatment n = 91`; five or more as `n = 179 to 186 across 12 biomarkers`, with `of` naming what they are of. A count written as text that reads as a number is read as that number. Null when R returned none.
 
 ## `toCsv(rows, columns)`
 

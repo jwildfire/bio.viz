@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
-import { captureEvidence } from './evidence.js';
+import { FIXED_DATE, captureEvidence, fixClock } from './evidence.js';
 import { parseCsv, statisticsTable } from '../../src/shared/csv.js';
 import { readPng } from '../../src/shared/png.js';
 
@@ -21,7 +21,42 @@ const from = (file, list, name) => {
 };
 const R_HOSTS = /^https:\/\/(webr|repo)\.r-wasm\.org\//;
 const blockR = (page) => page.route(R_HOSTS, (route) => route.abort());
-const today = () => new Date().toISOString().slice(0, 10);
+// The clock is fixed in every test here (fixClock), so the date drawn is known.
+const today = () => FIXED_DATE.toISOString().slice(0, 10);
+// The version as the chart's own footnote says it: never a release for code
+// that holds changes since it.
+const versionSaid =
+  pkg.bioviz && pkg.bioviz.development ? `${pkg.version} with development changes` : pkg.version;
+const ADJUSTED = { BH: 'Benjamini-Hochberg', holm: 'Holm', bonferroni: 'Bonferroni' };
+// Every method R named, the answer's own first, and every adjustment, as the
+// footnote says them, read off R's answer here.
+const methodsSaid = (value) => {
+  const methods = [];
+  const adjustments = [];
+  const take = (entry) => {
+    if (entry && typeof entry.method === 'string' && !methods.includes(entry.method))
+      methods.push(entry.method);
+    if (entry && entry.adjustment && entry.adjustment !== 'none') {
+      const said = ADJUSTED[entry.adjustment] || entry.adjustment;
+      if (!adjustments.includes(said)) adjustments.push(said);
+    }
+  };
+  take(value);
+  Object.values(value).forEach(
+    (list) =>
+      Array.isArray(list) &&
+      list.forEach((entry) => entry && typeof entry === 'object' && take(entry))
+  );
+  const [first, ...rest] = methods;
+  return {
+    method: rest.length ? `${first}, with ${rest.join(' and ')}` : first,
+    adjusted: adjustments.length ? `, p-values adjusted by ${adjustments.join(' and ')}` : ''
+  };
+};
+
+test.beforeEach(async ({ page }) => {
+  await fixClock(page);
+});
 
 function watch(page) {
   const errors = [];
@@ -210,9 +245,11 @@ const framed = (page, chart) =>
       footTop: box(foot).top,
       figureTop: Math.min(...figure.map((entry) => entry.top)),
       figureBottom: Math.max(...figure.map((entry) => entry.bottom)),
+      // Nothing but the title, the subtitle, the footnotes and the <bdi> each
+      // placeholder's value is set apart in.
       markup:
-        titles.querySelectorAll('*:not(.bv-title):not(.bv-subtitle)').length +
-        foot.querySelectorAll('*:not(.bv-foot-line)').length
+        titles.querySelectorAll('*:not(.bv-title):not(.bv-subtitle):not(bdi)').length +
+        foot.querySelectorAll('*:not(.bv-foot-line):not(bdi)').length
     };
   }, `__${chart.global}`);
 
@@ -235,9 +272,10 @@ test.describe('getting results out: titles and footnotes on every chart', () => 
         footnotes: ['Synthetic study from gsm.bio.', 'Filters: {filters}. Drawn {date}.']
       });
       const value = chart.stored.value;
+      const { method, adjusted } = methodsSaid(value);
       const automatic =
-        `Drawn on ${today()} by bio.viz ${pkg.version}. Statistics: ${value.method} ` +
-        `(${countsSaid(value.counts, chart.of)}); computed by R ${chart.madeBy.r_version} with ` +
+        `Drawn on ${today()} by bio.viz ${versionSaid}. Statistics: ${method} ` +
+        `(${countsSaid(value.counts, chart.of)})${adjusted}; computed by R ${chart.madeBy.r_version} with ` +
         `gsm.bio ${gsmBio.version}, stored with the page.`;
       await expect.poll(async () => (await framed(page, chart)).footnotes.at(-1)).toBe(automatic);
       const said = await framed(page, chart);
@@ -307,7 +345,7 @@ test.describe('getting results out: titles and footnotes on every chart', () => 
       page.evaluate(
         () => [...window.__ct.chart.root.querySelectorAll('.bv-foot-line')].at(-1).textContent
       );
-    const drawn = `Drawn on ${today()} by bio.viz ${pkg.version}.`;
+    const drawn = `Drawn on ${today()} by bio.viz ${versionSaid}.`;
     // The fixture's chart has no R attached.
     expect(await last()).toBe(
       `${drawn} Statistics: unavailable, as the line under the chart says.`
@@ -360,7 +398,7 @@ test.describe('getting results out: the gallery', () => {
         expect(text, entry.module).not.toMatch(/\{[A-Za-z_]\w*\}/);
       }
       expect(said.footnotes.at(-1)).toMatch(
-        new RegExp(`^Drawn on ${today()} by bio\\.viz ${pkg.version.replace(/\./g, '\\.')}\\. `)
+        new RegExp(`^Drawn on ${today()} by bio\\.viz ${versionSaid.replace(/\./g, '\\.')}\\. `)
       );
       await page.setViewportSize({ width: 390, height: 844 });
       await expect.poll(() => layout(page)).toEqual({ viewport: 390, scrollWidth: 390 });
@@ -436,7 +474,7 @@ test.describe('getting results out: the downloads of every chart', () => {
       expect(read.text).toEqual({
         Title: `${said.title} — ${said.subtitle}`,
         Description: said.footnotes.join(' '),
-        Software: `bio.viz ${pkg.version}`
+        Software: `bio.viz ${versionSaid}`
       });
 
       // The statistics: R's answer, laid out, every number R's.
@@ -549,5 +587,83 @@ test.describe('getting results out: the downloads of every chart', () => {
     ).toHaveCount(0);
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
+  });
+});
+
+// ---- What the #69 review found -------------------------------------------------------
+
+const UPDATES = [
+  'EXP-UPD-001',
+  'EXP-UPD-002',
+  'EXP-UPD-003',
+  'EXP-UPD-004',
+  'EXP-UPD-005',
+  'EXP-UPD-006'
+];
+
+test.describe('getting results out: placeholders follow the view', () => {
+  CHARTS.forEach((chart, index) => {
+    test(`${UPDATES[index]}: the ${chart.module.replace('-', ' ')}’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)`, async ({
+      page
+    }) => {
+      const errors = watch(page);
+      await blockR(page);
+      await openChart(page, chart, {
+        title: chart.title,
+        subtitle: '{n} participants; filters: {filters}'
+      });
+      const before = await framed(page, chart);
+      const count = (subtitle) => Number(subtitle.match(/^(\d+) participants/)[1]);
+      expect(before.subtitle).toMatch(/^\d+ participants; filters: none$/);
+      await page.evaluate((name) => {
+        const filter = window[name].chart.root.querySelector(
+          '.sv-controls select[data-filter="SEX"]'
+        );
+        filter.value = 'F';
+        filter.dispatchEvent(new Event('change'));
+      }, `__${chart.global}`);
+      const filtered = await framed(page, chart);
+      expect(filtered.subtitle).toMatch(/^\d+ participants; filters: SEX is F$/);
+      expect(count(filtered.subtitle)).toBeLessThan(count(before.subtitle));
+      expect(count(filtered.subtitle)).toBeGreaterThan(0);
+      // A control moves: the title's placeholder reads its new value.
+      const moved = await page.evaluate((name) => {
+        const shown = window[name].chart;
+        const select = [...shown.root.querySelectorAll('.sv-controls select[data-control]')].find(
+          (control) => control.options.length > 1
+        );
+        const next = [...select.options].find((option) => option.value !== select.value);
+        select.value = next.value;
+        select.dispatchEvent(new Event('change'));
+        return select.dataset.control;
+      }, `__${chart.global}`);
+      const after = await framed(page, chart);
+      expect(after.title, moved).not.toBe(filtered.title);
+      expect(after.title).not.toMatch(/\{[A-Za-z_]\w*\}/);
+      expect(errors).toEqual([]);
+    });
+  });
+
+  test('EXP-TXT-005: in the group comparison’s overview, {n} is the participants drawn anywhere on its page of biomarkers, not blank (#69 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'group-comparison');
+    await openChart(page, chart, {
+      start_value: null,
+      visits: null,
+      subtitle: '{n} participants: {measure}'
+    });
+    const said = await framed(page, chart);
+    const drawn = await page.evaluate(() => {
+      const ids = new Set();
+      for (const row of window.__gc.chart.overview.rows) {
+        for (const panel of row.model.panels)
+          for (const record of panel.records) ids.add(record.USUBJID);
+      }
+      return ids.size;
+    });
+    expect(drawn).toBeGreaterThan(0);
+    expect(said.subtitle).toBe(`${drawn} participants: every biomarker`);
   });
 });

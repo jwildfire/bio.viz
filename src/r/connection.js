@@ -128,10 +128,11 @@ function misuse(name, request) {
  * @param {Array<{name: string, args?: object, dataId: *, rows?: number, value: *}>} [options.results]
  *   The precomputed form: stored results, each found by its function name,
  *   arguments and data identity together.
- * @param {{r_version: string, gsm_bio_version: string, computed_at?: string}} [options.computedBy]
- *   Which R computed the stored results, as gsm.bio's widget records it. An
- *   answer from them carries it as `computedBy`, and a chart's footnote names
- *   the two versions.
+ * @param {{r_version: string, gsm_bio_version?: string, computed_at?: string}} [options.computedBy]
+ *   Which R computed the stored results, as gsm.bio's widget records it:
+ *   `r_version` always, `gsm_bio_version` and `computed_at` (ISO 8601) when
+ *   known. An answer from them carries it as `computedBy`, and a chart's
+ *   footnote names the versions and the date.
  * @param {object} [options.browser] The browser form: R started in the page on
  *   the first run that needs it.
  * @param {string} [options.browser.source] R source text defining the functions

@@ -24,13 +24,24 @@ const refuse = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
 
-/* global __BIO_VIZ_VERSION__ */
+/* global __BIO_VIZ_VERSION__, __BIO_VIZ_DEVELOPMENT__ */
 /**
- * The library version the footnote names, fixed when the bundle is built
- * (scripts/build-lib.mjs) and in the unit tests (vitest.config.js). A script
- * that reads the source without either sees that it is unbuilt.
+ * The library version, fixed when the bundle is built (scripts/build-lib.mjs)
+ * and in the unit tests (vitest.config.js). A script that reads the source
+ * without either sees that it is unbuilt.
  */
 export const VERSION = typeof __BIO_VIZ_VERSION__ === 'string' ? __BIO_VIZ_VERSION__ : 'unbuilt';
+
+/**
+ * Whether this build holds changes made since the release `VERSION` names:
+ * package.json's `bioviz.development`, true on the integration branch and set
+ * false when a release is prepared, so a released build says only its version.
+ */
+export const DEVELOPMENT =
+  typeof __BIO_VIZ_DEVELOPMENT__ === 'boolean' ? __BIO_VIZ_DEVELOPMENT__ : true;
+
+/** The version as the footnote and `{version}` say it: never a release it is not. */
+export const VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
 
 /** The settings every chart has for its title, subtitle and footnotes. */
 export const TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
@@ -65,11 +76,40 @@ const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
  *   replaced, and every other left as written.
  */
 export function fillText(template, values = {}) {
-  return String(template).replace(PLACEHOLDER, (written, name) => {
-    if (!Object.prototype.hasOwnProperty.call(values, name)) return written;
-    const value = values[name];
-    return value === null || value === undefined ? '' : String(value);
-  });
+  return fillParts(template, values)
+    .map((part) => part.text)
+    .join('');
+}
+
+/**
+ * A template filled, as its runs of text: what was written, and each
+ * placeholder's value as a run of its own, so a page can set a value apart (its
+ * direction isolated, as a `<bdi>` does) without reading it as markup.
+ * @param {string} template Text with placeholders, `{name}`.
+ * @param {object} values The text of each placeholder, by name.
+ * @returns {Array<{text: string, value: boolean}>} The runs, empty ones left out.
+ */
+export function fillParts(template, values = {}) {
+  const text = String(template);
+  const parts = [];
+  const push = (piece, value) => {
+    if (piece === '') return;
+    const last = parts[parts.length - 1];
+    if (!value && last && !last.value) last.text += piece;
+    else parts.push({ text: piece, value });
+  };
+  let at = 0;
+  for (const match of text.matchAll(PLACEHOLDER)) {
+    push(text.slice(at, match.index), false);
+    const [written, name] = match;
+    if (Object.prototype.hasOwnProperty.call(values, name)) {
+      const value = values[name];
+      push(value === null || value === undefined ? '' : String(value), true);
+    } else push(written, false);
+    at = match.index + written.length;
+  }
+  push(text.slice(at), false);
+  return parts;
 }
 
 /**
@@ -114,7 +154,12 @@ export const STILL_WAITING = 'Statistics: waiting for R.';
  */
 export const dateDrawn = (when = new Date()) => when.toISOString().slice(0, 10);
 
-const named = (count) => (Number.isFinite(count) ? String(count) : null);
+// A count as R returned it: a number, or the text of one.
+const countOf = (count) => {
+  if (typeof count === 'number') return Number.isFinite(count) ? count : null;
+  if (typeof count === 'string' && /^\s*-?\d+(\.\d+)?\s*$/.test(count)) return Number(count);
+  return null;
+};
 
 /**
  * R's counts, as the footnote writes them: `n = 200` for one; `Placebo n = 95,
@@ -125,35 +170,89 @@ const named = (count) => (Number.isFinite(count) ? String(count) : null);
  * @returns {?string} The counts, or null when R returned none.
  */
 export function countsText(counts, of = 'groups') {
-  if (Number.isFinite(counts)) return `n = ${counts}`;
+  const one = countOf(counts);
+  if (one !== null) return `n = ${one}`;
   if (counts === null || typeof counts !== 'object' || Array.isArray(counts)) return null;
-  const entries = Object.entries(counts).filter(([, count]) => named(count) !== null);
+  const entries = [];
+  for (const [group, count] of Object.entries(counts)) {
+    const read = countOf(count);
+    if (read !== null) entries.push([group, read]);
+  }
   if (!entries.length) return null;
   if (entries.length <= 4)
     return entries.map(([group, count]) => `${group} n = ${count}`).join(', ');
-  const all = entries.map(([, count]) => count);
-  const [least, most] = [Math.min(...all), Math.max(...all)];
+  let least = Infinity;
+  let most = -Infinity;
+  for (const [, count] of entries) {
+    if (count < least) least = count;
+    if (count > most) most = count;
+  }
   return `${least === most ? `n = ${least}` : `n = ${least} to ${most}`} across ${entries.length} ${of}`;
 }
 
-// Who answered: R in the page, or R ahead of time, with its versions when the
-// page was told them.
-function sourceText(answer) {
-  if (answer.form !== 'precomputed') return 'computed by R in this browser';
-  const by = answer.computedBy;
-  if (by && isText(by.r_version) && isText(by.gsm_bio_version)) {
-    return `computed by R ${by.r_version} with gsm.bio ${by.gsm_bio_version}, stored with the page`;
+/** What R's names of p-value adjustments are called in words. */
+export const ADJUSTMENT_NAMES = Object.freeze({
+  BH: 'Benjamini-Hochberg',
+  fdr: 'Benjamini-Hochberg',
+  BY: 'Benjamini-Yekutieli',
+  holm: 'Holm',
+  hochberg: 'Hochberg',
+  hommel: 'Hommel',
+  bonferroni: 'Bonferroni'
+});
+
+// Every method R named in its answer, the answer's own first, then each part's
+// (a pairwise test, a screen's rows), each once; and every adjustment of its
+// p-values, in words.
+function methodsOf(value) {
+  const methods = [];
+  const adjustments = [];
+  const take = (entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    if (isText(entry.method) && !methods.includes(entry.method)) methods.push(entry.method);
+    if (isText(entry.adjustment) && entry.adjustment !== 'none') {
+      const said = ADJUSTMENT_NAMES[entry.adjustment] || entry.adjustment;
+      if (!adjustments.includes(said)) adjustments.push(said);
+    }
+  };
+  take(value);
+  for (const list of Object.values(value)) {
+    if (Array.isArray(list)) list.forEach(take);
   }
-  if (by && isText(by.r_version)) return `computed by R ${by.r_version}, stored with the page`;
-  return 'stored with the page';
+  return { methods, adjustments };
 }
 
-// One answer: R's method and its counts.
+// Who answered, as the connection says: R started in this page, or a result
+// stored with it, with the R and gsm.bio versions and the date that computed it
+// when the page was told them; any other form, R.
+function sourceText(answer) {
+  if (answer.form === 'browser') return 'computed by R in this browser';
+  if (answer.form !== 'precomputed') return 'computed by R';
+  const by = answer.computedBy;
+  if (!by || !isText(by.r_version)) return 'stored with the page';
+  const gsmBio = isText(by.gsm_bio_version) ? ` with gsm.bio ${by.gsm_bio_version}` : '';
+  const when =
+    isText(by.computed_at) && /^\d{4}-\d{2}-\d{2}/.test(by.computed_at)
+      ? ` on ${by.computed_at.slice(0, 10)}`
+      : '';
+  return `computed by R ${by.r_version}${gsmBio}${when}, stored with the page`;
+}
+
+// One answer: every method R used, its counts, and every adjustment.
 function answerText(answer, of) {
   const value = answer.value && typeof answer.value === 'object' ? answer.value : {};
-  const method = isText(value.method) ? value.method : 'no statistic';
+  const { methods, adjustments } = methodsOf(value);
+  const [first, ...rest] = methods;
+  const method = !first
+    ? 'no statistic'
+    : rest.length
+      ? `${first}, with ${rest.join(' and ')}`
+      : first;
   const counts = countsText(value.counts, of);
-  return counts ? `${method} (${counts})` : method;
+  return (
+    (counts ? `${method} (${counts})` : method) +
+    (adjustments.length ? `, p-values adjusted by ${adjustments.join(' and ')}` : '')
+  );
 }
 
 /**
@@ -161,7 +260,7 @@ function answerText(answer, of) {
  * stands behind each statistic it printed.
  * @param {object} parts
  * @param {string} parts.date The date drawn, `dateDrawn()`.
- * @param {string} parts.version The bio.viz version.
+ * @param {string} parts.version The bio.viz version, as it is said (`VERSION_SAID`).
  * @param {Array<{answer: ?object}>} parts.asked What the chart asked R, with
  *   each answer as the connection gave it, or null while it is on its way.
  * @param {string} [parts.of] What R's counts are of, when there are many.

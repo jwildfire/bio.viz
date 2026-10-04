@@ -1,16 +1,13 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T09:16:27.463Z",
+  "generatedAt": "2026-10-04T10:25:49.985Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37191592532",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37191592532"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -125,62 +122,6 @@
       "screenshots": []
     },
     {
-      "test": "EXP-DL-001: the group comparison downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-001"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-002: the association scatter downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-002"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-003: the correlation matrix downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-003"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-004: the biomarker screen downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-004"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-005: the cross tab downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-005"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-006: the stratified survival downloads a PNG of its frame at twice its size on the page, carrying its title and footnotes; the statistics R returned as CSV, R’s numbers; and the table it drew from as CSV, its rows and columns; a heading with a comma reads back as one heading (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-006"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "EXP-DL-007: with `downloads` false the bar is not shown; the statistics download waits for R’s answer; and `png_scale` sets the picture’s size and resolution (#67)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-007"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
       "test": "EXP-DRAW-001: the group comparison draws its title and subtitle above it and its footnotes under it, filled from the view drawn, with its own footnote last: the date, the bio.viz version, R’s method and counts, and the R and gsm.bio versions of the stored result; it holds at 390px (#66)",
       "suite": "browser",
       "status": "pass",
@@ -282,6 +223,62 @@
       "status": "pass",
       "requirementIds": ["EXP-TXT-003"],
       "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-TXT-005: in the group comparison’s overview, {n} is the participants drawn anywhere on its page of biomarkers, not blank (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-TXT-005"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-001: the group comparison’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-001"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-002: the association scatter’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-002"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-003: the correlation matrix’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-003"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-004: the biomarker screen’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-004"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-005: the cross tab’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-005"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-UPD-006: the stratified survival’s title and subtitle are filled again when a filter or a control moves: {filters} names the filter, {n} counts the participants it lets through, and the control’s placeholder reads its new value (#69 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-UPD-006"],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -653,38 +650,6 @@
       "screenshots": []
     },
     {
-      "test": "getting results out: the downloads EXP-CSV-001: a CSV is written by RFC 4180: CRLF between records; a field or a heading that holds a comma, a double quote, a carriage return or a line feed is quoted, with each double quote doubled; and it reads back field for field, a heading with a comma one heading (#67, #39)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["EXP-CSV-001"],
-      "issueRefs": [],
-      "screenshots": []
-    },
-    {
-      "test": "getting results out: the downloads EXP-CSV-002: the statistics are R’s answer laid out as a table: a row for each answer’s result and one for each of its parts, every member R returned a column, every number R’s own, with the function asked and the data it was asked about; an answer R did not give has no rows (#67)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["EXP-CSV-002"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "getting results out: the downloads EXP-DL-007: every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4; anything else is refused with a sentence (#67)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["EXP-DL-007"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
-      "test": "getting results out: the downloads EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and its title and footnotes as international text, each chunk with its CRC, written after the header so any reader finds them (#67)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["EXP-PNG-001"],
-      "issueRefs": [67],
-      "screenshots": []
-    },
-    {
       "test": "getting results out: titles and footnotes EXP-AUTO-001: the chart’s own footnote, always last, gives the date drawn, the bio.viz version, and R’s method and counts behind every statistic printed, with the R and gsm.bio versions of a stored result; while R is asked it says it is waiting (#66)",
       "suite": "unit",
       "status": "pass",
@@ -714,6 +679,38 @@
       "status": "pass",
       "requirementIds": ["EXP-TXT-002"],
       "issueRefs": [66],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #69 review found EXP-AUTO-004: the chart’s own footnote names every method R used for what is printed, the pairwise test beside the overall one, and every adjustment of the p-values, by name (#69 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-004"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #69 review found EXP-AUTO-005: the footnote never names a released version for code that is not one: with development changes on the integration branch it says so; the package says so exactly while the release log has an upcoming section, and never in a tagged build (#69 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-005"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #69 review found EXP-AUTO-006: the counts are named for four groups and summarised for five, numeric text is read as a number, many counts are summarised without spreading them; the source is the connection’s form as it says, and a stored result’s date is named (#69 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-006"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #69 review found EXP-TXT-004: a title or subtitle of only white space is absent; a chart whose placeholders throw is still titled, and the error is reported, not swallowed; each placeholder’s value is its own run of text, so a page can isolate its direction (#69 review)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-TXT-004"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

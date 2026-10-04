@@ -24,6 +24,17 @@
     "EXP-DL-004": "The same for the biomarker screen.",
     "EXP-DL-005": "The same for the cross-tabulation.",
     "EXP-DL-006": "The same for the stratified survival chart.",
-    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing."
+    "EXP-DL-007": "Every chart takes `downloads`, true by default, and `png_scale`, 2 by default, from 1 to 4, and refuses anything else with a sentence; with `downloads` false the bar is not shown, `png_scale` sets the picture's size and resolution, and the statistics download waits for an answer from R and is not offered by a view that asks R nothing.",
+    "EXP-AUTO-004": "The chart's own footnote names every method R used for what is printed, the pairwise test beside the overall one, and every adjustment of the p-values, by name.",
+    "EXP-AUTO-005": "The footnote never names a released version for code that is not one: a build with changes since its release says `with development changes`; package.json's `bioviz.development` is true exactly while the release log has an upcoming section, and false in a tagged build.",
+    "EXP-AUTO-006": "Counts are named for four groups and summarised for five or more, numeric text is read as a number, and many counts are summarised without spreading them; the source is the connection's form as it says, and a stored result's date is named.",
+    "EXP-TXT-004": "A title or subtitle of only white space is absent; a chart whose placeholders throw is still titled and the error is reported; each placeholder's value is a run of its own, drawn in a `<bdi>` so its direction is isolated.",
+    "EXP-TXT-005": "In the group comparison's overview, `{n}` is the participants drawn anywhere on its page of biomarkers.",
+    "EXP-UPD-001": "The group comparison's title and subtitle are filled again when a filter or a control moves: `{filters}` names the filter, `{n}` counts the participants it lets through, and the control's placeholder reads its new value.",
+    "EXP-UPD-002": "The same for the association scatter.",
+    "EXP-UPD-003": "The same for the correlation matrix.",
+    "EXP-UPD-004": "The same for the biomarker screen.",
+    "EXP-UPD-005": "The same for the cross-tabulation.",
+    "EXP-UPD-006": "The same for the stratified survival chart."
   }
 }

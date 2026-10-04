@@ -25,7 +25,11 @@ export async function buildAll(outDir) {
     bundle: true,
     sourcemap: true,
     absWorkingDir: rootDir,
-    define: { __BIO_VIZ_VERSION__: JSON.stringify(pkg.version) }
+    define: {
+      __BIO_VIZ_VERSION__: JSON.stringify(pkg.version),
+      // Whether the build holds changes since that release (#69 review).
+      __BIO_VIZ_DEVELOPMENT__: JSON.stringify(Boolean(pkg.bioviz && pkg.bioviz.development))
+    }
   };
 
   await build({
