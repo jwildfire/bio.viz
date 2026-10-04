@@ -91,7 +91,7 @@
 <p>Then one row per biomarker:</p>
 <table class="doc-table"><thead><tr><th scope="col">Column</th><th scope="col">What</th></tr></thead>
 <tbody><tr><td data-label="Column">Biomarker</td><td data-label="What">Its name.</td></tr>
-<tr><td data-label="Column">The axis</td><td data-label="What">R&#39;s estimate as a dot and its interval as a line, on the one axis every row shares, with nought marked.</td></tr>
+<tr><td data-label="Column">The axis</td><td data-label="What">R&#39;s estimate as a dot and its interval as a line, on the one axis every row shares, with nought marked; for a hazard ratio a logarithmic axis, with 1 marked, and the hint under the rows says so.</td></tr>
 <tr><td data-label="Column">Estimate (interval)</td><td data-label="What">R&#39;s estimate and its interval, to four significant figures.</td></tr>
 <tr><td data-label="Column">p, unadjusted</td><td data-label="What">R&#39;s p-value for the row, <code>p = 0.031</code>, or <code>p &lt; 0.001</code>.</td></tr>
 <tr><td data-label="Column">p, the adjustment</td><td data-label="What">The same, adjusted across the rows by the adjustment named in the column&#39;s heading.</td></tr>
@@ -328,7 +328,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
     <footer class="site-footer">
       <p>
         bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/a94e743dd9dfbe13e44a0db94566e3eec97a1bdf"><code>a94e743</code></a>.
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/905177226228c61fa89257c7e8bbe8ae78e46935"><code>9051772</code></a>.
       </p>
       <p>
         Built in the open — follow the
