@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import { FIXED_DATE, captureEvidence, fixClock } from './evidence.js';
 import { parseCsv, statisticsTable } from '../../src/shared/csv.js';
 import { readPng } from '../../src/shared/png.js';
+import { pixelsOf } from './pngPixels.js';
 
 // Getting results out (#66): every chart's title, subtitle and footnotes in a
 // real page, filled from the view drawn, with the footnote the chart writes
@@ -422,7 +423,7 @@ const slug = (text) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
+    .replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => (whole.length <= 60 ? whole : kept))
     .replace(/-+$/g, '');
 
 const DOWNLOADS = [
@@ -473,7 +474,7 @@ test.describe('getting results out: the downloads of every chart', () => {
       expect(read.perMetre).toBe(Math.round((2 * 96) / 0.0254));
       expect(read.text).toEqual({
         Title: `${said.title} — ${said.subtitle}`,
-        Description: said.footnotes.join(' '),
+        Description: said.footnotes.join('\n'),
         Software: `bio.viz ${versionSaid}`
       });
 
@@ -577,15 +578,26 @@ test.describe('getting results out: the downloads of every chart', () => {
         connection: window.BioViz.r.createConnection()
       })
     );
-    await expect(
-      page.locator('#chart .bv-downloads button[data-download="statistics"]')
-    ).toBeDisabled();
+    // R said statistics are unavailable: the button is disabled, and says why,
+    // not waiting.
+    const statistics = page.locator('#chart .bv-downloads button[data-download="statistics"]');
+    await expect(statistics).toBeDisabled();
+    await expect(statistics).toHaveAttribute('title', 'R returned no statistics for this view.');
+    // While R is asked, it waits, and says so.
+    await page.evaluate(() =>
+      window.__ct.chart.setSettings({
+        connection: window.BioViz.r.createConnection({
+          browser: { engine: { start: () => Promise.resolve(), call: () => new Promise(() => {}) } }
+        })
+      })
+    );
+    await expect(statistics).toBeDisabled();
+    await expect(statistics).toHaveAttribute('title', 'Waiting for R’s answer.');
     // A view that asks R nothing offers no statistics.
     await page.evaluate(() => window.__ct.chart.setSettings({ test: 'none' }));
     await expect(
       page.locator('#chart .bv-downloads button[data-download="statistics"]')
     ).toHaveCount(0);
-    await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
   });
 });
@@ -665,5 +677,185 @@ test.describe('getting results out: placeholders follow the view', () => {
     });
     expect(drawn).toBeGreaterThan(0);
     expect(said.subtitle).toBe(`${drawn} participants: every biomarker`);
+  });
+});
+
+// ---- What the #70 review found -------------------------------------------------------
+
+// Where an element of the chart's frame is, in the downloaded picture's pixels.
+const placed = (page, name, selector) =>
+  page.evaluate(
+    ({ name, selector }) => {
+      const chart = window[name].chart;
+      const frame = chart.main.getBoundingClientRect();
+      // What is drawn in the frame, not what is left out of the picture.
+      return [...chart.main.querySelectorAll(selector)]
+        .filter((element) => !element.closest('.bv-no-picture'))
+        .map((element) => element.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0)
+        .map((rect) => ({
+          x: rect.left - frame.left + rect.width / 2,
+          y: rect.top - frame.top + rect.height / 2,
+          half: Math.min(rect.width, rect.height) / 2,
+          right: rect.right - frame.left
+        }));
+    },
+    { name, selector }
+  );
+
+test.describe('getting results out: what the #70 review found', () => {
+  for (const [width, label] of [
+    [1280, 'on a wide page'],
+    [390, 'on a phone']
+  ]) {
+    test(`EXP-PNG-002: ${label}, the PNG draws the marks the chart draws: every disc of the correlation matrix and its colour key, and the screen’s zero line, intervals and dots, each where the page has it (#70 review)`, async ({
+      page
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await blockR(page);
+      for (const [module, selectors] of [
+        ['correlation-matrix', ['.bv-mark', '.bv-key-mark']],
+        ['biomarker-screen', ['.bv-zero', '.bv-interval', '.bv-estimate']]
+      ]) {
+        const chart = CHARTS.find((entry) => entry.module === module);
+        await openChart(page, chart);
+        await expect(page.locator('#chart .bv-statistic').first()).not.toHaveAttribute(
+          'data-state',
+          'waiting'
+        );
+        const marks = [];
+        for (const selector of selectors) {
+          const found = await placed(page, `__${chart.global}`, selector);
+          expect(found.length, `${module} ${selector}`).toBeGreaterThan(0);
+          marks.push(...found.map((mark) => ({ ...mark, selector })));
+        }
+        const png = await downloaded(page, chart, 'png');
+        const picture = pixelsOf(new Uint8Array(png.bytes));
+        // Inked anywhere within the mark: a ring's middle is white.
+        const missing = marks.filter(
+          (mark) => !picture.inked(mark.x * 2, mark.y * 2, Math.max(2, Math.floor(mark.half * 2)))
+        );
+        expect(
+          missing.map((mark) => mark.selector),
+          `${module}: marks not drawn`
+        ).toEqual([]);
+      }
+    });
+  }
+
+  test('EXP-PNG-003: on a phone, what scrolls sideways in the frame is drawn whole: the survival chart’s at-risk table to its last column, with no scroll bar, the picture as wide as it needs (#70 review)', async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'stratified-survival');
+    await openChart(page, chart);
+    const cells = await placed(
+      page,
+      '__ss',
+      '.bv-risk-wrap td, .bv-risk-wrap button, .bv-risk-wrap th'
+    );
+    expect(cells.length).toBeGreaterThan(0);
+    const last = cells.reduce((far, cell) => (cell.right > far.right ? cell : far));
+    const frameWidth = await page.evaluate(() =>
+      Math.ceil(window.__ss.chart.main.getBoundingClientRect().width)
+    );
+    expect(last.right).toBeGreaterThan(frameWidth);
+    const png = await downloaded(page, chart, 'png');
+    const picture = pixelsOf(new Uint8Array(png.bytes));
+    expect(picture.width).toBeGreaterThanOrEqual(Math.ceil(last.right) * 2);
+    expect(picture.inked(last.x * 2, last.y * 2, 4)).toBe(true);
+  });
+
+  test('EXP-PNG-004: nothing a reader works the chart with is in the picture: every control of the frame (the toolbar, the hint, the listing, the bar of downloads, a chart’s own download and pager buttons) is marked to be left out (#70 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    for (const chart of CHARTS) {
+      await openChart(page, chart);
+      await expect(page.locator('#chart .bv-statistic').first()).not.toHaveAttribute(
+        'data-state',
+        'waiting'
+      );
+      const unmarked = await page.evaluate((name) => {
+        const shown = window[name].chart;
+        return [
+          ...shown.main.querySelectorAll(
+            '.bv-toolbar, .sv-footnote, .sv-listing, .bv-downloads, .bv-screen-tools, .bv-pairs-tools, .bv-overview-pager button'
+          )
+        ]
+          .filter((element) => !element.closest('.bv-no-picture'))
+          .map((element) => element.className);
+      }, `__${chart.global}`);
+      expect(unmarked, chart.module).toEqual([]);
+    }
+  });
+
+  test('EXP-DL-008: a download that fails says so in the bar, where the reader sees it, and the next one works (#70 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, chart);
+    await page.evaluate(() => {
+      window.__toBlob = HTMLCanvasElement.prototype.toBlob;
+      HTMLCanvasElement.prototype.toBlob = function (done) {
+        done(null);
+      };
+    });
+    await page.locator('#chart .bv-downloads button[data-download="png"]').click();
+    const said = page.locator('#chart .bv-downloads .bv-download-error');
+    await expect(said).toBeVisible();
+    await expect(said).toHaveAttribute('role', 'alert');
+    await expect(said).toHaveText(
+      'The PNG could not be made: the picture could not be written, which a browser does when it is too large. Try a smaller png_scale.'
+    );
+    await page.evaluate(() => {
+      HTMLCanvasElement.prototype.toBlob = window.__toBlob;
+    });
+    const png = await downloaded(page, chart, 'png');
+    expect(png.name).toBe('bio.viz-cross-tab-arm-response.png');
+    await expect(said).toHaveCount(0);
+  });
+
+  test('EXP-DL-009: the table download holds the value a cut was made from: the survival chart’s biomarker beside its group, and the cross-tabulation’s for a cut row or column; its headings, as written (#70 review)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const survival = CHARTS.find((entry) => entry.module === 'stratified-survival');
+    await openChart(page, survival);
+    const [head, ...rows] = parseCsv(
+      (await downloaded(page, survival, 'table')).bytes.toString('utf8')
+    );
+    expect(head).toEqual([
+      'Participant',
+      'CRP at Baseline, cut at the median',
+      'CRP at Baseline',
+      'Time',
+      'Event'
+    ]);
+    const values = await page.evaluate(() =>
+      Object.fromEntries(
+        window.__ss.data.results
+          .filter((row) => row.TEST === 'CRP' && row.VISIT === 'Baseline')
+          .map((row) => [row.USUBJID, Number(row.STRESN)])
+      )
+    );
+    for (const row of rows.slice(0, 20)) expect(Number(row[2]), row[0]).toBe(values[row[0]]);
+    const crossTab = CHARTS.find((entry) => entry.module === 'cross-tab');
+    await openChart(page, crossTab, {
+      row_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+      col_by: 'RESPONSE'
+    });
+    const [heads, ...cells] = parseCsv(
+      (await downloaded(page, crossTab, 'table')).bytes.toString('utf8')
+    );
+    expect(heads).toEqual([
+      'Participant',
+      'CRP at Baseline, cut at the median',
+      'CRP at Baseline',
+      'RESPONSE'
+    ]);
+    for (const row of cells.slice(0, 20)) expect(Number(row[2]), row[0]).toBe(values[row[0]]);
   });
 });

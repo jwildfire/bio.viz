@@ -1113,10 +1113,14 @@ class StratifiedSurvival {
   tableOf() {
     const { model, state, settings } = this;
     if (!model || !model.records) return { columns: [], rows: [] };
+    // A cut's value beside its group, so the cut can be made again from the
+    // file (#70 review).
+    const valued = model.cut ? (({ cut, ...variable }) => variable)(model.cut.spec) : null;
     return {
       columns: [
         { value_col: settings.id_col, label: 'Participant' },
         { value_col: 'group', label: this.labelOf(state.groupBy) },
+        ...(valued ? [{ value_col: 'value', label: variableLabel(valued) }] : []),
         { value_col: 'time', label: 'Time' },
         { value_col: 'event', label: 'Event' }
       ],

@@ -35,6 +35,13 @@
     "EXP-UPD-003": "The same for the correlation matrix.",
     "EXP-UPD-004": "The same for the biomarker screen.",
     "EXP-UPD-005": "The same for the cross-tabulation.",
-    "EXP-UPD-006": "The same for the stratified survival chart."
+    "EXP-UPD-006": "The same for the stratified survival chart.",
+    "EXP-PNG-002": "On a wide page and on a phone, the PNG draws the marks the chart draws, each where the page has it: every disc of the correlation matrix and its colour key, and the screen's zero line, intervals and dots.",
+    "EXP-PNG-003": "On a phone, what scrolls sideways in the frame is drawn whole, the survival chart's at-risk table to its last column, and the picture is as wide as it needs.",
+    "EXP-PNG-004": "Every control of a chart's frame (the toolbar, the hint, the listing, the bar of downloads, a chart's own download and pager buttons) is marked `bv-no-picture`, which the picture leaves out.",
+    "EXP-DL-008": "A download that fails says so in the bar, in a line a screen reader announces; the next download works and takes the line away.",
+    "EXP-DL-009": "The table download holds the value a cut was made from: the survival chart's biomarker beside its group, and the cross-tabulation's for a cut row or column.",
+    "EXP-CSV-003": "Every member R returned is a column, however nested: lists of objects or of lists in the data asked about are flattened by place, nested names are joined by a slash, and a member that would take an identifying column's name, or two written alike, is refused.",
+    "EXP-CSV-004": "NaN, Inf and -Inf are written as R writes them, apart from a value missing; a list of values is joined by ` | `."
   }
 }

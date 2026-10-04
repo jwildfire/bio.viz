@@ -171,6 +171,8 @@ export function buildSurvival(
     records.push({
       [idCol]: id,
       group: cut ? groupLabel(record.group, cut) : String(record.group),
+      // The value a cut was made from, for the table download (#70 review).
+      ...(cut ? { value: record.group } : {}),
       time: outcome.time,
       flag: outcome.flag,
       event: outcome.event

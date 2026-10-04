@@ -138,24 +138,36 @@ export function readPng(png) {
 
 // ---- Drawing the frame ---------------------------------------------------------
 
-// The heights the page laid an element out at. They are left to the copy to
-// find again, because the picture's text may be set in another font: the page's
-// web fonts do not reach an image, and a box held at the page's height would
-// cut its text off or scroll. A picture keeps its size.
+// The heights the page laid an element out at. An element that holds text has
+// its height found again by the copy, because the picture's text may be set a
+// little differently and a box held at the page's height would cut it off or
+// scroll. An element that holds no text, a mark (a disc, a line, a dot, a key)
+// or a picture, keeps the size it is drawn at (#70 review).
 const HEIGHTS = new Set(['height', 'block-size', 'max-height', 'max-block-size']);
+// What scrolls in the page is drawn whole in the picture.
+const OVERFLOWS = new Set([
+  'overflow',
+  'overflow-x',
+  'overflow-y',
+  'overflow-block',
+  'overflow-inline'
+]);
+
+const holdsText = (element) => /\S/.test(element.textContent || '');
 
 // Every style the page gives an element, written onto its copy, so the copy
 // draws the same with no style sheet.
 function copyStyles(from, to) {
   const style = getComputedStyle(from);
-  const fixed = from.tagName === 'CANVAS' || from.tagName === 'IMG';
+  const reflow = from.tagName !== 'CANVAS' && from.tagName !== 'IMG' && holdsText(from);
   let text = '';
   for (let i = 0; i < style.length; i += 1) {
     const name = style[i];
-    if (!fixed && HEIGHTS.has(name)) continue;
+    if (reflow && HEIGHTS.has(name)) continue;
+    if (OVERFLOWS.has(name)) continue;
     text += `${name}:${style.getPropertyValue(name)};`;
   }
-  to.setAttribute('style', text);
+  to.setAttribute('style', `${text}overflow:visible;`);
 }
 
 function copyTree(from, to) {
@@ -219,34 +231,57 @@ export async function drawFrame(frame, { leaveOut, scale, text }) {
     )
   );
   const height = Math.ceil(copy.getBoundingClientRect().height);
+  // As wide as what it holds, what scrolled sideways in the page among it.
+  const holderBox = holder.getBoundingClientRect();
+  let right = width;
+  for (const element of copy.querySelectorAll('*')) {
+    const box = element.getBoundingClientRect();
+    if (box.width && box.height) right = Math.max(right, Math.ceil(box.right - holderBox.left));
+  }
+  const drawnWidth = right;
   holder.remove();
 
   const markup = new XMLSerializer().serializeToString(copy);
   const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${drawnWidth}" height="${height}">` +
     `<foreignObject x="0" y="0" width="100%" height="100%">` +
     `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#fff">${markup}</div>` +
     `</foreignObject></svg>`;
   const image = new Image();
   await new Promise((done, fail) => {
     image.onload = done;
-    image.onerror = () => fail(new Error('bio.viz: the chart could not be drawn as a picture.'));
+    image.onerror = () =>
+      fail(
+        new Error('bio.viz: the chart could not be drawn as a picture, as the browser read it.')
+      );
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(width * scale);
+  canvas.width = Math.round(drawnWidth * scale);
   canvas.height = Math.round(height * scale);
   const context = canvas.getContext('2d');
   context.fillStyle = '#ffffff';
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.scale(scale, scale);
-  context.drawImage(image, 0, 0, width, height);
-  const written = await new Promise((done, fail) =>
-    canvas.toBlob(
-      (blob) => (blob ? done(blob) : fail(new Error('bio.viz: the picture could not be written.'))),
-      'image/png'
-    )
-  );
+  context.drawImage(image, 0, 0, drawnWidth, height);
+  const written = await new Promise((done, fail) => {
+    try {
+      canvas.toBlob(
+        (blob) =>
+          blob
+            ? done(blob)
+            : fail(
+                new Error(
+                  'bio.viz: the picture could not be written, which a browser does when it is too large. Try a smaller png_scale.'
+                )
+              ),
+        'image/png'
+      );
+    } catch (error) {
+      // A canvas the browser will not let be read.
+      fail(new Error(`bio.viz: the picture could not be read back (${error.message}).`));
+    }
+  });
   const bytes = pngChunks(new Uint8Array(await written.arrayBuffer()), { scale, text });
   return {
     blob: new Blob([bytes], { type: 'image/png' }),
