@@ -1,16 +1,13 @@
 {
   "module": "cross-tab",
-  "generatedAt": "2026-10-04T19:02:45.747Z",
+  "generatedAt": "2026-10-04T20:58:57.070Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37226711557",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37226711557"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -285,6 +282,14 @@
       "screenshots": []
     },
     {
+      "test": "CT-STAT-015: with the arms named as doses, the table draws 2 mg before 10 mg, R is handed the rows in that order, and Fisher’s odds ratio is printed as R gave it for the table drawn, named 2 mg over 10 mg (#78)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-015"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
       "test": "API reference page CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)",
       "suite": "unit",
       "status": "pass",
@@ -437,6 +442,14 @@
       "screenshots": []
     },
     {
+      "test": "cross-tabulation: the table CT-DATA-004: each percentage is printed to one decimal as R’s sprintf() prints it, a value exactly halfway to the even digit (6.25 as 6.2%), for every cell of every case (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CT-DATA-004"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
       "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-001: R is asked once per table, with the function, the arguments, the identity and the row count desktop R’s recipe writes, and one row per participant (#44)",
       "suite": "unit",
       "status": "pass",
@@ -474,6 +487,14 @@
       "status": "pass",
       "requirementIds": ["CT-STAT-010"],
       "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-014: a column’s categories are drawn in one order in every browser language, numbers in their names as numbers, and R is handed them in that order, so Fisher’s odds ratio is of the table drawn and says which row is over which (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-014"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {
@@ -706,6 +727,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-016"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {

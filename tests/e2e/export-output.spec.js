@@ -679,6 +679,41 @@ test.describe('getting results out: placeholders follow the view', () => {
     expect(drawn).toBeGreaterThan(0);
     expect(said.subtitle).toBe(`${drawn} participants: every biomarker`);
   });
+
+  test('EXP-DL-010: in the group comparison’s overview, Table downloads every value drawn on its page of biomarkers, one row per participant, biomarker and visit, with each group, and every download is offered (#78)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const chart = CHARTS.find((entry) => entry.module === 'group-comparison');
+    await openChart(page, chart, { start_value: null, visits: null });
+    const buttons = page.locator('#chart .bv-downloads button');
+    await expect(buttons).toHaveText(['PNG', 'Table (CSV)']);
+    await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
+    const drawn = await page.evaluate(() =>
+      window.__gc.chart.overview.rows.flatMap((row) =>
+        row.model.panels.flatMap((panel) =>
+          panel.records.map((record) => [
+            record.USUBJID,
+            row.measure,
+            panel.visit,
+            record.x,
+            String(record.y)
+          ])
+        )
+      )
+    );
+    expect(drawn.length).toBeGreaterThan(0);
+    const { group, valueType } = await page.evaluate(() => ({
+      group: window.__gc.chart.labelOf(window.__gc.chart.state.groupBy),
+      valueType: window.__gc.chart.state.valueType
+    }));
+    // The demo opens on the change from Baseline.
+    expect(valueType).toBe('change');
+    const table = await downloaded(page, chart, 'table');
+    const [columns, ...rows] = parseCsv(table.bytes.toString('utf8'));
+    expect(columns).toEqual(['Participant', 'Biomarker', 'Visit', group, 'Change from baseline']);
+    expect(rows).toEqual(drawn);
+  });
 });
 
 // ---- What the #70 review found -------------------------------------------------------

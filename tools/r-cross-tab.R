@@ -37,6 +37,7 @@ out <- if (length(args) >= 1) args[[1]] else "tests/fixtures/cross-tab-r.json"
 
 source(file.path(vendored, "statistics.R"))
 source("tools/r-json.R")
+source("tools/r-order.R")
 
 # The core's cut rule, as tools/r-cut.R holds it.
 local({
@@ -186,11 +187,12 @@ case <- function(name, row_by, col_by, test, filters = list(), people = particip
   rows <- category_of(row_by, keep, people)
   cols <- category_of(col_by, keep, people)
   used <- keep & !is.na(rows$values) & !is.na(cols$values)
-  # The categories, in the order the key names them: a cut's low to high, a
-  # column's by code point, of the participants with both. The chart shows a
-  # column's in an order of its own; the key's does not depend on it.
-  row_levels <- if (is.null(rows$levels)) sort(unique(rows$values[used]), method = "radix") else rows$levels
-  col_levels <- if (is.null(cols$levels)) sort(unique(cols$values[used]), method = "radix") else cols$levels
+  # The categories, in the order the table draws them and R is handed them: a
+  # cut's low to high, a column's by name with numbers as numbers
+  # (tools/r-order.R), of the participants with both. Fisher's odds ratio is
+  # of the table in this order.
+  row_levels <- if (is.null(rows$levels)) natural_sort(unique(rows$values[used])) else rows$levels
+  col_levels <- if (is.null(cols$levels)) natural_sort(unique(cols$values[used])) else cols$levels
   row_levels <- row_levels[row_levels %in% rows$values[used]]
   col_levels <- col_levels[col_levels %in% cols$values[used]]
   frame <- data.frame(
@@ -216,12 +218,28 @@ case <- function(name, row_by, col_by, test, filters = list(), people = particip
       counts = matrix_rows(counts), row_totals = unname(rowSums(counts)),
       col_totals = unname(colSums(counts)), total = sum(counts),
       row_percent = matrix_rows(100 * counts / rowSums(counts)),
-      col_percent = matrix_rows(t(100 * t(counts) / colSums(counts)))
+      col_percent = matrix_rows(t(100 * t(counts) / colSums(counts))),
+      # Each percentage as R prints it to one decimal, as the table prints it.
+      row_percent_text = matrix_rows(percent_text(100 * counts / rowSums(counts))),
+      col_percent_text = matrix_rows(percent_text(t(100 * t(counts) / colSums(counts))))
     ),
     key,
     list(value = value)
   )
 }
+
+# A percentage to one decimal as R's sprintf() prints it: C's printf, which
+# rounds the exact binary value, and a value exactly halfway (6.25, whose binary
+# value is exact) to the even digit.
+percent_text <- function(x) {
+  out <- x
+  out[] <- sprintf("%.1f%%", x)
+  out
+}
+# Values that are exactly halfway at one decimal, and two that look halfway and
+# are not in binary (0.15 is a little below, 0.35 a little above), with R's
+# text for each.
+percent_samples <- c(6.25, 6.75, 0.25, 12.5, 87.5, 99.75, 0.15, 0.35, 100 / 3, 200 / 3, 0, 100)
 
 crp <- function(cut) list(measure = "CRP", visit = "Baseline", value = "raw", cut = cut)
 
@@ -249,6 +267,26 @@ levels_tables <- list(
   )
 )
 
+# The study's arms renamed as doses, Placebo "2 mg" and Treatment "10 mg": by
+# code point "10 mg" comes first, by name with numbers as numbers "2 mg" does,
+# so the table's order and the order R is handed its rows must be the same one
+# for Fisher's odds ratio to be of the table drawn. Written into the case so
+# the chart reads the same table.
+dose_people <- data.frame(
+  USUBJID = participants$USUBJID,
+  ARM = c(Placebo = "2 mg", Treatment = "10 mg")[participants$ARM],
+  RESPONSE = participants$RESPONSE,
+  stringsAsFactors = FALSE,
+  row.names = NULL
+)
+dose_tables <- list(
+  participants = dose_people,
+  results = data.frame(
+    USUBJID = dose_people$USUBJID, VISIT = "Day 1", VISITNUM = 1, TEST = "X", STRESU = "u",
+    STRESN = 1, stringsAsFactors = FALSE
+  )
+)
+
 cases <- list(
   case("arm-by-response-chisq", "ARM", "RESPONSE", "chisq"),
   case("arm-by-response-fisher", "ARM", "RESPONSE", "fisher"),
@@ -263,7 +301,9 @@ cases <- list(
     list(measure = "CRP", visit = "Week 4", value = "change", cut = "median"), "chisq"
   ),
   case("stage-by-grade-chisq", "STAGE", "GRADE", "chisq", people = levels_people,
-       tables = levels_tables)
+       tables = levels_tables),
+  case("dose-by-response-fisher", "ARM", "RESPONSE", "fisher", people = dose_people,
+       tables = dose_tables)
 )
 
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
@@ -291,6 +331,12 @@ lines <- c(
   "{",
   paste0("  \"made_by\": ", to_json(made_by), ","),
   paste0("  \"blank_code_points\": ", to_json(as.list(as.integer(blank_code_points))), ","),
+  paste0("  \"category_order\": ", ascii(to_json(list(
+    given = as.list(order_samples), sorted = as.list(natural_sort(order_samples))
+  ))), ","),
+  paste0("  \"percent_text\": ", to_json(lapply(percent_samples, function(value) {
+    list(value = value, text = sprintf("%.1f%%", value))
+  })), ","),
   "  \"cases\": [",
   paste0("    ", vapply(cases, function(entry) ascii(to_json(entry)), character(1)),
          c(rep(",", length(cases) - 1), "")),

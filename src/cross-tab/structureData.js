@@ -12,7 +12,7 @@
 import { frame } from '../core/frame.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 import { coreSettings } from '../shared/settings.js';
-import { keepFiltered, levelsOf } from '../shared/tables.js';
+import { categoriesOf, keepFiltered } from '../shared/tables.js';
 
 const grouping = (by) => (isCut(by) ? by : { col: by });
 
@@ -86,12 +86,14 @@ export function buildTable({ results, participants }, settings, state, options =
     }
     return out;
   });
-  // The categories each way: a cut's low to high, a column's by name, those
-  // with someone in the table.
+  // The categories each way: a cut's low to high, a column's by name with
+  // numbers as numbers, the same in every browser language, those with someone
+  // in the table. R is handed them in this order, so Fisher's odds ratio is of
+  // the table drawn.
   const levelsFor = (field) =>
     cuts[field]
       ? cuts[field].labels.filter((label) => records.some((record) => record[field] === label))
-      : levelsOf(records.map((record) => record[field]));
+      : categoriesOf(records.map((record) => record[field]));
   const rowLevels = levelsFor('row');
   const colLevels = levelsFor('col');
   const counts = rowLevels.map((row) =>
@@ -124,8 +126,21 @@ export function buildTable({ results, participants }, settings, state, options =
 }
 
 /**
- * A percentage as the table writes it: one decimal place, as a percentage.
+ * A percentage as the table writes it: one decimal place, as a percentage, as
+ * R's `sprintf("%.1f%%", x)` prints it. Both round the number's exact binary
+ * value; they differ only where it is exactly halfway, which R rounds to the
+ * even digit and `toFixed` up. At one decimal that is a quarter (6.25, 6.75),
+ * the only halfway values a binary number holds exactly.
  * @param {number} value A percentage from 0 to 100.
- * @returns {string} `34.0%`.
+ * @returns {string} `34.0%`; `6.2%` for 6.25.
  */
-export const percentText = (value) => `${value.toFixed(1)}%`;
+export function percentText(value) {
+  const quarters = value * 4;
+  if (Number.isInteger(quarters) && quarters % 2 !== 0) {
+    // Exactly halfway: the tenths, n + 0.5 exactly, to the even one.
+    const tenths = Math.floor(value * 10);
+    const even = tenths % 2 === 0 ? tenths : tenths + 1;
+    return `${(even / 10).toFixed(1)}%`;
+  }
+  return `${value.toFixed(1)}%`;
+}

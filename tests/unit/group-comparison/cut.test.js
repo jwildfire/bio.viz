@@ -133,8 +133,8 @@ describe('group comparison: a cut biomarker', () => {
       )
     ).toBe(
       'SCORE is cut at its quartiles, 2.793, 2.793 and 2.793, worked out on the 5 participants ' +
-        'with a value. The points differ only past four significant digits, so groups with the ' +
-        'same bounds are one, as R’s cut() makes them: 3 groups, not 4.'
+        'with a value. The points differ only past four significant digits, so groups whose ' +
+        'bounds are written alike are one: 3 groups, not 4.'
     );
     expect(cutNote(crp([2, 5]), cutPoints(median.values, [2, 5]))).toBe(
       'CRP at Baseline is cut at 2 and 5.'

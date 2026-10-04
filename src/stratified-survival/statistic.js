@@ -21,8 +21,7 @@ import {
   filtersInForce,
   filtersSaid,
   remarksOf,
-  sentence,
-  sorted
+  sentence
 } from '../shared/statisticLine.js';
 import { flagOf } from '../shared/outcomes.js';
 
@@ -34,8 +33,10 @@ export const ONE_GROUP =
 
 // The groups as R is handed them: a cut's high to low, so the hazard ratio of
 // two is the higher group's hazard over the lower's, as the biomarker screen's
-// "High / Low" is; a column's by code point, the same in every browser language.
-const keyOrder = (by, levels) => (isCut(by) ? [...levels].reverse() : sorted(levels));
+// "High / Low" is; a column's in the legend's order (by name with numbers as
+// numbers, the same in every browser language), so the hazard ratio is the
+// legend's first group's over its second's. R names the two either way.
+const keyOrder = (by, levels) => (isCut(by) ? [...levels].reverse() : [...levels]);
 
 // Whether the groups are a cut biomarker that reads a baseline.
 const readsBaseline = (by) =>

@@ -1,16 +1,13 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-04T19:02:45.747Z",
+  "generatedAt": "2026-10-04T20:58:57.070Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37226711557",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37226711557"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -194,6 +191,14 @@
       "status": "pass",
       "requirementIds": ["EXP-DL-009"],
       "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "EXP-DL-010: in the group comparison’s overview, Table downloads every value drawn on its page of biomarkers, one row per participant, biomarker and visit, with each group, and every download is offered (#78)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["EXP-DL-010"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {
@@ -845,6 +850,14 @@
       "screenshots": []
     },
     {
+      "test": "gallery CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-016"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
       "test": "gallery the home page heads its callout for one chart and for several (#26)",
       "suite": "unit",
       "status": "pass",
@@ -925,11 +938,11 @@
       "screenshots": []
     },
     {
-      "test": "getting results out: the downloads EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and its title and footnotes as international text, each chunk with its CRC, written after the header so any reader finds them (#67)",
+      "test": "getting results out: the downloads EXP-PNG-001: a downloaded PNG carries its resolution, as pixels per metre, and as international text its title, its description and the software with its version, and no other text, each chunk with its CRC, written after the header so any reader finds them (#67, #78)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["EXP-PNG-001"],
-      "issueRefs": [67],
+      "issueRefs": [],
       "screenshots": []
     },
     {

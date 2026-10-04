@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { renderGallery, renderHome, validateRegistry } from '../../../scripts/site-lib.mjs';
+import {
+  renderDemoPage,
+  renderGallery,
+  renderHome,
+  validateRegistry
+} from '../../../scripts/site-lib.mjs';
 
 // The gallery and the registry that drives it (#7).
 
@@ -94,6 +99,56 @@ describe('gallery', () => {
     });
     expect(section(html, 'charts')).toContain('No chart is published yet.');
     expect(html).not.toContain('data-module="group-comparison"');
+  });
+
+  it('CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)', () => {
+    const experimental = {
+      ...chart,
+      status: 'experimental',
+      statusNote: 'Its estimator awaits its clinical review.'
+    };
+    const badge =
+      '<p class="module-status"><span class="status-badge status-experimental">Experimental</span> ' +
+      'Its estimator awaits its clinical review.</p>';
+    const gallery = section(
+      renderGallery({ config: config(module(), experimental), study }),
+      'charts'
+    );
+    expect(gallery).toContain('data-module="group-comparison"');
+    expect(gallery).toContain('<a href="../group-comparison/index.html">Live demo</a>');
+    expect(gallery).toContain(badge);
+    const home = renderHome({
+      config: config(module(), experimental),
+      version: '0.1.0',
+      summaries: {}
+    });
+    expect(home).toContain('<h2>The first chart</h2>');
+    expect(home).toContain(badge);
+    const demo = renderDemoPage({
+      entry: experimental,
+      version: '0.1.0',
+      study,
+      kit: null,
+      statistics: null
+    });
+    expect(demo.match(/<section class="hero">[\s\S]*?<\/section>/)[0]).toContain(badge);
+    // An available chart carries no badge.
+    expect(
+      section(renderGallery({ config: config(module(), chart), study }), 'charts')
+    ).not.toContain('module-status');
+    // The registry takes the status, and asks why.
+    expect(validateRegistry(config(experimental))).toEqual([]);
+    const { statusNote, ...unsaid } = experimental;
+    expect(statusNote).toBeTruthy();
+    expect(validateRegistry(config(unsaid)).join('\n')).toMatch(
+      /is experimental, and needs `statusNote`/
+    );
+    const survival = realConfig.modules.find((entry) => entry.module === 'stratified-survival');
+    expect(survival.status).toBe('experimental');
+    expect(survival.statusNote).toMatch(/kmEstimate|estimator/);
+    expect(
+      realConfig.modules.filter((entry) => entry.status === 'experimental').map((e) => e.module)
+    ).toEqual(['stratified-survival']);
   });
 
   it('CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)', () => {

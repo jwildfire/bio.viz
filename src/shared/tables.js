@@ -7,6 +7,7 @@
 
 import { visits as visitsInOrder } from '../core/frame.js';
 import { coreSettings } from './settings.js';
+import { byCodePoint } from './statisticLine.js';
 
 export const isBlank = (value) =>
   value === undefined ||
@@ -19,6 +20,58 @@ export const naturally = (a, b) => String(a).localeCompare(String(b), undefined,
 /** Distinct values that are not blank, as text, sorted by name with numbers as numbers. */
 export function levelsOf(values) {
   return [...new Set(values.filter((value) => !isBlank(value)).map(String))].sort(naturally);
+}
+
+// A text's parts: each run of the digits 0 to 9, and each run of anything else.
+const partsOf = (text) => text.match(/[0-9]+|[^0-9]+/g) || [];
+// The letters A to Z as a to z, and nothing else.
+const lowerAscii = (text) => text.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+// A letter of any alphabet: an ASCII letter, or anything past ASCII.
+const isLetter = (part) => /^[A-Za-z]/.test(part) || part.codePointAt(0) >= 0x80;
+
+/**
+ * The order a chart that hands R its categories draws them in: gsm.bio's own,
+ * `Core_NaturalCompare` in its R/core.R, which tools/r-order.R copies. By name,
+ * with numbers inside a name counted as numbers ("2 mg" before "10 mg"), the
+ * letters A to Z read as a to z, and anything else compared by its code point,
+ * so it is the same in every browser language and R can be handed the
+ * categories in the order they are drawn. A digit sorts before a letter (any
+ * character past ASCII counts as one) and after a space or punctuation; names
+ * that differ only in case put lower case first.
+ *
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+export function categoryOrder(a, b) {
+  const [first, second] = [String(a), String(b)];
+  const [partsA, partsB] = [partsOf(first), partsOf(second)];
+  const shared = Math.min(partsA.length, partsB.length);
+  for (let index = 0; index < shared; index += 1) {
+    const [partA, partB] = [partsA[index], partsB[index]];
+    const [digitsA, digitsB] = [/^[0-9]/.test(partA), /^[0-9]/.test(partB)];
+    if (digitsA && digitsB) {
+      const difference = Number(partA) - Number(partB);
+      if (difference !== 0) return Math.sign(difference);
+    } else if (digitsA !== digitsB) {
+      const sign = isLetter(digitsA ? partB : partA) ? -1 : 1;
+      return digitsA ? sign : -sign;
+    } else {
+      const order = Math.sign(byCodePoint(lowerAscii(partA), lowerAscii(partB)));
+      if (order !== 0) return order;
+    }
+  }
+  if (partsA.length !== partsB.length) return Math.sign(partsA.length - partsB.length);
+  return -Math.sign(byCodePoint(first, second));
+}
+
+/**
+ * Distinct values that are not blank, as text, in `categoryOrder`: the
+ * cross-tabulation's categories and the stratified survival chart's groups,
+ * drawn and handed to R in this one order.
+ */
+export function categoriesOf(values) {
+  return [...new Set(values.filter((value) => !isBlank(value)).map(String))].sort(categoryOrder);
 }
 
 /**

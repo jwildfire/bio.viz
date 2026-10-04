@@ -460,24 +460,31 @@ function formatStatistic(statistic) {
 }
 var figure = (value) => String(Number(value.toPrecision(4)));
 var isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+var isNumberOrInfinite = (value) => isNumber(value) || value === Infinity || value === -Infinity;
+var bound = (value) => {
+  if (value === Infinity) return "infinity";
+  if (value === -Infinity) return "minus infinity";
+  return figure(value);
+};
 function formatEstimate(estimate) {
   const row = estimate && typeof estimate === "object" ? estimate : {};
   const refuse8 = (what) => ({ status: "refused", text: `Estimate not shown: ${what}.` });
   const name = text(row.name);
   if (!name) return refuse8("it has no name");
-  if (!isNumber(row.estimate)) return refuse8(`${name} is not a number`);
+  if (!isNumberOrInfinite(row.estimate)) return refuse8(`${name} is not a number`);
   const group = text(row.group);
-  const lead = `${name}${group ? ` (${group})` : ""}: ${figure(row.estimate)}`;
+  const said2 = row.estimate === Infinity ? "infinite" : bound(row.estimate);
+  const lead = `${name}${group ? ` (${group})` : ""}: ${said2}`;
   const bounds = [row.lower, row.upper, row.level];
   const absent = (value) => value === void 0 || value === null;
   if (bounds.every(absent)) return { status: "shown", text: `${lead}.` };
-  if (!bounds.every(isNumber) || !(row.level > 0 && row.level < 1)) {
+  if (!isNumberOrInfinite(row.lower) || !isNumberOrInfinite(row.upper) || !isNumber(row.level) || !(row.level > 0 && row.level < 1)) {
     return refuse8(`the interval of ${name} is incomplete`);
   }
   const percent = Number((row.level * 100).toPrecision(12));
   return {
     status: "shown",
-    text: `${lead}, ${percent}% confidence interval ${figure(row.lower)} to ${figure(row.upper)}.`
+    text: `${lead}, ${percent}% confidence interval ${bound(row.lower)} to ${bound(row.upper)}.`
   };
 }
 function formatMedian(estimate) {
@@ -826,7 +833,7 @@ function boundLabels(points) {
   const bounds = points.map(writePoint);
   return [
     `\u2264 ${bounds[0]}`,
-    ...bounds.slice(1).map((bound, index) => `> ${bounds[index]}, \u2264 ${bound}`),
+    ...bounds.slice(1).map((bound2, index) => `> ${bounds[index]}, \u2264 ${bound2}`),
     `> ${bounds[bounds.length - 1]}`
   ];
 }
@@ -964,10 +971,10 @@ function readCut(cut, written) {
     }
   }
   for (let index = 1; index < cut.length; index += 1) {
-    const bound = writePoint(cut[index]);
-    if (bound === writePoint(cut[index - 1])) {
+    const bound2 = writePoint(cut[index]);
+    if (bound2 === writePoint(cut[index - 1])) {
       refuse(
-        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both written ${bound} to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits.`
+        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both written ${bound2} to four significant digits, so the groups they make could not be told apart: give points that differ in their first four significant digits.`
       );
     }
   }
@@ -1834,7 +1841,7 @@ function cutNote(spec, cut) {
   }
   if (cut.merged) {
     said2.push(
-      `The points differ only past four significant digits, so groups with the same bounds are one, as R\u2019s cut() makes them: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
+      `The points differ only past four significant digits, so groups whose bounds are written alike are one: ${cut.labels.length} groups, not ${cut.points.length + 1}.`
     );
   }
   return said2.join(" ");
@@ -2167,11 +2174,127 @@ __export(configure_exports4, {
   syncSettings: () => syncSettings4
 });
 
+// src/shared/statisticLine.js
+var WAITING = "Statistics: waiting for R\u2026";
+var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
+var sentence = (state, said2) => ({
+  state,
+  text: said2,
+  estimates: [],
+  remarks: [],
+  scope: null
+});
+function byCodePoint(a, b) {
+  const [first, second] = [[...a], [...b]];
+  const shared = Math.min(first.length, second.length);
+  for (let index = 0; index < shared; index += 1) {
+    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
+    if (difference !== 0) return difference;
+  }
+  return first.length - second.length;
+}
+var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
+function filtersInForce(filters) {
+  const inForce = {};
+  for (const [column, selection] of Object.entries(filters || {})) {
+    if (selection === null || selection === void 0 || selection === "") continue;
+    const values = Array.isArray(selection) ? selection : [selection];
+    if (values.length) inForce[column] = sorted(values);
+  }
+  return inForce;
+}
+function filtersSaid(filters) {
+  if (!filters || !filters.length) return null;
+  return `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`;
+}
+var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
+  (entry) => typeof entry === "string" && entry.trim() !== ""
+);
+var remarksOf = (value) => [
+  ...texts(value.warnings).map((said2) => ({ kind: "warning", text: `R warned: ${said2}` })),
+  ...texts(value.notes).map((said2) => ({ kind: "note", text: `R\u2019s note: ${said2}` }))
+];
+function failureOf(result) {
+  if (result && result.status === "unavailable") {
+    return {
+      state: "unavailable",
+      text: result.reason === "not-precomputed" ? NOT_STORED : result.message
+    };
+  }
+  const message = result && typeof result.message === "string" ? result.message : "no message";
+  return { state: "error", text: `R reported an error: ${message}` };
+}
+var ANSWERED = /* @__PURE__ */ new WeakSet();
+var hasAnswered = (connection) => connection !== null && typeof connection === "object" && ANSWERED.has(connection);
+function createDesk({
+  connection,
+  note = null,
+  describe: describe2,
+  waiting = (said2) => sentence("waiting", said2)
+}) {
+  let current = 0;
+  let retired = false;
+  const withNote = (said2) => note && !hasAnswered(connection) ? `${said2} ${note}` : said2;
+  return {
+    idle: withNote,
+    retire() {
+      retired = true;
+    },
+    begin() {
+      current += 1;
+      const round = current;
+      let noted = false;
+      return {
+        ask({ name, data, args, dataId }, show, context) {
+          show(waiting(noted ? WAITING : withNote(WAITING), context));
+          noted = true;
+          return connection.run(name, { data, args, dataId }).then((result) => {
+            const ran = result && result.status === "ok" && result.form !== "precomputed";
+            if (ran && connection !== null && typeof connection === "object") {
+              ANSWERED.add(connection);
+            }
+            if (retired || round !== current) return false;
+            show(describe2(result, context), result);
+            return true;
+          });
+        }
+      };
+    }
+  };
+}
+
 // src/shared/tables.js
 var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
 var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
 function levelsOf(values) {
   return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
+}
+var partsOf = (text2) => text2.match(/[0-9]+|[^0-9]+/g) || [];
+var lowerAscii = (text2) => text2.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+var isLetter = (part) => /^[A-Za-z]/.test(part) || part.codePointAt(0) >= 128;
+function categoryOrder(a, b) {
+  const [first, second] = [String(a), String(b)];
+  const [partsA, partsB] = [partsOf(first), partsOf(second)];
+  const shared = Math.min(partsA.length, partsB.length);
+  for (let index = 0; index < shared; index += 1) {
+    const [partA, partB] = [partsA[index], partsB[index]];
+    const [digitsA, digitsB] = [/^[0-9]/.test(partA), /^[0-9]/.test(partB)];
+    if (digitsA && digitsB) {
+      const difference = Number(partA) - Number(partB);
+      if (difference !== 0) return Math.sign(difference);
+    } else if (digitsA !== digitsB) {
+      const sign = isLetter(digitsA ? partB : partA) ? -1 : 1;
+      return digitsA ? sign : -sign;
+    } else {
+      const order2 = Math.sign(byCodePoint(lowerAscii(partA), lowerAscii(partB)));
+      if (order2 !== 0) return order2;
+    }
+  }
+  if (partsA.length !== partsB.length) return Math.sign(partsA.length - partsB.length);
+  return -Math.sign(byCodePoint(first, second));
+}
+function categoriesOf(values) {
+  return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(categoryOrder);
 }
 function listMeasures(results, settings) {
   const present4 = levelsOf(results.map((row) => row[settings.measure_col]));
@@ -3457,7 +3580,7 @@ function placeholderValues(chart) {
   return { ...sharedPlaceholders(chart), ...own };
 }
 function titlesOf(chart) {
-  const parts = partsOf(chart);
+  const parts = partsOf2(chart);
   const joined = (runs) => runs === null ? null : runs.map((run) => run.text).join("");
   return {
     title: joined(parts.title),
@@ -3465,7 +3588,7 @@ function titlesOf(chart) {
     footnotes: parts.footnotes.map(joined)
   };
 }
-function partsOf(chart) {
+function partsOf2(chart) {
   const { settings } = chart;
   const values = placeholderValues(chart);
   const filled = (template) => typeof template !== "string" || template.trim() === "" ? null : fillParts(template, values);
@@ -3500,7 +3623,7 @@ function writeRuns(kit, element, runs) {
 function writeTitles(chart) {
   if (!chart.titleBlock || !chart.footBlock) return;
   const { kit } = chart;
-  const said2 = partsOf(chart);
+  const said2 = partsOf2(chart);
   chart.titleBlock.innerHTML = "";
   if (said2.title !== null) {
     const title = kit.createElement("div", "bv-title");
@@ -3972,95 +4095,6 @@ function cutsOffered(options, drawn) {
     cuts.push(spec);
   }
   return cuts.length ? cuts : null;
-}
-
-// src/shared/statisticLine.js
-var WAITING = "Statistics: waiting for R\u2026";
-var NOT_STORED = "Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.";
-var sentence = (state, said2) => ({
-  state,
-  text: said2,
-  estimates: [],
-  remarks: [],
-  scope: null
-});
-function byCodePoint(a, b) {
-  const [first, second] = [[...a], [...b]];
-  const shared = Math.min(first.length, second.length);
-  for (let index = 0; index < shared; index += 1) {
-    const difference = first[index].codePointAt(0) - second[index].codePointAt(0);
-    if (difference !== 0) return difference;
-  }
-  return first.length - second.length;
-}
-var sorted = (values) => [...new Set(values.map(String))].sort(byCodePoint);
-function filtersInForce(filters) {
-  const inForce = {};
-  for (const [column, selection] of Object.entries(filters || {})) {
-    if (selection === null || selection === void 0 || selection === "") continue;
-    const values = Array.isArray(selection) ? selection : [selection];
-    if (values.length) inForce[column] = sorted(values);
-  }
-  return inForce;
-}
-function filtersSaid(filters) {
-  if (!filters || !filters.length) return null;
-  return `Filters: ${filters.map(({ label: label2, values }) => `${label2} is ${values.join(" or ")}`).join("; ")}.`;
-}
-var texts = (value) => (Array.isArray(value) ? value : value === void 0 || value === null ? [] : [value]).filter(
-  (entry) => typeof entry === "string" && entry.trim() !== ""
-);
-var remarksOf = (value) => [
-  ...texts(value.warnings).map((said2) => ({ kind: "warning", text: `R warned: ${said2}` })),
-  ...texts(value.notes).map((said2) => ({ kind: "note", text: `R\u2019s note: ${said2}` }))
-];
-function failureOf(result) {
-  if (result && result.status === "unavailable") {
-    return {
-      state: "unavailable",
-      text: result.reason === "not-precomputed" ? NOT_STORED : result.message
-    };
-  }
-  const message = result && typeof result.message === "string" ? result.message : "no message";
-  return { state: "error", text: `R reported an error: ${message}` };
-}
-var ANSWERED = /* @__PURE__ */ new WeakSet();
-var hasAnswered = (connection) => connection !== null && typeof connection === "object" && ANSWERED.has(connection);
-function createDesk({
-  connection,
-  note = null,
-  describe: describe2,
-  waiting = (said2) => sentence("waiting", said2)
-}) {
-  let current = 0;
-  let retired = false;
-  const withNote = (said2) => note && !hasAnswered(connection) ? `${said2} ${note}` : said2;
-  return {
-    idle: withNote,
-    retire() {
-      retired = true;
-    },
-    begin() {
-      current += 1;
-      const round = current;
-      let noted = false;
-      return {
-        ask({ name, data, args, dataId }, show, context) {
-          show(waiting(noted ? WAITING : withNote(WAITING), context));
-          noted = true;
-          return connection.run(name, { data, args, dataId }).then((result) => {
-            const ran = result && result.status === "ok" && result.form !== "precomputed";
-            if (ran && connection !== null && typeof connection === "object") {
-              ANSWERED.add(connection);
-            }
-            if (retired || round !== current) return false;
-            show(describe2(result, context), result);
-            return true;
-          });
-        }
-      };
-    }
-  };
 }
 
 // src/group-comparison/statistic.js
@@ -5549,11 +5583,13 @@ var GroupComparison = class {
   /**
    * The table the chart drew from, one row per participant drawn, for the
    * table download (#67): which field of a row each column holds, and its
-   * heading.
+   * heading. In the overview, one row per participant, biomarker and visit
+   * drawn on its page of biomarkers (#78).
    * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
    */
   tableOf() {
-    const { model, state, settings } = this;
+    const { model, state, settings, overview } = this;
+    if (!model && overview) return this.overviewTable();
     if (!model || !model.panels) return { columns: [], rows: [] };
     const visits2 = model.panels.some((panel) => panel.visit !== null && panel.visit !== void 0);
     const columns = [{ value_col: settings.id_col, label: "Participant" }];
@@ -5567,6 +5603,26 @@ var GroupComparison = class {
     });
     const rows = model.panels.flatMap(
       (panel) => panel.records.map((record) => ({ ...record, visit: panel.visit }))
+    );
+    return { columns, rows };
+  }
+  // The overview's table: every value drawn on its page of biomarkers, each
+  // row naming its biomarker and its visit. The overview draws no panel
+  // column; its values are of the one value type the controls choose.
+  overviewTable() {
+    const { overview, state, settings } = this;
+    const columns = [
+      { value_col: settings.id_col, label: "Participant" },
+      { value_col: "biomarker", label: "Biomarker" },
+      { value_col: "visit", label: "Visit" }
+    ];
+    if (state.groupBy) columns.push({ value_col: "x", label: this.labelOf(state.groupBy) });
+    if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
+    columns.push({ value_col: "y", label: VALUE_LABELS[state.valueType] || state.valueType });
+    const rows = overview.rows.flatMap(
+      (row) => row.model.panels.flatMap(
+        (panel) => panel.records.map((record) => ({ ...record, biomarker: row.measure, visit: panel.visit }))
+      )
     );
     return { columns, rows };
   }
@@ -8614,7 +8670,7 @@ function movePoints(points, index, value, { drop = false, min = -Infinity, max =
 
 // src/stratified-survival/statistic.js
 var ONE_GROUP = "Statistics: no test. The log-rank test compares two or more groups, and one is drawn.";
-var keyOrder = (by, levels) => isCut(by) ? [...levels].reverse() : sorted(levels);
+var keyOrder = (by, levels) => isCut(by) ? [...levels].reverse() : [...levels];
 var readsBaseline = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
 function survivalRequest({ name, settings, state, model }) {
   const filters = filtersInForce(state.filters);
@@ -8782,7 +8838,7 @@ function buildSurvival({ results, participants, outcomes }, settings, state, { k
       event: outcome.event
     });
   }
-  const levels = cut ? cut.labels.filter((label2) => records.some((record) => record.group === label2)) : levelsOf(records.map((record) => record.group));
+  const levels = cut ? cut.labels.filter((label2) => records.some((record) => record.group === label2)) : categoriesOf(records.map((record) => record.group));
   const last = records.reduce((most, record) => Math.max(most, record.time), 0);
   const times = settings.at_risk_times || timeTicks(last);
   const curves = levels.map((level) => {
@@ -8822,6 +8878,7 @@ function atRisk(model, level, time) {
 
 // src/stratified-survival.js
 var MODULE_CLASS3 = "bv-stratified-survival";
+var EXPERIMENTAL_NOTE = "This chart is experimental: its curves are safety.viz\u2019s Kaplan\u2013Meier estimator, kmEstimate, which awaits its clinical review. It is tested and documented, but its behaviour and settings may change.";
 var STYLE_ID4 = "bio-viz-stratified-survival-styles";
 var C2 = `.${MODULE_CLASS3}`;
 var STYLES4 = `${lineStyles(C2)}
@@ -8900,6 +8957,13 @@ var StratifiedSurvival = class {
       listingFile: "bio.viz-stratified-survival-listing.csv"
     });
     const { kit } = this;
+    const banner = kit.createElement("div", "sv-experimental");
+    banner.setAttribute("role", "note");
+    banner.append(
+      kit.createElement("span", "sv-prototype-tag", "Experimental"),
+      kit.createElement("span", "sv-prototype-text", EXPERIMENTAL_NOTE)
+    );
+    this.main.prepend(banner);
     this.riskWrap = kit.createElement("div", "bv-risk-wrap");
     this.histWrap = kit.createElement("div", "bv-hist");
     this.histBox = kit.createElement("div", "bv-hist-canvas");
@@ -11161,7 +11225,6 @@ var TEST_LABELS2 = Object.freeze({
 });
 var NO_TEST_CHOSEN2 = "Statistics: no test chosen.";
 var NOT_TWO_WAY = "Statistics: no test. A test of a two-way table needs two or more categories each way.";
-var keyOrder2 = (by, levels) => isCut(by) ? [...levels] : sorted(levels);
 var readsBaseline2 = (by) => isCut(by) && typeof by.measure === "string" && by.value !== void 0 && by.value !== "raw";
 function contingencyRequest({ name, test, settings, state, model }) {
   const filters = filtersInForce(state.filters);
@@ -11173,11 +11236,11 @@ function contingencyRequest({ name, test, settings, state, model }) {
       strRowCol: "row",
       strColCol: "col",
       strMethod: test,
-      // The categories, in an order that depends on nothing but them: a cut's
-      // low to high, a column's by code point. The table shows a column's in
-      // the browser's own order, which is not the same in every language.
-      chrRowGroups: keyOrder2(state.rowBy, model.rowLevels),
-      chrColGroups: keyOrder2(state.colBy, model.colLevels)
+      // The categories in the order the table draws them: a cut's low to
+      // high, a column's by name with numbers as numbers, the same in every
+      // browser language. Fisher's odds ratio is of the table in this order.
+      chrRowGroups: [...model.rowLevels],
+      chrColGroups: [...model.colLevels]
     },
     dataId: {
       chart: "cross-tab",
@@ -11199,6 +11262,15 @@ function named(value, names) {
   );
   return { ...value, reason };
 }
+function oriented(row, groups) {
+  const rows = groups && Array.isArray(groups.rows) ? groups.rows : [];
+  const cols = groups && Array.isArray(groups.cols) ? groups.cols : [];
+  if (row.name !== "odds ratio" || row.group || rows.length !== 2 || cols.length !== 2) return row;
+  return {
+    ...row,
+    group: `${rows[0]} / ${rows[1]}, odds of ${cols[0]} against ${cols[1]}`
+  };
+}
 function describeAnswer3(result, context = {}) {
   if (result && result.status === "ok") {
     const value = named(
@@ -11208,7 +11280,7 @@ function describeAnswer3(result, context = {}) {
     const formatted = formatStatistic(value);
     const described = sentence(formatted.status, formatted.text);
     if (formatted.status === "shown") {
-      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present3(row.lower) && present3(row.upper)).map((row) => formatEstimate(row).text);
+      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present3(row.lower) && present3(row.upper)).map((row) => formatEstimate(oriented(row, context.groups)).text);
     }
     described.remarks = remarksOf(value);
     described.scope = context.scope || null;
@@ -11275,7 +11347,7 @@ function buildTable({ results, participants }, settings, state, options = {}) {
     }
     return out;
   });
-  const levelsFor = (field) => cuts[field] ? cuts[field].labels.filter((label2) => records.some((record) => record[field] === label2)) : levelsOf(records.map((record) => record[field]));
+  const levelsFor = (field) => cuts[field] ? cuts[field].labels.filter((label2) => records.some((record) => record[field] === label2)) : categoriesOf(records.map((record) => record[field]));
   const rowLevels = levelsFor("row");
   const colLevels = levelsFor("col");
   const counts = rowLevels.map(
@@ -11306,7 +11378,15 @@ function buildTable({ results, participants }, settings, state, options = {}) {
     unused: made.unused
   };
 }
-var percentText = (value) => `${value.toFixed(1)}%`;
+function percentText(value) {
+  const quarters = value * 4;
+  if (Number.isInteger(quarters) && quarters % 2 !== 0) {
+    const tenths = Math.floor(value * 10);
+    const even = tenths % 2 === 0 ? tenths : tenths + 1;
+    return `${(even / 10).toFixed(1)}%`;
+  }
+  return `${value.toFixed(1)}%`;
+}
 
 // src/cross-tab.js
 var MODULE_CLASS5 = "bv-cross-tab";
@@ -11330,6 +11410,7 @@ ${C4} .bv-chart-wrap{height:var(--bv-bars-height,220px);position:relative}
 ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}`;
 var HINT4 = "Click a count to list its participants and open a participant\u2019s profile. The bars are the same table, as percentages.";
 var CUT_KEY3 = "bv-cut:";
+var CUT_WHO = "Every participant the filters keep with a value is cut, whether or not they have a category the other way.";
 var PERCENT_LABELS = Object.freeze({
   row: "Of each row",
   col: "Of each column",
@@ -11677,7 +11758,8 @@ var CrossTab = class {
       },
       {
         scope: scopeText6({ n: model.total, filters: filtersForScope(this) }),
-        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) }
+        names: { row: this.labelOf(state.rowBy), col: this.labelOf(state.colBy) },
+        groups: { rows: request.args.chrRowGroups, cols: request.args.chrColGroups }
       }
     );
   }
@@ -11713,8 +11795,16 @@ var CrossTab = class {
     }
   }
   // How each cut variable was cut, a sentence each.
+  // How each cut variable was cut and, for points worked out from the values,
+  // whose values: every participant the filters keep with one, whether or not
+  // they have a category the other way (#78 review).
   cutNotes(model) {
-    return ["row", "col"].filter((field) => model.cuts[field]).map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
+    return ["row", "col"].filter((field) => model.cuts[field]).map((field) => {
+      const cut = model.cuts[field];
+      const said2 = cutNote(cut.spec, cut);
+      if (Array.isArray(cut.cut) || !cut.n) return said2;
+      return `${said2} ${CUT_WHO}`;
+    });
   }
   // The two-way table: a count in each cell, with its percentage when one is
   // chosen, the row and the column totals, and the grand total. A cell is a

@@ -19,8 +19,7 @@ import {
   filtersInForce,
   filtersSaid,
   remarksOf,
-  sentence,
-  sorted
+  sentence
 } from '../shared/statisticLine.js';
 
 export { NOT_STORED, WAITING } from '../shared/statisticLine.js';
@@ -38,9 +37,6 @@ export const NO_TEST_CHOSEN = 'Statistics: no test chosen.';
 /** The line when the table is not two-way: a test needs two categories each way. */
 export const NOT_TWO_WAY =
   'Statistics: no test. A test of a two-way table needs two or more categories each way.';
-
-// A variable's categories as the key names them.
-const keyOrder = (by, levels) => (isCut(by) ? [...levels] : sorted(levels));
 
 // Whether a variable of the table is a cut biomarker that reads a baseline.
 const readsBaseline = (by) =>
@@ -72,11 +68,11 @@ export function contingencyRequest({ name, test, settings, state, model }) {
       strRowCol: 'row',
       strColCol: 'col',
       strMethod: test,
-      // The categories, in an order that depends on nothing but them: a cut's
-      // low to high, a column's by code point. The table shows a column's in
-      // the browser's own order, which is not the same in every language.
-      chrRowGroups: keyOrder(state.rowBy, model.rowLevels),
-      chrColGroups: keyOrder(state.colBy, model.colLevels)
+      // The categories in the order the table draws them: a cut's low to
+      // high, a column's by name with numbers as numbers, the same in every
+      // browser language. Fisher's odds ratio is of the table in this order.
+      chrRowGroups: [...model.rowLevels],
+      chrColGroups: [...model.colLevels]
     },
     dataId: {
       chart: 'cross-tab',
@@ -106,16 +102,35 @@ function named(value, names) {
   return { ...value, reason };
 }
 
+// Which way round Fisher's odds ratio is. R's fisher.test(), which gsm.bio's
+// Analyze_Contingency runs, estimates the odds ratio of the two-by-two table
+// with its rows and columns in the order it was handed them (its conditional
+// maximum-likelihood estimate): the odds of the first column against the
+// second in the first row, over the same odds in the second row. The chart
+// hands R the table's own order, and names the groups the ratio is of.
+function oriented(row, groups) {
+  const rows = groups && Array.isArray(groups.rows) ? groups.rows : [];
+  const cols = groups && Array.isArray(groups.cols) ? groups.cols : [];
+  if (row.name !== 'odds ratio' || row.group || rows.length !== 2 || cols.length !== 2) return row;
+  return {
+    ...row,
+    group: `${rows[0]} / ${rows[1]}, odds of ${cols[0]} against ${cols[1]}`
+  };
+}
+
 /**
  * What one answer from the connection reads as on the line: R's result with
  * its method and counts, the estimate R gave an interval for (Fisher's odds
- * ratio, for two-by-two), and what R said about its answer.
+ * ratio, for two-by-two, named by which row is over which and the odds of
+ * which column), and what R said about its answer.
  *
  * @param {object} result What `connection.run` resolved to.
  * @param {object} [context]
  * @param {string} [context.scope] What the test covers, in a sentence.
  * @param {{row: string, col: string}} [context.names] The table's names for its
  *   two variables, put where R's reason names the columns `row` and `col`.
+ * @param {{rows: string[], cols: string[]}} [context.groups] The categories R
+ *   was handed (`chrRowGroups`, `chrColGroups`), which name the odds ratio.
  * @returns {{state: string, text: string, estimates: string[],
  *   remarks: Array<{kind: string, text: string}>, scope: ?string}}
  */
@@ -130,7 +145,7 @@ export function describeAnswer(result, context = {}) {
     if (formatted.status === 'shown') {
       described.estimates = (Array.isArray(value.estimates) ? value.estimates : [])
         .filter((row) => row && present(row.lower) && present(row.upper))
-        .map((row) => formatEstimate(row).text);
+        .map((row) => formatEstimate(oriented(row, context.groups)).text);
     }
     // What R said about its answer, the small-expected warning among it, is
     // printed with it as R worded it.

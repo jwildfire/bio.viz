@@ -62,6 +62,31 @@ describe('the vendored safety.viz bundle', () => {
   });
 });
 
+describe('the vendored safety.viz bundle: its release', () => {
+  it('GC-KIT-004: the record names the safety.viz release the copy is byte for byte, its tag and the tag’s commit, beside the dev commit it was copied from; the source check holds the copy to both (#78)', async () => {
+    const record = readRecord(directory);
+    expect(record.release).toEqual({
+      tag: `v${record.version}`,
+      commit: expect.stringMatching(/^[0-9a-f]{40}$/)
+    });
+    expect(record.release.commit).not.toBe(record.commit);
+    // The source check reads the file at the tag's commit as well as at dev's.
+    const asked = [];
+    const bytes = readFileSync(path.join(directory, record.files[0].file));
+    const problems = await verifyAgainstSource(directory, async (commit, file) => {
+      asked.push([commit, file]);
+      return bytes;
+    });
+    expect(problems).toEqual([]);
+    expect(asked.map(([commit]) => commit)).toEqual([record.commit, record.release.commit]);
+    // A release whose file differs is a problem, named by its tag.
+    const differs = await verifyAgainstSource(directory, async (commit) =>
+      commit === record.release.commit ? Buffer.from('other') : bytes
+    );
+    expect(differs.join('\n')).toMatch(new RegExp(`differs from .* at ${record.release.tag}`));
+  });
+});
+
 describe('vendoring a bundle: the copy and its check', () => {
   const COMMIT = '0123456789abcdef0123456789abcdef01234567';
   const BYTES = Buffer.from('var SafetyViz = (() => ({ kit: Object.freeze({}) }))();\r\n');

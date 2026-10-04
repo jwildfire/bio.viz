@@ -252,7 +252,7 @@ describe('formatEstimate: an estimate and its interval', () => {
       status: 'refused',
       text: 'Estimate not shown: it has no name.'
     });
-    for (const bad of [undefined, null, Number.NaN, Infinity, '1.2']) {
+    for (const bad of [undefined, null, Number.NaN, '1.2']) {
       expect(formatEstimate({ ...difference, estimate: bad })).toEqual({
         status: 'refused',
         text: 'Estimate not shown: Difference in means is not a number.'
@@ -267,6 +267,42 @@ describe('formatEstimate: an estimate and its interval', () => {
       expect(formatted.text).not.toMatch(/\d/);
     }
     expect(formatEstimate(undefined).status).toBe('refused');
+  });
+
+  it('PVAL-EST-003: an infinite estimate or bound R gave is printed as infinite, with the finite bound as it is; not-a-number is still refused (#78)', () => {
+    // Desktop R's fisher.test() of a two-by-two table with an empty cell (row
+    // A: 20 x and 0 y; row B: 3 x and 17 y), through gsm.bio's
+    // Analyze_Contingency: the odds ratio is Inf, its interval 14.86 to Inf.
+    const infinite = {
+      name: 'odds ratio',
+      group: null,
+      estimate: Infinity,
+      lower: 14.856391,
+      upper: Infinity,
+      level: 0.95
+    };
+    expect(formatEstimate(infinite)).toEqual({
+      status: 'shown',
+      text: 'odds ratio: infinite, 95% confidence interval 14.86 to infinity.'
+    });
+    // The other way round: an odds ratio of 0, its interval 0 to a number.
+    expect(
+      formatEstimate({
+        name: 'Difference',
+        estimate: -Infinity,
+        lower: -Infinity,
+        upper: -2.5,
+        level: 0.95
+      })
+    ).toEqual({
+      status: 'shown',
+      text: 'Difference: minus infinity, 95% confidence interval minus infinity to -2.5.'
+    });
+    expect(formatEstimate({ ...infinite, estimate: Number.NaN })).toEqual({
+      status: 'refused',
+      text: 'Estimate not shown: odds ratio is not a number.'
+    });
+    expect(formatEstimate({ ...infinite, lower: Number.NaN }).status).toBe('refused');
   });
 });
 

@@ -39,6 +39,7 @@ out <- if (length(args) >= 1) args[[1]] else "tests/fixtures/stratified-survival
 
 source(file.path(vendored, "statistics.R"))
 source("tools/r-json.R")
+source("tools/r-order.R")
 
 # The core's cut rule, as tools/r-cut.R holds it.
 local({
@@ -65,16 +66,20 @@ study_outcomes <- utils::read.csv(file.path(study, "synthetic_outcomes.csv"), st
 #          list(measure =, visit =, value =, cut =), without visit for a
 #          baseline value, or list(col =, type = "number", cut =), typed points
 #          as a list), groups (the groups low to high for a cut, as cut() made
-#          them; R is handed them high to low), baseline_visits, baseline_stat, filters (a named list of
-#          column to values)
+#          them, R is handed them high to low; a column's in the legend's
+#          order, which R is handed), baseline_visits, baseline_stat, filters
+#          (a named list of column to values)
 #
 # A member of the identity that is not set is left out, never written as null.
 # A list of values is an unnamed list, so it is written as a JSON array
-# whatever its length. Text is sorted by code point (`method = "radix"`), which
-# is the order the chart sorts in. A cut's groups are handed to R high to low,
-# so the hazard ratio of two is the higher group's hazard over the lower's, as
-# the biomarker screen's High / Low is; a column's by code point. The baseline settings are named only when a cut
-# biomarker reads a baseline: its value is a baseline, or a change from one.
+# whatever its length. A filter's values are sorted by code point
+# (`method = "radix"`), which is the order the chart sorts them in. A cut's
+# groups are handed to R high to low, so the hazard ratio of two is the higher
+# group's hazard over the lower's, as the biomarker screen's High / Low is; a
+# column's in the legend's order, by name with numbers as numbers
+# (tools/r-order.R), so the hazard ratio is the legend's first group's over its
+# second's. The baseline settings are named only when a cut biomarker reads a
+# baseline: its value is a baseline, or a change from one.
 reads_baseline <- function(variable) {
   is.list(variable) && !is.null(variable$measure) && !identical(variable$value, "raw")
 }
@@ -95,7 +100,7 @@ survival_key <- function(dfRows, lView) {
       as.list(sort(unique(as.character(xValues)), method = "radix"))
     })
   }
-  chrGroups <- if (is.list(lView$group_by)) rev(lView$groups) else sort(unique(dfRows$group), method = "radix")
+  chrGroups <- if (is.list(lView$group_by)) rev(lView$groups) else lView$groups
   lArgs <- list(strTimeCol = "time", strGroupCol = "group")
   if ("censor" %in% names(dfRows)) lArgs$strCensorCol <- "censor" else lArgs$strEventCol <- "event"
   lArgs$chrGroups <- as.list(chrGroups)
@@ -168,7 +173,7 @@ case <- function(name, group_by, filters = list(), tables = list(), flag = "CNSR
   outcome <- !is.na(time) & !is.na(flags) & time >= 0
   groups <- group_of(group_by, keep & outcome, tables)
   used <- keep & !is.na(groups$values) & outcome
-  levels <- if (is.null(groups$levels)) sort(unique(groups$values[used]), method = "radix") else groups$levels
+  levels <- if (is.null(groups$levels)) natural_sort(unique(groups$values[used])) else groups$levels
   levels <- levels[levels %in% groups$values[used]]
   rows <- data.frame(USUBJID = people$USUBJID[used], time = time[used], group = groups$values[used],
                      stringsAsFactors = FALSE)
@@ -251,6 +256,14 @@ without_tables <- local({
   list(outcomes = study_outcomes[!study_outcomes$USUBJID %in% highest, ])
 })
 
+# The study's arms renamed as doses, Placebo "2 mg" and Treatment "10 mg": by
+# code point "10 mg" comes first, by name with numbers as numbers "2 mg" does,
+# so the legend's order and the order R is handed the groups must be the same
+# one for the hazard ratio to be of the legend's first group over its second.
+dose_tables <- list(participants = within(study_people, {
+  ARM <- unname(c(Placebo = "2 mg", Treatment = "10 mg")[ARM])
+}))
+
 cases <- list(
   case("crp-median", crp("median")),
   # Where the demo's cut line is dropped in the tests: the point as its label
@@ -258,6 +271,7 @@ cases <- list(
   case("crp-at-4", crp(list(4))),
   case("crp-tertiles", crp("tertiles")),
   case("arm", "ARM"),
+  case("dose", "ARM", tables = dose_tables),
   case("crp-median-women", crp("median"), filters = list(SEX = "F")),
   # CRP cut at 10 leaves 2 participants above it: below R's minimum group size.
   case("crp-at-10", crp(list(10))),

@@ -103,7 +103,9 @@ export async function runVendorCli(source, { describe } = {}) {
         record &&
           `✓ ${source.directory}: ${count} ${match} recorded checksum${record.files.length === 1 ? '' : 's'}` +
             (flag('--check-source')
-              ? ` and equal${record.files.length === 1 ? 's' : ''} ${slug} at ${record.commit.slice(0, 7)}, byte for byte.`
+              ? ` and equal${record.files.length === 1 ? 's' : ''} ${slug} at ${record.commit.slice(0, 7)}` +
+                (record.release ? ` and at ${record.release.tag}` : '') +
+                ', byte for byte.'
               : ` (copied from ${slug} at ${record.commit.slice(0, 7)}).`)
       );
       return;
