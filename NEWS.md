@@ -5,7 +5,11 @@ what a user can now do; the GitHub release publishes from the section here when 
 release-candidate pull request (dev -> main) merges and is tagged.
 -->
 
-# bio.viz v0.2.0 (Upcoming)
+# bio.viz v0.2.0.9000 (Upcoming)
+
+_Nothing merged yet._
+
+# bio.viz v0.2.0
 
 **See it move:** the [annotated v0.2.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/) has captures and try-it steps for everything below.
 
