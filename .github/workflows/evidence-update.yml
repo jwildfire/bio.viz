@@ -20,7 +20,12 @@ name: Update evidence baselines
 #     can do this, including an agent whose token may not start workflows. To
 #     run it again after a push, take the label off and put it back; take it
 #     off when the baselines are in.
-#   - Run it from the Actions tab against a branch (workflow_dispatch).
+#   - Put the label `update-baselines-all` on a pull request to rewrite every
+#     picture, not only those past the pixel tolerance. A footnote that now
+#     names another version changes too few pixels to pass it; each picture's
+#     <name>.drawn.json, the versions it draws, is rewritten with it.
+#   - Run it from the Actions tab against a branch (workflow_dispatch), with
+#     `all` ticked to rewrite every picture.
 #
 # Then, in a checkout of the branch:
 #
@@ -29,6 +34,11 @@ name: Update evidence baselines
 
 on:
   workflow_dispatch:
+    inputs:
+      all:
+        description: Rewrite every picture, not only those past the pixel tolerance
+        type: boolean
+        default: false
   pull_request:
     # Only the labelling itself. Listening for pushes as well would leave a
     # skipped check on every pull request that never asked for this.
@@ -46,7 +56,8 @@ jobs:
     name: Refresh baselines and evidence sets
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.label.name == 'update-baselines'
+      github.event.label.name == 'update-baselines' ||
+      github.event.label.name == 'update-baselines-all'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -76,7 +87,16 @@ jobs:
       # that baseline on its evidence page, because the page was built before
       # the baseline existed.
       - name: Regenerate baselines and evidence sets
-        run: npm run evidence:update
+        env:
+          ALL: >-
+            ${{ github.event.label.name == 'update-baselines-all' ||
+            (github.event_name == 'workflow_dispatch' && inputs.all) }}
+        run: |
+          if [ "$ALL" = "true" ]; then
+            npm run evidence:update -- --all
+          else
+            npm run evidence:update
+          fi
 
       - name: Upload the refreshed evidence
         if: always()

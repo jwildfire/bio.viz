@@ -24,7 +24,16 @@ const importsOf = (file) =>
   [...source(file).matchAll(/^\s*(?:import|export)\s[^'"]*from\s+['"]([^'"]+)['"]/gm)].map(
     (match) => path.normalize(path.join(path.dirname(file), match[1]))
   );
-const reached = (files) => new Set(files.flatMap(importsOf));
+// What a chart's files reach: what they import, and what the shared parts they
+// import import in turn (#67: the downloads' CSV and PNG writers are reached
+// through the shell).
+const reached = (files) => {
+  const seen = new Set(files.flatMap(importsOf));
+  for (const file of seen) {
+    if (file.startsWith('src/shared/')) for (const next of importsOf(file)) seen.add(next);
+  }
+  return seen;
+};
 const codeOf = (files) =>
   files
     .map(source)
@@ -74,15 +83,24 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
   it('BS-KIT-003: the chart is built from the shared parts and writes none of them again; of other charts it imports only their public functions, and no chart imports anything of this one (#36)', () => {
     const shared = sourceFiles('src/shared');
     const fromScreen = reached(screen);
-    for (const file of shared) expect(fromScreen.has(file), file).toBe(true);
+    // Every shared part but the cut that makes groups (#43): the screen's groups
+    // are a column's.
+    for (const file of shared.filter((name) => name !== 'src/shared/cut.js')) {
+      expect(fromScreen.has(file), file).toBe(true);
+    }
+    // A hazard row opens the stratified survival chart (#62).
     const ofOthers = [...fromScreen].filter((file) =>
-      /group-comparison|association-scatter|correlation-matrix/.test(file)
+      /group-comparison|association-scatter|correlation-matrix|stratified-survival/.test(file)
     );
-    expect(ofOthers.sort()).toEqual(['src/association-scatter.js', 'src/group-comparison.js']);
+    expect(ofOthers.sort()).toEqual([
+      'src/association-scatter.js',
+      'src/group-comparison.js',
+      'src/stratified-survival.js'
+    ]);
     for (const file of sourceFiles('src/biomarker-screen')) {
       expect(
         importsOf(file).filter((target) =>
-          /group-comparison|association-scatter|correlation-matrix/.test(target)
+          /group-comparison|association-scatter|correlation-matrix|stratified-survival/.test(target)
         ),
         file
       ).toEqual([]);
@@ -118,7 +136,15 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
   });
 
   it('BS-KIT-004: the chart’s source holds no statistical inference: no arithmetic of an estimate, an interval, a p-value or an adjustment, and nothing ordered by a key R did not return (#36)', () => {
-    const code = codeOf(screen);
+    // The one logarithm is where a hazard ratio sits on its logarithmic axis
+    // (#62), in placeOf: it places R's number, and works nothing out of it.
+    const placing = codeOf(['src/biomarker-screen/structureData.js']);
+    const start = placing.indexOf('export const placeOf');
+    const end = placing.indexOf('\n};', start) + 3;
+    const place = placing.slice(start, end);
+    expect(place.match(/Math\.log2\(/g)).toHaveLength(4);
+    // Only placeOf's own body is set aside: a logarithm anywhere else fails.
+    const code = codeOf(screen).replace(place, '');
     for (const marker of [
       /Math\.sqrt/,
       /Math\.exp\b|Math\.log|Math\.pow|\*\*/,

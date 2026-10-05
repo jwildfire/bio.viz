@@ -8,6 +8,12 @@
 // which holds `kit`, `settings`, `tables`, `state`, `host` and the shell's
 // slots; a chart's own file decides what is drawn and what R is asked.
 
+import { checkOutcomes } from './outcomes.js';
+import { VERSION, VERSION_SAID, automaticFootnote, dateDrawn, fillParts } from './titles.js';
+import { statisticsTable, toCsv } from './csv.js';
+import { drawFrame } from './png.js';
+import { writeSpecification } from './specification.js';
+
 // safety.viz's categorical palette, so a group keeps one colour across the two
 // libraries' charts on a page.
 export const PALETTE = [
@@ -91,7 +97,21 @@ ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
 ${root} .sv-listing th,${root} .sv-listing td{white-space:normal;overflow-wrap:anywhere}
 ${root} .sv-rail{max-width:100%;overflow-x:auto}
-${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}`;
+${root} .sv-footnote.bv-failure{color:#9b1c1c;font-weight:600}
+${root} .bv-titles{margin:0 0 .6rem;max-width:100%}
+${root} .bv-titles:empty{display:none}
+${root} .bv-title{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;color:#1f2933;overflow-wrap:anywhere}
+${root} .bv-subtitle{margin:.15rem 0 0;font-size:.9rem;color:#3e4c59;overflow-wrap:anywhere}
+${root} .bv-foot{margin:.7rem 0 0;padding:.4rem 0 0;border-top:1px solid #e4e8ec;font-size:.75rem;color:#52616f;max-width:100%}
+${root} .bv-foot p{margin:0 0 .2rem;overflow-wrap:anywhere}
+${root} .bv-downloads{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:.6rem 0 0;font-size:.8rem;color:#52616f}
+${root} .bv-downloads[hidden]{display:none}
+${root} .bv-downloads button{font:inherit;padding:.3rem .65rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+${root} .bv-downloads button:disabled{color:#8a96a3;cursor:default}
+${root} .bv-downloads button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+${root} .bv-notices{margin:0 0 .6rem;padding:.4rem .6rem;border-left:3px solid #d97706;background:#fff8eb;font-size:.8rem;color:#5c3b00}
+${root} .bv-notices:empty{display:none}
+${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-weight:600}`;
 
 /**
  * safety.viz's shell in the chart's element, with the chart's class on it, and
@@ -120,6 +140,24 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
   chart.statLine = kit.createElement('div', 'bv-statistic');
   chart.statLine.setAttribute('role', 'status');
   chart.footnote.after(chart.statLine);
+  // What a reader works the chart with, rather than what it shows, is left out
+  // of its picture (#70 review): the hint under it and the listing.
+  chart.footnote.classList.add('bv-no-picture');
+  chart.listingWrap.classList.add('bv-no-picture');
+  // The title and subtitle above everything the chart draws, and its
+  // footnotes under it, before the listing (#66).
+  chart.titleBlock = kit.createElement('div', 'bv-titles');
+  chart.main.prepend(chart.titleBlock);
+  // What a specification asked for that the data could not draw (#71 review).
+  chart.notices = [];
+  chart.noticeBlock = kit.createElement('div', 'bv-notices bv-no-picture');
+  chart.noticeBlock.setAttribute('role', 'status');
+  chart.titleBlock.after(chart.noticeBlock);
+  chart.footBlock = kit.createElement('div', 'bv-foot');
+  chart.listingWrap.before(chart.footBlock);
+  // The downloads, under the footnotes and out of the picture (#67).
+  chart.module = moduleClass.replace(/^bv-/, '');
+  mountDownloads(chart);
 
   // What the kit's listing and participant rail read and keep.
   chart.host = {
@@ -164,8 +202,10 @@ export function mountShell(chart, { moduleClass, styleId, styles, listingFile })
 
 /**
  * Checks that the tables have the columns the settings name: the results
- * table's id, biomarker, result and visit, and the participant table's id. A
- * column that is missing is refused with a `TypeError` that names it. A
+ * table's id, biomarker, result and visit, and the participant table's id; and
+ * that a cut variable in the settings cuts a biomarker the results table has, or
+ * a column one of the tables has. What is missing is refused with a `TypeError`
+ * that names it. A
  * chart checks this when it is given tables, and when its settings change.
  * @param {{results: object[], participants: ?object[]}} tables The tables.
  * @param {object} settings The settings.
@@ -190,7 +230,36 @@ export function checkTables(tables, settings) {
         'participant (`participant_id_col`, or `id_col` when that is not set).'
     );
   }
+  // A cut variable cuts a biomarker the results table has, or a column one of
+  // the tables has: otherwise it could make no group.
+  if (!tables.results.length) return;
+  const cuts = GROUPINGS.map((key) => [key, settings[key]]);
+  (Array.isArray(settings.cuts) ? settings.cuts : []).forEach((spec, index) =>
+    cuts.push([`cuts[${index}]`, spec])
+  );
+  for (const [key, spec] of cuts) {
+    if (!spec || typeof spec !== 'object' || Array.isArray(spec)) continue;
+    if (typeof spec.measure === 'string') {
+      if (!tables.results.some((row) => row[settings.measure_col] === spec.measure)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the biomarker ${spec.measure}, which the results table does ` +
+            'not have.'
+        );
+      }
+    } else if (typeof spec.col === 'string') {
+      const has = (rows) => Boolean(rows) && rows.some((row) => spec.col in row);
+      if (!has(tables.results) && !has(tables.participants)) {
+        throw new TypeError(
+          `bio.viz: \`${key}\` cuts the column ${spec.col}, which neither the results table nor ` +
+            'the participant table has.'
+        );
+      }
+    }
+  }
 }
+
+// The settings that may hold a cut variable, in any chart.
+const GROUPINGS = ['group_by', 'panel_by', 'row_by', 'col_by'];
 
 /**
  * The tables a chart was given, checked: `{ results, participants }`, or a
@@ -228,6 +297,33 @@ export function readGiven(chart, data, settings = chart.settings) {
 }
 
 /**
+ * The outcomes table a chart was given, checked: an array of records with the
+ * columns the settings name, or null when there is none or it is empty. A
+ * table the chart cannot read is refused with a `TypeError`, and its message is
+ * shown in the chart's element.
+ *
+ * @param {object} chart The chart.
+ * @param {*} outcomes What `init` or `setData` was given as `outcomes`.
+ * @param {object} settings The settings the table is read with.
+ * @returns {?object[]} The outcomes table.
+ */
+export function readOutcomesGiven(chart, outcomes, settings) {
+  if (outcomes === undefined || outcomes === null) return null;
+  try {
+    if (!isRecordTable(outcomes)) {
+      throw new TypeError('bio.viz: `outcomes` must be an array of records, one object per row.');
+    }
+    checkOutcomes(outcomes, settings);
+  } catch (error) {
+    chart.destroyCharts();
+    chart.element.innerHTML = '';
+    chart.element.append(chart.kit.createElement('div', 'sv-warning', error.message));
+    throw error;
+  }
+  return outcomes.length ? outcomes : null;
+}
+
+/**
  * Draws the chart, and when drawing fails says so in the chart's element
  * instead of leaving a page half drawn. Whatever was drawn is taken away, the
  * statistics round is ended so no answer lands on it, the footnote says why the
@@ -241,6 +337,7 @@ export function drawSafely(chart, draw) {
   chart.footnote.classList.remove('bv-failure');
   try {
     draw();
+    writeTitles(chart);
   } catch (error) {
     if (chart.desk) chart.desk.begin();
     chart.asked = [];
@@ -266,7 +363,403 @@ export function drawSafely(chart, draw) {
     chart.footnote.textContent = `This chart could not be drawn: ${message}`;
     chart.footnote.classList.add('bv-failure');
     console.error(error);
+    writeTitles(chart);
   }
+}
+
+// ---- The title, the subtitle and the footnotes -------------------------------------
+
+/**
+ * What every chart's placeholders hold, beside its own: the date drawn, the
+ * bio.viz version and the filters in force, in words.
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function sharedPlaceholders(chart) {
+  const filters =
+    chart.filterSpecs && chart.state && chart.state.filters ? filtersForScope(chart) : [];
+  return {
+    date: dateDrawn(),
+    version: VERSION_SAID,
+    filters: filters.length
+      ? filters.map(({ label, values }) => `${label} is ${values.join(' or ')}`).join('; ')
+      : 'none'
+  };
+}
+
+/**
+ * The values a chart's title, subtitle and footnotes are filled from: what
+ * every chart has, and the chart's own (`chart.placeholders()`).
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function placeholderValues(chart) {
+  let own = {};
+  try {
+    own = typeof chart.placeholders === 'function' ? chart.placeholders() || {} : {};
+  } catch (error) {
+    // The title is still drawn, its own placeholders left as written; the
+    // error is the chart's, and is said where a developer will see it.
+    console.error('bio.viz: the chart’s placeholders could not be read.', error);
+    own = {};
+  }
+  return { ...sharedPlaceholders(chart), ...own };
+}
+
+/**
+ * The title, subtitle and footnotes as they read now, filled, with the
+ * footnote the chart writes last.
+ * @param {object} chart The chart.
+ * @returns {{title: ?string, subtitle: ?string, footnotes: string[]}}
+ */
+export function titlesOf(chart) {
+  const parts = partsOf(chart);
+  const joined = (runs) => (runs === null ? null : runs.map((run) => run.text).join(''));
+  return {
+    title: joined(parts.title),
+    subtitle: joined(parts.subtitle),
+    footnotes: parts.footnotes.map(joined)
+  };
+}
+
+// The title, subtitle and footnotes as runs of text, each placeholder's value a
+// run of its own. A title or subtitle of only white space is none.
+function partsOf(chart) {
+  const { settings } = chart;
+  const values = placeholderValues(chart);
+  const filled = (template) =>
+    typeof template !== 'string' || template.trim() === '' ? null : fillParts(template, values);
+  return {
+    title: filled(settings.title),
+    subtitle: filled(settings.subtitle),
+    footnotes: [
+      ...(settings.footnotes || []).map(filled).filter(Boolean),
+      [
+        {
+          text: automaticFootnote({
+            date: values.date,
+            version: VERSION_SAID,
+            asked: chart.asked || [],
+            of: chart.footnoteCounts
+          }),
+          value: false
+        }
+      ]
+    ]
+  };
+}
+
+// Text into an element as text: each placeholder's value in a <bdi>, so a value
+// written right to left keeps to itself.
+function writeRuns(kit, element, runs) {
+  for (const run of runs) {
+    if (run.value) {
+      const isolated = document.createElement('bdi');
+      isolated.textContent = run.text;
+      element.append(isolated);
+    } else element.append(document.createTextNode(run.text));
+  }
+}
+
+/**
+ * Writes the title, the subtitle and the footnotes, as text. A chart calls it
+ * when it has drawn, which drawSafely does, and when an answer from R arrives.
+ * @param {object} chart The chart, with `titleBlock` and `footBlock`.
+ */
+export function writeTitles(chart) {
+  if (!chart.titleBlock || !chart.footBlock) return;
+  const { kit } = chart;
+  const said = partsOf(chart);
+  chart.titleBlock.innerHTML = '';
+  if (said.title !== null) {
+    const title = kit.createElement('div', 'bv-title');
+    title.setAttribute('role', 'heading');
+    title.setAttribute('aria-level', '2');
+    writeRuns(kit, title, said.title);
+    chart.titleBlock.append(title);
+  }
+  if (said.subtitle !== null) {
+    const subtitle = kit.createElement('p', 'bv-subtitle');
+    writeRuns(kit, subtitle, said.subtitle);
+    chart.titleBlock.append(subtitle);
+  }
+  chart.footBlock.innerHTML = '';
+  said.footnotes.forEach((runs, index) => {
+    const line = kit.createElement('p', 'bv-foot-line');
+    writeRuns(kit, line, runs);
+    if (index === said.footnotes.length - 1) line.dataset.automatic = 'true';
+    chart.footBlock.append(line);
+  });
+  syncDownloads(chart);
+  writeNotices(chart);
+}
+
+// ---- What a specification asked for that the data could not draw -------------------
+
+/** What a setting is called in a notice: its control's name, or the setting. */
+const SETTING_NAMES = Object.freeze({
+  row_by: 'Rows',
+  col_by: 'Columns',
+  group_by: 'Groups',
+  color_by: 'Colour',
+  panel_by: 'Panels',
+  start_value: 'Biomarker',
+  measure: 'Biomarker',
+  biomarkers: 'Biomarkers',
+  visit: 'Visit',
+  visits: 'Visits',
+  endpoint: 'Endpoint',
+  comparison: 'Compare',
+  x: 'X axis',
+  y: 'Y axis',
+  with: 'With'
+});
+
+const said = (value) =>
+  typeof value === 'string'
+    ? value
+    : Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+      ? value.join(', ')
+      : JSON.stringify(value);
+
+/**
+ * What a chart made from a specification draws other than the specification
+ * asks, setting by setting and filter by filter, once the chart has its
+ * tables: `{ kind, name, asked, drawn, said }`, `kind` `setting` or `filter`.
+ * @param {object} chart The chart, made by `fromSpecification`.
+ * @returns {object[]}
+ */
+export function noticesOf(chart) {
+  const { requested, settings } = chart;
+  if (!requested) return [];
+  const notices = [];
+  const view = typeof chart.viewSettings === 'function' ? chart.viewSettings() : {};
+  for (const key of Object.keys(view)) {
+    if (!Object.hasOwn(requested.settings, key)) continue;
+    const asked = settings[key];
+    if (asked === null || asked === undefined) continue;
+    const drawn = view[key];
+    if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
+    const name = SETTING_NAMES[key] || `\`${key}\``;
+    notices.push({
+      kind: 'setting',
+      name: key,
+      asked,
+      drawn,
+      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
+    });
+  }
+  const id = settings.participant_id_col || settings.id_col;
+  for (const filter of requested.filters || []) {
+    const spec = (chart.filterSpecs || []).find((entry) => entry.value_col === filter.column);
+    if (!spec) {
+      notices.push({
+        kind: 'filter',
+        name: filter.column,
+        asked: filter.values,
+        drawn: null,
+        said:
+          filter.column === id
+            ? `Filter ${filter.column}: the participant id is not a filter.`
+            : `Filter ${filter.column}: the participant table has no such column, so it is not a filter.`
+      });
+      continue;
+    }
+    const now = (chart.state.filters || {})[filter.column];
+    const drawn =
+      now === null || now === undefined || now === ''
+        ? null
+        : (Array.isArray(now) ? now : [now]).map(String);
+    if (drawn !== null && JSON.stringify(drawn) === JSON.stringify(filter.values)) continue;
+    const missing = filter.values.filter((value) => !(drawn || []).includes(value));
+    notices.push({
+      kind: 'filter',
+      name: filter.column,
+      asked: filter.values,
+      drawn,
+      said: `Filter ${filter.column}: ${missing.join(', ')} ${missing.length === 1 ? 'is not one of its values' : 'are not among its values'}, so it is at ${drawn === null ? 'All' : drawn.join(', ')}.`
+    });
+  }
+  return notices;
+}
+
+// The notices, worked out once the chart has drawn on its first tables, and
+// said above the chart.
+function writeNotices(chart) {
+  if (!chart.noticeBlock) return;
+  if (chart.requested && !chart.noticed && chart.tables && chart.tables.results.length) {
+    chart.noticed = true;
+    chart.notices = noticesOf(chart);
+  }
+  chart.noticeBlock.textContent = chart.notices.length
+    ? `Not drawn as the specification asks: ${chart.notices.map((notice) => notice.said).join(' ')}`
+    : '';
+}
+
+// ---- The downloads -------------------------------------------------------------
+
+/** What each download is called on its button. */
+export const DOWNLOAD_LABELS = Object.freeze({
+  png: 'PNG',
+  statistics: 'Statistics (CSV)',
+  table: 'Table (CSV)'
+});
+
+// Text as part of a file name: lower case, words joined by hyphens.
+const slug = (text) =>
+  String(text)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    // At most 60 characters, cut where a word ends.
+    .replace(/^(.{0,60})(?:-.*)?$/, (whole, kept) => (whole.length <= 60 ? whole : kept))
+    .replace(/-+$/g, '');
+
+/**
+ * The name a download is saved under: the chart, the view, and what it is.
+ * `bio.viz-cross-tab-arm-by-response.png`, `…-statistics.csv`, `…-table.csv`.
+ * @param {object} chart The chart.
+ * @param {string} kind `png`, `statistics` or `table`.
+ * @returns {string}
+ */
+export function downloadName(chart, kind) {
+  const values = placeholderValues(chart);
+  const view = (chart.viewFields || [])
+    .map((name) => values[name])
+    .filter((value) => value !== null && value !== undefined && String(value).trim() !== '')
+    .join(' ');
+  const base = ['bio.viz', chart.module, slug(view)].filter(Boolean).join('-');
+  return kind === 'png' ? `${base}.png` : `${base}-${kind}.csv`;
+}
+
+/**
+ * One download of a chart, as a file: the chart's frame as a PNG, the
+ * statistics R returned for the view as CSV, or the table the chart drew from
+ * as CSV.
+ * @param {object} chart The chart.
+ * @param {string} kind `png`, `statistics` or `table`.
+ * @returns {Promise<{name: string, blob: Blob}>}
+ */
+export async function downloadFile(chart, kind) {
+  const name = downloadName(chart, kind);
+  if (kind === 'statistics') {
+    const { columns, rows } = statisticsTable(chart.asked || []);
+    return { name, blob: new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }) };
+  }
+  if (kind === 'table') {
+    const { columns, rows } =
+      typeof chart.tableOf === 'function' ? chart.tableOf() : { columns: [], rows: [] };
+    return { name, blob: new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }) };
+  }
+  if (kind === 'png') {
+    const said = titlesOf(chart);
+    const scale = chart.settings.png_scale;
+    // Each Chart.js chart drawn again at the picture's resolution, so its
+    // canvas is as sharp as the rest, and back as it was afterwards.
+    const charts = (chart.charts || []).filter(
+      (made) => made && made.options && typeof made.resize === 'function'
+    );
+    const ratios = charts.map((made) => made.options.devicePixelRatio);
+    const sharpen = (ratio) =>
+      charts.forEach((made, i) => {
+        made.options.devicePixelRatio = ratio === null ? ratios[i] : ratio;
+        made.resize();
+      });
+    sharpen(Math.max(scale, globalThis.devicePixelRatio || 1));
+    try {
+      const { blob } = await drawFrame(chart.main, {
+        scale,
+        // What a reader works the chart with is marked to be left out.
+        leaveOut: (element) => element.classList.contains('bv-no-picture'),
+        text: {
+          Title: [said.title, said.subtitle].filter(Boolean).join(' — '),
+          Description: said.footnotes.join('\n'),
+          Software: `bio.viz ${VERSION_SAID}`
+        }
+      });
+      return { name, blob };
+    } finally {
+      sharpen(null);
+    }
+  }
+  throw new TypeError(
+    `bio.viz: a download is \`png\`, \`statistics\` or \`table\`, not \`${kind}\`.`
+  );
+}
+
+// The bar under the footnotes: a button for each download.
+function mountDownloads(chart) {
+  const { kit } = chart;
+  chart.downloadBar = kit.createElement('div', 'bv-downloads bv-no-picture');
+  chart.downloadBar.append(kit.createElement('span', 'bv-downloads-label', 'Download:'));
+  chart.downloadButtons = {};
+  for (const [kind, label] of Object.entries(DOWNLOAD_LABELS)) {
+    const button = kit.createElement('button', null, label);
+    button.type = 'button';
+    button.dataset.download = kind;
+    button.onclick = async () => {
+      button.disabled = true;
+      sayFailure(chart, null);
+      try {
+        const { name, blob } = await downloadFile(chart, kind);
+        saveFile(blob, name);
+      } catch (error) {
+        // Said where the reader sees it, and where a developer does.
+        sayFailure(
+          chart,
+          `The ${kind === 'png' ? 'PNG' : `${kind} file`} could not be made: ${String((error && error.message) || error).replace(/^bio\.viz: /, '')}`
+        );
+        console.error(error);
+      } finally {
+        syncDownloads(chart);
+      }
+    };
+    chart.downloadButtons[kind] = button;
+    chart.downloadBar.append(button);
+  }
+  chart.footBlock.after(chart.downloadBar);
+  /**
+   * One download, as a file, without saving it: see `downloadFile`.
+   * @param {string} kind `png`, `statistics` or `table`.
+   */
+  chart.fileOf = (kind) => downloadFile(chart, kind);
+}
+
+// A download that failed, said in the bar; null takes the sentence away.
+function sayFailure(chart, said) {
+  const old = chart.downloadBar.querySelector('.bv-download-error');
+  if (old) old.remove();
+  if (!said) return;
+  const line = chart.kit.createElement('p', 'bv-download-error', said);
+  line.setAttribute('role', 'alert');
+  chart.downloadBar.append(line);
+}
+
+// Which downloads there is something to download for.
+function syncDownloads(chart) {
+  if (!chart.downloadBar) return;
+  chart.downloadBar.hidden = !chart.settings.downloads;
+  const answered = (chart.asked || []).some(
+    (entry) => entry.answer && entry.answer.status === 'ok'
+  );
+  const table = typeof chart.tableOf === 'function' ? chart.tableOf() : { rows: [] };
+  // A view that asks R nothing has no statistics to offer; one that waits for
+  // R's answer offers them once it comes.
+  const { png, statistics } = chart.downloadButtons;
+  if (!(chart.asked || []).length) statistics.remove();
+  else if (!statistics.isConnected) png.after(statistics);
+  const waiting = (chart.asked || []).some((entry) => !entry.answer);
+  statistics.disabled = !answered;
+  statistics.title = answered
+    ? ''
+    : waiting
+      ? 'Waiting for R’s answer.'
+      : 'R returned no statistics for this view.';
+  if (!statistics.title) statistics.removeAttribute('title');
+  chart.downloadButtons.table.disabled = !table.rows.length;
+  chart.downloadButtons.png.disabled = false;
 }
 
 /** The settings the kit's listing and rail read, after the chart's settings change. */
@@ -456,13 +949,24 @@ export function clearListing(chart) {
  * @param {string} file The name the file is downloaded under.
  */
 export function downloadCsv(kit, rows, columns, file) {
-  const blob = new Blob([kit.buildCsv(rows, columns)], { type: 'text/csv' });
+  saveFile(new Blob([toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }), file);
+}
+
+/**
+ * Saves a file the way safety.viz's kit saves its listing: a link to the file,
+ * clicked, and let go.
+ * @param {Blob} blob The file.
+ * @param {string} name Its name.
+ */
+export function saveFile(blob, name) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = file;
+  link.download = name;
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 /** Downloads the rows the listing shows, searched and sorted as it shows them, as CSV. */
@@ -571,7 +1075,8 @@ export function renderPager(kit, page, count, go) {
   pager.append(kit.createElement('span', 'bv-overview-count', count));
   if (page.pages === 1) return pager;
   const button = (label, to, name) => {
-    const made = kit.createElement('button', null, label);
+    // A control: left out of the chart's picture (#70 review).
+    const made = kit.createElement('button', 'bv-no-picture', label);
     made.type = 'button';
     made.dataset.go = name;
     made.disabled = to < 0 || to >= page.pages;
@@ -599,7 +1104,7 @@ export function renderPager(kit, page, count, go) {
 export function mountToolbar(chart) {
   const { kit, settings } = chart;
   if (!chart.toolbar) {
-    chart.toolbar = kit.createElement('div', 'bv-toolbar');
+    chart.toolbar = kit.createElement('div', 'bv-toolbar bv-no-picture');
     chart.notes.before(chart.toolbar);
   }
   chart.toolbar.innerHTML = '';
@@ -620,3 +1125,85 @@ ${C} .bv-toolbar:empty{display:none}
 ${C} .bv-toolbar button{font:inherit;font-size:.85rem;padding:.35rem .75rem;border:1px solid #b8c0cc;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
 ${C} .bv-toolbar button[aria-pressed=true]{border-color:#0b62a4;background:#eaf2fb;color:#0b3d63;box-shadow:inset 0 0 0 1px #0b62a4}
 ${C} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}`;
+
+// ---- The specification -----------------------------------------------------------
+
+/**
+ * A chart's specification (#68): every setting, as its controls now read, and
+ * every filter in force, as JSON data (src/shared/specification.js). The chart's
+ * `viewSettings()` says what its controls read as settings.
+ * @param {object} chart The chart.
+ * @returns {object}
+ */
+export function specificationOf(chart) {
+  const settings = {
+    ...chart.settings,
+    ...(typeof chart.viewSettings === 'function' ? chart.viewSettings() : {})
+  };
+  // The filters offered, as the chart offers them, each without where it
+  // starts: where a filter is now is in the specification's filters.
+  const specs = chart.filterSpecs || [];
+  if (specs.length || settings.filters !== null) {
+    settings.filters = specs.map((spec) => ({
+      value_col: spec.value_col,
+      label: spec.label,
+      ...(spec.all === false ? { all: false } : {}),
+      ...(spec.multiple ? { multiple: true } : {})
+    }));
+  }
+  const filters = specs
+    .map((spec) => ({
+      column: spec.value_col,
+      selection: (chart.state.filters || {})[spec.value_col]
+    }))
+    .filter(({ selection }) => selection !== null && selection !== undefined && selection !== '')
+    // A filter of several values unticked to none is in force, and lets nobody
+    // through: it is written with no values (#71 review).
+    .map(({ column, selection }) => ({
+      column,
+      values: (Array.isArray(selection) ? selection : [selection]).map(String)
+    }));
+  return writeSpecification({ chart: chart.module, version: VERSION, settings, filters });
+}
+
+/**
+ * Where each filter starts, as the kit reads the filters, with one more case
+ * the kit reads as All: a filter of several values that starts at none, which
+ * a reader who unticks every value leaves, and a specification writes (#71
+ * review).
+ * @param {object} chart The chart, with `kit`, `filterSpecs` and `settings`.
+ * @returns {object} What each filter is set to, by its column.
+ */
+export function startFilters(chart) {
+  const state = chart.kit.initFilterState(chart.filterSpecs);
+  for (const spec of chart.settings.filters || []) {
+    if (
+      spec &&
+      spec.multiple &&
+      Array.isArray(spec.start) &&
+      !spec.start.length &&
+      Object.hasOwn(state, spec.value_col)
+    ) {
+      state[spec.value_col] = [];
+    }
+  }
+  return state;
+}
+
+/**
+ * The cut variables a chart's controls offer, but the ones drawn: the `cuts`
+ * a specification keeps so the controls offer the same again.
+ * @param {Array<{spec: object}>} options The chart's cut options.
+ * @param {Array<*>} drawn The groupings drawn, which their own settings hold.
+ * @returns {?object[]}
+ */
+export function cutsOffered(options, drawn) {
+  const written = new Set(drawn.map((entry) => JSON.stringify(entry)));
+  const cuts = [];
+  for (const { spec } of options || []) {
+    const key = JSON.stringify(spec);
+    if (written.has(key) || cuts.some((entry) => JSON.stringify(entry) === key)) continue;
+    cuts.push(spec);
+  }
+  return cuts.length ? cuts : null;
+}

@@ -19,6 +19,9 @@ tests/fixtures/group-statistics-r.json
 tests/fixtures/association-statistics-r.json
 tests/fixtures/matrix-statistics-r.json
 tests/fixtures/screen-statistics-r.json
+tests/fixtures/cut-r.json
+tests/fixtures/cross-tab-r.json
+tests/fixtures/stratified-survival-r.json
 site/r-check/measured.json
 site/r-check/data/
 
@@ -38,3 +41,11 @@ site/vendor/
 # safety.viz's portfolio manifest format, copied byte for byte by
 # tools/vendor-portfolio-schema.mjs, with its record.
 src/data/schema/
+
+# Written by tools/write-specification-schema.mjs, and checked against it by the
+# unit tests: the tool is its formatter.
+src/data/specification.schema.json
+
+# Each evidence picture's record of the versions it draws, written beside it by
+# the browser suite (tests/e2e/evidence.js) when the picture is written.
+docs/evidence/*/*.drawn.json

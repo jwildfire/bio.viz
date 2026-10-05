@@ -5,6 +5,7 @@
 
 import { BASELINE_STATS } from '../core/settings.js';
 import { VALUE_TYPES } from '../core/variable.js';
+import { OUTCOME_DEFAULTS, checkOutcomeSettings, flaggedSettings } from '../shared/outcomes.js';
 import {
   checkShared,
   columnOrNull,
@@ -16,9 +17,13 @@ import {
   textList,
   variableSetting
 } from '../shared/settings.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
-/** What a row of the screen is: a difference between two groups, or a correlation with one variable. */
-export const COMPARISONS = Object.freeze(['difference', 'correlation']);
+/**
+ * What a row of the screen is: a difference between two groups, a correlation
+ * with one variable, or a hazard ratio for high against low on an endpoint.
+ */
+export const COMPARISONS = Object.freeze(['difference', 'correlation', 'hazard']);
 
 /** The coefficients a correlation can be, by the names `cor.test` gives them. */
 export const METHODS = Object.freeze(['pearson', 'spearman']);
@@ -54,11 +59,23 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // A correlation: the variable every biomarker is correlated with.
   with: null,
   method: 'pearson',
+  // A hazard ratio: the outcomes table's columns, read either way round, and
+  // the endpoint the rows are of. Each biomarker is cut at its median, high
+  // against low, as R's Analyze_Screen cuts it.
+  outcome_id_col: OUTCOME_DEFAULTS.outcome_id_col,
+  endpoint_col: OUTCOME_DEFAULTS.endpoint_col,
+  endpoint_label_col: OUTCOME_DEFAULTS.endpoint_label_col,
+  time_col: OUTCOME_DEFAULTS.time_col,
+  censor_col: OUTCOME_DEFAULTS.censor_col,
+  event_col: OUTCOME_DEFAULTS.event_col,
+  endpoint: OUTCOME_DEFAULTS.endpoint,
   // Across the rows.
   adjustment: 'BH',
   sort: 'estimate',
   // The most rows on a page.
   limit: 20,
+  // The page of rows it opens on, from 0 (#71 review).
+  page: 0,
   // What the controls offer.
   measures: null,
   groups: null,
@@ -71,7 +88,12 @@ export const DEFAULT_SETTINGS = Object.freeze({
   waiting_note: null,
   // The charts a row opens, and settings laid under what the screen carries across.
   group_comparison: null,
-  association_scatter: null
+  association_scatter: null,
+  stratified_survival: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**
@@ -82,8 +104,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
  * @returns {object} The settings the chart reads.
  */
 export function syncSettings(overrides) {
-  const settings = layOver(DEFAULT_SETTINGS, overrides, 'the biomarker screen');
+  const settings = layOver(DEFAULT_SETTINGS, flaggedSettings(overrides), 'the biomarker screen');
   checkShared(settings, BASELINE_STATS);
+  checkOutcomeSettings(settings);
 
   for (const key of ['visit_order_col', 'unit_col', 'participant_id_col', 'group_by']) {
     columnOrNull(settings, key);
@@ -104,6 +127,9 @@ export function syncSettings(overrides) {
     refuse(`\`adjustment\` must be one of ${ADJUSTMENTS.join(', ')}.`);
   }
   if (!SORTS.includes(settings.sort)) refuse(`\`sort\` must be one of ${SORTS.join(', ')}.`);
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse('`page` must be a whole number, from 0: the page of rows it opens on.');
+  }
   if (!Number.isInteger(settings.limit) || settings.limit < 1) {
     refuse('`limit` must be a whole number, one or more.');
   }
@@ -113,7 +139,7 @@ export function syncSettings(overrides) {
   if (settings.statistic !== null && !isText(settings.statistic)) {
     refuse('`statistic` must be the name of an R function, or null for no statistics.');
   }
-  for (const key of ['group_comparison', 'association_scatter']) {
+  for (const key of ['group_comparison', 'association_scatter', 'stratified_survival']) {
     if (settings[key] !== null && !isPlainObject(settings[key])) {
       refuse(`\`${key}\` must be an object of settings for the chart a row opens, or null.`);
     }

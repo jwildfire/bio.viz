@@ -1,6 +1,6 @@
 // `npm run fixtures:check`: reruns each R script that writes a committed
 // fixture, in desktop R, and compares what it writes with the committed file, so
-// a fixture can only be what its script produces. Six fixtures:
+// a fixture can only be what its script produces. Nine fixtures:
 //
 //   tools/r-fixtures.R           site/r-check/expected.json, the expected
 //                                results on the R check page
@@ -20,6 +20,17 @@
 //   tools/r-screen-statistics.R  tests/fixtures/screen-statistics-r.json, the
 //                                same for the frames the biomarker screen
 //                                hands R
+//   tools/r-cut.R                tests/fixtures/cut-r.json, the cut points
+//                                stats::quantile() gives and the groups
+//                                base::cut() makes, which the core's cut rule
+//                                is held to
+//   tools/r-survival.R           tests/fixtures/stratified-survival-r.json,
+//                                each group's survfit() estimate and what
+//                                gsm.bio's Analyze_Survival answers
+//   tools/r-cross-tab.R          tests/fixtures/cross-tab-r.json, the
+//                                cross-tabulation's counts, totals and
+//                                percentages, and what gsm.bio's
+//                                Analyze_Contingency answers for them
 //
 //   node scripts/check-r-fixtures.mjs               compare when R is installed;
 //                                                   say so loudly and exit 0
@@ -75,6 +86,17 @@ const FIXTURES = [
     script: 'tools/r-screen-statistics.R',
     committed: 'tests/fixtures/screen-statistics-r.json',
     body: ['results', 'recipes']
+  },
+  { script: 'tools/r-cut.R', committed: 'tests/fixtures/cut-r.json', body: 'cases' },
+  {
+    script: 'tools/r-cross-tab.R',
+    committed: 'tests/fixtures/cross-tab-r.json',
+    body: ['cases', 'blank_code_points']
+  },
+  {
+    script: 'tools/r-survival.R',
+    committed: 'tests/fixtures/stratified-survival-r.json',
+    body: 'cases'
   }
 ];
 const requireR = process.argv.includes('--require-r');

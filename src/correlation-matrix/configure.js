@@ -15,6 +15,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
 /**
  * What the grid's variables are: several biomarkers at one visit, or one
@@ -67,7 +68,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
   min_pairs: null,
   waiting_note: null,
   // The association scatter a cell opens.
-  scatter: null
+  scatter: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**
@@ -126,8 +131,8 @@ export function syncSettings(overrides) {
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
-  settings.biomarkers = textList(settings.biomarkers, 'biomarkers');
-  settings.visits = textList(settings.visits, 'visits');
+  settings.biomarkers = textList(settings.biomarkers, 'biomarkers', { empty: true });
+  settings.visits = textList(settings.visits, 'visits', { empty: true });
   settings.measures = textList(settings.measures, 'measures');
   settings.filters = fieldList(settings.filters, 'filters');
   return settings;

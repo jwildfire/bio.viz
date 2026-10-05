@@ -6,7 +6,9 @@
 // `run` always resolves, to one of three results:
 //
 //   { status: 'ok', value, form }             what R returned; form says which
-//                                             form answered
+//                                             form answered, and a stored
+//                                             result carries `computedBy` when
+//                                             the connection was told it
 //   { status: 'unavailable', reason, message } no R answered; the chart still
 //                                             draws and prints the message
 //   { status: 'error', message }              R ran and reported an error
@@ -76,6 +78,30 @@ function readBrowser(browser) {
   };
 }
 
+// Which R computed the stored results: `{ r_version, gsm_bio_version,
+// computed_at }`, each text, as gsm.bio's widget writes it, or nothing.
+function readComputedBy(computedBy) {
+  if (computedBy === undefined || computedBy === null) return null;
+  const text = (value) => typeof value === 'string' && value.trim() !== '';
+  if (
+    !isPlainObject(computedBy) ||
+    !text(computedBy.r_version) ||
+    (computedBy.gsm_bio_version !== undefined && !text(computedBy.gsm_bio_version)) ||
+    (computedBy.computed_at !== undefined && !text(computedBy.computed_at))
+  ) {
+    throw new TypeError(
+      'bio.viz: `computedBy` must be { r_version, gsm_bio_version, computed_at }, each text: ' +
+        'which R computed the stored results.'
+    );
+  }
+  const { r_version, gsm_bio_version, computed_at } = computedBy;
+  return Object.freeze({
+    r_version,
+    ...(gsm_bio_version === undefined ? {} : { gsm_bio_version }),
+    ...(computed_at === undefined ? {} : { computed_at })
+  });
+}
+
 // Why a call cannot be made at all, or null. These are mistakes in the calling
 // code; they are answered like any other failure so that a chart never needs a
 // try/catch around `run`.
@@ -102,6 +128,11 @@ function misuse(name, request) {
  * @param {Array<{name: string, args?: object, dataId: *, rows?: number, value: *}>} [options.results]
  *   The precomputed form: stored results, each found by its function name,
  *   arguments and data identity together.
+ * @param {{r_version: string, gsm_bio_version?: string, computed_at?: string}} [options.computedBy]
+ *   Which R computed the stored results, as gsm.bio's widget records it:
+ *   `r_version` always, `gsm_bio_version` and `computed_at` (ISO 8601) when
+ *   known. An answer from them carries it as `computedBy`, and a chart's
+ *   footnote names the versions and the date.
  * @param {object} [options.browser] The browser form: R started in the page on
  *   the first run that needs it.
  * @param {string} [options.browser.source] R source text defining the functions
@@ -120,6 +151,7 @@ export function createConnection(options = {}) {
     throw new TypeError('bio.viz: createConnection takes an object of settings.');
   }
   const store = createStore(options.results);
+  const computedBy = readComputedBy(options.computedBy);
   const browser = readBrowser(options.browser);
 
   // The one start this connection shares between every call that needs R. A
@@ -146,7 +178,16 @@ export function createConnection(options = {}) {
       let missed = null;
       if (store) {
         const found = lookUp(store, name, { data, args, dataId });
-        if (found.hit) return { status: 'ok', value: found.value, form: 'precomputed' };
+        if (found.hit) {
+          return computedBy
+            ? {
+                status: 'ok',
+                value: found.value,
+                form: 'precomputed',
+                computedBy: { ...computedBy }
+              }
+            : { status: 'ok', value: found.value, form: 'precomputed' };
+        }
         missed = found.message;
       }
 

@@ -29,15 +29,16 @@ if (result.status === 'ok') {
 
 Returns a frozen object with one method, `run`. Creating a connection loads nothing and requests nothing.
 
-| Option              | Type             | Meaning                                                                                                                                                                      |
-| ------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `results`           | array            | The precomputed form: [stored results](#stored-results). Omit for none.                                                                                                      |
-| `browser`           | object           | The browser form: R started in the page on the first run that needs it. Omit for none. `{}` is enough to reach base R.                                                       |
-| `browser.source`    | string           | R source text that defines the functions to call. Evaluated once, when R starts.                                                                                             |
-| `browser.sourceUrl` | string           | Instead of `source`: the URL of that file. Fetched on the first run, not before. Give one or the other.                                                                      |
-| `browser.packages`  | array of strings | R packages to install and attach before the source is evaluated, for example `['survival']`.                                                                                 |
-| `browser.baseUrl`   | string           | Where webR is served from. Default `https://webr.r-wasm.org/v0.6.0/`. A deployment that serves its own copy gives its location; relative locations resolve against the page. |
-| `browser.engine`    | object           | Something else to reach R with, in place of webR: `{ start(config), call(name, { data, args }) }`. Used by the tests.                                                        |
+| Option              | Type             | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `results`           | array            | The precomputed form: [stored results](#stored-results). Omit for none.                                                                                                                                                                                                                                                                                                                                                   |
+| `computedBy`        | object           | Which R computed the stored results: `{ r_version, gsm_bio_version, computed_at }`, each text, as gsm.bio's widget records them; `r_version` is needed, the other two may be left out, and `computed_at` is ISO 8601. An answer from the stored results carries it as `computedBy`, and a chart's [last footnote](output.md#the-footnote-the-chart-writes) names the versions and the date. Omit when they are not known. |
+| `browser`           | object           | The browser form: R started in the page on the first run that needs it. Omit for none. `{}` is enough to reach base R.                                                                                                                                                                                                                                                                                                    |
+| `browser.source`    | string           | R source text that defines the functions to call. Evaluated once, when R starts.                                                                                                                                                                                                                                                                                                                                          |
+| `browser.sourceUrl` | string           | Instead of `source`: the URL of that file. Fetched on the first run, not before. Give one or the other.                                                                                                                                                                                                                                                                                                                   |
+| `browser.packages`  | array of strings | R packages to install and attach before the source is evaluated, for example `['survival']`.                                                                                                                                                                                                                                                                                                                              |
+| `browser.baseUrl`   | string           | Where webR is served from. Default `https://webr.r-wasm.org/v0.6.0/`. A deployment that serves its own copy gives its location; relative locations resolve against the page.                                                                                                                                                                                                                                              |
+| `browser.engine`    | object           | Something else to reach R with, in place of webR: `{ start(config), call(name, { data, args }) }`. Used by the tests.                                                                                                                                                                                                                                                                                                     |
 
 A malformed option throws a `TypeError` when the connection is created. That is the only place this interface throws.
 
@@ -56,11 +57,11 @@ Asks R to call the function `name` with the table first and the arguments after 
 
 `run` returns a promise that always resolves, to one of three results. It never rejects.
 
-| Result                                       | When                                                                                                            |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `{ status: 'ok', value, form }`              | R answered. `value` is what the function returned. `form` is `'precomputed'` or `'browser'`.                    |
-| `{ status: 'unavailable', reason, message }` | No R answered. The chart still draws; `message` is a sentence it can print. `reason` is one of the codes below. |
-| `{ status: 'error', message }`               | R ran and stopped with an error. `message` is R's own message, with nothing added.                              |
+| Result                                       | When                                                                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `{ status: 'ok', value, form }`              | R answered. `value` is what the function returned. `form` is `'precomputed'` or `'browser'`. A stored result also carries `computedBy` when the connection was given it. |
+| `{ status: 'unavailable', reason, message }` | No R answered. The chart still draws; `message` is a sentence it can print. `reason` is one of the codes below.                                                          |
+| `{ status: 'error', message }`               | R ran and stopped with an error. `message` is R's own message, with nothing added.                                                                                       |
 
 Reasons a result is unavailable:
 
@@ -134,6 +135,8 @@ A call is answered by a stored result only when all of these hold:
 
 Anything else is a miss, answered `unavailable` with reason `not-precomputed`, or passed to R in the browser when that form is configured. A stored result is never returned for a call it was not computed for.
 
+R's numbers that JSON has no number for are written as text, as gsm.bio's widget writes them: `"Inf"`, `"-Inf"` and `"NaN"`. The connection reads the three back as `Infinity`, `-Infinity` and `NaN`, as the browser form hands them over, in the members that hold a number R may return so: `estimate`, `lower`, `upper`, `value`, `statistic`, `p_value`, `p_unadjusted`, `expected`, `median`, `hazard_ratio`, `hr_lower`, `hr_upper` and `hr_p_value`. Text spelled the same in a name, a group, a category or a note stays text. A stored page then prints Fisher's infinite odds ratio as live R's does: `infinite, 95% confidence interval 14.86 to infinity`. NA is `null`, and an estimate whose number is `null` while R gave a bound is said not to be shown, with the reason, and is never left out.
+
 Written from R, the value must be in the shape the browser form would give it. With jsonlite that means `auto_unbox = TRUE` and data frames written by row, and it means counts by group are written as a named list: jsonlite drops the names of a named vector. `tools/r-fixtures.R` writes the R check page's stored results with a few lines of base R that follow the table above exactly.
 
 The data identity is stated, not derived. It is whatever the producer and the chart agree to call a selection of the study: a label such as `"opening view"`, or an object describing the filters in force. A fingerprint of the rows was considered and rejected: it would have to be computed identically in R and in JavaScript, and the two do not always read the same decimal text to the same number, so it would miss when it should match. The price of a stated identity is that the chart must state it truthfully: it must change `dataId` whenever a filter changes the rows. `rows` is the cheap cross-check on that.
@@ -203,13 +206,26 @@ Formats one estimate R returned: one row of a result's `estimates`. It reads `na
 
 It returns `{ status, text }`:
 
-| `status`  | When                                                                  | `text`                                                                                      |
-| --------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `shown`   | The estimate has a name and a number, and a whole interval.           | `Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.` |
-| `shown`   | The estimate has a name and a number, and R gave no interval.         | `Mean (Placebo): 0.02473.`                                                                  |
-| `refused` | It has no name, no finite number, or an interval with a part missing. | `Estimate not shown: the interval of Difference in means is incomplete.`                    |
+| `status`  | When                                                                                        | `text`                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `shown`   | The estimate has a name and a number, and a whole interval.                                 | `Difference in means (Placebo - Treatment): 1.235, 95% confidence interval 0.844 to 1.626.` |
+| `shown`   | The estimate has a name and a number, and R gave no interval.                               | `Mean (Placebo): 0.02473.`                                                                  |
+| `shown`   | R gave an infinite estimate or bound, as Fisher's odds ratio of a table with an empty cell. | `odds ratio: infinite, 95% confidence interval 14.86 to infinity.`                          |
+| `refused` | It has no name, no number (not-a-number among them), or an interval with a part missing.    | `Estimate not shown: the interval of Difference in means is incomplete.`                    |
 
 Each number is printed to four significant figures, without trailing zeros, and is otherwise R's: nothing is computed, and an interval is never completed or widened here. The level is printed as a percentage, `0.95` as `95%`.
+
+## `formatMedian(estimate)`
+
+Formats one median survival time R returned: a row of `estimates` from gsm.bio's `Analyze_Survival`, named `Median`. It reads `name`, `group`, `estimate`, and the interval as `lower`, `upper` and `level`. R gives no median, or no bound, where the curve or its band did not fall to one half, and says so in its note; that part reads `not reached`.
+
+| `status`  | When                                                                      | `text`                                                                   |
+| --------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `shown`   | The median has a name and a level, and each part is a number or missing.  | `Median (≤ 2.783): 23.32, 95% confidence interval 17.32 to not reached.` |
+| `shown`   | R reached no median and no bound.                                         | `Median (Late): not reached, 95% confidence interval not reached.`       |
+| `refused` | It has no name, a part that is neither a number nor missing, or no level. | `Estimate not shown: the interval of Median has no level.`               |
+
+Each number is printed to four significant figures, as `formatEstimate` prints one, and is otherwise R's: nothing is computed, and a missing part is never filled in.
 
 ## `formatComparison(comparison)`
 

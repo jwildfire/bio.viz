@@ -13,7 +13,7 @@ It is the overview for the pair of charts: it opens on every biomarker the limit
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.correlationMatrix('#chart', {
     baseline_visits: 'Baseline',
@@ -114,6 +114,8 @@ The lifecycle is safety.viz's, so a page drives the libraries the same way. `ini
 | `chart.setSettings(settings)`   | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                                                                                                                                                                                                                                                                                   |
 | `chart.render()`                | Draws everything again from the tables, the settings and the controls, and asks R again.                                                                                                                                                                                                                                                                                                                              |
 | `chart.resize()`                | Fits the grid to its container, for a page that changes the container's size without resizing the window.                                                                                                                                                                                                                                                                                                             |
+| `chart.specification()`         | The chart as JSON data: every setting as its controls now read, and every filter in force. `BioViz.fromSpecification` makes the same chart from it ([specifications](output.md#specifications)).                                                                                                                                                                                                                      |
+| `chart.fileOf(kind)`            | One of the [downloads](#downloads) as a file, without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`.                                                                                                                                                                                                                                                                      |
 | `chart.destroy()`               | Takes the chart down, with a scatter a cell had opened, and empties its element. A destroyed chart cannot be used again.                                                                                                                                                                                                                                                                                              |
 | `chart.statistics()`            | What the chart has asked R for the grid now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                                                                                                                                                                                                                                                                                    |
 | `chart.open(x, y)`              | Opens the association scatter for a pair, as a click on its cell does. `x` and `y` are two of the grid's variables, each by its label. Returns the scatter.                                                                                                                                                                                                                                                           |
@@ -154,8 +156,40 @@ Every setting, with its default. The column settings and the baseline settings a
 | `min_pairs`          | `null`                        | The fewest complete pairs a cell needs to show a coefficient, a number above nought. Null leaves the minimum to R: nothing is sent, and R's own default applies. |
 | `waiting_note`       | `null`                        | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                             |
 | `scatter`            | `null`                        | Settings for the association scatter a cell opens, laid under what the grid carries across: see [a cell opens the scatter](#a-cell-opens-the-scatter).           |
+| `title`              | `null`                        | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.    |
+| `subtitle`           | `null`                        | The line under the title, written the same way. Null means none.                                                                                                 |
+| `footnotes`          | `null`                        | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                   |
+| `downloads`          | `true`                        | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                              |
+| `png_scale`          | `2`                           | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.               |
 
 There is no setting that chooses a confidence level or an adjustment: those are R's. The minimum number of pairs is R's as well: the chart has a control for it because the design asks for one, and what the control holds is handed to R, which applies it. The chart never withholds a cell itself.
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder   | What it holds                                                           |
+| ------------- | ----------------------------------------------------------------------- |
+| `{heading}`   | What the grid is of, as its heading reads.                              |
+| `{variables}` | How many variables the grid has.                                        |
+| `{visit}`     | The visit of a grid of biomarkers.                                      |
+| `{value}`     | What is drawn of the value: `Result`, `Change from baseline` and so on. |
+| `{n}`         | How many participants the frame holds.                                  |
+| `{filters}`   | The filters in force, in words, or `none`.                              |
+| `{date}`      | The date drawn, in UTC: `2026-10-04`.                                   |
+| `{version}`   | The bio.viz version.                                                    |
+
+## Downloads
+
+Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-correlation-matrix-….png`:
+
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else ([the PNG](output.md#the-png)). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.                                                                                                                                                                                                                                                                                       |
+| Table (CSV)      | The table the chart drew from: the frame the grid is drawn from and R is handed: one row per participant, a column for each variable of the grid.                                                                                                                                                                                                                                                                                                                                                      |
+
+A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
 
 ## The controls
 

@@ -217,6 +217,14 @@ if (!schemaProblems.length) {
   }
 }
 
+// The format of a chart's specification (#68), at the path its `$id` names,
+// schema/specification.json, for gsm.bio's batch runner and anyone else.
+mkdirSync(path.join(siteDir, 'schema'), { recursive: true });
+copyFileSync(
+  path.join(rootDir, 'src/data/specification.schema.json'),
+  path.join(siteDir, 'schema', 'specification.json')
+);
+
 // The demo scripts: one that reads the study, and one per chart.
 const demoSource = path.join(rootDir, 'site/demo');
 if (existsSync(demoSource)) {

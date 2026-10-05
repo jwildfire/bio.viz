@@ -15,6 +15,8 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
+import { checkGrouping, isCut } from '../shared/cut.js';
 
 // What every chart's settings share is in src/shared/settings.js; the two this
 // file has always exported are still reached from here.
@@ -64,6 +66,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   filters: null,
   // The overview of every biomarker: the most drawn at a time.
   overview_limit: 12,
+  // The page of the overview it opens on, from 0 (#71 review).
+  page: 0,
   // The listing of participants.
   details: null,
   page_size: 10,
@@ -80,7 +84,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
   profile_details: null,
   studyday_col: null,
   normal_col_high: null,
-  normal_col_low: null
+  normal_col_low: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**
@@ -100,14 +108,18 @@ export function syncSettings(overrides) {
     'unit_col',
     'participant_id_col',
     'start_value',
-    'group_by',
     'color_by',
-    'panel_by',
     'studyday_col',
     'normal_col_high',
     'normal_col_low'
   ]) {
     columnOrNull(settings, key);
+  }
+  // The group and the panels: a column, or a biomarker or a number cut into
+  // groups by the shared cut rule.
+  for (const key of ['group_by', 'panel_by']) {
+    if (isCut(settings[key])) checkGrouping(settings, key);
+    else columnOrNull(settings, key);
   }
   if (!VALUE_TYPES.includes(settings.value_type)) {
     refuse(`\`value_type\` must be one of ${VALUE_TYPES.join(', ')}.`);
@@ -121,6 +133,9 @@ export function syncSettings(overrides) {
       refuse(`\`${key}\` must be a whole number, one or more.`);
     }
   }
+  if (!Number.isInteger(settings.page) || settings.page < 0) {
+    refuse('`page` must be a whole number, from 0: the page of the overview it opens on.');
+  }
   if (!TESTS.includes(settings.test)) refuse(`\`test\` must be one of ${TESTS.join(', ')}.`);
   if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
   if (settings.statistic !== null && !isText(settings.statistic)) {
@@ -128,8 +143,8 @@ export function syncSettings(overrides) {
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
-  settings.visits = textList(settings.visits, 'visits');
-  settings.levels = textList(settings.levels, 'levels');
+  settings.visits = textList(settings.visits, 'visits', { empty: true });
+  settings.levels = textList(settings.levels, 'levels', { empty: true });
   settings.measures = textList(settings.measures, 'measures');
   settings.groups = fieldList(settings.groups, 'groups');
   settings.filters = fieldList(settings.filters, 'filters');

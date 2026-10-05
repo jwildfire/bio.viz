@@ -12,7 +12,7 @@ import {
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -439,6 +439,17 @@ test.describe('correlation matrix: what is drawn', () => {
       'CM-DRAW-001',
       'biomarkers-at-baseline'
     );
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate((titles) => window.__cm.chart.setSettings(titles), {
+      title: '{heading}',
+      subtitle: '{variables} variables, {n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    await captureGallery(root(page).locator('.sv-main'), 'CM-DRAW-001');
   });
 
   test('CM-DRAW-002: every cell gives its pair count: its name and its title say the pair, the coefficient with R’s interval and the count, and so does the line under the grid while the pointer or the keyboard is on it (#27)', async ({
@@ -1235,7 +1246,9 @@ test.describe('correlation matrix: the list of pairs', () => {
     let saved = await save();
     expect(saved.file).toBe('bio.viz-correlation-matrix-pairs.csv');
     const rows = await listed(page);
-    const quoted = (cells) => cells.map((cell) => `"${cell}"`).join(',');
+    // Written by RFC 4180 (#67): a field is quoted only when it must be.
+    const field = (cell) => (/[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell);
+    const quoted = (cells) => cells.map(field).join(',');
     expect(saved.lines).toEqual([
       'Pair,Complete pairs,Pearson’s r (95% confidence interval)',
       ...rows.map(quoted)
@@ -1248,7 +1261,7 @@ test.describe('correlation matrix: the list of pairs', () => {
     expect(saved.lines).toHaveLength(67);
     const warned = resultOf('biomarkers-baseline-spearman').value.rows.map((row) => row.warning);
     saved.lines.slice(1).forEach((written, index) => {
-      expect(written.endsWith(`,"${warned[index] || ''}"`), written).toBe(true);
+      expect(written.endsWith(`,${field(warned[index] || '')}`), written).toBe(true);
     });
   });
 });
@@ -2378,7 +2391,7 @@ test.describe('correlation matrix: on the site', () => {
     );
     await expect(card).toContainText('It prints no p-value.');
     // Every chart is listed, in the order they were built.
-    await expect(page.locator('#charts [data-module]')).toHaveCount(4);
+    await expect(page.locator('#charts [data-module]')).toHaveCount(6);
     expect(
       await page
         .locator('#charts [data-module]')
@@ -2387,7 +2400,9 @@ test.describe('correlation matrix: on the site', () => {
       'group-comparison',
       'association-scatter',
       'correlation-matrix',
-      'biomarker-screen'
+      'biomarker-screen',
+      'cross-tab',
+      'stratified-survival'
     ]);
 
     await card.getByRole('link', { name: 'Evidence' }).click();

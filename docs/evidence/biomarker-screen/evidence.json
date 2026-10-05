@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-03T08:36:04.957Z",
+  "generatedAt": "2026-10-04T23:12:12.593Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37110218227",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
+    "id": "37242858671",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
   },
   "records": [
     {
@@ -50,7 +50,10 @@
       "status": "pass",
       "requirementIds": ["BS-DRAW-001"],
       "issueRefs": [36],
-      "screenshots": ["BS-DRAW-001-the-planted-difference.png"]
+      "screenshots": [
+        "BS-DRAW-001-as-the-gallery-shows-it.png",
+        "BS-DRAW-001-the-planted-difference.png"
+      ]
     },
     {
       "test": "BS-DRAW-002: every row is a button named by the shared formatter’s sentence; the caption and the line say what the estimate is, which test, and by what adjustment across how many biomarkers, once (#36)",
@@ -194,6 +197,78 @@
       "status": "pass",
       "requirementIds": ["BS-FILTER-002"],
       "issueRefs": [37],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-005: with an outcomes table the screen offers a hazard ratio, high against low: from R’s stored answer every row is drawn on a logarithmic axis with 1 marked, CRP at the top, each with High’s and Low’s counts (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-005"],
+      "issueRefs": [62],
+      "screenshots": ["BS-HAZ-005-hazard-rows.png"]
+    },
+    {
+      "test": "BS-HAZ-006: without an outcomes table the screen offers only its other two comparisons and says why, and a setting asking for a hazard ratio opens on a difference (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-006"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-007: a click on a hazard row opens the stratified survival chart for that biomarker, cut at its median, on the same endpoint, with the screen’s connection and filters; its hazard ratio from stored results is the row’s; the way back returns (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-007"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-008: with R and the survival package in this browser, every hazard row, by Benjamini-Hochberg and by Holm, for the women alone, with every row too small, with thirty outcomes taken out and with a ratio R cannot estimate, is desktop R’s, CRP at the top; its row opens the stratified survival chart, whose hazard ratio from the same R is the row’s, and the way back returns (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-008"],
+      "issueRefs": [62],
+      "screenshots": ["BS-HAZ-008-a-hazard-row-opened-with-r.png"]
+    },
+    {
+      "test": "BS-HAZ-011: with thirty participants holding CRP but no outcome, the row and the survival chart it opens cut at the same median, of those with both, with the same High and Low counts and the same hazard ratio; the thirty are counted once (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-011"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-012: a hazard ratio R could not estimate, CRP’s Low half having no event, is drawn as a row with R’s reason and no mark, out of the adjustment, which is across the other eleven (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-012"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-013: with two endpoints the Endpoint control offers both by their labels; choosing the second asks R again on its times, names it in the heading and the identity, and a row opens the survival chart on it (#62)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-013"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-014: on a wide logarithmic axis the tick labels are thinned to every other one, counted from 1, which is always labelled, and each is written by the shared rule for a value (#65 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-014"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "BS-HAZ-015: an endpoint setting the outcomes table does not hold warns in the console, as a visit does, and the screen opens on the first endpoint (#65 review)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-015"],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -669,6 +744,54 @@
       "screenshots": []
     },
     {
+      "test": "biomarker screen: the hazard rows BS-HAZ-001: for a hazard ratio the frame holds, beside every biomarker, each participant’s time and flag for the endpoint as the outcomes table reads it, censored or event; a participant with no outcome to use is kept with a gap and counted by reason (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-001"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "biomarker screen: the hazard rows BS-HAZ-002: R is asked once per screen for its hazard comparison, with the time and the flag, and the endpoint in the identity of the frame; for every hazard case the key is the one desktop R wrote, and R’s stored answer is found (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-002"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "biomarker screen: the hazard rows BS-HAZ-003: each row is R’s hazard ratio of High against Low with its interval, its log-rank p-values unadjusted and adjusted, and High’s and Low’s counts; sorted by R’s estimate CRP, the planted biomarker, is the top row; a row R could not compute gives R’s reason (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-003"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "biomarker screen: the hazard rows BS-HAZ-004: hazard ratios share one logarithmic axis, at powers of two from a half to two at least, with 1, no difference, marked; a ratio sits where its logarithm puts it (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-004"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "biomarker screen: the hazard rows BS-HAZ-009: with some participants holding a value but no outcome, the row and the survival chart it opens cut at the same median, of those with both, with the same participants High and Low and R’s same hazard ratio; the participants with no outcome are counted once (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-009"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
+      "test": "biomarker screen: the hazard rows BS-HAZ-010: a hazard ratio R could not estimate, with no event in one half, is a row with R’s reason, no number and no place in the adjustment, which is across the rows that have a p-value (#62)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["BS-HAZ-010"],
+      "issueRefs": [62],
+      "screenshots": []
+    },
+    {
       "test": "biomarker screen: the order, the axis and the pages BS-DATA-005: the rows are ordered by R’s estimate, largest first, by name, or by R’s adjusted p-value, smallest first; uncomputed rows last; ties in R’s order (#36)",
       "suite": "unit",
       "status": "pass",
@@ -986,6 +1109,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-016"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {

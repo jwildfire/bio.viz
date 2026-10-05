@@ -67,6 +67,7 @@ function renderModule(entry, summary, config) {
   return (
     `<li class="module" data-module="${escapeHtml(entry.module)}">` +
     `<h3>${escapeHtml(entry.title)}</h3>` +
+    statusBadge(entry) +
     `<p>${escapeHtml(entry.blurb)}</p>` +
     `<p class="module-facts">${[...facts.map(escapeHtml), matrix].filter(Boolean).join(' · ')}</p>` +
     moduleLinks(entry) +
@@ -82,9 +83,7 @@ export function renderHome({ config, version, summaries = {} }) {
   const modules = config.modules
     .map((entry) => renderModule(entry, summaries[entry.module], config))
     .join('');
-  const published = config.modules.filter(
-    (entry) => entry.kind === 'chart' && entry.status === 'available'
-  );
+  const published = config.modules.filter((entry) => entry.kind === 'chart' && isPublished(entry));
   return `
 <section class="hero">
   <p class="eyebrow">Biomarker charts · every test computed by R</p>
@@ -309,7 +308,13 @@ export function renderCheckPage({ version, expected, measured }) {
 // charts; every module of either kind gets an evidence page and an API
 // reference.
 export const MODULE_KINDS = ['chart', 'shared'];
-const MODULE_STATUSES = ['available', 'planned'];
+// `available` and `experimental` are published: each has its pages, and a
+// chart its live demo and its card in the gallery. `experimental` is published
+// with an Experimental badge and the reason (`statusNote`), as safety.viz
+// marks its experimental charts; `planned` is registered and not published.
+const MODULE_STATUSES = ['available', 'experimental', 'planned'];
+const PUBLISHED = ['available', 'experimental'];
+const isPublished = (entry) => PUBLISHED.includes(entry.status);
 
 const isText = (value) => typeof value === 'string' && value.trim() !== '';
 const isTextList = (value) => Array.isArray(value) && value.length > 0 && value.every(isText);
@@ -359,11 +364,27 @@ export function validateRegistry(config) {
       say('`api.settings`, when given, is the source file that exports its DEFAULT_SETTINGS.');
     }
     // A chart is drawn somewhere a reader can try it: it names its demo.
-    if (entry.kind === 'chart' && entry.status === 'available' && !isText(entry.demo)) {
-      say('is an available chart, and needs `demo`, the name of its demo script in site/demo/.');
+    if (entry.kind === 'chart' && isPublished(entry) && !isText(entry.demo)) {
+      say(
+        `is an ${entry.status} chart, and needs \`demo\`, the name of its demo script in site/demo/.`
+      );
+    }
+    if (entry.status === 'experimental' && !isText(entry.statusNote)) {
+      say('is experimental, and needs `statusNote`, a sentence saying why.');
+    }
+    if (entry.status !== 'experimental' && entry.statusNote !== undefined) {
+      say('has a `statusNote`, and only an experimental module has one.');
     }
     if (entry.kind !== 'chart' && entry.demo !== undefined) {
       say('has a `demo`, and only a chart has one.');
+    }
+    // A chart is in the chart list (src/data/portfolio.json) unless it says why
+    // it is not.
+    if (entry.portfolio !== undefined && entry.portfolio !== false) {
+      say('`portfolio`, when given, is false: the chart is left out of the chart list.');
+    }
+    if (entry.portfolio === false && !isText(entry.portfolioNote)) {
+      say('is left out of the chart list, and needs `portfolioNote`, a sentence saying why.');
     }
     if (entry.hero !== undefined && !(isText(entry.hero) && entry.hero.endsWith('.png'))) {
       say('`hero`, when given, is the name of one of its evidence screenshots.');
@@ -373,8 +394,17 @@ export function validateRegistry(config) {
 }
 
 // The modules that have pages on the site.
-export const availableModules = (config) =>
-  config.modules.filter((entry) => entry.status === 'available');
+export const availableModules = (config) => config.modules.filter(isPublished);
+
+// An experimental module's badge and the reason it is experimental; nothing
+// for any other.
+function statusBadge(entry) {
+  if (entry.status !== 'experimental') return '';
+  return (
+    `<p class="module-status"><span class="status-badge status-experimental">Experimental</span> ` +
+    `${escapeHtml(entry.statusNote)}</p>`
+  );
+}
 
 // Links to a module's two pages. `root` is the path from the page that carries
 // the links back to the site root.
@@ -431,6 +461,7 @@ function galleryCard(entry, heroes = {}) {
     `<li class="module" data-module="${escapeHtml(entry.module)}">` +
     picture +
     `<h3>${escapeHtml(entry.title)}</h3>` +
+    statusBadge(entry) +
     `<p>${escapeHtml(entry.blurb)}</p>` +
     moduleLinks(entry, '../') +
     `</li>`
@@ -589,6 +620,7 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
 <section class="hero">
   <p class="eyebrow">Live demo</p>
   <h1>${escapeHtml(entry.title)}</h1>
+  ${statusBadge(entry)}
   <p class="lead">${escapeHtml(entry.blurb)}${source}</p>
   ${moduleTabs('demo', entry)}
 </section>

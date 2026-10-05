@@ -13,11 +13,11 @@
     },
     {
       "file": "site/demo/synthetic-study.js",
-      "sha256": "fca703f516a464cdc2a3b70cc96c76d3f5e62e5f26af27f08286c49e9d095839"
+      "sha256": "0695f363da6abe0390d135ec31e15e3bfd2f1cbc88f09aedc9252606322fb4ff"
     },
     {
       "file": "site/demo/association-scatter.js",
-      "sha256": "0dee70957b33e9be30c9dff1f20be984127d08de2b1218c0adb3533a999e6cf2"
+      "sha256": "ec81eeb6fc54e22239bee4ec18456b1f7016e024909d9f3fc0bc07f944ccc346"
     }
   ],
   "cases": [

@@ -11,7 +11,7 @@ import {
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -225,6 +225,25 @@ test.describe('group comparison: what is drawn', () => {
     );
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'GC-DRAW-001', 'boxes-by-arm');
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate(
+      ({ results, ...titles }) =>
+        window.__gc.chart.setSettings({
+          ...titles,
+          connection: window.BioViz.r.createConnection({ results })
+        }),
+      {
+        results: stored('welch'),
+        title: '{value}: {measure} by {group}',
+        subtitle: 'At {visits}',
+        footnotes: [
+          'Synthetic study from gsm.bio: no real participant is shown.',
+          'Filters: {filters}.'
+        ]
+      }
+    );
+    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001');
   });
 
   test('GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)', async ({
@@ -584,10 +603,12 @@ test.describe('group comparison: listing and participant profile', () => {
     ]);
     expect(download.suggestedFilename()).toBe('bio.viz-group-comparison-listing.csv');
     const text = readFileSync(await download.path(), 'utf8');
-    const lines = text.split('\n');
+    // Written by RFC 4180 (#67): records end in CRLF, and a field is quoted
+    // only when it must be.
+    const lines = text.trimEnd().split('\r\n');
     expect(lines[0]).toBe('Participant,ARM,Value');
     expect(lines).toHaveLength(92);
-    expect(lines[1]).toMatch(/^"BIO-\d{3}","Treatment","-?\d/);
+    expect(lines[1]).toMatch(/^BIO-\d{3},Treatment,-?\d/);
   });
 
   test('GC-PROF-001: a listing row opens safety.viz’s participant profile through the participantsSelected event (#9)', async ({
@@ -3197,6 +3218,179 @@ test.describe('group comparison: the filter rules safety.viz’s charts follow',
       }
     });
     await expectFilterRules(page, warnings, () => ({ ...window.__gc.chart.state.filters }));
+  });
+});
+
+// ---- The shared cut rule (#43) ---------------------------------------------------
+
+// What desktop R makes of each cut (tools/r-cut.R): the points, the labels and,
+// for the drawn biomarker, the count in each group. No number below was typed.
+const cutsFromR = readJson('../fixtures/cut-r.json');
+const cutCase = (name) => cutsFromR.cases.find((entry) => entry.name === name);
+const CRP_CUTS = [
+  ['median', 'CRP at Baseline, cut at the median'],
+  ['tertiles', 'CRP at Baseline, cut at the tertiles'],
+  ['quartiles', 'CRP at Baseline, cut at the quartiles'],
+  [[2, 5], 'CRP at Baseline, cut at 2 and 5']
+];
+const crpCut = (cut) => ({ measure: 'CRP', visit: 'Baseline', cut });
+const IL6_WEEK_4 = { start_value: 'IL-6', visits: ['Week 4'], value_type: 'change' };
+// The groups R drew a biomarker in, low to high, each with its count; a group
+// with nobody in it is not drawn.
+const ticksOf = (entry) =>
+  entry.labels
+    .map((group, index) => [group, `n = ${entry.drawn.counts[index]}`])
+    .filter((tick) => tick[1] !== 'n = 0');
+
+test.describe('group comparison: a cut biomarker makes the groups', () => {
+  test('GC-CUT-001: IL-6’s change to Week 4 by CRP at Baseline cut at the median, the tertiles, the quartiles and typed points: the groups low to high, each with R’s count beneath (#43)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    for (const [cut, name] of CRP_CUTS) {
+      const entry = cutCase(name);
+      await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut(cut) } });
+      const [panel] = await drawn(page);
+      expect(panel.ticks, name).toEqual(ticksOf(entry));
+      expect(
+        panel.cells.map((cell) => cell.level),
+        name
+      ).toEqual(entry.labels);
+      // The Group control names the cut, and holds it.
+      await expect(page.locator('select[data-control="group-by"] option:checked')).toHaveText(name);
+      if (cut === 'tertiles') {
+        await captureEvidence(page.locator('.sv-main'), 'GC-CUT-001', 'il-6-by-crp-tertiles');
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-CUT-002: the footnote states the cut and its points, worked out on the participants with a value (#43)', async ({
+    page
+  }) => {
+    const median = cutCase('CRP at Baseline, cut at the median');
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('median') } });
+    await expect(page.locator('.sv-footnote')).toHaveText(
+      'Click a box to list its participants. CRP at Baseline is cut at its median, ' +
+        `${median.labels[1].slice(2)}, worked out on the ${median.n} participants with a value.`
+    );
+    const tertiles = cutCase('CRP at Baseline, cut at the tertiles');
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('tertiles') } });
+    await expect(page.locator('.sv-footnote')).toContainText(
+      `CRP at Baseline is cut at its tertiles, ${tertiles.labels[0].slice(2)} and ` +
+        `${tertiles.labels[2].slice(2)}, worked out on the ${tertiles.n} participants with a value.`
+    );
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut([2, 5]) } });
+    await expect(page.locator('.sv-footnote')).toContainText('CRP at Baseline is cut at 2 and 5.');
+  });
+
+  test('GC-CUT-003: a cut biomarker makes the panels, in its order, each with R’s counts (#43)', async ({
+    page
+  }) => {
+    const entry = cutCase('CRP at Baseline, cut at the median');
+    await open(page, {
+      settings: { ...IL6_WEEK_4, group_by: null, panel_by: crpCut('median') }
+    });
+    const panels = await drawn(page);
+    expect(panels.map((panel) => panel.title)).toEqual(entry.labels);
+    // By arm within each panel; together the panels hold R's count of each group.
+    panels.forEach((panel, index) => {
+      const n = panel.cells.reduce((total, cell) => total + cell.n, 0);
+      expect(n, panel.title).toBe(entry.drawn.counts[index]);
+    });
+    await expect(page.locator('select[data-control="panel-by"] option:checked')).toHaveText(
+      'CRP at Baseline, cut at the median'
+    );
+    await expect(page.locator('.sv-footnote')).toContainText(
+      'CRP at Baseline is cut at its median'
+    );
+    await captureEvidence(page.locator('.sv-main'), 'GC-CUT-003', 'panels-by-crp-median');
+  });
+
+  test('GC-CUT-006: the cut points are worked out on the participants the filters keep, and move with the filters (#43)', async ({
+    page
+  }) => {
+    const women = cutCase('IL-6 at baseline, cut at the median, for women');
+    await open(page, {
+      settings: {
+        start_value: 'IL-6',
+        visits: ['Week 4'],
+        value_type: 'baseline',
+        group_by: { measure: 'IL-6', value: 'baseline', cut: 'median' },
+        filters: [{ value_col: 'SEX', label: 'Sex', start: 'F' }]
+      }
+    });
+    const [panel] = await drawn(page);
+    expect(panel.ticks).toEqual(
+      women.labels.map((group, index) => [group, `n = ${women.counts[index]}`])
+    );
+    await expect(page.locator('.sv-footnote')).toContainText(
+      `IL-6 at baseline is cut at its median, ${women.labels[1].slice(2)}, worked out on the ` +
+        `${women.n} participants with a value.`
+    );
+    // All participants: the median moves.
+    await page.locator('.sv-sidebar select[data-filter="SEX"]').selectOption('__all__');
+    const [all] = await drawn(page);
+    expect(all.ticks.map((tick) => tick[0])).not.toEqual(women.labels);
+  });
+
+  test('GC-CUT-008: a cut has no Levels control: every group it makes is drawn (#43)', async ({
+    page
+  }) => {
+    await open(page, { settings: { ...IL6_WEEK_4, group_by: crpCut('quartiles') } });
+    await expect(page.locator('[data-control="levels"]')).toHaveCount(0);
+    await expect(page.locator('.bv-control-note')).toContainText(
+      'Every group a cut makes is drawn.'
+    );
+    // A column again: the control is back.
+    await choose(page, 'group-by', 'ARM');
+    await expect(page.locator('[data-control="levels"]')).toHaveCount(1);
+  });
+
+  test('GC-CUT-010: with R’s stored answers for cut groups R made itself, the result names the groups low to high, and a group below R’s minimum size prints R’s reason and counts (#43, #46)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    const recipes = ['cut-median', 'cut-too-small'].map((name) => {
+      const { args, dataId, rows, value } = statistics.recipes.find((entry) => entry.case === name);
+      return { name: 'Analyze_GroupDifference', args, dataId, rows, value };
+    });
+    const line = page.locator('.sv-main > .bv-statistic');
+    // R's counts, in the order R named them.
+    const countsOf = (value) =>
+      Object.entries(value.counts)
+        .map(([group, n]) => `${group} n = ${n}`)
+        .join(', ');
+    const withStored = async (cut) => {
+      await open(page, {
+        settings: { ...IL6_WEEK_4, baseline_visits: 'Baseline', group_by: crpCut(cut) }
+      });
+      await page.evaluate((results) => {
+        window.__gc.chart.setSettings({
+          connection: window.BioViz.r.createConnection({ results })
+        });
+      }, recipes);
+    };
+
+    await withStored('median');
+    await expect(line.locator('.bv-stat-result')).toContainText('Welch Two Sample t-test');
+    expect(Object.keys(recipes[0].value.counts)).toEqual(['≤ 2.783', '> 2.783']);
+    await expect(line.locator('.bv-stat-result')).toContainText(`(${countsOf(recipes[0].value)})`);
+    await expect(line.locator('.bv-stat-estimate')).toContainText(
+      'Difference in means (≤ 2.783 - > 2.783)'
+    );
+
+    await withStored([10]);
+    const tooSmall = recipes[1].value;
+    expect(tooSmall.status).toBe('too_small');
+    await expect(line).toHaveAttribute('data-state', 'withheld');
+    await expect(line).toContainText(tooSmall.reason);
+    await expect(line).toContainText(`Counts: ${countsOf(tooSmall)}.`);
+    await expect(line).not.toContainText('p =');
+    const [asked] = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.answer.form).toBe('precomputed');
+    await captureEvidence(page.locator('.sv-main'), 'GC-CUT-010', 'cut-group-too-small');
+    expect(errors).toEqual([]);
   });
 });
 

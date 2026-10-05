@@ -18,16 +18,17 @@
       and then bio.viz's committed bundle, as two script tags, and draws the chart on the vendored
       synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the results and
       the participant table, the default), <code>results</code> (the results table as vendored,
-      alone) or <code>many-biomarkers</code> (the derived fixture of thirty-six biomarkers, with the
-      participant table). The chart is made with its defaults, which open on every biomarker at the
-      first visit, a difference between the first column of groups' first two groups, and the one
-      setting the study needs, its baseline visit. <code>?make=no</code> loads the tables and makes
-      no chart, for a test that makes its own. The tests reach the chart as
+      alone), <code>outcomes</code> (the results, the participant table and the outcomes table, for
+      a hazard ratio) or <code>many-biomarkers</code> (the derived fixture of thirty-six biomarkers,
+      with the participant table). The chart is made with its defaults, which open on every
+      biomarker at the first visit, a difference between the first column of groups' first two
+      groups, and the one setting the study needs, its baseline visit. <code>?make=no</code> loads
+      the tables and makes no chart, for a test that makes its own. The tests reach the chart as
       <code>window.__bs.chart</code>.
     </p>
     <div id="chart"></div>
     <script src="/site/vendor/safety.viz/safety.viz.js"></script>
-    <script src="/dist/bio.viz-0.1.0/bio.viz.js"></script>
+    <script src="/dist/bio.viz-0.2.0/bio.viz.js"></script>
     <script src="/site/demo/synthetic-study.js"></script>
     <script>
       const params = new URLSearchParams(location.search);
@@ -43,6 +44,11 @@
             results: BioVizDemo.withDay(results),
             participants
           }));
+        }
+        if (which === 'outcomes') {
+          return Promise.all([BioVizDemo.loadStudy(study), BioVizDemo.loadOutcomes(study)]).then(
+            ([loaded, outcomes]) => ({ ...loaded, outcomes })
+          );
         }
         return BioVizDemo.loadStudy(study).then((loaded) =>
           which === 'results' ? { results: loaded.results } : loaded

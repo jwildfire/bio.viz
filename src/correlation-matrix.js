@@ -60,7 +60,10 @@ import {
   readGiven,
   writeStatistic,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -295,7 +298,10 @@ class CorrelationMatrix {
   // What the chart opens on: the settings, where the tables have what they name.
   seedState() {
     const { settings, measures, visits } = this;
+    // Null is every one, and so is a list of none the tables have; an empty
+    // list is a selection of none (#71 review).
     const among = (chosen, list) => {
+      if (Array.isArray(chosen) && !chosen.length) return [];
       const kept = (chosen || []).filter((entry) => list.includes(entry));
       return kept.length ? kept : null;
     };
@@ -311,7 +317,7 @@ class CorrelationMatrix {
       view: settings.view,
       method: settings.method,
       minPairs: settings.min_pairs,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -602,6 +608,7 @@ class CorrelationMatrix {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         writeStatistic(kit, this.statLine, description);
         // The cells are filled only from R's own answer for the frame on screen.
         this.pairs = description.pairs;
@@ -966,7 +973,8 @@ class CorrelationMatrix {
         `Every pair, with its count: ${rows.length}, in the order R returned them`
       )
     );
-    const tools = kit.createElement('div', 'bv-pairs-tools');
+    // A control: left out of the chart's picture (#70 review).
+    const tools = kit.createElement('div', 'bv-pairs-tools bv-no-picture');
     const download = kit.createElement('button', null, 'Download: CSV');
     download.type = 'button';
     download.onclick = () =>
@@ -1018,6 +1026,80 @@ class CorrelationMatrix {
       details.append(note);
     });
     this.listingWrap.append(details);
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      mode: state.mode,
+      visit: state.visit,
+      biomarkers: state.biomarkers ? [...state.biomarkers] : null,
+      measure: state.measure,
+      visits: state.visits ? [...state.visits] : null,
+      value_type: state.valueType,
+      view: state.view,
+      method: state.method,
+      min_pairs: state.minPairs
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
+  }
+
+  /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, settings } = this;
+    if (!model || !model.records || !model.variables) return { columns: [], rows: [] };
+    return {
+      columns: [
+        { value_col: settings.id_col, label: 'Participant' },
+        ...model.variables.map((variable) => ({ value_col: variable.name, label: variable.label }))
+      ],
+      rows: model.records
+    };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['heading'];
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      heading: model && model.heading ? model.heading : '',
+      variables: model && model.variables ? model.variables.length : '',
+      visit: state.visit ?? '',
+      value: VALUE_LABELS[state.valueType] || state.valueType || '',
+      n: model && model.records ? model.records.length : ''
+    };
+  }
+
+  /** What R's counts are of, for the footnote the chart writes. */
+  get footnoteCounts() {
+    return 'variables';
   }
 
   /**

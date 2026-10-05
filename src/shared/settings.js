@@ -4,6 +4,7 @@
 // words a refusal is written in are the same everywhere, and are these.
 
 import { variable } from '../core/variable.js';
+import { checkDownloads, checkTitles } from './titles.js';
 
 export const isText = (value) => typeof value === 'string' && value.trim() !== '';
 export const isPlainObject = (value) =>
@@ -34,10 +35,15 @@ export function fieldList(value, setting) {
   return list.map((entry) => fieldSpec(entry, setting));
 }
 
-export function textList(value, setting) {
+// A name, or a list of names. With `empty`, an empty list is a selection of
+// none, which a chart whose control can be emptied draws as such (#71 review).
+export function textList(value, setting, { empty = false } = {}) {
   if (value === null || value === undefined) return null;
   const list = Array.isArray(value) ? value : [value];
-  if (!list.length || !list.every((entry) => isText(entry) || typeof entry === 'number')) {
+  if (
+    (!list.length && !empty) ||
+    !list.every((entry) => isText(entry) || typeof entry === 'number')
+  ) {
     refuse(`\`${setting}\` must be a name, or a list of names.`);
   }
   return [...new Set(list.map(String))];
@@ -109,6 +115,8 @@ export function checkShared(settings, baselineStats) {
   ) {
     refuse('`connection` must be a connection to R (BioViz.r.createConnection), or null.');
   }
+  checkTitles(settings);
+  checkDownloads(settings);
 }
 
 /**
@@ -144,6 +152,14 @@ export function variableSetting(value, setting) {
     );
   }
   const read = variable('col' in value && value.col != null ? { ...value, type: 'number' } : value);
+  // A number taken as a number is not cut: a cut makes groups, and only a
+  // setting that makes groups takes one.
+  if (read.cut !== undefined) {
+    refuse(
+      `\`${setting}\` is read as a number, so it takes no \`cut\`: a cut makes groups. Leave ` +
+        '`cut` out.'
+    );
+  }
   return read.kind === 'column'
     ? { col: read.col }
     : {

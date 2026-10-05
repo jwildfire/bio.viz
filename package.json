@@ -1,8 +1,11 @@
 {
   "name": "bio.viz",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R.",
   "private": true,
+  "bioviz": {
+    "development": false
+  },
   "type": "module",
   "module": "src/main.js",
   "scripts": {
@@ -19,7 +22,9 @@
     "evidence:update": "node scripts/evidence.mjs --update",
     "requirements": "node scripts/requirements.mjs",
     "requirements:check": "node scripts/requirements.mjs --check",
-    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R && Rscript tools/r-association-statistics.R && Rscript tools/r-matrix-statistics.R && Rscript tools/r-screen-statistics.R",
+    "specification": "node tools/write-specification-schema.mjs",
+    "specification:check": "node tools/write-specification-schema.mjs --check",
+    "fixtures": "Rscript tools/r-fixtures.R && Rscript tools/r-group-comparison.R && Rscript tools/r-group-statistics.R && Rscript tools/r-association-statistics.R && Rscript tools/r-matrix-statistics.R && Rscript tools/r-screen-statistics.R && Rscript tools/r-cut.R && Rscript tools/r-cross-tab.R && Rscript tools/r-survival.R",
     "fixtures:check": "node scripts/check-r-fixtures.mjs",
     "data:check": "node tools/vendor-synthetic-study.mjs --check",
     "data:check-source": "node tools/vendor-synthetic-study.mjs --check-source",

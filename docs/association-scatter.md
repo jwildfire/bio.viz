@@ -11,7 +11,7 @@ It is built the way the [group comparison chart](group-comparison.md) is, from t
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.associationScatter('#chart', {
     x: { measure: 'TNF-alpha', visit: 'Baseline' },
@@ -80,6 +80,8 @@ The lifecycle is safety.viz's, so a page drives both libraries the same way. `in
 | `chart.setSettings(settings)`   | Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.                                                                                                                                                                                                                                                                                                   |
 | `chart.render()`                | Draws everything again from the tables, the settings and the controls.                                                                                                                                                                                                                                                                                                                                                |
 | `chart.resize()`                | Fits the chart to its container, for a page that changes the container's size without resizing the window.                                                                                                                                                                                                                                                                                                            |
+| `chart.specification()`         | The chart as JSON data: every setting as its controls now read, and every filter in force. `BioViz.fromSpecification` makes the same chart from it ([specifications](output.md#specifications)).                                                                                                                                                                                                                      |
+| `chart.fileOf(kind)`            | One of the [downloads](#downloads) as a file, without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`.                                                                                                                                                                                                                                                                      |
 | `chart.destroy()`               | Takes the chart down and empties its element. A destroyed chart cannot be used again.                                                                                                                                                                                                                                                                                                                                 |
 | `chart.statistics()`            | What the chart has asked R for the panels now drawn, and what R answered: see [what R is asked](#what-r-is-asked). It draws nothing.                                                                                                                                                                                                                                                                                  |
 | `chart.brush(region)`           | Selects a region, as a drag does: `{ x: [from, to], y: [from, to] }` in the values' own units, with `panel`, a panel's title, when there are panels.                                                                                                                                                                                                                                                                  |
@@ -128,6 +130,11 @@ Every setting, with its default. The column settings and the baseline settings a
 | `studyday_col`       | `null`                  | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.                      |
 | `normal_col_high`    | `null`                  | A column holding the upper limit of normal of each result, when the results have one.                                                                                   |
 | `normal_col_low`     | `null`                  | A column holding the lower limit of normal.                                                                                                                             |
+| `title`              | `null`                  | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.           |
+| `subtitle`           | `null`                  | The line under the title, written the same way. Null means none.                                                                                                        |
+| `footnotes`          | `null`                  | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                          |
+| `downloads`          | `true`                  | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                                     |
+| `png_scale`          | `2`                     | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.                      |
 
 There is no setting that chooses a confidence level, a minimum number of pairs, an adjustment or how smooth a smooth is: those are R's.
 
@@ -136,6 +143,31 @@ There is no setting that chooses a confidence level, a minimum number of pairs, 
 With `x` and `y` named, the chart opens on that pair. With neither named it opens on the first two biomarkers of the Variable control at the first visit, as their results: x the first, y the second. With one biomarker in the table, y is that biomarker at the second visit; with one visit as well, the first participant-level number; with nothing else, the same variable as x. A variable that is named and that the tables do not have gives way to these, and the chart says so in the console.
 
 `setSettings({ x, y })` opens another pair in place: the two Variable controls move, the chart is drawn again and R is asked again. It is how a page, or another chart, points this one at a pair it names.
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder | What it holds                              |
+| ----------- | ------------------------------------------ |
+| `{x}`       | The horizontal axis, as its title reads.   |
+| `{y}`       | The vertical axis, as its title reads.     |
+| `{n}`       | How many participants are drawn.           |
+| `{filters}` | The filters in force, in words, or `none`. |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.      |
+| `{version}` | The bio.viz version.                       |
+
+## Downloads
+
+Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-association-scatter-….png`:
+
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else ([the PNG](output.md#the-png)). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.                                                                                                                                                                                                                                                                                       |
+| Table (CSV)      | The table the chart drew from: one row per participant drawn: the participant, the two values drawn, and the colour and the panel where there are any.                                                                                                                                                                                                                                                                                                                                                 |
+
+A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
 
 ## What is drawn
 

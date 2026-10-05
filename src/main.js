@@ -29,6 +29,13 @@ export * as r from './r/index.js';
 export * as core from './core/index.js';
 
 /**
+ * What every chart does to get its results out: a title, subtitle or footnote
+ * template's placeholders filled as text, and the footnote each chart writes
+ * last. `BioViz.output.fillText`, `BioViz.output.automaticFootnote`.
+ */
+export * as output from './output.js';
+
+/**
  * The group comparison chart: one value across the levels of a category, as
  * boxes, violins or points. Built from safety.viz's kit, which the page loads
  * beside this bundle.
@@ -56,6 +63,22 @@ export { correlationMatrix } from './correlation-matrix.js';
  * safety.viz's kit, which the page loads beside this bundle.
  */
 export { biomarkerScreen } from './biomarker-screen.js';
+
+/**
+ * The cross-tabulation: a two-way table of counts with its totals and
+ * percentages, beside stacked bars of the same numbers, and R's chi-square or
+ * Fisher's exact test of it. Either variable is a column or a cut biomarker.
+ * Built from safety.viz's kit, which the page loads beside this bundle.
+ */
+export { crossTab } from './cross-tab.js';
+export { stratifiedSurvival } from './stratified-survival.js';
+
+/**
+ * A chart made from its specification, the JSON a chart's `specification()`
+ * writes: `BioViz.fromSpecification(element, spec)`. Nothing in a
+ * specification is evaluated.
+ */
+export { fromSpecification } from './specification.js';
 
 /**
  * The chart list: every chart above, in safety.viz's portfolio manifest format

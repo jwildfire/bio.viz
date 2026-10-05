@@ -69,7 +69,10 @@ import {
   toolbarStyles,
   writeStatistic,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
 import {
   NOBODY_PASSES,
@@ -323,7 +326,7 @@ class AssociationScatter {
       yScale: settings.y_scale,
       fit: settings.fit,
       method: settings.method,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -882,6 +885,7 @@ class AssociationScatter {
         request,
         (description, answer) => {
           if (answer) asked.answer = answer;
+          writeTitles(this);
           show(coefficient, description);
         },
         {
@@ -910,6 +914,7 @@ class AssociationScatter {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         // The lines are drawn only from R's own answer for the rows on screen.
         chart.$fit = answer ? fitCurves(answer, state) : null;
         chart.draw();
@@ -928,6 +933,73 @@ class AssociationScatter {
         scale: scaleOf(state.fit)
       }
     );
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      ...(state.x ? { x: settingOf(state.x) } : {}),
+      ...(state.y ? { y: settingOf(state.y) } : {}),
+      color_by: state.colorBy || null,
+      panel_by: state.panelBy || null,
+      x_scale: state.xScale,
+      y_scale: state.yScale,
+      fit: state.fit,
+      method: state.method
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
+  }
+
+  /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading.
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, state, settings } = this;
+    if (!model || !model.panels) return { columns: [], rows: [] };
+    const columns = [
+      { value_col: settings.id_col, label: 'Participant' },
+      { value_col: 'x', label: this.titleOf(state.x) },
+      { value_col: 'y', label: this.titleOf(state.y) }
+    ];
+    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
+    if (state.panelBy) columns.push({ value_col: 'panel', label: this.labelOf(state.panelBy) });
+    return { columns, rows: model.panels.flatMap((panel) => panel.records) };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['y', 'x'];
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model } = this;
+    return {
+      x: state.x ? this.titleOf(state.x) : '',
+      y: state.y ? this.titleOf(state.y) : '',
+      n: model ? model.drawn : ''
+    };
   }
 
   /**

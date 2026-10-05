@@ -17,6 +17,7 @@ import {
   refuse,
   textList
 } from '../shared/settings.js';
+import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 
 /** The scales of an axis. */
 export const SCALES = Object.freeze(['linear', 'log']);
@@ -75,7 +76,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
   profile_details: null,
   studyday_col: null,
   normal_col_high: null,
-  normal_col_low: null
+  normal_col_low: null,
+  // The title, subtitle and footnotes, with placeholders (src/shared/titles.js).
+  ...TITLE_DEFAULTS,
+  // The downloads under the chart, and the PNG's resolution (src/shared/png.js).
+  ...DOWNLOAD_DEFAULTS
 });
 
 /**

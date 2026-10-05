@@ -65,19 +65,44 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     // group comparison chart, which names no variable that way, does not.
     // src/shared/paging.js (#36) is how a long list is paged: the group
     // comparison chart's overview and the biomarker screen use it.
+    // src/shared/cut.js (#43) is how a cut variable makes groups: the group
+    // comparison chart uses it, and this chart, whose axes are numbers, does not.
+    // src/shared/outcomes.js (#62) is how an outcomes table is read: the
+    // stratified survival chart and the biomarker screen use it.
     const everything = sourceFiles('src/shared');
     expect(everything).toEqual([
       'src/shared/chartHost.js',
+      'src/shared/csv.js',
+      'src/shared/cut.js',
+      'src/shared/outcomes.js',
       'src/shared/paging.js',
+      'src/shared/png.js',
       'src/shared/settings.js',
+      'src/shared/specification.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
+      'src/shared/titles.js',
       'src/shared/variables.js'
     ]);
     const shared = everything.filter(
-      (file) => !['src/shared/variables.js', 'src/shared/paging.js'].includes(file)
+      (file) =>
+        ![
+          'src/shared/variables.js',
+          'src/shared/paging.js',
+          'src/shared/cut.js',
+          'src/shared/outcomes.js'
+        ].includes(file)
     );
-    const reached = (files) => new Set(files.flatMap(importsOf));
+    // What a chart's files reach: what they import, and what the shared parts they
+    // import import in turn (#67: the downloads' CSV and PNG writers are reached
+    // through the shell).
+    const reached = (files) => {
+      const seen = new Set(files.flatMap(importsOf));
+      for (const file of seen) {
+        if (file.startsWith('src/shared/')) for (const next of importsOf(file)) seen.add(next);
+      }
+      return seen;
+    };
     const fromScatter = reached(scatter);
     const fromComparison = reached(comparison);
     // Neither chart imports the other.

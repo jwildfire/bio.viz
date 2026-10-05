@@ -14,6 +14,7 @@
 #   unnamed vector, length 1  a single value
 #   unnamed vector, otherwise array
 #   NA, NULL                  null
+#   Inf, -Inf, NaN            "Inf", "-Inf", "NaN"
 
 quote_json <- function(x) {
   x <- gsub("\\", "\\\\", x, fixed = TRUE)
@@ -22,7 +23,13 @@ quote_json <- function(x) {
   paste0("\"", x, "\"")
 }
 
+# R's non-finite numbers are written as gsm.bio's widget writes them in a
+# stored answer, as text: "Inf", "-Inf" and "NaN". JSON has no number for them,
+# and bio.viz's connection reads the three back as the numbers R in the browser
+# hands over (src/r/storedResults.js). NA is null.
 scalar_json <- function(x) {
+  if (is.double(x) && is.nan(x)) return("\"NaN\"")
+  if (is.double(x) && is.infinite(x)) return(if (x > 0) "\"Inf\"" else "\"-Inf\"")
   if (is.na(x)) return("null")
   if (is.character(x)) return(quote_json(x))
   if (is.logical(x)) return(if (x) "true" else "false")

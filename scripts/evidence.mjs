@@ -13,6 +13,8 @@
 //   node scripts/evidence.mjs --update   screenshot baseline refresh: also runs
 //                                        Playwright with --update-snapshots,
 //                                        then rebuilds the evidence.json files.
+//                                        With --all, every picture is rewritten
+//                                        (--update-snapshots=all).
 //                                        Linux only unless
 //                                        FORCE_EVIDENCE_UPDATE=1
 //
@@ -125,7 +127,14 @@ run('npx', ['vitest', 'run', '--reporter=default', '--reporter=json', `--outputF
 
 console.log('▸ Playwright (json reporter)…');
 const playwrightArgs = ['playwright', 'test', '--reporter=json'];
-if (mode === 'update') playwrightArgs.push('--update-snapshots');
+// `--all` rewrites every picture, not only those past the pixel tolerance: a
+// footnote's version changes too few pixels to pass it, and each picture's
+// record of the versions it draws is rewritten with it (#78 review).
+if (mode === 'update') {
+  playwrightArgs.push(
+    process.argv.includes('--all') ? '--update-snapshots=all' : '--update-snapshots'
+  );
+}
 run('npx', playwrightArgs, { PLAYWRIGHT_JSON_OUTPUT_NAME: playwrightOut });
 
 const screenshotsByModule = {};

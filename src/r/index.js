@@ -6,6 +6,7 @@ export { createConnection } from './connection.js';
 export {
   formatStatistic,
   formatEstimate,
+  formatMedian,
   formatComparison,
   formatGroup,
   formatPair,

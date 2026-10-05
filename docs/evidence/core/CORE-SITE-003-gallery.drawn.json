@@ -1,0 +1,12 @@
+{
+  "versions": [],
+  "embeds": [
+    "association-scatter/AS-DRAW-001-as-the-gallery-shows-it.png",
+    "biomarker-screen/BS-DRAW-001-as-the-gallery-shows-it.png",
+    "correlation-matrix/CM-DRAW-001-as-the-gallery-shows-it.png",
+    "cross-tab/CT-DRAW-001-as-the-gallery-shows-it.png",
+    "group-comparison/GC-DRAW-001-as-the-gallery-shows-it.png",
+    "stratified-survival/SS-DRAW-001-as-the-gallery-shows-it.png"
+  ],
+  "sha256": "7eb8863666938373e14f2009a3859e4ffd05378247af01f5f75590407817166a"
+}

@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.1.0 is the first release ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/)). It measures what running R in the browser costs and has the first four charts: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients over a set of biomarkers or visits whose cells open the scatter, and [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, whose rows open the group comparison or the scatter. The others follow: cross-tabulation, with a shared rule for cutting a biomarker into groups, and stratified survival.
+Version 0.2.0 ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/)) is the second release; its site is the released one, <https://jwildfire.github.io/bio.viz/>. It has six charts, each holding every test to R: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients whose cells open the scatter, [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, a hazard ratio among its comparisons, [cross-tabulation](https://jwildfire.github.io/bio.viz/dev/cross-tab/), a two-way table with R's chi-square or Fisher's exact test, and the [stratified survival chart](https://jwildfire.github.io/bio.viz/dev/stratified-survival/), Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag. Every chart takes a title, a subtitle and footnotes, adds its own footnote naming R's method and counts, downloads as a PNG and as CSV, and writes a specification it can be made again from. Version 0.1.0, the first release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/).
 
 ## How it fits together
 
@@ -23,16 +23,16 @@ Version 0.1.0 is the first release ([release notes](NEWS.md), [annotated demo](h
 Vendor the committed bundle — no build step, no npm install:
 
 ```html
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
-  console.log(BioViz.version); // "0.1.0"
+  console.log(BioViz.version); // "0.2.0"
 </script>
 ```
 
 An ES module build is committed alongside:
 
 ```js
-import { version, core, r } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.2.0/bio.viz.esm.js';
 ```
 
 ## Asking R for a statistic
@@ -64,7 +64,7 @@ One value across the levels of a category, as boxes, violins or points, with the
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
   BioViz.groupComparison('#chart', {
     start_value: 'IL-6',
@@ -121,7 +121,7 @@ With nothing else named it opens on every biomarker at the first visit, twelve a
 
 ## The biomarker screen
 
-Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups or a correlation with one variable: R's estimate and its interval on one axis without units, and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. A click on a row opens that biomarker in the group comparison or the association scatter, in place, with a way back.
+Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups, a correlation with one variable, or, given an outcomes table, a hazard ratio for high against low on an endpoint, each biomarker cut at its median: R's estimate and its interval on one axis without units (for hazard ratios a logarithmic one, with 1 marked), and R's p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. A click on a row opens that biomarker in the group comparison, the association scatter or the stratified survival chart, in place, with a way back.
 
 ```html
 <script>
@@ -138,6 +138,58 @@ Across every biomarker, where is the signal? One row per biomarker for a compari
 ```
 
 The settings, the order of the rows, what R is asked and what a row opens are in [docs/biomarker-screen.md](docs/biomarker-screen.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/) opens on the difference the synthetic study was planted with.
+
+## The cross-tabulation
+
+Is this category associated with that one? A two-way table of counts with its totals and its row or column percentages, beside stacked bars of the same numbers, and R's chi-square or Fisher's exact test of it, with R's own warning when an expected count is below 5. Either variable is a column, or a biomarker cut by the shared cut rule. A click on a count lists that cell's participants.
+
+```html
+<script>
+  BioViz.crossTab('#chart', {
+    row_by: 'RESPONSE',
+    col_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+    test: 'chisq',
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+    })
+  }).init({ results, participants });
+</script>
+```
+
+The settings, what R is asked and the key a stored result is found by are in [docs/cross-tab.md](docs/cross-tab.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/cross-tab/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/cross-tab/) opens on arm by response.
+
+## The stratified survival chart
+
+Do participants with high and low levels of this biomarker have different outcomes? Kaplan–Meier curves per group, from safety.viz's kit, with censor marks and an at-risk strip, above a histogram of the biomarker with its cut line. The line can be dragged: the curves follow at once, and R is asked again when it is let go. Under the curves, R's log-rank test, each group's median survival with its interval and, for two groups, the hazard ratio with its interval. It takes a third table, the outcomes, one row per participant and endpoint, with a time and a censor or event flag. R in the browser needs the survival package.
+
+```html
+<script>
+  BioViz.stratifiedSurvival('#chart', {
+    group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: ['survival'] }
+    })
+  }).init({ results, participants, outcomes });
+</script>
+```
+
+The settings, the outcomes table, moving the cut line and what R is asked are in [docs/stratified-survival.md](docs/stratified-survival.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/stratified-survival/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/stratified-survival/) opens on event-free survival by CRP at Baseline cut at its median, where the synthetic study was planted with a survival effect.
+
+## Titles and footnotes
+
+Every chart takes a `title`, a `subtitle` and `footnotes`, written with placeholders filled from the view drawn, and adds one footnote of its own, always last: the date drawn, the bio.viz version, and R's method and counts behind each statistic, with the R and gsm.bio versions of a stored result.
+
+```js
+BioViz.crossTab('#chart', {
+  row_by: 'ARM',
+  col_by: 'RESPONSE',
+  title: '{rows} by {columns}',
+  subtitle: '{n} participants',
+  footnotes: ['Filters: {filters}.']
+}).init({ results, participants });
+```
+
+Under the footnotes each chart offers a PNG of itself with its title and footnotes drawn in, the statistics R returned as CSV and the table it drew from as CSV. A placeholder is filled with text, and nothing in a setting is evaluated. A chart's `specification()` writes its settings and filters as JSON data, and `BioViz.fromSpecification(element, spec)` makes the same chart from it. The placeholders each chart has, and the footnote's wording, are in [docs/output.md](docs/output.md), published as the [API reference](https://jwildfire.github.io/bio.viz/dev/output/api.html).
 
 ## Naming a variable and getting one row per participant
 

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { formatComparison, formatEstimate, formatStatistic } from '../../../src/r/index.js';
+import {
+  formatComparison,
+  formatEstimate,
+  formatMedian,
+  formatStatistic
+} from '../../../src/r/index.js';
 
 // How a p-value is shown (#2): the design's rules, applied by one function
 // whichever chart prints the number. The function formats what R returned; it
@@ -247,7 +252,7 @@ describe('formatEstimate: an estimate and its interval', () => {
       status: 'refused',
       text: 'Estimate not shown: it has no name.'
     });
-    for (const bad of [undefined, null, Number.NaN, Infinity, '1.2']) {
+    for (const bad of [undefined, null, Number.NaN, '1.2']) {
       expect(formatEstimate({ ...difference, estimate: bad })).toEqual({
         status: 'refused',
         text: 'Estimate not shown: Difference in means is not a number.'
@@ -262,6 +267,42 @@ describe('formatEstimate: an estimate and its interval', () => {
       expect(formatted.text).not.toMatch(/\d/);
     }
     expect(formatEstimate(undefined).status).toBe('refused');
+  });
+
+  it('PVAL-EST-003: an infinite estimate or bound R gave is printed as infinite, with the finite bound as it is; not-a-number is still refused (#78)', () => {
+    // Desktop R's fisher.test() of a two-by-two table with an empty cell (row
+    // A: 20 x and 0 y; row B: 3 x and 17 y), through gsm.bio's
+    // Analyze_Contingency: the odds ratio is Inf, its interval 14.86 to Inf.
+    const infinite = {
+      name: 'odds ratio',
+      group: null,
+      estimate: Infinity,
+      lower: 14.856391,
+      upper: Infinity,
+      level: 0.95
+    };
+    expect(formatEstimate(infinite)).toEqual({
+      status: 'shown',
+      text: 'odds ratio: infinite, 95% confidence interval 14.86 to infinity.'
+    });
+    // The other way round: an odds ratio of 0, its interval 0 to a number.
+    expect(
+      formatEstimate({
+        name: 'Difference',
+        estimate: -Infinity,
+        lower: -Infinity,
+        upper: -2.5,
+        level: 0.95
+      })
+    ).toEqual({
+      status: 'shown',
+      text: 'Difference: minus infinity, 95% confidence interval minus infinity to -2.5.'
+    });
+    expect(formatEstimate({ ...infinite, estimate: Number.NaN })).toEqual({
+      status: 'refused',
+      text: 'Estimate not shown: odds ratio is not a number.'
+    });
+    expect(formatEstimate({ ...infinite, lower: Number.NaN }).status).toBe('refused');
   });
 });
 
@@ -364,5 +405,50 @@ describe('the formatter in the README', () => {
     expect(read('src/r/formatStatistic.js')).toContain(
       'e.g. "Wilcoxon rank sum test with continuity correction"'
     );
+  });
+});
+
+// A median survival time R returned (#61): R gives none, or no bound, where the
+// curve or its band did not fall to one half, and says so in its note.
+describe('formatMedian: a median survival time', () => {
+  const median = {
+    name: 'Median',
+    group: '> 2.783',
+    estimate: 8.28,
+    lower: 5.24,
+    upper: 9.71,
+    level: 0.95
+  };
+
+  it('PVAL-MED-001: a median is printed with what it is a median of and its interval, to four significant figures, and a median or bound R did not reach reads not reached (#61)', () => {
+    expect(formatMedian(median)).toEqual({
+      status: 'shown',
+      text: 'Median (> 2.783): 8.28, 95% confidence interval 5.24 to 9.71.'
+    });
+    expect(formatMedian({ ...median, upper: null }).text).toBe(
+      'Median (> 2.783): 8.28, 95% confidence interval 5.24 to not reached.'
+    );
+    expect(formatMedian({ ...median, estimate: null, upper: null, lower: 19.63 }).text).toBe(
+      'Median (> 2.783): not reached, 95% confidence interval 19.63 to not reached.'
+    );
+    expect(formatMedian({ ...median, estimate: null, lower: null, upper: null }).text).toBe(
+      'Median (> 2.783): not reached, 95% confidence interval not reached.'
+    );
+    // Nothing is computed: the median handed in is not changed.
+    const frozen = Object.freeze({ ...median });
+    expect(formatMedian(frozen)).toEqual(formatMedian(median));
+  });
+
+  it('PVAL-MED-002: a median with no name, a value that is neither a number nor missing, or no level for its interval, is refused, and no number is printed in its place (#61)', () => {
+    expect(formatMedian({ ...median, name: '' })).toEqual({
+      status: 'refused',
+      text: 'Estimate not shown: it has no name.'
+    });
+    expect(formatMedian({ ...median, estimate: 'eight' }).status).toBe('refused');
+    expect(formatMedian({ ...median, lower: Number.NaN }).status).toBe('refused');
+    expect(formatMedian({ ...median, level: null })).toEqual({
+      status: 'refused',
+      text: 'Estimate not shown: the interval of Median has no level.'
+    });
   });
 });

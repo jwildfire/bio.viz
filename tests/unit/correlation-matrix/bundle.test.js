@@ -25,7 +25,16 @@ const importsOf = (file) =>
   [...source(file).matchAll(/^\s*(?:import|export)\s[^'"]*from\s+['"]([^'"]+)['"]/gm)].map(
     (match) => path.normalize(path.join(path.dirname(file), match[1]))
   );
-const reached = (files) => new Set(files.flatMap(importsOf));
+// What a chart's files reach: what they import, and what the shared parts they
+// import import in turn (#67: the downloads' CSV and PNG writers are reached
+// through the shell).
+const reached = (files) => {
+  const seen = new Set(files.flatMap(importsOf));
+  for (const file of seen) {
+    if (file.startsWith('src/shared/')) for (const next of importsOf(file)) seen.add(next);
+  }
+  return seen;
+};
 // Comments say what R computes; the checks are of the code.
 const codeOf = (files) =>
   files
@@ -76,16 +85,27 @@ describe('bundle: the correlation matrix ships, safety.viz, Chart.js and webR do
     const shared = sourceFiles('src/shared');
     expect(shared).toEqual([
       'src/shared/chartHost.js',
+      'src/shared/csv.js',
+      'src/shared/cut.js',
+      'src/shared/outcomes.js',
       'src/shared/paging.js',
+      'src/shared/png.js',
       'src/shared/settings.js',
+      'src/shared/specification.js',
       'src/shared/statisticLine.js',
       'src/shared/tables.js',
+      'src/shared/titles.js',
       'src/shared/variables.js'
     ]);
     const fromMatrix = reached(matrix);
     // Every shared part but the paging of a long list, which a grid of at most
-    // `limit` variables has no use for, is one the grid is built from.
-    for (const file of shared.filter((name) => name !== 'src/shared/paging.js')) {
+    // `limit` variables has no use for, and the cut that makes groups (#43),
+    // which a grid of numbers has none of, and the reading of an outcomes
+    // table (#62), is one the grid is built from.
+    for (const file of shared.filter(
+      (name) =>
+        !['src/shared/paging.js', 'src/shared/cut.js', 'src/shared/outcomes.js'].includes(name)
+    )) {
       expect(fromMatrix.has(file), file).toBe(true);
     }
     // Of another chart: the function a page calls to make a scatter, and

@@ -146,7 +146,9 @@ describe('correlation matrix: settings', () => {
       [{ visit: 4 }, /`visit` must be the name of a visit, or null\./],
       [{ measure: ['IL-6'] }, /`measure` must be the name of a biomarker, or null\./],
       [{ biomarkers: [{}] }, /`biomarkers` must be a name, or a list of names\./],
-      [{ visits: [] }, /`visits` must be a name, or a list of names\./],
+      // An empty list is a selection of none (#71 review): a list of things that
+      // are not names is not.
+      [{ visits: [{}] }, /`visits` must be a name, or a list of names\./],
       [{ baseline_stat: 'median' }, /`baseline_stat`/],
       [{ id_col: '' }, /`id_col`/]
     ]) {

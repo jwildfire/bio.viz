@@ -4,32 +4,32 @@ What a page or a widget can rely on before it asks for a chart: where the bundle
 
 ## Loading the library
 
-The bundles are committed, so a page needs no build step and no package manager. Copy the folder `dist/bio.viz-0.1.0/` and load the script-tag bundle; it defines one global, `BioViz`:
+The bundles are committed, so a page needs no build step and no package manager. Copy the folder `dist/bio.viz-0.2.0/` and load the script-tag bundle; it defines one global, `BioViz`:
 
 ```html
-<script src="dist/bio.viz-0.1.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
 <script>
-  console.log(BioViz.version); // "0.1.0"
+  console.log(BioViz.version); // "0.2.0"
 </script>
 ```
 
 An ES module bundle with the same exports sits beside it:
 
 ```js
-import { version, core, r } from './dist/bio.viz-0.1.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.2.0/bio.viz.esm.js';
 ```
 
 | File                                | What it is                                                |
 | ----------------------------------- | --------------------------------------------------------- |
-| `dist/bio.viz-0.1.0/bio.viz.js`     | The script-tag bundle. Defines the global `BioViz`.       |
-| `dist/bio.viz-0.1.0/bio.viz.esm.js` | The ES module bundle. The same exports, as named exports. |
+| `dist/bio.viz-0.2.0/bio.viz.js`     | The script-tag bundle. Defines the global `BioViz`.       |
+| `dist/bio.viz-0.2.0/bio.viz.esm.js` | The ES module bundle. The same exports, as named exports. |
 | `*.map`                             | A source map for each, so a debugger shows the source.    |
 
 Nothing else is bundled into either file. safety.viz and R are loaded beside bio.viz on a page: safety.viz with its own script tag, and R the first time a statistic is asked for.
 
 ## `version`
 
-A string: the version of the library, `0.1.0`. It equals the `version` field of `package.json` and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.
+A string: the version of the library, `0.2.0`. It equals the `version` field of `package.json` and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.
 
 ## A variable
 
@@ -49,15 +49,16 @@ The biomarker and the visit are written as the results table writes them (`IL-6`
 
 Checks a variable and returns it in full, frozen. A chart calls it where the variable is written, so a mistake is found there and not in an empty chart.
 
-| Key       | For         | Meaning                                                                                                              |
-| --------- | ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `measure` | a biomarker | The biomarker's name, as the results table writes it.                                                                |
-| `visit`   | a biomarker | The visit's name, as the results table writes it. Required, except with the value type `baseline`, which takes none. |
-| `value`   | a biomarker | The [value type](#value_types). `raw` when not given.                                                                |
-| `col`     | a column    | The column's name.                                                                                                   |
-| `type`    | a column    | `'number'` to read the column as a number. Without it the value is passed on as the table holds it.                  |
+| Key       | For         | Meaning                                                                                                                                                                                                      |
+| --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `measure` | a biomarker | The biomarker's name, as the results table writes it.                                                                                                                                                        |
+| `visit`   | a biomarker | The visit's name, as the results table writes it. Required, except with the value type `baseline`, which takes none.                                                                                         |
+| `value`   | a biomarker | The [value type](#value_types). `raw` when not given.                                                                                                                                                        |
+| `col`     | a column    | The column's name.                                                                                                                                                                                           |
+| `type`    | a column    | `'number'` to read the column as a number. Without it the value is passed on as the table holds it.                                                                                                          |
+| `cut`     | either      | To cut the number into groups: `'median'`, `'tertiles'`, `'quartiles'`, or the cut points as a list, ascending. A column cut must be read as a number (`type: 'number'`). See [the cut rule](#the-cut-rule). |
 
-It returns `{ kind: 'measure', measure, visit, value }` or `{ kind: 'column', col, type }`, with `visit` and `type` null where they do not apply. A variable it returned can be handed back to it.
+It returns `{ kind: 'measure', measure, visit, value }` or `{ kind: 'column', col, type }`, with `visit` and `type` null where they do not apply, and `cut` when the variable has one (typed points as a frozen copy). A variable it returned can be handed back to it.
 
 A malformed variable is refused: `variable` throws a `TypeError` whose message begins `bio.viz:`, quotes the variable as written and names what is wrong. It refuses a variable that:
 
@@ -68,7 +69,92 @@ A malformed variable is refused: `variable` throws a `TypeError` whose message b
 - is a biomarker with no `visit`, or a baseline value with one;
 - is a column with a `visit` or a `value`, or with a `type` other than `'number'`;
 - has a key that is not in the table above;
-- asks for a cut (`cut: 'median'`). The rule that cuts a continuous variable into groups is not available yet: it arrives with cross-tabulation. Until then a group comes from a column.
+- has a `cut` that is not one of [`CUTS`](#cuts) or a list of cut points: an empty list, a point that is not a finite number, or points that are not each greater than the one before;
+- cuts a column that is not read as a number.
+
+## The cut rule
+
+One rule cuts a number into groups, the same in every chart that makes groups from one and the same in R. A variable carries the cut it asks for:
+
+```js
+{ measure: 'CRP', visit: 'Baseline', cut: 'median' }   // two groups
+{ measure: 'CRP', visit: 'Baseline', cut: 'tertiles' } // three
+{ measure: 'CRP', value: 'baseline', cut: 'quartiles' } // four
+{ col: 'AGE', type: 'number', cut: [40, 60] }           // typed points: three groups
+```
+
+- The values cut are the variable's, one per participant, for the participants the chart's filters keep. A participant with no value is left out of the points and is in no group. The [frame](#frametables-variables-settings) resolves a cut variable to its number like any other; the cut is a step after it, across participants.
+- The cut points are R's `quantile()` with its default, type 7, at 1/2 (the median), 1/3 and 2/3 (the tertiles) or 1/4, 2/4 and 3/4 (the quartiles). Typed points are used as written.
+- A participant is in the group R's `cut(x, breaks = c(-Inf, points, Inf), right = TRUE)` puts them in: a value equal to a cut point falls in the lower group.
+- A point that repeats, as one does when many values are tied, collapses: the median of a cut always makes two groups, but quartiles of tied values may make fewer than four. The chart says so.
+- The groups are ordered low to high and labelled with their bounds: `≤ a` for the first, `> a, ≤ b` for each between, `> z` for the last. A bound is written to four significant digits, as R's `format(signif(p, 4), scientific = FALSE, trim = TRUE)` writes it: 2.783, 0.5833, 123500, and 2.0625 as 2.062, because R rounds a tie to even. However small or large, a bound is written in full with no trailing zero: 0.000000000000000111, 0.0000001, and 3382000000000000000000; a whole number past 2^53 is written to the last digit of the double that holds it, as R writes one. This holds from about 1e-300 to 1e300. Beyond that the label can differ from R's: below about 2.2e-308 R writes scientific notation, and above about 1e306 the digits differ ([#60](https://github.com/jwildfire/bio.viz/issues/60)). A value that is not a finite number, an infinite one among them, is missing here; R's `quantile()` keeps an infinite value.
+- Two points that differ only past four significant digits write the same bounds, so the groups between them have the same label. Those groups are one, and the chart says so. In R that is the recipe in `tools/r-cut.R`: R's `cut()` given those labels merges the levels that share one. R's `cut()` with its own labels would instead write more digits until the labels differ. Typed points written alike are refused, because the groups they ask for could not be told apart.
+- A cut point describes the values, as the median line of a box does. Nothing here tests, estimates or compares.
+
+The same groups in R, for gsm.bio or anyone checking a chart (`tools/r-cut.R` writes the expected results the unit tests hold this library to, with exactly these lines):
+
+```r
+CUT_PROBS <- list(median = 0.5, tertiles = c(1, 2) / 3, quartiles = c(1, 2, 3) / 4)
+
+cut_bound <- function(p) format(signif(p, 4), scientific = FALSE, trim = TRUE)
+
+bound_labels <- function(points) {
+  k <- length(points)
+  if (k == 0) return(character(0))
+  bounds <- vapply(points, cut_bound, character(1))
+  middle <- if (k > 1) paste0("> ", bounds[-k], ", ≤ ", bounds[-1]) else character(0)
+  c(paste0("≤ ", bounds[1]), middle, paste0("> ", bounds[k]))
+}
+
+cut_labels <- function(points) unique(bound_labels(points))
+
+cut_points <- function(x, cut) {
+  asked <- if (is.character(cut)) {
+    stats::quantile(x, CUT_PROBS[[cut]], type = 7, na.rm = TRUE, names = FALSE)
+  } else {
+    cut
+  }
+  list(asked = asked, points = unique(asked))
+}
+
+cut_groups <- function(x, points) {
+  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = bound_labels(points)))
+}
+```
+
+A label holds the sign ≤ (U+2264), so R must run in a UTF-8 locale. Where a chart writes a cut variable into the identity of the rows it hands R, it writes it as the settings do, `{ measure, visit, value, cut }` with the visit left out for a baseline value, or `{ col, type: 'number', cut }`; typed points are always a list, so in R write them as one (`I(c(2, 5))` or `list(2, 5)` for jsonlite), even a single point. jsonlite writes a number to four decimal places unless told otherwise, so write the identity with `digits = NA` too, which writes 15 significant digits, enough for a point typed with 15 or fewer: with the default, a typed point of 0.000012345 is written 0, and the key does not match.
+
+## `CUTS`
+
+The cuts a variable may name, as a list: `median`, `tertiles`, `quartiles`. Typed points are a list of numbers instead.
+
+## `cutPoints(values, cut)`
+
+The cut points of a variable's values, and the groups they make. `values` holds one value per participant; one that is not a finite number is missing and is left out. `cut` is one of `CUTS` or the typed points. It returns:
+
+| Field      | What it is                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| `cut`      | The cut, as given.                                                                               |
+| `n`        | How many values it was worked out on.                                                            |
+| `asked`    | The points asked for: R's `quantile()` of the values, or the typed points.                       |
+| `points`   | The points used: `asked` with a repeated point once.                                             |
+| `repeated` | Whether a point repeated and collapsed.                                                          |
+| `merged`   | Whether points written alike gave groups the same label, which merged.                           |
+| `labels`   | The label of each group, low to high: one more than there are points, fewer where groups merged. |
+
+With no value there is nothing to cut at: no points and no groups.
+
+## `cutGroup(value, points)`
+
+The group a value falls in, counted from 0, low to high, as R's `cut(right = TRUE)` places it, so a value equal to a cut point is in the group below it, and its place among the `labels` of the cut, so groups that merged are one. Null for a missing value. `points` are a cut's `points`.
+
+## `cutLabels(points)`
+
+The labels of the groups a cut's `points` make, low to high, as above: `cutLabels([2, 5])` is `['≤ 2', '> 2, ≤ 5', '> 5']`. A label that repeats is given once: `cutLabels([2.7928, 2.793, 2.7932])` is `['≤ 2.793', '> 2.793, ≤ 2.793', '> 2.793']`.
+
+## `cutWords(cut)`
+
+A cut in words, for a label or a legend: `cut at the median`, `cut at the tertiles`, `cut at 2 and 5`. [`label`](#labelspec) adds it after the variable: `CRP at Baseline, cut at the median`.
 
 ## `VALUE_TYPES`
 
@@ -263,10 +349,12 @@ A field's name is the name the caller gave its variable, so it is stable whateve
 
 The chart list: an object naming every chart the library offers, in [safety.viz's portfolio manifest format](https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json), version 2, so safety.viz's demo app can list bio.viz's charts and draw them beside its own on the files a study already has. It is `src/data/portfolio.json`, and the site publishes the same list at `portfolio.json`, with the format beside it at `schema/portfolio.json`.
 
+One chart is not in it: the [stratified survival chart](stratified-survival.md) reads an outcomes table, which no standard domain of the format holds, so the app could not hand it one ([#63](https://github.com/jwildfire/bio.viz/issues/63)).
+
 ```js
 BioViz.portfolio.version; // 2
 Object.keys(BioViz.portfolio.modules);
-// ['group-comparison', 'association-scatter', 'correlation-matrix', 'biomarker-screen']
+// ['group-comparison', 'association-scatter', 'correlation-matrix', 'biomarker-screen', 'cross-tab']
 ```
 
 | Field                        | What it says                                                                                                                                                                                                                                                                  |
@@ -284,7 +372,7 @@ The list adds nothing to the format, and the format is safety.viz's: it is copie
 
 ## What is not here
 
-No statistics. Deriving a change from baseline is arithmetic on one participant's own results. Nothing in the core tests, estimates or summarises across participants: a median and the quartiles of a box belong to the chart that draws them, and every test to R. And no cut rule: see `variable` above.
+No statistics. Deriving a change from baseline is arithmetic on one participant's own results, and a cut point is a description of the values, as a median is. Nothing in the core tests, estimates or compares: a median and the quartiles of a box belong to the chart that draws them, and every test to R.
 
 ## What else is exported
 

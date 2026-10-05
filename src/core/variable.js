@@ -6,6 +6,12 @@
 //                                                           value type
 //   { col: 'ARM' }                                          a column
 //
+// A number may also be cut into groups, with `cut`: the median, the tertiles,
+// the quartiles, or typed points (src/core/cut.js).
+//
+//   { measure: 'CRP', visit: 'Baseline', cut: 'median' }
+//   { col: 'AGE', type: 'number', cut: [40, 60] }
+//
 // `variable` checks one and returns it in full. A malformed one is refused with
 // a message that names what is wrong, so the mistake is found where the
 // variable was written and not in an empty chart.
@@ -20,6 +26,8 @@ export const VALUE_TYPES = Object.freeze([
   'fold_change',
   'percent_change'
 ]);
+
+import { CUTS, writePoint } from './cut.js';
 
 const KEYS = ['measure', 'visit', 'value', 'col', 'type', 'cut'];
 
@@ -45,8 +53,11 @@ const refuse = (message) => {
  *   not given.
  * @param {string} [spec.col] The column, for a column variable.
  * @param {string} [spec.type] `number` to read a column as a number.
+ * @param {string|number[]} [spec.cut] To cut the number into groups: `median`,
+ *   `tertiles`, `quartiles`, or the cut points, ascending. A column cut must be
+ *   read as a number.
  * @returns {object} The variable, frozen: `{ kind: 'measure', measure, visit,
- *   value }` or `{ kind: 'column', col, type }`.
+ *   value }` or `{ kind: 'column', col, type }`, with `cut` when it has one.
  */
 export function variable(spec) {
   if (spec === null || typeof spec !== 'object' || Array.isArray(spec)) {
@@ -59,15 +70,12 @@ export function variable(spec) {
   if (unknown.length) {
     refuse(
       `the variable ${written} has a key that is not known: ${unknown.join(', ')}. ` +
-        `A variable takes ${KEYS.filter((key) => key !== 'cut').join(', ')}.`
+        `A variable takes ${KEYS.join(', ')}.`
     );
   }
-  if (given(spec.cut)) {
-    refuse(
-      `the variable ${written} asks for a cut, and the cut rule is not available yet: it ` +
-        'arrives with cross-tabulation. Until then a group comes from a column.'
-    );
-  }
+  const cut = given(spec.cut) ? readCut(spec.cut, written) : null;
+  // The variable in full, with its cut when it has one.
+  const done = (read) => Object.freeze(cut === null ? read : { ...read, cut });
   const hasMeasure = given(spec.measure);
   const hasColumn = given(spec.col);
   if (hasMeasure === hasColumn) {
@@ -89,7 +97,12 @@ export function variable(spec) {
         `the variable ${written}: \`type\` can only be 'number', to read the column as a number.`
       );
     }
-    return Object.freeze({ kind: 'column', col: spec.col, type: spec.type ?? null });
+    if (cut !== null && spec.type !== 'number') {
+      refuse(
+        `the variable ${written} cuts a column, so it must be read as a number: add \`type: 'number'\`.`
+      );
+    }
+    return done({ kind: 'column', col: spec.col, type: spec.type ?? null });
   }
 
   if (!isText(spec.measure)) {
@@ -114,12 +127,57 @@ export function variable(spec) {
           'named in settings: it takes no `visit`.'
       );
     }
-    return Object.freeze({ kind: 'measure', measure: spec.measure, visit: null, value });
+    return done({ kind: 'measure', measure: spec.measure, visit: null, value });
   }
   if (!isText(spec.visit)) {
     refuse(`the variable ${written} must name its visit: \`visit\` is missing or empty.`);
   }
-  return Object.freeze({ kind: 'measure', measure: spec.measure, visit: spec.visit, value });
+  return done({ kind: 'measure', measure: spec.measure, visit: spec.visit, value });
+}
+
+// A cut as written: one of CUTS, or typed points, each a finite number and each
+// greater than the one before. Typed points come back as a frozen copy.
+function readCut(cut, written) {
+  if (typeof cut === 'string' && CUTS.includes(cut)) return cut;
+  if (!Array.isArray(cut)) {
+    refuse(
+      `the variable ${written}: \`cut\` must be ${CUTS.map((name) => `'${name}'`).join(', ')} ` +
+        `or a list of cut points in ascending order, and it is ${JSON.stringify(cut)}.`
+    );
+  }
+  if (!cut.length) {
+    refuse(`the variable ${written}: \`cut\` is an empty list: give one cut point or more.`);
+  }
+  for (const point of cut) {
+    if (typeof point !== 'number' || !Number.isFinite(point)) {
+      refuse(
+        `the variable ${written}: a cut point must be a finite number, and ` +
+          // JSON writes NaN and the infinities as null: name them as they are.
+          `${typeof point === 'number' ? String(point) : JSON.stringify(point)} is not one.`
+      );
+    }
+  }
+  for (let index = 1; index < cut.length; index += 1) {
+    if (!(cut[index] > cut[index - 1])) {
+      refuse(
+        `the variable ${written}: the cut points must be in ascending order, each greater than ` +
+          `the one before: ${cut[index - 1]} then ${cut[index]}.`
+      );
+    }
+  }
+  // Two points written alike would make groups with the same label, which no
+  // reader could tell apart.
+  for (let index = 1; index < cut.length; index += 1) {
+    const bound = writePoint(cut[index]);
+    if (bound === writePoint(cut[index - 1])) {
+      refuse(
+        `the variable ${written}: the cut points ${cut[index - 1]} and ${cut[index]} are both ` +
+          `written ${bound} to four significant digits, so the groups they make could not be ` +
+          'told apart: give points that differ in their first four significant digits.'
+      );
+    }
+  }
+  return Object.freeze([...cut]);
 }
 
 const WORDS = {
@@ -128,17 +186,34 @@ const WORDS = {
   percent_change: 'percent change from baseline'
 };
 
+// A list in words: `1`, `1 and 2`, `1, 2 and 3`.
+const listed = (items) =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+
+/**
+ * A cut in words: `cut at the median`, `cut at 2 and 5`.
+ * @param {string|number[]} cut The cut, as a variable carries it.
+ * @returns {string} The words.
+ */
+export function cutWords(cut) {
+  return Array.isArray(cut) ? `cut at ${listed(cut.map(writePoint))}` : `cut at the ${cut}`;
+}
+
 /**
  * A variable in words, for an axis title or a legend.
  *
  * @param {object} spec The variable.
  * @returns {string} `ARM`, `IL-6 at Week 4`, `IL-6 at baseline`,
- *   `IL-6 at Week 4, change from baseline`.
+ *   `IL-6 at Week 4, change from baseline`, `CRP at Baseline, cut at the median`.
  */
 export function label(spec) {
   const read = variable(spec);
-  if (read.kind === 'column') return read.col;
-  if (read.value === 'baseline') return `${read.measure} at baseline`;
-  const at = `${read.measure} at ${read.visit}`;
-  return read.value === 'raw' ? at : `${at}, ${WORDS[read.value]}`;
+  let words;
+  if (read.kind === 'column') words = read.col;
+  else if (read.value === 'baseline') words = `${read.measure} at baseline`;
+  else {
+    const at = `${read.measure} at ${read.visit}`;
+    words = read.value === 'raw' ? at : `${at}, ${WORDS[read.value]}`;
+  }
+  return read.cut === undefined ? words : `${words}, ${cutWords(read.cut)}`;
 }

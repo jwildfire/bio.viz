@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-03T08:36:04.957Z",
+  "generatedAt": "2026-10-04T23:12:12.593Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37110218227",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37110218227"
+    "id": "37242858671",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
   },
   "records": [
     {
@@ -325,11 +325,11 @@
       "screenshots": []
     },
     {
-      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is refused, saying the cut rule is not available yet (#8)",
+      "test": "core: a variable CORE-VAR-003: a variable that asks for a cut is no longer refused: it is returned with its cut, for the shared cut rule (#8, #43)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CORE-VAR-003"],
-      "issueRefs": [8],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -370,6 +370,86 @@
       "status": "pass",
       "requirementIds": ["CORE-FRAME-017"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-DOC-001: the R recipe in the core’s reference is, line for line, the one tools/r-cut.R runs to make the expected results (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-DOC-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-GRP-001: each participant is in the group R’s cut(right = TRUE) puts them in: a value equal to a cut point falls in the lower group, and a missing value in none (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-GRP-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-GRP-002: distinct points written alike make groups with the same label, which are one group, as R’s cut() merges levels with the same label, and the result says they merged (#43, #46)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-GRP-002"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-LBL-001: groups are ordered low to high and labelled with their bounds, each written to four significant digits as R’s signif() writes it (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-LBL-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-LBL-002: a bound however small or large is written in full with no trailing zero, as R’s format(scientific = FALSE) writes it (#43, #46)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-LBL-002"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-PTS-001: the cut points are R’s quantile(type = 7) on the values, missing ones left out, and typed points are used as written (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-PTS-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-PTS-002: a repeated cut point collapses, and the result says the points repeated (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-PTS-002"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-SPEC-001: a biomarker or a number column may carry a cut: the median, the tertiles, the quartiles, or typed points in ascending order (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-SPEC-001"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-SPEC-002: a malformed cut is refused with a sentence that names it (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-SPEC-002"],
+      "issueRefs": [43],
+      "screenshots": []
+    },
+    {
+      "test": "core: the cut rule CUT-STUDY-001: on the synthetic study, the frame’s values of the cut variable, for the participants the filters keep, are R’s, and so are the points and the groups (#43)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CUT-STUDY-001"],
+      "issueRefs": [43],
       "screenshots": []
     },
     {
@@ -741,6 +821,14 @@
       "screenshots": []
     },
     {
+      "test": "evidence pictures: the version each one draws CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, written for its own bytes (sha256), with the pictures it shows named; no record is left without its picture (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-017"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
       "test": "gallery CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)",
       "suite": "unit",
       "status": "pass",
@@ -794,6 +882,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-016: a chart registered as experimental is published with an Experimental badge and the reason, on its gallery card, on the home page and on its live demo; the committed registry gives the stratified survival chart that status (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-016"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {
@@ -1138,6 +1234,14 @@
       "status": "pass",
       "requirementIds": ["CORE-MAN-005"],
       "issueRefs": [32],
+      "screenshots": []
+    },
+    {
+      "test": "the release log CORE-NEWS-001: only the first section may be upcoming; a released section links nothing on the dev site; the newest released section is the package version (#56)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-NEWS-001"],
+      "issueRefs": [56],
       "screenshots": []
     },
     {

@@ -4,7 +4,8 @@
 // participant. Pure functions: no page, no chart, no network, and nothing
 // imported from outside src/core.
 
-export { variable, label, VALUE_TYPES } from './variable.js';
+export { variable, label, cutWords, VALUE_TYPES } from './variable.js';
+export { CUTS, cutPoints, cutGroup, cutLabels } from './cut.js';
 export { frame, visits } from './frame.js';
 export { DEFAULT_SETTINGS, BASELINE_STATS } from './settings.js';
 export { DROPPED, UNUSED } from './reasons.js';

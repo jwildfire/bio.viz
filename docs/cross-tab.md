@@ -1,0 +1,157 @@
+# The cross-tabulation
+
+Is this category associated with that one? The chart draws a two-way table of counts, with its row and column totals and percentages, beside stacked bars of the same numbers. Under it, R's chi-square or Fisher's exact test of the table is printed with its method and counts, with R's own warning when an expected count is too small for chi-square. Either variable is a column, or a biomarker or a participant-level number cut by the core's shared [cut rule](core.md#the-cut-rule). A click on a count lists its participants, and a row of the listing opens safety.viz's participant profile.
+
+```js
+BioViz.crossTab('#chart', {
+  row_by: 'ARM',
+  col_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+  percent: 'row',
+  test: 'chisq',
+  connection: BioViz.r.createConnection({
+    browser: { sourceUrl: 'vendor/gsm.bio/statistics.R', packages: [] }
+  })
+}).init({ results, participants });
+```
+
+## What the page loads
+
+safety.viz's script-tag bundle first, then bio.viz's: the chart is built from safety.viz's kit, which it finds on the page as `SafetyViz.kit` when it is made, and its bars are drawn with the kit's Chart.js. Without safety.viz on the page the chart is refused with a message saying what is missing.
+
+## `crossTab(element, settings)`
+
+Makes the chart in `element`, a DOM element or a CSS selector for one, with `settings` laid over the defaults below. The controls are drawn at once; the tables are given to `init`. A setting that is not known, or a value a setting cannot take, is refused: `crossTab` throws a `TypeError` whose message begins `bio.viz:` and names the setting.
+
+## The tables
+
+`init` and `setData` take `{ results, participants }`, each an array of records, one object per row. They are the tables the [core](core.md) reads, and the column settings are the core's. Only the results table is required. With a participant table the chart shows a filter for each of its category columns, and offers those columns in the Rows and Columns controls; without one, a category comes from a column carried on the results rows that holds one value for each participant. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads `No participant passes the filters.`, the words every chart uses.
+
+A participant table is matched to the results by the participant's id, in the column `participant_id_col` names, or `id_col`'s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (`Not in the participant table`), and so is a row of results with no participant id (`Row has no participant id`). A participant with no category on either variable is left out and counted. If drawing fails for any other reason, the footnote says `This chart could not be drawn:` and why, nothing half drawn is left, and the controls stay.
+
+## The chart's methods
+
+| Method                          | What it does                                                                                                                                                                                                                                                                                        |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chart.init(data)`              | Loads the tables and draws. The same as `setData`.                                                                                                                                                                                                                                                  |
+| `chart.setData(data, settings)` | Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. `settings`, when given, are laid over the chart's with the tables, for tables that need them, and the tables are checked against those settings. |
+| `chart.setSettings(settings)`   | Lays new settings over the current ones and draws again. A setting that says what the chart opens on (`row_by`, `col_by`, `percent`, `test`, `filters`) moves its control.                                                                                                                          |
+| `chart.render()`                | Draws again from the tables, the settings and the controls, and asks R again.                                                                                                                                                                                                                       |
+| `chart.listCell(row, col)`      | Lists the participants of one cell, as a click on its count does, and returns them.                                                                                                                                                                                                                 |
+| `chart.statistics()`            | What the chart has asked R for the table now drawn and what R answered: `[{ name, args, dataId, rows, answer }]`, or none when nothing is asked.                                                                                                                                                    |
+| `chart.resize()`                | Fits the bars to their container.                                                                                                                                                                                                                                                                   |
+| `chart.specification()`         | The chart as JSON data: every setting as its controls now read, and every filter in force. `BioViz.fromSpecification` makes the same chart from it ([specifications](output.md#specifications)).                                                                                                    |
+| `chart.fileOf(kind)`            | One of the [downloads](#downloads) as a file, without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`.                                                                                                                                                    |
+| `chart.destroy()`               | Takes the chart down. A destroyed chart cannot be used again.                                                                                                                                                                                                                                       |
+
+## Settings
+
+| Setting              | Default                 | What it is                                                                                                                                                    |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`             | `'USUBJID'`             | The participant's id, in the results table.                                                                                                                   |
+| `measure_col`        | `'TEST'`                | The biomarker's name.                                                                                                                                         |
+| `value_col`          | `'STRESN'`              | The result.                                                                                                                                                   |
+| `visit_col`          | `'VISIT'`               | The visit.                                                                                                                                                    |
+| `visit_order_col`    | `'VISITNUM'`            | A number that orders the visits. May be null.                                                                                                                 |
+| `unit_col`           | `'STRESU'`              | The unit. May be null.                                                                                                                                        |
+| `participant_id_col` | `null`                  | The participant's id in the participant table. Null means `id_col`'s name.                                                                                    |
+| `baseline_visits`    | `null`                  | The baseline visit, or a list of them, for a cut variable that is a change from baseline. Null means the first visit.                                         |
+| `baseline_stat`      | `'mean'`                | How several baseline results are brought to one: `mean`, `min`, `max` or `first`.                                                                             |
+| `row_by`             | `null`                  | The table's rows: a column's name, or a cut variable (`{ measure, visit, cut }` or `{ col, type: 'number', cut }`). Null means the first column offered.      |
+| `col_by`             | `null`                  | The table's columns, as `row_by` takes them. Null means the next column offered.                                                                              |
+| `percent`            | `'row'`                 | What each cell's percentage is of: `row`, `col`, or `none`.                                                                                                   |
+| `cuts`               | `null`                  | Cut variables the Rows and Columns controls offer beside the columns, as a list.                                                                              |
+| `measures`           | `null`                  | The biomarkers the participant profile shows, in order. Null means every biomarker.                                                                           |
+| `groups`             | `null`                  | The columns the Rows and Columns controls offer, as `{ value_col, label }`. Null means every category column.                                                 |
+| `max_levels`         | `12`                    | The most different values a column may hold and still be a category.                                                                                          |
+| `filters`            | `null`                  | The filters, as `{ value_col, label, start, all }`. Null means every category column of the participant table.                                                |
+| `details`            | `null`                  | The listing's columns. Null means the participant, the row and the column.                                                                                    |
+| `page_size`          | `10`                    | The listing's rows on a page.                                                                                                                                 |
+| `connection`         | `null`                  | The connection to R ([`BioViz.r.createConnection`](r-connection.md)). Null means none: the line says statistics are unavailable.                              |
+| `statistic`          | `'Analyze_Contingency'` | The R function the test is asked of. Null for no statistics line.                                                                                             |
+| `test`               | `'chisq'`               | The test: `chisq`, chi-square; `fisher`, Fisher's exact; or `none`.                                                                                           |
+| `waiting_note`       | `null`                  | A sentence the line adds while it waits, until R has answered once on the connection: what starting R costs on the page.                                      |
+| `back`               | `null`                  | A way back, when another chart opened this one in its place: `{ label, action }`.                                                                             |
+| `profile`            | `true`                  | Whether a row of the listing opens safety.viz's participant profile.                                                                                          |
+| `profile_details`    | `null`                  | The columns the profile's header shows. Null means the category columns.                                                                                      |
+| `studyday_col`       | `null`                  | The study day, for the profile. May be null.                                                                                                                  |
+| `normal_col_high`    | `null`                  | The upper limit of normal, for the profile. May be null.                                                                                                      |
+| `normal_col_low`     | `null`                  | The lower limit of normal, for the profile. May be null.                                                                                                      |
+| `title`              | `null`                  | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none. |
+| `subtitle`           | `null`                  | The line under the title, written the same way. Null means none.                                                                                              |
+| `footnotes`          | `null`                  | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                |
+| `downloads`          | `true`                  | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                           |
+| `png_scale`          | `2`                     | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.            |
+
+## Titles and footnotes
+
+The settings `title`, `subtitle` and `footnotes` are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart's own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in [Getting results out](output.md).
+
+| Placeholder | What it holds                                          |
+| ----------- | ------------------------------------------------------ |
+| `{rows}`    | What the rows are, as the Rows control names it.       |
+| `{columns}` | What the columns are, as the Columns control names it. |
+| `{n}`       | How many participants are in the table.                |
+| `{filters}` | The filters in force, in words, or `none`.             |
+| `{date}`    | The date drawn, in UTC: `2026-10-04`.                  |
+| `{version}` | The bio.viz version.                                   |
+
+## Downloads
+
+Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-cross-tab-….png`:
+
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else ([the PNG](output.md#the-png)). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.                                                                                                                                                                                                                                                                                       |
+| Table (CSV)      | The table the chart drew from: one row per participant in the table: the participant, their row and their column, each cut row or column with the value it was cut from beside it.                                                                                                                                                                                                                                                                                                                     |
+
+A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
+
+## What is drawn
+
+- The table: the row categories down the side and the column categories across, a count in each cell with its percentage of its row or its column beneath, the row totals, the column totals and the grand total. A column's categories are in order of name, numbers in them as numbers (Week 2 before Week 10) and A to Z read as a to z, anything else by its code point (so `É` comes after `Z`), the same in every browser language and the order R is handed them in; a cut's run low to high, labelled with their bounds. A value that is empty or only white space is missing, white space being what JavaScript's `trim()` removes, the non-breaking space and the other Unicode spaces among it. In R that is `trimws(x, whitespace = "[\t-\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]")`, as `tools/r-cross-tab.R` reads it; `trimws()`'s default misses the non-breaking space. Every count is a button: a click, or Enter on it, lists that cell's participants.
+- The bars: the same table as percentages, one stacked bar for each row split by the columns, or, with column percentages, one for each column split by the rows.
+- The footnote: how to list a cell, and how each cut variable was cut (its points, how many values they were worked out on, and whether repeated points collapsed). Points worked out from the values are worked out on every participant the filters keep with a value, whether or not they have a category the other way, and the footnote says so; the stratified survival chart cuts only participants with an outcome.
+
+## The statistics line
+
+R is asked once per table, with one row per participant: the id, `row` and `col`, each as text. The line says it is waiting until R answers, and a change to the rows, the columns, the test or a filter clears it and asks again; an answer to a question no longer on screen is never shown. What the percentages are of describes the same table: changing it redraws the table and the bars and asks R nothing. R's result is printed with its method and counts, labelled exploratory and unadjusted; with Fisher's exact test of a two-by-two table, R's odds ratio is printed with its interval, named by which row is over which and the odds of which column: `odds ratio (Placebo / Treatment, odds of Non-responder against Responder)` is the odds of Non-responder against Responder for Placebo over the same odds for Treatment. It is what gsm.bio's `Analyze_Contingency` reports, the estimate of R's `fisher.test()` for the table in the order the chart handed it (R's conditional maximum-likelihood estimate, not the ratio of the counts), and that order is the table's. An odds ratio R gives as infinite, for a table with an empty cell, is printed `infinite`, with its finite bound and `infinity`. A table R withholds, a category below R's minimum size, prints R's reason and no number; R names the category by the column the chart handed it, `row` or `col`, and the line puts the table's name for that variable in its place (`Not computed: CRP at Baseline, cut at 10 = > 10 has 2.`). What R said about its answer is printed as R worded it, its warnings and its notes among them: for chi-square, when an expected count is below 5, R's note says so and that Fisher's exact test does not rely on the approximation. The chart computes no test statistic, no p-value and no expected count. With no R attached the table and the bars are still drawn, and the line says that statistics are unavailable.
+
+### What R is asked
+
+```js
+connection.run('Analyze_Contingency', {
+  data, // one row per participant: the id, row, col
+  args: {
+    strRowCol: 'row',
+    strColCol: 'col',
+    strMethod: 'chisq', // or 'fisher'
+    chrRowGroups: ['Placebo', 'Treatment'], // the table's order: a column's by name, a cut's low to high
+    chrColGroups: ['Non-responder', 'Responder']
+  },
+  dataId // what the rows are: see below
+});
+```
+
+The categories R is handed are the table's, in the order the table draws them: a cut's low to high, a column's by name with numbers as numbers and A to Z read as a to z, anything else by its code point (`2 mg` before `10 mg`, `week 1` before `Week 2` before `Week 10`, ASCII before `Ö`). The order depends on nothing but the categories, so it is the same in every browser and every language and a stored result written from R is found. It is gsm.bio's order, its `Core_NaturalCompare`, which `natural_sort` in `tools/r-order.R` copies; a table gsm.bio writes stored results for must send R its levels in this order. Fisher's odds ratio is of the table in this order, so its first row over its second is the table's.
+
+`dataId` states what the rows are, so a [stored result](r-connection.md#stored-results) is found by the function's name, these arguments and this identity together:
+
+| Member            | What it is                                                                                                            | Left out when                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `chart`           | `'cross-tab'`.                                                                                                        | never                                                     |
+| `row_by`          | The rows: the column's name, or the cut variable as the settings write it, typed points as a list.                    | never                                                     |
+| `col_by`          | The columns, written as `row_by` is.                                                                                  | never                                                     |
+| `baseline_visits` | The setting, as a list.                                                                                               | the setting is null, or no cut biomarker reads a baseline |
+| `baseline_stat`   | The setting.                                                                                                          | no cut biomarker reads a baseline                         |
+| `filters`         | An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point. | no filter is in force                                     |
+
+A cut biomarker reads a baseline when its value is the baseline or a change from it (`value` other than `raw`); a table of columns, or of a biomarker's result itself, does not depend on the baseline settings, so they are not part of its key. The R recipe that writes the same key is `cross_tab_key` in `tools/r-cross-tab.R`, which writes the expected results the tests hold this chart to.
+
+## On a phone
+
+At 390 pixels the controls start folded away, the table scrolls inside its own box when it is wider than the screen, and the page does not scroll sideways.
+
+## What is not here
+
+No test statistic, p-value, expected count or adjustment is computed here: the chart counts and works out percentages, which describe the table, and every test is R's.

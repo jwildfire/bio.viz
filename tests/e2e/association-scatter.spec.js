@@ -11,7 +11,7 @@ import {
   expectReplacedConnectionDead
 } from './review.js';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
-import { captureEvidence } from './evidence.js';
+import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
 
@@ -302,6 +302,25 @@ test.describe('association scatter: what is drawn', () => {
     );
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-chart-wrap'), 'AS-DRAW-001', 'planted-pair');
+    // The gallery's picture: the chart's frame titled as its demo is, with its
+    // footnotes and its own last (#66).
+    await page.evaluate(
+      ({ results, ...titles }) =>
+        window.__as.chart.setSettings({
+          ...titles,
+          connection: window.BioViz.r.createConnection({ results })
+        }),
+      {
+        results: stored('pearson'),
+        title: '{y} against {x}',
+        subtitle: '{n} participants',
+        footnotes: [
+          'Synthetic study from gsm.bio: no real participant is shown.',
+          'Filters: {filters}.'
+        ]
+      }
+    );
+    await captureGallery(page.locator('#chart .sv-main'), 'AS-DRAW-001');
   });
 
   test('AS-DRAW-002: a colour gives each level its own colour and a key, and the key does not switch a level off (#26)', async ({
@@ -1345,12 +1364,16 @@ test.describe('association scatter: a region, the listing and the participant pr
       page.getByRole('button', { name: 'Export: CSV' }).click()
     ]);
     expect(download.suggestedFilename()).toBe('bio.viz-association-scatter-listing.csv');
-    const lines = readFileSync(await download.path(), 'utf8').split('\n');
+    // Written by RFC 4180 (#67): records end in CRLF, and a field is quoted
+    // only when it must be.
+    const lines = readFileSync(await download.path(), 'utf8')
+      .trimEnd()
+      .split('\r\n');
     expect(lines[0]).toBe(
       'Participant,TNF-alpha at Baseline (pg/mL),IL-10 at Baseline (pg/mL),ARM'
     );
     expect(lines).toHaveLength(201);
-    expect(lines[1]).toMatch(/^"BIO-\d{3}","\d[\d.]*","\d[\d.]*","(Placebo|Treatment)"$/);
+    expect(lines[1]).toMatch(/^BIO-\d{3},\d[\d.]*,\d[\d.]*,(Placebo|Treatment)$/);
   });
 
   test('AS-PROF-001: clicking a point lists that participant and opens their profile through the participantsSelected event; a row of the listing does the same (#26)', async ({
@@ -1795,7 +1818,7 @@ test.describe('association scatter: on the site', () => {
     await expect(card.locator('h3')).toHaveText('Association scatter');
     await expect(card).toContainText('Do these two variables move together?');
     // Every chart is listed, the first one first.
-    await expect(page.locator('#charts [data-module]')).toHaveCount(4);
+    await expect(page.locator('#charts [data-module]')).toHaveCount(6);
 
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/evidence\.html$/);

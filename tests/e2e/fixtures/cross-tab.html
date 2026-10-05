@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bio.viz cross-tabulation fixture</title>
+    <style>
+      body {
+        margin: 16px;
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Cross-tabulation fixture</h1>
+    <p>
+      Playwright harness page for the cross-tabulation (#44). It loads safety.viz's vendored bundle
+      and then bio.viz's committed bundle, as two script tags, and draws the chart on the vendored
+      synthetic study. <code>?data=</code> chooses the tables: <code>both</code> (the results and
+      the participant table, the default) or <code>results</code> (the results table alone). The
+      chart opens on arm by response. <code>?make=no</code> loads the tables and makes no chart, for
+      a test that makes its own. The tests reach the chart as <code>window.__ct.chart</code>.
+    </p>
+    <div id="chart"></div>
+    <script src="/site/vendor/safety.viz/safety.viz.js"></script>
+    <script src="/dist/bio.viz-0.2.0/bio.viz.js"></script>
+    <script src="/site/demo/synthetic-study.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const which = params.get('data') || 'both';
+      const study = '/site/data/synthetic-study/';
+
+      function tables() {
+        return BioVizDemo.loadStudy(study).then((loaded) =>
+          which === 'results' ? { results: loaded.results } : loaded
+        );
+      }
+
+      // A test may set these before the chart is made.
+      window.__ctSettings = window.__ctSettings || {};
+      window.__ct = {
+        ready: tables().then((data) => {
+          window.__ct.data = data;
+          if (params.get('make') === 'no') return null;
+          const settings = Object.assign(
+            { row_by: 'ARM', col_by: 'RESPONSE', baseline_visits: 'Baseline' },
+            window.__ctSettings
+          );
+          const chart = BioViz.crossTab('#chart', settings);
+          window.__ct.chart = chart;
+          chart.init(data);
+          return chart;
+        })
+      };
+    </script>
+  </body>
+</html>

@@ -45,9 +45,13 @@ import {
   renderPager,
   toolbarStyles,
   drawSafely,
-  checkTables
+  checkTables,
+  writeTitles,
+  specificationOf,
+  startFilters
 } from './shared/chartHost.js';
-import { VALUE_TYPES } from './core/variable.js';
+import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
+import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES } from './shared/tables.js';
 import { MARKS, Y_SCALES, syncSettings } from './group-comparison/configure.js';
 import {
@@ -78,6 +82,11 @@ import {
 } from './group-comparison/structureData.js';
 
 const NONE = '';
+
+// A cut variable in the Group and Panel controls: the settings' `group_by` and
+// `panel_by`, when either is a cut variable, are each offered under a key of
+// their own, after the columns.
+const CUT_KEY = 'bv-cut:';
 
 // The Biomarker control's entry for the overview of every biomarker, as
 // safety.viz's histogram has one for every measure. In the chart's state the
@@ -265,6 +274,18 @@ class GroupComparison {
     this.measures = results.length ? listMeasures(results, this.settings) : [];
     this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
     this.categories = results.length ? categoryColumns(this.tables, this.settings) : [];
+    // The cut variables the settings name, each once.
+    this.cutOptions = [];
+    for (const by of [this.settings.group_by, this.settings.panel_by]) {
+      if (!isCut(by)) continue;
+      const written = JSON.stringify(by);
+      if (this.cutOptions.some((entry) => JSON.stringify(entry.spec) === written)) continue;
+      this.cutOptions.push({
+        key: `${CUT_KEY}${this.cutOptions.length}`,
+        spec: by,
+        label: variableLabel(by)
+      });
+    }
     this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map((spec) =>
       this.kit.normalizeFilterSpec(spec)
     );
@@ -291,29 +312,63 @@ class GroupComparison {
     this.render();
   }
 
+  // The key a cut variable is held under in the Group and Panel controls.
+  cutKey(by) {
+    const written = JSON.stringify(by);
+    return this.cutOptions.find((entry) => JSON.stringify(entry.spec) === written).key;
+  }
+
+  // Whether a Group or Panel control can hold a value: a column offered, or a
+  // cut variable the settings name.
+  offers(value) {
+    return (
+      this.categories.some((entry) => entry.value_col === value) ||
+      this.cutOptions.some((entry) => entry.key === value)
+    );
+  }
+
+  // A Group or Panel control's value as the core takes it: a column's name, or
+  // the cut variable.
+  groupingOf(value) {
+    const found = this.cutOptions.find((entry) => entry.key === value);
+    return found ? found.spec : value;
+  }
+
+  // The state with the group and the panel as the drawing takes them.
+  drawingState(state = this.state) {
+    return {
+      ...state,
+      groupBy: this.groupingOf(state.groupBy),
+      panelBy: this.groupingOf(state.panelBy)
+    };
+  }
+
   // What the chart opens on: the settings, where the tables have what they name.
   seedState() {
     const { settings, categories, measures } = this;
     const has = (column) => categories.some((entry) => entry.value_col === column);
+    let groupBy = NONE;
+    if (isCut(settings.group_by)) groupBy = this.cutKey(settings.group_by);
+    else if (has(settings.group_by)) groupBy = settings.group_by;
+    else if (categories.length) groupBy = categories[0].value_col;
+    let panelBy = NONE;
+    if (isCut(settings.panel_by)) panelBy = this.cutKey(settings.panel_by);
+    else if (has(settings.panel_by)) panelBy = settings.panel_by;
     return {
       // No biomarker named, or one the table does not have: the overview.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: 0,
+      page: settings.page,
       visits: [...this.visits.start],
       valueType: settings.value_type,
-      groupBy: has(settings.group_by)
-        ? settings.group_by
-        : categories.length
-          ? categories[0].value_col
-          : NONE,
+      groupBy,
       levels: settings.levels,
       colorBy: has(settings.color_by) ? settings.color_by : NONE,
-      panelBy: has(settings.panel_by) ? settings.panel_by : NONE,
+      panelBy,
       mark: settings.mark,
       yScale: settings.y_scale,
       test: settings.test,
       pairwise: settings.pairwise,
-      filters: this.kit.initFilterState(this.filterSpecs)
+      filters: startFilters(this)
     };
   }
 
@@ -326,12 +381,16 @@ class GroupComparison {
     }
     this.state.visits = this.state.visits.filter((visit) => this.visits.all.includes(visit));
     if (!this.state.visits.length) this.state.visits = opening.visits;
-    if (this.state.groupBy && !has(this.state.groupBy)) this.state.groupBy = opening.groupBy;
+    if (this.state.groupBy && !this.offers(this.state.groupBy)) {
+      this.state.groupBy = opening.groupBy;
+    }
     if (this.state.colorBy && !has(this.state.colorBy)) this.state.colorBy = NONE;
-    if (this.state.panelBy && !has(this.state.panelBy)) this.state.panelBy = NONE;
+    if (this.state.panelBy && !this.offers(this.state.panelBy)) this.state.panelBy = NONE;
   }
 
   labelOf(column) {
+    const cut = this.cutOptions.find((entry) => entry.key === column);
+    if (cut) return cut.label;
     const found = this.categories.find((entry) => entry.value_col === column);
     return found ? found.label : column;
   }
@@ -399,12 +458,13 @@ class GroupComparison {
     }
 
     const columns = this.categories.map((entry) => [entry.value_col, entry.label]);
+    const cuts = this.cutOptions.map((entry) => [entry.key, entry.label]);
     const group = addSection('Groups');
-    if (columns.length) {
+    if (columns.length || cuts.length) {
       select(
         'group-by',
         'Group by',
-        columns,
+        [...columns, ...cuts],
         state.groupBy,
         (next) => {
           state.groupBy = next;
@@ -414,17 +474,25 @@ class GroupComparison {
         },
         group
       );
-      const levels = this.levelsOffered();
-      const picker = kit.multiSelect({
-        values: levels,
-        selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
-        onChange: (next) => {
-          state.levels = next;
-          redraw(false);
-        }
-      });
-      picker.dataset.control = 'levels';
-      addControl('Levels', picker, group);
+      // A cut's groups move with the filters, so they are all drawn: the Levels
+      // control is for a column.
+      if (isCut(this.groupingOf(state.groupBy))) {
+        group.append(
+          kit.createElement('small', 'bv-control-note', 'Every group a cut makes is drawn.')
+        );
+      } else {
+        const levels = this.levelsOffered();
+        const picker = kit.multiSelect({
+          values: levels,
+          selected: state.levels ? levels.filter((level) => state.levels.includes(level)) : null,
+          onChange: (next) => {
+            state.levels = next;
+            redraw(false);
+          }
+        });
+        picker.dataset.control = 'levels';
+        addControl('Levels', picker, group);
+      }
       const optional = [[NONE, 'None'], ...columns];
       select(
         'color-by',
@@ -440,7 +508,7 @@ class GroupComparison {
       const panelBy = select(
         'panel-by',
         'Panel by',
-        optional,
+        [...optional, ...cuts],
         state.panelBy,
         (next) => {
           state.panelBy = next;
@@ -551,7 +619,7 @@ class GroupComparison {
         this.tables,
         this.settings,
         {
-          ...this.state,
+          ...this.drawingState(),
           levels: null,
           colorBy: NONE,
           panelBy: NONE,
@@ -634,7 +702,7 @@ class GroupComparison {
       return;
     }
 
-    const model = buildPanels(this.tables, this.settings, this.state, {
+    const model = buildPanels(this.tables, this.settings, this.drawingState(), {
       filterMatches: this.kit.filterMatches
     });
     this.model = model;
@@ -645,10 +713,12 @@ class GroupComparison {
       this.footnote.textContent = nothingDrawn(model);
       return;
     }
-    this.footnote.textContent =
+    this.footnote.textContent = [
       this.state.mark === 'points'
         ? 'Click a point to list its participant and open their profile.'
-        : `Click a ${this.state.mark} to list its participants.`;
+        : `Click a ${this.state.mark} to list its participants.`,
+      ...this.cutNotes(model)
+    ].join(' ');
 
     const title = yTitle(results, this.settings, this.state);
     const domain = this.domain(model);
@@ -699,7 +769,7 @@ class GroupComparison {
     const { kit, state, settings } = this;
     const page = overviewPage(this.measures, settings.overview_limit, state.page);
     state.page = page.page;
-    const rows = buildOverview(this.tables, settings, state, page.measures, {
+    const rows = buildOverview(this.tables, settings, this.drawingState(), page.measures, {
       filterMatches: kit.filterMatches
     });
     this.overview = { ...page, rows };
@@ -717,7 +787,10 @@ class GroupComparison {
         : NOTHING_AFTER_BASELINE;
       return;
     }
-    this.footnote.textContent = 'Click a biomarker to view it alone, with a test under each visit.';
+    this.footnote.textContent = [
+      'Click a biomarker to view it alone, with a test under each visit.',
+      ...this.cutNotes(drawn[0].model)
+    ].join(' ');
 
     // With a second grouping, one key for the whole overview: the small panels
     // carry no legend of their own.
@@ -1134,7 +1207,7 @@ class GroupComparison {
       test,
       pairwise: this.state.pairwise,
       settings: this.settings,
-      state: this.state,
+      state: this.drawingState(),
       panel
     });
     const asked = {
@@ -1150,6 +1223,7 @@ class GroupComparison {
       request,
       (description, answer) => {
         if (answer) asked.answer = answer;
+        writeTitles(this);
         show(description);
       },
       { scope: this.scope(panel, model) }
@@ -1176,6 +1250,119 @@ class GroupComparison {
         }))
       }
     });
+  }
+
+  /**
+   * What the controls now read, as the settings the chart would open on with
+   * them: the part of its specification the controls hold (#68).
+   * @returns {object}
+   */
+  viewSettings() {
+    const { state } = this;
+    return {
+      start_value: state.measure ?? null,
+      visits: [...state.visits],
+      value_type: state.valueType,
+      group_by: state.groupBy ? this.groupingOf(state.groupBy) : null,
+      levels: state.levels ?? null,
+      color_by: state.colorBy || null,
+      panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
+      mark: state.mark,
+      y_scale: state.yScale,
+      test: state.test,
+      pairwise: state.pairwise,
+      page: state.page || 0
+    };
+  }
+
+  /**
+   * The chart's specification: its name, the bio.viz version, every setting
+   * as the controls now read, and every filter in force, as JSON data, which
+   * `BioViz.fromSpecification` makes the same chart from (#68).
+   * @returns {object}
+   */
+  specification() {
+    return specificationOf(this);
+  }
+
+  /**
+   * The table the chart drew from, one row per participant drawn, for the
+   * table download (#67): which field of a row each column holds, and its
+   * heading. In the overview, one row per participant, biomarker and visit
+   * drawn on its page of biomarkers (#78).
+   * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
+   */
+  tableOf() {
+    const { model, state, settings, overview } = this;
+    if (!model && overview) return this.overviewTable();
+    if (!model || !model.panels) return { columns: [], rows: [] };
+    const visits = model.panels.some((panel) => panel.visit !== null && panel.visit !== undefined);
+    const columns = [{ value_col: settings.id_col, label: 'Participant' }];
+    if (visits) columns.push({ value_col: 'visit', label: 'Visit' });
+    if (state.groupBy) columns.push({ value_col: 'x', label: this.labelOf(state.groupBy) });
+    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
+    if (state.panelBy) columns.push({ value_col: 'panel', label: this.labelOf(state.panelBy) });
+    columns.push({
+      value_col: 'y',
+      label: `${state.measure}, ${VALUE_LABELS[state.valueType] || state.valueType}`
+    });
+    const rows = model.panels.flatMap((panel) =>
+      panel.records.map((record) => ({ ...record, visit: panel.visit }))
+    );
+    return { columns, rows };
+  }
+
+  // The overview's table: every value drawn on its page of biomarkers, each
+  // row naming its biomarker and its visit. The overview draws no panel
+  // column; its values are of the one value type the controls choose.
+  overviewTable() {
+    const { overview, state, settings } = this;
+    const columns = [
+      { value_col: settings.id_col, label: 'Participant' },
+      { value_col: 'biomarker', label: 'Biomarker' },
+      { value_col: 'visit', label: 'Visit' }
+    ];
+    if (state.groupBy) columns.push({ value_col: 'x', label: this.labelOf(state.groupBy) });
+    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
+    columns.push({ value_col: 'y', label: VALUE_LABELS[state.valueType] || state.valueType });
+    const rows = overview.rows.flatMap((row) =>
+      row.model.panels.flatMap((panel) =>
+        panel.records.map((record) => ({ ...record, biomarker: row.measure, visit: panel.visit }))
+      )
+    );
+    return { columns, rows };
+  }
+
+  /** The placeholders a download's file name is made of, after the chart's name. */
+  get viewFields() {
+    return ['measure', 'visits', 'group'];
+  }
+
+  /**
+   * What the title, subtitle and footnotes' placeholders hold for the view now
+   * drawn, beside `{date}`, `{version}` and `{filters}` (#66).
+   * @returns {object}
+   */
+  placeholders() {
+    const { state, model, overview } = this;
+    // The participants drawn: in the one biomarker's panels, or, in the
+    // overview, anywhere on its page of biomarkers.
+    const panels = model
+      ? model.panels
+      : overview
+        ? overview.rows.flatMap((row) => row.model.panels)
+        : [];
+    const ids = new Set();
+    for (const panel of panels) {
+      for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
+    }
+    return {
+      measure: state.measure ?? 'every biomarker',
+      visits: (state.visits || []).join(', '),
+      value: VALUE_LABELS[state.valueType] || state.valueType,
+      group: state.groupBy ? this.labelOf(state.groupBy) : '',
+      n: model || overview ? ids.size : ''
+    };
   }
 
   /**
@@ -1231,6 +1418,13 @@ class GroupComparison {
     if (state.panelBy) columns.push({ value_col: 'panel', label: this.labelOf(state.panelBy) });
     columns.push({ value_col: 'y', label: 'Value' });
     return columns;
+  }
+
+  // How each cut variable on the chart was cut, a sentence each.
+  cutNotes(model) {
+    return ['x', 'panel']
+      .filter((field) => model.cuts && model.cuts[field])
+      .map((field) => cutNote(model.cuts[field].spec, model.cuts[field]));
   }
 
   showListing(panel, cell, records) {
