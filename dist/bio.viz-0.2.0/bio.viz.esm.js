@@ -1414,7 +1414,7 @@ var refuse4 = (message) => {
   throw new TypeError(`bio.viz: ${message}`);
 };
 var VERSION = true ? "0.2.0" : "unbuilt";
-var DEVELOPMENT = true ? false : true;
+var DEVELOPMENT = true ? true : true;
 var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
 var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
 var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
