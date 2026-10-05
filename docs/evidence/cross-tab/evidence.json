@@ -1,6 +1,6 @@
 {
   "module": "cross-tab",
-  "generatedAt": "2026-10-04T21:34:21.164Z",
+  "generatedAt": "2026-10-04T23:12:12.593Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37236598105",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37236598105"
+    "id": "37242858671",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
   },
   "records": [
     {
@@ -497,6 +497,14 @@
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CT-STAT-014"],
+      "issueRefs": [78],
+      "screenshots": []
+    },
+    {
+      "test": "cross-tabulation: what R is asked, and what the line says CT-STAT-016: Fisher’s infinite odds ratio, stored by R as \"Inf\", prints from the stored answer as live R’s does; an estimate R stored with no number but a bound says it is not shown, and never vanishes (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CT-STAT-016"],
       "issueRefs": [78],
       "screenshots": []
     },

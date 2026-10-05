@@ -76,6 +76,36 @@ function createStore(results) {
   });
   return entries;
 }
+var NON_FINITE = { Inf: Infinity, "-Inf": -Infinity, NaN: Number.NaN };
+var NUMBER_MEMBERS = /* @__PURE__ */ new Set([
+  "estimate",
+  "lower",
+  "upper",
+  "value",
+  "statistic",
+  "p_value",
+  "p_unadjusted",
+  "expected",
+  "median",
+  "hazard_ratio",
+  "hr_lower",
+  "hr_upper",
+  "hr_p_value"
+]);
+var asNumber = (member) => typeof member === "string" && Object.hasOwn(NON_FINITE, member) ? NON_FINITE[member] : member;
+function readNonFinite(value) {
+  if (Array.isArray(value)) {
+    value.forEach(readNonFinite);
+  } else if (isPlainObject(value)) {
+    for (const [key, member] of Object.entries(value)) {
+      if (NUMBER_MEMBERS.has(key)) {
+        value[key] = Array.isArray(member) && member.every((item) => typeof item !== "object") ? member.map(asNumber) : asNumber(member);
+      }
+      readNonFinite(value[key]);
+    }
+  }
+  return value;
+}
 function lookUp(store, name, { data, args, dataId }) {
   const miss = (detail) => ({
     hit: false,
@@ -94,7 +124,7 @@ function lookUp(store, name, { data, args, dataId }) {
       );
     }
   }
-  return { hit: true, value: structuredClone(entry.value) };
+  return { hit: true, value: readNonFinite(structuredClone(entry.value)) };
 }
 
 // src/r/webREngine.js
@@ -4188,7 +4218,7 @@ function describeAnswer(result, context = {}) {
     const formatted = formatStatistic(value);
     const described = plain(formatted.status, formatted.text);
     if (formatted.status === "shown") {
-      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present(row.lower) && present(row.upper)).map((row) => formatEstimate(row).text);
+      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && (present(row.lower) || present(row.upper))).map((row) => formatEstimate(row).text);
       described.pairs = pairsOf(value);
     }
     described.remarks = remarksOf(value);
@@ -11280,7 +11310,7 @@ function describeAnswer3(result, context = {}) {
     const formatted = formatStatistic(value);
     const described = sentence(formatted.status, formatted.text);
     if (formatted.status === "shown") {
-      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && present3(row.lower) && present3(row.upper)).map((row) => formatEstimate(oriented(row, context.groups)).text);
+      described.estimates = (Array.isArray(value.estimates) ? value.estimates : []).filter((row) => row && (present3(row.lower) || present3(row.upper))).map((row) => formatEstimate(oriented(row, context.groups)).text);
     }
     described.remarks = remarksOf(value);
     described.scope = context.scope || null;

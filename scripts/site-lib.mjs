@@ -365,10 +365,15 @@ export function validateRegistry(config) {
     }
     // A chart is drawn somewhere a reader can try it: it names its demo.
     if (entry.kind === 'chart' && isPublished(entry) && !isText(entry.demo)) {
-      say('is an available chart, and needs `demo`, the name of its demo script in site/demo/.');
+      say(
+        `is an ${entry.status} chart, and needs \`demo\`, the name of its demo script in site/demo/.`
+      );
     }
     if (entry.status === 'experimental' && !isText(entry.statusNote)) {
       say('is experimental, and needs `statusNote`, a sentence saying why.');
+    }
+    if (entry.status !== 'experimental' && entry.statusNote !== undefined) {
+      say('has a `statusNote`, and only an experimental module has one.');
     }
     if (entry.kind !== 'chart' && entry.demo !== undefined) {
       say('has a `demo`, and only a chart has one.');

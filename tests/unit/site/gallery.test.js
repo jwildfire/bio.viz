@@ -143,6 +143,16 @@ describe('gallery', () => {
     expect(validateRegistry(config(unsaid)).join('\n')).toMatch(
       /is experimental, and needs `statusNote`/
     );
+    // A published chart without a demo is named by its own status.
+    const { demo: demoScript, ...undemoed } = experimental;
+    expect(demoScript).toBeTruthy();
+    expect(validateRegistry(config(undemoed)).join('\n')).toMatch(
+      /is an experimental chart, and needs `demo`/
+    );
+    // A reason is for an experimental module alone.
+    expect(validateRegistry(config({ ...chart, statusNote: 'Why.' })).join('\n')).toMatch(
+      /has a `statusNote`, and only an experimental module has one/
+    );
     const survival = realConfig.modules.find((entry) => entry.module === 'stratified-survival');
     expect(survival.status).toBe('experimental');
     expect(survival.statusNote).toMatch(/kmEstimate|estimator/);

@@ -144,7 +144,9 @@ export function describeAnswer(result, context = {}) {
     const described = sentence(formatted.status, formatted.text);
     if (formatted.status === 'shown') {
       described.estimates = (Array.isArray(value.estimates) ? value.estimates : [])
-        .filter((row) => row && present(row.lower) && present(row.upper))
+        // An estimate R gave any part of an interval for is printed, or said
+        // not to be shown and why; it never vanishes.
+        .filter((row) => row && (present(row.lower) || present(row.upper)))
         .map((row) => formatEstimate(oriented(row, context.groups)).text);
     }
     // What R said about its answer, the small-expected warning among it, is

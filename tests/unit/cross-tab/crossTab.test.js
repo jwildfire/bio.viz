@@ -48,6 +48,12 @@ const stateOf = (entry) => ({
 // A case's tables: the study's, or the ones the case brings.
 const tablesOf = (entry) => entry.tables || { results, participants };
 const modelOf = (entry) => buildTable(tablesOf(entry), settings, stateOf(entry));
+// A stored answer as R in the browser hands it over: R's Inf, as R wrote it
+// into the file, is the number.
+const asRHandsIt = (value) =>
+  JSON.parse(JSON.stringify(value), (key, member) =>
+    ['estimate', 'lower', 'upper'].includes(key) && member === 'Inf' ? Infinity : member
+  );
 // A table's counts by its categories, whatever order each way is drawn in.
 const countsByName = (rowLevels, colLevels, counts) =>
   Object.fromEntries(
@@ -363,6 +369,42 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
     ]);
   });
 
+  it('CT-STAT-016: Fisher’s infinite odds ratio, stored by R as "Inf", prints from the stored answer as live R’s does; an estimate R stored with no number but a bound says it is not shown, and never vanishes (#78)', async () => {
+    const empty = caseOf('empty-cell-fisher');
+    expect(empty.value.estimates[0]).toMatchObject({ estimate: 'Inf', upper: 'Inf' });
+    const connection = createConnection({ results: [empty] });
+    const request = contingencyRequest({
+      name: settings.statistic,
+      test: 'fisher',
+      settings,
+      state: stateOf(empty),
+      model: modelOf(empty)
+    });
+    const answer = await connection.run(request.name, request);
+    const groups = { rows: request.args.chrRowGroups, cols: request.args.chrColGroups };
+    const stored = describeAnswer(answer, { groups });
+    expect(stored.estimates).toEqual([
+      'odds ratio (Arm A / Arm B, odds of Non-responder against Responder): infinite, 95% confidence interval 14.86 to infinity.'
+    ]);
+    // Live R hands the same answer over with its numbers as numbers.
+    const live = {
+      ...empty.value,
+      estimates: [{ ...empty.value.estimates[0], estimate: Infinity, upper: Infinity }]
+    };
+    expect(describeAnswer({ status: 'ok', value: live }, { groups }).estimates).toEqual(
+      stored.estimates
+    );
+    // gsm.bio's widget once wrote Inf as null: the estimate is said not to be
+    // shown, and why.
+    const nulled = {
+      ...empty.value,
+      estimates: [{ ...empty.value.estimates[0], estimate: null, upper: null }]
+    };
+    expect(describeAnswer({ status: 'ok', value: nulled }, { groups }).estimates).toEqual([
+      'Estimate not shown: odds ratio is not a number.'
+    ]);
+  });
+
   it('CT-STAT-004: handed to a connection as stored results, each of R’s answers is found by the chart’s request for its table (#44)', async () => {
     const connection = createConnection({
       results: fromR.cases.map(({ name, args, dataId, rows, value }) => ({
@@ -383,7 +425,7 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
       });
       expect(await connection.run(request.name, request), entry.case).toEqual({
         status: 'ok',
-        value: entry.value,
+        value: asRHandsIt(entry.value),
         form: 'precomputed'
       });
     }

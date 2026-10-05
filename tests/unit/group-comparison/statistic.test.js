@@ -481,6 +481,21 @@ describe('group comparison: how R’s answer is printed', () => {
     expect(Number(estimates[2].estimate.toPrecision(4))).toBe(1.235);
   });
 
+  it('GC-STAT-047: an estimate R stored with a bound but no number, or a number and half an interval, is said not to be shown, and why; it never vanishes, while the means R gives no interval for are left out as before (#78)', () => {
+    const welch = answerOf('welch');
+    const [first, second, difference] = welch.estimates;
+    const withRow = (row) => ({ ...welch, estimates: [first, second, row] });
+    expect(describeAnswer(ok(withRow({ ...difference, estimate: null }))).estimates).toEqual([
+      'Estimate not shown: Difference in means is not a number.'
+    ]);
+    expect(describeAnswer(ok(withRow({ ...difference, upper: null }))).estimates).toEqual([
+      'Estimate not shown: the interval of Difference in means is incomplete.'
+    ]);
+    // The means carry no interval, and are not printed.
+    expect(first).toMatchObject({ name: 'Mean', lower: null, upper: null });
+    expect(second).toMatchObject({ name: 'Mean', lower: null, upper: null });
+  });
+
   it('GC-STAT-014: pairwise comparisons are printed as a table of each pair, its two counts and its adjusted p-value, under a caption naming the method and the adjustment (#16)', () => {
     const { pairs } = describeAnswer(ok(answerOf('anova-pairwise')));
     expect(pairs).toEqual({

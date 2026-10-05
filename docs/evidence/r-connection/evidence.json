@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-04T21:34:21.164Z",
+  "generatedAt": "2026-10-04T23:12:12.593Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37236598105",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37236598105"
+    "id": "37242858671",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
   },
   "records": [
     {
@@ -378,6 +378,14 @@
       "status": "pass",
       "requirementIds": ["RCON-BUILD-003"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: R’s non-finite numbers in a stored answer RCON-PRE-007: a stored answer’s \"Inf\", \"-Inf\" and \"NaN\" where R returned a number are read as Infinity, -Infinity and NaN, as R in the browser hands them over; text elsewhere spelled so is left as text (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-PRE-007"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {

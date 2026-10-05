@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,7 +19,7 @@ const modules = readdirSync(EVIDENCE, { withFileTypes: true })
 const filesOf = (module) => readdirSync(path.join(EVIDENCE, module)).sort();
 
 describe('evidence pictures: the version each one draws', () => {
-  it('CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, and no record is left without its picture (#78)', () => {
+  it('CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, written for its own bytes (sha256), with the pictures it shows named; no record is left without its picture (#78)', () => {
     const said = `bio.viz ${VERSION_SAID}`;
     const problems = [];
     let pictures = 0;
@@ -31,7 +32,24 @@ describe('evidence pictures: the version each one draws', () => {
           problems.push(`${module}/${file}: no record of the versions it draws`);
           continue;
         }
-        const { versions } = JSON.parse(readFileSync(record, 'utf8'));
+        const { versions, sha256, embeds = [] } = JSON.parse(readFileSync(record, 'utf8'));
+        // The record is of this picture's bytes: one swapped in from another
+        // commit, however few of its pixels differ, is not the one recorded.
+        const bytes = readFileSync(path.join(EVIDENCE, module, file));
+        const hash = createHash('sha256').update(bytes).digest('hex');
+        if (sha256 !== hash) {
+          problems.push(
+            `${module}/${file}: its bytes are not the picture its record was written for`
+          );
+        }
+        // A capture that shows other pictures names them, and each is held to
+        // the version by its own record.
+        for (const embedded of embeds) {
+          const [owner, name] = embedded.split('/');
+          if (!existsSync(path.join(EVIDENCE, owner, name.replace(/\.png$/, '.drawn.json')))) {
+            problems.push(`${module}/${file}: shows ${embedded}, which has no record`);
+          }
+        }
         for (const version of versions) {
           if (version !== said)
             problems.push(`${module}/${file}: draws "${version}", not "${said}"`);
@@ -45,6 +63,13 @@ describe('evidence pictures: the version each one draws', () => {
     }
     expect(pictures).toBeGreaterThan(90);
     expect(problems).toEqual([]);
+    // The gallery's page is a picture of the charts' pictures: it names all six.
+    const gallery = JSON.parse(
+      readFileSync(path.join(EVIDENCE, 'core', 'CORE-SITE-003-gallery.drawn.json'), 'utf8')
+    );
+    expect(
+      gallery.embeds.filter((name) => name.endsWith('-as-the-gallery-shows-it.png'))
+    ).toHaveLength(6);
     // Every gallery picture draws its footnote, so its record names a version.
     for (const module of modules) {
       for (const file of filesOf(module).filter((name) =>

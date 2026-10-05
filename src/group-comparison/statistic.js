@@ -204,7 +204,9 @@ export function describeAnswer(result, context = {}) {
     if (formatted.status === 'shown') {
       // The estimates R gave an interval for: the difference in means.
       described.estimates = (Array.isArray(value.estimates) ? value.estimates : [])
-        .filter((row) => row && present(row.lower) && present(row.upper))
+        // An estimate R gave any part of an interval for is printed, or said
+        // not to be shown and why; it never vanishes. The means carry none.
+        .filter((row) => row && (present(row.lower) || present(row.upper)))
         .map((row) => formatEstimate(row).text);
       described.pairs = pairsOf(value);
     }

@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-04T21:34:21.164Z",
+  "generatedAt": "2026-10-04T23:12:12.593Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37236598105",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37236598105"
+    "id": "37242858671",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
   },
   "records": [
     {
@@ -1242,6 +1242,14 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-020"],
       "issueRefs": [16],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: how R’s answer is printed GC-STAT-047: an estimate R stored with a bound but no number, or a number and half an interval, is said not to be shown, and why; it never vanishes, while the means R gives no interval for are left out as before (#78)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-STAT-047"],
+      "issueRefs": [78],
       "screenshots": []
     },
     {

@@ -28,10 +28,11 @@ This release adds two charts, survival rows in the biomarker screen, and three w
 - **A shared rule for cutting a biomarker into groups.** R's `quantile()` points and R's `cut()` groups, labelled with their bounds. The group comparison uses it for its groups and panels, and the cross-tabulation and the survival chart use it for theirs. [API reference](https://jwildfire.github.io/bio.viz/core/api.html#the-cut-rule), [obot.roadmap#359](https://github.com/jwildfire/obot.roadmap/issues/359), [#46](https://github.com/jwildfire/bio.viz/pull/46)
 - **CSV that reads back.** Every CSV, the listing's export among them, is written by RFC 4180, so a heading with a comma stays one column, where the kit's CSV split it, as noted in [#39](https://github.com/jwildfire/bio.viz/issues/39) (the kit's own fix is [safety.viz#208](https://github.com/jwildfire/safety.viz/issues/208)). [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361), [#70](https://github.com/jwildfire/bio.viz/pull/70)
 - **Which R computed a stored result.** A connection given gsm.bio's record of which R computed its stored results, `computedBy`, names the R and gsm.bio versions in each chart's footnote. [API reference](https://jwildfire.github.io/bio.viz/r-connection/api.html), [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361), [#66](https://github.com/jwildfire/bio.viz/issues/66), [#69](https://github.com/jwildfire/bio.viz/pull/69)
+- **R's infinite numbers in stored answers.** A stored answer carries R's `Inf`, `-Inf` and `NaN` as the text `"Inf"`, `"-Inf"` and `"NaN"`, and a page reading it prints them as live R does: Fisher's odds ratio of a table with an empty cell is `infinite`, with its interval to `infinity`. An estimate stored with no number is said not to be shown, and why. [API reference](https://jwildfire.github.io/bio.viz/r-connection/api.html#stored-results), [#81](https://github.com/jwildfire/bio.viz/pull/81)
 
 ## Tests and provenance
 
-454 unit and 361 browser tests pass, and each of the 687 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.
+457 unit and 361 browser tests pass, and each of the 690 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8.
 
 # bio.viz v0.1.0
 
