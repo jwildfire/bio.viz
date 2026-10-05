@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bio.viz — biomarker charts with every test computed by R</title>
+    <meta name="description" content="bio.viz 0.2.0: charts for comparing groups and relating variables in biomarker data, with every statistical test computed by R. This page names the build it carries." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="index.html">
+        bio.viz
+        <span class="site-version">v0.2.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="gallery/index.html">Gallery</a>
+        <a href="r-check/index.html">R check</a>
+        <a href="https://github.com/jwildfire/bio.viz">GitHub</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="https://jwildfire.github.io/obot.roadmap/">Roadmap</a>
+      </nav>
+    </header>
+    <main class="site-main ">
+<section class="hero">
+  <p class="eyebrow">Biomarker charts · every test computed by R</p>
+  <h1>bio.viz <span class="hero-version">0.2.0</span></h1>
+  <p class="lead">
+    Charts for comparing groups and relating variables in biomarker data. They run beside
+    <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> and reuse its shared parts.
+    The library computes no statistical test itself: each one is asked of R.
+  </p>
+</section>
+
+<aside class="callout">
+  <h2>The charts</h2>
+  <p>
+    The <a href="gallery/index.html">gallery</a> has the charts that are published, each with a
+    live demo on a made-up study. A chart draws; it does not test. Every test is computed by R,
+    and the charts say so where one would be printed.
+  </p>
+</aside>
+
+<section>
+  <h2>This build</h2>
+  <dl class="facts">
+    <div><dt>Library</dt><dd>bio.viz</dd></div>
+    <div><dt>Version in package.json</dt><dd>0.2.0</dd></div>
+    <div>
+      <dt>Version reported by the bundle this page loaded</dt>
+      <dd><code id="bundle-version">not loaded</code></dd>
+    </div>
+    <div><dt>Bundle</dt><dd><code>dist/bio.viz-0.2.0/bio.viz.js</code></dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>What is in it</h2>
+  <ul class="modules"><li class="module" data-module="core"><h3>Library core</h3><p>The entry point and the two committed bundles, each reporting the package version, and the two steps every chart shares before anything is drawn: a variable named one way, and named variables resolved to one row per participant with what was left out counted.</p><p class="module-facts">73 requirements · 165 of 165 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/core.md">Requirement matrix</a></p><p class="module-links"><a href="core/evidence.html">Evidence</a> · <a href="core/api.html">API reference</a></p></li><li class="module" data-module="r-connection"><h3>Connection to R</h3><p>The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.</p><p class="module-facts">82 requirements · 178 of 178 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/r-connection.md">Requirement matrix</a></p><p class="module-links"><a href="r-connection/evidence.html">Evidence</a> · <a href="r-connection/api.html">API reference</a></p></li><li class="module" data-module="output"><h3>Getting results out</h3><p>What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders filled from the view drawn, as text and never evaluated, and one footnote every chart writes last, with the date, the bio.viz version, and R&#39;s method and counts behind each statistic printed, naming the R and gsm.bio versions of a stored result; under the chart, a PNG of it with its title and footnotes drawn in, the statistics R returned and the table it drew from as CSV; and a specification, the chart&#39;s settings and filters as JSON data, that rebuilds the same chart.</p><p class="module-facts">64 requirements · 165 of 165 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/output.md">Requirement matrix</a></p><p class="module-links"><a href="output/evidence.html">Evidence</a> · <a href="output/api.html">API reference</a></p></li><li class="module" data-module="group-comparison"><h3>Group comparison</h3><p>Does this biomarker differ between these groups? One value across the levels of a category at chosen visits, as boxes, violins or points with the number in each group beneath, a second grouping by colour, panels by one further variable and a logarithmic scale. It opens on every biomarker at every visit, and a click on a biomarker opens it alone, with R&#39;s test of the groups under each visit. Click a box or a point to list its participants and open a participant&#39;s profile.</p><p class="module-facts">149 requirements · 259 of 259 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/group-comparison.md">Requirement matrix</a></p><p class="module-links"><a href="group-comparison/index.html">Live demo</a> · <a href="group-comparison/evidence.html">Evidence</a> · <a href="group-comparison/api.html">API reference</a></p></li><li class="module" data-module="association-scatter"><h3>Association scatter</h3><p>Do these two variables move together? One point per participant, with either axis a biomarker at a visit or a participant-level number, coloured by a group, in panels by one further variable, each axis linear or logarithmic. Under it R&#39;s Pearson or Spearman coefficient with its interval and p-value, for everyone drawn and within each colour; over it the line y = x, or R&#39;s linear fit or smooth with its band. Drag across the points to list the participants in a region, and click a point to open that participant&#39;s profile.</p><p class="module-facts">87 requirements · 182 of 182 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/association-scatter.md">Requirement matrix</a></p><p class="module-links"><a href="association-scatter/index.html">Live demo</a> · <a href="association-scatter/evidence.html">Evidence</a> · <a href="association-scatter/api.html">API reference</a></p></li><li class="module" data-module="correlation-matrix"><h3>Correlation matrix</h3><p>Which of these biomarkers, or which visits of one biomarker, are related? A grid over a set of variables: below the diagonal a mark sized and coloured by R&#39;s coefficient, above it the number, with the pair count of every cell, for Pearson or Spearman on the participants who have both values. It prints no p-value. It opens on every biomarker at the first visit, and a click on a cell opens that pair in the association scatter, with a way back.</p><p class="module-facts">74 requirements · 170 of 170 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/correlation-matrix.md">Requirement matrix</a></p><p class="module-links"><a href="correlation-matrix/index.html">Live demo</a> · <a href="correlation-matrix/evidence.html">Evidence</a> · <a href="correlation-matrix/api.html">API reference</a></p></li><li class="module" data-module="biomarker-screen"><h3>Biomarker screen</h3><p>Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups or a correlation with one variable, with R&#39;s estimate and its interval on one axis without units, and R&#39;s p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. The rows are sorted by the estimate, and a click on a row opens that biomarker in the group comparison or the association scatter, with a way back.</p><p class="module-facts">85 requirements · 181 of 181 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/biomarker-screen.md">Requirement matrix</a></p><p class="module-links"><a href="biomarker-screen/index.html">Live demo</a> · <a href="biomarker-screen/evidence.html">Evidence</a> · <a href="biomarker-screen/api.html">API reference</a></p></li><li class="module" data-module="cross-tab"><h3>Cross-tabulation</h3><p>Is this category associated with that one? A two-way table of counts with its row and column totals and percentages, beside stacked bars of the same numbers, and R&#39;s chi-square or Fisher&#39;s exact test of it, with R&#39;s warning when an expected count is too small for chi-square. Either variable is a column or a biomarker cut at its median, tertiles, quartiles or typed points. Click a count to list its participants and open a participant&#39;s profile.</p><p class="module-facts">35 requirements · 128 of 128 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/cross-tab.md">Requirement matrix</a></p><p class="module-links"><a href="cross-tab/index.html">Live demo</a> · <a href="cross-tab/evidence.html">Evidence</a> · <a href="cross-tab/api.html">API reference</a></p></li><li class="module" data-module="stratified-survival"><h3>Stratified survival</h3><p class="module-status"><span class="status-badge status-experimental">Experimental</span> The curves are safety.viz&#39;s Kaplan–Meier estimator, kmEstimate, which awaits its clinical review.</p><p>Do participants with high and low levels of this biomarker have different outcomes? Kaplan–Meier curves per group, with censor marks and an at-risk strip, above a histogram of the biomarker showing where the cut falls and how many land each side. The groups are a column&#39;s or a biomarker cut at its median, tertiles, quartiles or typed points, and the cut line can be dragged: the curves follow at once, and R is asked again when it is let go. Under it R&#39;s log-rank test, each group&#39;s median survival with its interval and, for two groups, the hazard ratio with its interval. Click a curve or a count at risk to list its participants and open a participant&#39;s profile.</p><p class="module-facts">41 requirements · 134 of 134 test records passing · <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/requirements/stratified-survival.md">Requirement matrix</a></p><p class="module-links"><a href="stratified-survival/index.html">Live demo</a> · <a href="stratified-survival/evidence.html">Evidence</a> · <a href="stratified-survival/api.html">API reference</a></p></li></ul>
+  <p class="sub">
+    The <a href="gallery/index.html">gallery</a> lists each chart, with the tests that prove it
+    and the reference for calling it.
+  </p>
+</section>
+
+<section>
+  <h2>R in the browser, checked</h2>
+  <p>
+    The <a href="r-check/index.html">R check page</a> runs two real tests through R in this
+    browser, shows each answer beside the one desktop R gives, and reports what starting R costs
+    in megabytes and seconds.
+  </p>
+</section>
+
+<section>
+  <h2>Loading it</h2>
+  <p>The bundle is committed, so a page needs no build step:</p>
+  <pre><code>&lt;script src="dist/bio.viz-0.2.0/bio.viz.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  console.log(BioViz.version);
+&lt;/script&gt;</code></pre>
+</section>
+
+<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script>
+  document.getElementById('bundle-version').textContent = BioViz.version;
+</script>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.2.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/2603ae41300f688f8dcd58cbbd99d940cb5466d6"><code>2603ae4</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+  </body>
+</html>
