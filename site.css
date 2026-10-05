@@ -297,6 +297,29 @@ pre code {
   font-size: 0.9rem;
 }
 
+/* An experimental module's badge and its reason, as safety.viz marks one. */
+.module-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  border-radius: 999px;
+  display: inline-block;
+  font: 700 0.68rem var(--sans);
+  letter-spacing: 0.05em;
+  margin-right: 0.35rem;
+  padding: 0.08rem 0.45rem;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+
+.status-badge.status-experimental {
+  background: #f3c46d;
+  color: #4a2f05;
+}
+
 .module p:last-child {
   margin-bottom: 0;
 }

@@ -260,6 +260,107 @@
           "domain": "subject",
           "column": "USUBJID",
           "required": false
+        },
+        "outcome_id_col": {
+          "domain": "bds",
+          "column": null,
+          "required": false
+        },
+        "endpoint_col": {
+          "domain": "bds",
+          "column": "PARAMCD",
+          "required": true
+        },
+        "endpoint_label_col": {
+          "domain": "bds",
+          "column": "PARAM",
+          "required": false
+        },
+        "time_col": {
+          "domain": "bds",
+          "column": "AVAL",
+          "required": true
+        },
+        "censor_col": {
+          "domain": "bds",
+          "column": "CNSR",
+          "required": true
+        },
+        "event_col": {
+          "domain": "bds",
+          "column": null,
+          "required": false
+        }
+      }
+    },
+    "cross-tab": {
+      "library": "bio.viz",
+      "export": "crossTab",
+      "title": "Cross-tabulation",
+      "group": "biomarkers",
+      "domains": ["bds"],
+      "optionalDomains": ["subject"],
+      "tables": {
+        "results": {
+          "domain": "bds",
+          "required": true
+        },
+        "participants": {
+          "domain": "subject",
+          "required": false
+        }
+      },
+      "unmappedSettings": "omit",
+      "settings": {
+        "id_col": {
+          "domain": "bds",
+          "column": "USUBJID",
+          "required": true
+        },
+        "measure_col": {
+          "domain": "bds",
+          "column": "TEST",
+          "required": true
+        },
+        "value_col": {
+          "domain": "bds",
+          "column": "STRESN",
+          "required": true
+        },
+        "visit_col": {
+          "domain": "bds",
+          "column": "VISIT",
+          "required": true
+        },
+        "visit_order_col": {
+          "domain": "bds",
+          "column": "VISITNUM",
+          "required": false
+        },
+        "unit_col": {
+          "domain": "bds",
+          "column": "STRESU",
+          "required": false
+        },
+        "participant_id_col": {
+          "domain": "subject",
+          "column": "USUBJID",
+          "required": false
+        },
+        "studyday_col": {
+          "domain": "bds",
+          "column": null,
+          "required": false
+        },
+        "normal_col_high": {
+          "domain": "bds",
+          "column": null,
+          "required": false
+        },
+        "normal_col_low": {
+          "domain": "bds",
+          "column": null,
+          "required": false
         }
       }
     }

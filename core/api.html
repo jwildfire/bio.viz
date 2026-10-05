@@ -15,7 +15,7 @@
     <header class="site-header">
       <a class="site-name" href="../index.html">
         bio.viz
-        <span class="site-version">v0.1.0</span>
+        <span class="site-version">v0.2.0</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
         <a href="../gallery/index.html">Gallery</a>
@@ -34,26 +34,26 @@
 
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
+  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#the-cut-rule">The cut rule</a></li><li><a href="#cuts"><code>CUTS</code></a></li><li><a href="#cutpointsvalues-cut"><code>cutPoints(values, cut)</code></a></li><li><a href="#cutgroupvalue-points"><code>cutGroup(value, points)</code></a></li><li><a href="#cutlabelspoints"><code>cutLabels(points)</code></a></li><li><a href="#cutwordscut"><code>cutWords(cut)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
 </nav>
 
 <article class="api-body">
 <p>What a page or a widget can rely on before it asks for a chart: where the bundles are, what they define and the version they report; and the two steps every chart shares before anything is drawn, exported as <code>BioViz.core</code>: a variable named one way, and named variables resolved to one row per participant. The charts and the connection to R each have a reference of their own.</p>
 <h2 id="loading-the-library">Loading the library</h2>
-<p>The bundles are committed, so a page needs no build step and no package manager. Copy the folder <code>dist/bio.viz-0.1.0/</code> and load the script-tag bundle; it defines one global, <code>BioViz</code>:</p>
-<pre><code class="language-html">&lt;script src=&quot;dist/bio.viz-0.1.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+<p>The bundles are committed, so a page needs no build step and no package manager. Copy the folder <code>dist/bio.viz-0.2.0/</code> and load the script-tag bundle; it defines one global, <code>BioViz</code>:</p>
+<pre><code class="language-html">&lt;script src=&quot;dist/bio.viz-0.2.0/bio.viz.js&quot;&gt;&lt;/script&gt;
 &lt;script&gt;
-  console.log(BioViz.version); // &quot;0.1.0&quot;
+  console.log(BioViz.version); // &quot;0.2.0&quot;
 &lt;/script&gt;</code></pre>
 <p>An ES module bundle with the same exports sits beside it:</p>
-<pre><code class="language-js">import { version, core, r } from &#39;./dist/bio.viz-0.1.0/bio.viz.esm.js&#39;;</code></pre>
+<pre><code class="language-js">import { version, core, r } from &#39;./dist/bio.viz-0.2.0/bio.viz.esm.js&#39;;</code></pre>
 <table class="doc-table"><thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead>
-<tbody><tr><td data-label="File"><code>dist/bio.viz-0.1.0/bio.viz.js</code></td><td data-label="What it is">The script-tag bundle. Defines the global <code>BioViz</code>.</td></tr>
-<tr><td data-label="File"><code>dist/bio.viz-0.1.0/bio.viz.esm.js</code></td><td data-label="What it is">The ES module bundle. The same exports, as named exports.</td></tr>
+<tbody><tr><td data-label="File"><code>dist/bio.viz-0.2.0/bio.viz.js</code></td><td data-label="What it is">The script-tag bundle. Defines the global <code>BioViz</code>.</td></tr>
+<tr><td data-label="File"><code>dist/bio.viz-0.2.0/bio.viz.esm.js</code></td><td data-label="What it is">The ES module bundle. The same exports, as named exports.</td></tr>
 <tr><td data-label="File"><code>*.map</code></td><td data-label="What it is">A source map for each, so a debugger shows the source.</td></tr></tbody></table>
 <p>Nothing else is bundled into either file. safety.viz and R are loaded beside bio.viz on a page: safety.viz with its own script tag, and R the first time a statistic is asked for.</p>
 <h2 id="version"><code>version</code></h2>
-<p>A string: the version of the library, <code>0.1.0</code>. It equals the <code>version</code> field of <code>package.json</code> and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.</p>
+<p>A string: the version of the library, <code>0.2.0</code>. It equals the <code>version</code> field of <code>package.json</code> and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.</p>
 <h2 id="a-variable">A variable</h2>
 <p>A variable is what goes on an axis, makes a group, a colour or a panel. It is written one way wherever a chart takes one, and it is one of two things:</p>
 <pre><code class="language-js">// a biomarker at a visit, with a value type
@@ -69,10 +69,65 @@ const x = { col: &#39;ARM&#39; };</code></pre>
 <tr><td data-label="Key"><code>visit</code></td><td data-label="For">a biomarker</td><td data-label="Meaning">The visit&#39;s name, as the results table writes it. Required, except with the value type <code>baseline</code>, which takes none.</td></tr>
 <tr><td data-label="Key"><code>value</code></td><td data-label="For">a biomarker</td><td data-label="Meaning">The <a href="#value_types">value type</a>. <code>raw</code> when not given.</td></tr>
 <tr><td data-label="Key"><code>col</code></td><td data-label="For">a column</td><td data-label="Meaning">The column&#39;s name.</td></tr>
-<tr><td data-label="Key"><code>type</code></td><td data-label="For">a column</td><td data-label="Meaning"><code>&#39;number&#39;</code> to read the column as a number. Without it the value is passed on as the table holds it.</td></tr></tbody></table>
-<p>It returns <code>{ kind: &#39;measure&#39;, measure, visit, value }</code> or <code>{ kind: &#39;column&#39;, col, type }</code>, with <code>visit</code> and <code>type</code> null where they do not apply. A variable it returned can be handed back to it.</p>
+<tr><td data-label="Key"><code>type</code></td><td data-label="For">a column</td><td data-label="Meaning"><code>&#39;number&#39;</code> to read the column as a number. Without it the value is passed on as the table holds it.</td></tr>
+<tr><td data-label="Key"><code>cut</code></td><td data-label="For">either</td><td data-label="Meaning">To cut the number into groups: <code>&#39;median&#39;</code>, <code>&#39;tertiles&#39;</code>, <code>&#39;quartiles&#39;</code>, or the cut points as a list, ascending. A column cut must be read as a number (<code>type: &#39;number&#39;</code>). See <a href="#the-cut-rule">the cut rule</a>.</td></tr></tbody></table>
+<p>It returns <code>{ kind: &#39;measure&#39;, measure, visit, value }</code> or <code>{ kind: &#39;column&#39;, col, type }</code>, with <code>visit</code> and <code>type</code> null where they do not apply, and <code>cut</code> when the variable has one (typed points as a frozen copy). A variable it returned can be handed back to it.</p>
 <p>A malformed variable is refused: <code>variable</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code>, quotes the variable as written and names what is wrong. It refuses a variable that:</p>
-<ul><li>is not an object;</li><li>names neither a biomarker nor a column, or names both;</li><li>has an empty <code>measure</code> or <code>col</code>, or one that is not text;</li><li>has a <code>value</code> that is not one of the five value types;</li><li>is a biomarker with no <code>visit</code>, or a baseline value with one;</li><li>is a column with a <code>visit</code> or a <code>value</code>, or with a <code>type</code> other than <code>&#39;number&#39;</code>;</li><li>has a key that is not in the table above;</li><li>asks for a cut (<code>cut: &#39;median&#39;</code>). The rule that cuts a continuous variable into groups is not available yet: it arrives with cross-tabulation. Until then a group comes from a column.</li></ul>
+<ul><li>is not an object;</li><li>names neither a biomarker nor a column, or names both;</li><li>has an empty <code>measure</code> or <code>col</code>, or one that is not text;</li><li>has a <code>value</code> that is not one of the five value types;</li><li>is a biomarker with no <code>visit</code>, or a baseline value with one;</li><li>is a column with a <code>visit</code> or a <code>value</code>, or with a <code>type</code> other than <code>&#39;number&#39;</code>;</li><li>has a key that is not in the table above;</li><li>has a <code>cut</code> that is not one of <a href="#cuts"><code>CUTS</code></a> or a list of cut points: an empty list, a point that is not a finite number, or points that are not each greater than the one before;</li><li>cuts a column that is not read as a number.</li></ul>
+<h2 id="the-cut-rule">The cut rule</h2>
+<p>One rule cuts a number into groups, the same in every chart that makes groups from one and the same in R. A variable carries the cut it asks for:</p>
+<pre><code class="language-js">{ measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;median&#39; }   // two groups
+{ measure: &#39;CRP&#39;, visit: &#39;Baseline&#39;, cut: &#39;tertiles&#39; } // three
+{ measure: &#39;CRP&#39;, value: &#39;baseline&#39;, cut: &#39;quartiles&#39; } // four
+{ col: &#39;AGE&#39;, type: &#39;number&#39;, cut: [40, 60] }           // typed points: three groups</code></pre>
+<ul><li>The values cut are the variable&#39;s, one per participant, for the participants the chart&#39;s filters keep. A participant with no value is left out of the points and is in no group. The <a href="#frametables-variables-settings">frame</a> resolves a cut variable to its number like any other; the cut is a step after it, across participants.</li><li>The cut points are R&#39;s <code>quantile()</code> with its default, type 7, at 1/2 (the median), 1/3 and 2/3 (the tertiles) or 1/4, 2/4 and 3/4 (the quartiles). Typed points are used as written.</li><li>A participant is in the group R&#39;s <code>cut(x, breaks = c(-Inf, points, Inf), right = TRUE)</code> puts them in: a value equal to a cut point falls in the lower group.</li><li>A point that repeats, as one does when many values are tied, collapses: the median of a cut always makes two groups, but quartiles of tied values may make fewer than four. The chart says so.</li><li>The groups are ordered low to high and labelled with their bounds: <code>≤ a</code> for the first, <code>&gt; a, ≤ b</code> for each between, <code>&gt; z</code> for the last. A bound is written to four significant digits, as R&#39;s <code>format(signif(p, 4), scientific = FALSE, trim = TRUE)</code> writes it: 2.783, 0.5833, 123500, and 2.0625 as 2.062, because R rounds a tie to even. However small or large, a bound is written in full with no trailing zero: 0.000000000000000111, 0.0000001, and 3382000000000000000000; a whole number past 2^53 is written to the last digit of the double that holds it, as R writes one. This holds from about 1e-300 to 1e300. Beyond that the label can differ from R&#39;s: below about 2.2e-308 R writes scientific notation, and above about 1e306 the digits differ (<a href="https://github.com/jwildfire/bio.viz/issues/60">#60</a>). A value that is not a finite number, an infinite one among them, is missing here; R&#39;s <code>quantile()</code> keeps an infinite value.</li><li>Two points that differ only past four significant digits write the same bounds, so the groups between them have the same label. Those groups are one, and the chart says so. In R that is the recipe in <code>tools/r-cut.R</code>: R&#39;s <code>cut()</code> given those labels merges the levels that share one. R&#39;s <code>cut()</code> with its own labels would instead write more digits until the labels differ. Typed points written alike are refused, because the groups they ask for could not be told apart.</li><li>A cut point describes the values, as the median line of a box does. Nothing here tests, estimates or compares.</li></ul>
+<p>The same groups in R, for gsm.bio or anyone checking a chart (<code>tools/r-cut.R</code> writes the expected results the unit tests hold this library to, with exactly these lines):</p>
+<pre><code class="language-r">CUT_PROBS &lt;- list(median = 0.5, tertiles = c(1, 2) / 3, quartiles = c(1, 2, 3) / 4)
+
+cut_bound &lt;- function(p) format(signif(p, 4), scientific = FALSE, trim = TRUE)
+
+bound_labels &lt;- function(points) {
+  k &lt;- length(points)
+  if (k == 0) return(character(0))
+  bounds &lt;- vapply(points, cut_bound, character(1))
+  middle &lt;- if (k &gt; 1) paste0(&quot;&gt; &quot;, bounds[-k], &quot;, ≤ &quot;, bounds[-1]) else character(0)
+  c(paste0(&quot;≤ &quot;, bounds[1]), middle, paste0(&quot;&gt; &quot;, bounds[k]))
+}
+
+cut_labels &lt;- function(points) unique(bound_labels(points))
+
+cut_points &lt;- function(x, cut) {
+  asked &lt;- if (is.character(cut)) {
+    stats::quantile(x, CUT_PROBS[[cut]], type = 7, na.rm = TRUE, names = FALSE)
+  } else {
+    cut
+  }
+  list(asked = asked, points = unique(asked))
+}
+
+cut_groups &lt;- function(x, points) {
+  as.character(cut(x, breaks = c(-Inf, points, Inf), right = TRUE, labels = bound_labels(points)))
+}</code></pre>
+<p>A label holds the sign ≤ (U+2264), so R must run in a UTF-8 locale. Where a chart writes a cut variable into the identity of the rows it hands R, it writes it as the settings do, <code>{ measure, visit, value, cut }</code> with the visit left out for a baseline value, or <code>{ col, type: &#39;number&#39;, cut }</code>; typed points are always a list, so in R write them as one (<code>I(c(2, 5))</code> or <code>list(2, 5)</code> for jsonlite), even a single point. jsonlite writes a number to four decimal places unless told otherwise, so write the identity with <code>digits = NA</code> too, which writes 15 significant digits, enough for a point typed with 15 or fewer: with the default, a typed point of 0.000012345 is written 0, and the key does not match.</p>
+<h2 id="cuts"><code>CUTS</code></h2>
+<p>The cuts a variable may name, as a list: <code>median</code>, <code>tertiles</code>, <code>quartiles</code>. Typed points are a list of numbers instead.</p>
+<h2 id="cutpointsvalues-cut"><code>cutPoints(values, cut)</code></h2>
+<p>The cut points of a variable&#39;s values, and the groups they make. <code>values</code> holds one value per participant; one that is not a finite number is missing and is left out. <code>cut</code> is one of <code>CUTS</code> or the typed points. It returns:</p>
+<table class="doc-table"><thead><tr><th scope="col">Field</th><th scope="col">What it is</th></tr></thead>
+<tbody><tr><td data-label="Field"><code>cut</code></td><td data-label="What it is">The cut, as given.</td></tr>
+<tr><td data-label="Field"><code>n</code></td><td data-label="What it is">How many values it was worked out on.</td></tr>
+<tr><td data-label="Field"><code>asked</code></td><td data-label="What it is">The points asked for: R&#39;s <code>quantile()</code> of the values, or the typed points.</td></tr>
+<tr><td data-label="Field"><code>points</code></td><td data-label="What it is">The points used: <code>asked</code> with a repeated point once.</td></tr>
+<tr><td data-label="Field"><code>repeated</code></td><td data-label="What it is">Whether a point repeated and collapsed.</td></tr>
+<tr><td data-label="Field"><code>merged</code></td><td data-label="What it is">Whether points written alike gave groups the same label, which merged.</td></tr>
+<tr><td data-label="Field"><code>labels</code></td><td data-label="What it is">The label of each group, low to high: one more than there are points, fewer where groups merged.</td></tr></tbody></table>
+<p>With no value there is nothing to cut at: no points and no groups.</p>
+<h2 id="cutgroupvalue-points"><code>cutGroup(value, points)</code></h2>
+<p>The group a value falls in, counted from 0, low to high, as R&#39;s <code>cut(right = TRUE)</code> places it, so a value equal to a cut point is in the group below it, and its place among the <code>labels</code> of the cut, so groups that merged are one. Null for a missing value. <code>points</code> are a cut&#39;s <code>points</code>.</p>
+<h2 id="cutlabelspoints"><code>cutLabels(points)</code></h2>
+<p>The labels of the groups a cut&#39;s <code>points</code> make, low to high, as above: <code>cutLabels([2, 5])</code> is <code>[&#39;≤ 2&#39;, &#39;&gt; 2, ≤ 5&#39;, &#39;&gt; 5&#39;]</code>. A label that repeats is given once: <code>cutLabels([2.7928, 2.793, 2.7932])</code> is <code>[&#39;≤ 2.793&#39;, &#39;&gt; 2.793, ≤ 2.793&#39;, &#39;&gt; 2.793&#39;]</code>.</p>
+<h2 id="cutwordscut"><code>cutWords(cut)</code></h2>
+<p>A cut in words, for a label or a legend: <code>cut at the median</code>, <code>cut at the tertiles</code>, <code>cut at 2 and 5</code>. <a href="#labelspec"><code>label</code></a> adds it after the variable: <code>CRP at Baseline, cut at the median</code>.</p>
 <h2 id="value_types"><code>VALUE_TYPES</code></h2>
 <p>The five value types, as a list: <code>raw</code>, <code>baseline</code>, <code>change</code>, <code>fold_change</code>, <code>percent_change</code>. Each is worked out for one participant from that participant&#39;s own results for the biomarker.</p>
 <table class="doc-table"><thead><tr><th scope="col">Value type</th><th scope="col">What it is</th><th scope="col">Not worked out when</th></tr></thead>
@@ -188,9 +243,10 @@ const result = await connection.run(&#39;Analyze_GroupDifference&#39;, {
 <p>A field&#39;s name is the name the caller gave its variable, so it is stable whatever the biomarker is called, and two variables on the same biomarker are told apart by their names: <code>{ week4: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39; }, change: { measure: &#39;IL-6&#39;, visit: &#39;Week 4&#39;, value: &#39;change&#39; } }</code>. R takes any name as a column name here; a short plain one (<code>y</code>, <code>x</code>, <code>v1</code>) is easiest to read in R&#39;s messages.</p>
 <h2 id="portfolio"><code>portfolio</code></h2>
 <p>The chart list: an object naming every chart the library offers, in <a href="https://github.com/jwildfire/safety.viz/blob/dev/src/data/schema/portfolio.json">safety.viz&#39;s portfolio manifest format</a>, version 2, so safety.viz&#39;s demo app can list bio.viz&#39;s charts and draw them beside its own on the files a study already has. It is <code>src/data/portfolio.json</code>, and the site publishes the same list at <code>portfolio.json</code>, with the format beside it at <code>schema/portfolio.json</code>.</p>
+<p>One chart is not in it: the <a href="../stratified-survival/api.html">stratified survival chart</a> reads an outcomes table, which no standard domain of the format holds, so the app could not hand it one (<a href="https://github.com/jwildfire/bio.viz/issues/63">#63</a>).</p>
 <pre><code class="language-js">BioViz.portfolio.version; // 2
 Object.keys(BioViz.portfolio.modules);
-// [&#39;group-comparison&#39;, &#39;association-scatter&#39;, &#39;correlation-matrix&#39;, &#39;biomarker-screen&#39;]</code></pre>
+// [&#39;group-comparison&#39;, &#39;association-scatter&#39;, &#39;correlation-matrix&#39;, &#39;biomarker-screen&#39;, &#39;cross-tab&#39;]</code></pre>
 <table class="doc-table"><thead><tr><th scope="col">Field</th><th scope="col">What it says</th></tr></thead>
 <tbody><tr><td data-label="Field"><code>version</code></td><td data-label="What it says"><code>2</code>, the format&#39;s version.</td></tr>
 <tr><td data-label="Field"><code>groups</code></td><td data-label="What it says">One group, <code>biomarkers</code>, labelled Biomarkers: the app lists the charts under it, on a tab of their own.</td></tr>
@@ -201,7 +257,7 @@ Object.keys(BioViz.portfolio.modules);
 <p>The participant is named once in each file. <code>id_col</code> reads it from the results and <code>participant_id_col</code> from the participant table, so when the two files call it differently the app maps each file&#39;s own name and the charts join the two on them. Left out, <code>participant_id_col</code> is <code>id_col</code>&#39;s name, as in every chart.</p>
 <p>The list adds nothing to the format, and the format is safety.viz&#39;s: it is copied to <code>src/data/schema/portfolio.json</code> by <code>node tools/vendor-portfolio-schema.mjs</code>, with a record of the commit, and a test validates the list against the copy and holds each entry to its chart&#39;s own settings.</p>
 <h2 id="what-is-not-here">What is not here</h2>
-<p>No statistics. Deriving a change from baseline is arithmetic on one participant&#39;s own results. Nothing in the core tests, estimates or summarises across participants: a median and the quartiles of a box belong to the chart that draws them, and every test to R. And no cut rule: see <code>variable</code> above.</p>
+<p>No statistics. Deriving a change from baseline is arithmetic on one participant&#39;s own results, and a cut point is a description of the values, as a median is. Nothing in the core tests, estimates or compares: a median and the quartiles of a box belong to the chart that draws them, and every test to R.</p>
 <h2 id="what-else-is-exported">What else is exported</h2>
 <table class="doc-table"><thead><tr><th scope="col">Export</th><th scope="col">What it is</th></tr></thead>
 <tbody><tr><td data-label="Export"><code>r</code></td><td data-label="What it is">The connection to R and the rule for printing a p-value. Its reference is <a href="../r-connection/api.html">the connection to R</a>.</td></tr>
@@ -216,8 +272,8 @@ Object.keys(BioViz.portfolio.modules);
 </main>
     <footer class="site-footer">
       <p>
-        bio.viz v0.1.0 — biomarker charts on the safety.viz stack, with every statistical test
-        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/765580548d12b2b4f72a4f89b475167277b29854"><code>7655805</code></a>.
+        bio.viz v0.2.0 — biomarker charts on the safety.viz stack, with every statistical test
+        computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/4440a4377935b3cc7263a07cb64db760b2d4a1a5"><code>4440a43</code></a>.
       </p>
       <p>
         Built in the open — follow the

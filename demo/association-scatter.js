@@ -16,6 +16,13 @@
   ];
   var demo = (window.BioVizDemo.associationScatter = {
     settings: {
+      // What the figure is called, filled from the view drawn (#66).
+      title: '{y} against {x}',
+      subtitle: '{n} participants',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ],
       // The planted pair.
       x: { measure: 'TNF-alpha', visit: 'Baseline' },
       y: { measure: 'IL-10', visit: 'Baseline' },
