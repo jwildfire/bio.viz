@@ -40,7 +40,7 @@ This release redraws the group comparison as three levels, from every biomarker 
 
 ## Tests and provenance
 
-{UNIT} unit and {BROWSER} browser tests pass, and each of the {ROWS} requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file R is given is gsm.bio's, copied byte for byte from gsm.bio commit [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), with its checksum in the copy's record.
+501 unit and 397 browser tests pass, and each of the 760 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file R is given is gsm.bio's, copied byte for byte from gsm.bio commit [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), with its checksum in the copy's record.
 
 # bio.viz v0.2.0
 
