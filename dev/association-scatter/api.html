@@ -212,7 +212,7 @@
 <tr><td data-label="Part">What the result covers</td><td data-label="Where it comes from">the chart</td><td data-label="Example"><code>This coefficient is of the 200 participants drawn.</code></td></tr></tbody></table>
 <p>R names the coefficient <code>cor</code> or <code>rho</code>; the chart prints <code>Pearson’s r</code> and <code>Spearman’s rho</code> for those two names and any other name as R gave it. Numbers other than a p-value are printed to four significant figures; a p-value is printed by the <a href="../r-connection/api.html#formatstatisticstatistic">shared rule</a>. Nothing is rounded before it is printed, and no printed number is worked out here.</p>
 <p>For Spearman&#39;s coefficient R&#39;s <code>cor.test</code> gives no interval, so none is printed and none is made up; R&#39;s note says so on the line: <code>R’s note: cor.test() gives no confidence interval for Spearman&#39;s rho, so none is reported.</code></p>
-<p>With a colour, R also returns the coefficient within each level, and the chart prints them as a small table under the coefficient of everyone drawn. The levels are not adjusted for one another, and the caption says so. A level with too few pairs prints R&#39;s reason in its row and no number.</p>
+<p>With a colour, R also returns the coefficient within each level, and the chart prints them as a small table under the coefficient of everyone drawn. The levels are not adjusted for one another, and the caption says so. A level with too few pairs prints R&#39;s reason in its row and no number. The table&#39;s type, its rules and what is behind it are the chart&#39;s own, stated on the table and on every heading and cell, and so is a panel&#39;s heading: a page whose stylesheet styles every table and heading by its tag, as the site&#39;s and safety.viz&#39;s demo app&#39;s do, changes neither.</p>
 <p>Too few pairs in the panel as a whole prints R&#39;s reason, once, and no number: <code>Not computed: 4 complete pairs. The minimum is 5. Counts: n = 4.</code> The minimum is R&#39;s. A result R marks as an error prints R&#39;s message after <code>R reported an error:</code>. There are no stars, and the word significant is never printed.</p>
 <h3 id="what-one-coefficient-covers">What one coefficient covers</h3>
 <p>One coefficient per panel, on that panel&#39;s rows: the participants drawn in it, one row each. With panels, each asks for itself and is answered for itself, and the coefficients are not adjusted for one another. A filter narrows the rows, and so the coefficient. The line says so under each result: <code>This coefficient is of the 91 participants drawn in this panel (F). Each panel has a coefficient of its own, and they are not adjusted for one another. Filters: Response is Responder.</code></p>
@@ -415,7 +415,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args)
       <p>
         bio.viz v0.2.0 — biomarker charts on the
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c2083e669eba791ab0083654c2532de79baf9af3"><code>c2083e6</code></a>.
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/5eb22ab776a9137f60f7a8f3091f64db65380c95"><code>5eb22ab</code></a>.
       </p>
       <p>
         Built in the open — follow the

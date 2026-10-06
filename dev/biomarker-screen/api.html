@@ -109,7 +109,7 @@
 <p>A row R gave no number for comes after those it did, and rows that tie keep R&#39;s order. Sorting asks R nothing.</p>
 <p>With more rows than <code>limit</code>, twenty by default, the rows are paged: the note above them says how many it shows of how many and in what order, and Previous and Next go between the pages. Twenty rows of the screen fill a laptop&#39;s screen; a page with room for more sets <code>limit</code> higher.</p>
 <h2 id="what-is-drawn">What is drawn</h2>
-<p>A heading says what the rows are: <code>Change from baseline at Week 4: Placebo against Treatment, standardised difference</code>. A caption says what each row&#39;s estimate is, at what level its interval is, which test the p-values are and by what they were adjusted across how many biomarkers: <code>Each row: Standardised difference (Hedges’ g), Placebo less Treatment, with its 95% confidence interval on one axis without units. p: Welch Two Sample t-test, unadjusted, and adjusted by Benjamini-Hochberg across the 12 biomarkers with a p-value. Exploratory, adjusted (Benjamini-Hochberg).</code></p>
+<p>A heading says what the rows are: <code>Change from baseline at Week 4: Placebo against Treatment, standardised difference</code>. A caption says what each row&#39;s estimate is, at what level its interval is, which test the p-values are and by what they were adjusted across how many biomarkers: <code>Each row: Standardised difference (Hedges’ g), Placebo less Treatment, with its 95% confidence interval on one axis without units. p: Welch Two Sample t-test, unadjusted, and adjusted by Benjamini-Hochberg across the 12 biomarkers with a p-value. Exploratory, adjusted (Benjamini-Hochberg).</code> The heading is in the chart&#39;s face and weight on any page: one whose stylesheet styles every heading by its tag, as the site&#39;s and safety.viz&#39;s demo app&#39;s do, does not change it.</p>
 <p>Then one row per biomarker:</p>
 <table class="api doc-table"><thead><tr><th scope="col">Column</th><th scope="col">What</th></tr></thead>
 <tbody><tr><td data-label="Column">Biomarker</td><td data-label="What">Its name.</td></tr>
@@ -373,7 +373,7 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args
       <p>
         bio.viz v0.2.0 — biomarker charts on the
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/c2083e669eba791ab0083654c2532de79baf9af3"><code>c2083e6</code></a>.
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/5eb22ab776a9137f60f7a8f3091f64db65380c95"><code>5eb22ab</code></a>.
       </p>
       <p>
         Built in the open — follow the
