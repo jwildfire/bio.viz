@@ -1,0 +1,16 @@
+{
+  "statistics": "gsm.bio statistics functions",
+  "repository": "https://github.com/jwildfire/gsm.bio",
+  "ref": "dev",
+  "commit": "f7dee4c679e548b5d081ac34240cf03dd9aa72b5",
+  "license": "Apache License (>= 2)",
+  "version": "0.2.0.9000",
+  "files": [
+    {
+      "file": "statistics.R",
+      "source": "inst/statistics/statistics.R",
+      "sha256": "8ddc81cdaf2a5d9bf7fd171e05c75fee8c36c139d555680c0175ca45e0c7f254",
+      "bytes": 77357
+    }
+  ]
+}
