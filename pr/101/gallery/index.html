@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="The charts in bio.viz, each with the tests that prove it and the reference for calling it, the shared parts they are built on, and the synthetic study the demos run on." />
+    <title>Gallery · bio.viz</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <!-- safety.viz's site stylesheet, as copied (site/vendor/safety.viz-site/),
+         then the few rules that are this site's own. -->
+    <link rel="stylesheet" href="../vendor/safety.viz-site/site.css" />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.2.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <div class="nav-group"><a href="../gallery/index.html">Gallery</a><button type="button" class="nav-disclosure" aria-expanded="false" aria-controls="gallery-menu" aria-label="Show charts"><span class="nav-caret" aria-hidden="true"></span></button><ul id="gallery-menu" class="nav-menu"><li><a href="../group-comparison/index.html">Group comparison</a></li><li><a href="../association-scatter/index.html">Association scatter</a></li><li><a href="../correlation-matrix/index.html">Correlation matrix</a></li><li><a href="../biomarker-screen/index.html">Biomarker screen</a></li><li><a href="../cross-tab/index.html">Cross-tabulation</a></li><li><a href="../stratified-survival/index.html">Stratified survival</a></li></ul></div>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a
+          href="https://github.com/jwildfire/bio.viz"
+          aria-label="GitHub"
+          title="GitHub"
+          style="display: inline-flex; align-items: center"
+          ><svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <title>GitHub</title>
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            /></svg
+        ></a>
+        <a
+          href="https://jwildfire.github.io/obot.roadmap/"
+          aria-label="obot roadmap"
+          title="obot roadmap"
+          style="font-size: 1.05rem; line-height: 1; display: inline-flex; align-items: center"
+          ><span aria-hidden="true">🍊😺</span></a
+        >
+      </nav>
+    </header>
+    <main class="site-main">
+<h1>Gallery</h1>
+<p class="tagline">
+  Each chart in bio.viz, with the tests that prove it does what its requirements say and the
+  reference for calling it.
+</p>
+
+<section id="charts">
+  <h2>Charts <span class="gallery-count">6 published</span></h2>
+  <ul class="gallery gallery-lead" id="charts-list"><li class="card" data-module="group-comparison"><a class="card-thumb" href="../group-comparison/index.html"><img src="../group-comparison/evidence/GC-DRAW-001-as-the-gallery-shows-it.png" alt="Group comparison: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../group-comparison/index.html">Group comparison</a></h3><p>Does this biomarker differ between these groups? One value across the levels of a category at chosen visits, as boxes, violins or points with the number in each group beneath, a second grouping by colour, panels by one further variable and a logarithmic scale. It opens on a tile for every biomarker, a line per group through the group&#39;s median at each scheduled visit, and a click on a tile opens that biomarker across the visits in one picture, with the number in each group and R&#39;s test of the groups under each visit; a click on a visit opens it alone. Unscheduled visits are left out until they are switched on. Click a box or a point to list its participants and open a participant&#39;s profile.</p><p class="card-links"><a href="../group-comparison/index.html">Demo</a> · <a href="../group-comparison/evidence.html">Evidence</a> · <a href="../group-comparison/api.html">API</a></p></div></li><li class="card" data-module="association-scatter"><a class="card-thumb" href="../association-scatter/index.html"><img src="../association-scatter/evidence/AS-DRAW-001-as-the-gallery-shows-it.png" alt="Association scatter: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../association-scatter/index.html">Association scatter</a></h3><p>Do these two variables move together? One point per participant, with either axis a biomarker at a visit or a participant-level number, coloured by a group, in panels by one further variable, each axis linear or logarithmic. Under it R&#39;s Pearson or Spearman coefficient with its interval and p-value, for everyone drawn and within each colour; over it the line y = x, or R&#39;s linear fit or smooth with its band. Drag across the points to list the participants in a region, and click a point to open that participant&#39;s profile.</p><p class="card-links"><a href="../association-scatter/index.html">Demo</a> · <a href="../association-scatter/evidence.html">Evidence</a> · <a href="../association-scatter/api.html">API</a></p></div></li><li class="card" data-module="correlation-matrix"><a class="card-thumb" href="../correlation-matrix/index.html"><img src="../correlation-matrix/evidence/CM-DRAW-001-as-the-gallery-shows-it.png" alt="Correlation matrix: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../correlation-matrix/index.html">Correlation matrix</a></h3><p>Which of these biomarkers, or which visits of one biomarker, are related? A grid over a set of variables: below the diagonal a mark sized and coloured by R&#39;s coefficient, above it the number, with the pair count of every cell, for Pearson or Spearman on the participants who have both values. It prints no p-value. It opens on every biomarker at the first visit, and a click on a cell opens that pair in the association scatter, with a way back.</p><p class="card-links"><a href="../correlation-matrix/index.html">Demo</a> · <a href="../correlation-matrix/evidence.html">Evidence</a> · <a href="../correlation-matrix/api.html">API</a></p></div></li><li class="card" data-module="biomarker-screen"><a class="card-thumb" href="../biomarker-screen/index.html"><img src="../biomarker-screen/evidence/BS-DRAW-001-as-the-gallery-shows-it.png" alt="Biomarker screen: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../biomarker-screen/index.html">Biomarker screen</a></h3><p>Across every biomarker, where is the signal? One row per biomarker for a comparison chosen once, a standardised difference between two groups or a correlation with one variable, with R&#39;s estimate and its interval on one axis without units, and R&#39;s p-values beside it, unadjusted and adjusted across the rows by Benjamini-Hochberg or Holm. The rows are sorted by the estimate, and a click on a row opens that biomarker in the group comparison or the association scatter, with a way back.</p><p class="card-links"><a href="../biomarker-screen/index.html">Demo</a> · <a href="../biomarker-screen/evidence.html">Evidence</a> · <a href="../biomarker-screen/api.html">API</a></p></div></li><li class="card" data-module="cross-tab"><a class="card-thumb" href="../cross-tab/index.html"><img src="../cross-tab/evidence/CT-DRAW-001-as-the-gallery-shows-it.png" alt="Cross-tabulation: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../cross-tab/index.html">Cross-tabulation</a></h3><p>Is this category associated with that one? A two-way table of counts with its row and column totals and percentages, beside stacked bars of the same numbers, and R&#39;s chi-square or Fisher&#39;s exact test of it, with R&#39;s warning when an expected count is too small for chi-square. Either variable is a column or a biomarker cut at its median, tertiles, quartiles or typed points. Click a count to list its participants and open a participant&#39;s profile.</p><p class="card-links"><a href="../cross-tab/index.html">Demo</a> · <a href="../cross-tab/evidence.html">Evidence</a> · <a href="../cross-tab/api.html">API</a></p></div></li><li class="card" data-module="stratified-survival"><a class="card-thumb" href="../stratified-survival/index.html"><img src="../stratified-survival/evidence/SS-DRAW-001-as-the-gallery-shows-it.png" alt="Stratified survival: a screenshot captured by its tests"></a><div class="card-body"><h3><a href="../stratified-survival/index.html">Stratified survival</a> <span class="site-badge" title="The curves are safety.viz&#39;s Kaplan–Meier estimator, kmEstimate, which awaits its clinical review.">Experimental</span></h3><p class="kit-status">The curves are safety.viz&#39;s Kaplan–Meier estimator, kmEstimate, which awaits its clinical review.</p><p>Do participants with high and low levels of this biomarker have different outcomes? Kaplan–Meier curves per group, with censor marks and an at-risk strip, above a histogram of the biomarker showing where the cut falls and how many land each side. The groups are a column&#39;s or a biomarker cut at its median, tertiles, quartiles or typed points, and the cut line can be dragged: the curves follow at once, and R is asked again when it is let go. Under it R&#39;s log-rank test, each group&#39;s median survival with its interval and, for two groups, the hazard ratio with its interval. Click a curve or a count at risk to list its participants and open a participant&#39;s profile.</p><p class="card-links"><a href="../stratified-survival/index.html">Demo</a> · <a href="../stratified-survival/evidence.html">Evidence</a> · <a href="../stratified-survival/api.html">API</a></p></div></li></ul>
+</section>
+
+<section id="shared-parts">
+  <h2>Shared parts <span class="gallery-count">3 published</span></h2>
+  <p class="lead">What every chart is built on. Each has the same two pages a chart has.</p>
+  <ul class="gallery" id="shared-list"><li class="card" data-module="core"><div class="card-body"><h3><a href="../core/api.html">Library core</a></h3><p>The entry point and the two committed bundles, each reporting the package version, and the two steps every chart shares before anything is drawn: a variable named one way, and named variables resolved to one row per participant with what was left out counted.</p><p class="card-links"><a href="../core/evidence.html">Evidence</a> · <a href="../core/api.html">API</a></p></div></li><li class="card" data-module="r-connection"><div class="card-body"><h3><a href="../r-connection/api.html">Connection to R</a></h3><p>The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.</p><p class="card-links"><a href="../r-connection/evidence.html">Evidence</a> · <a href="../r-connection/api.html">API</a></p></div></li><li class="card" data-module="output"><div class="card-body"><h3><a href="../output/api.html">Getting results out</a></h3><p>What every chart does so that what it shows can leave the browser and still say what it is: a title, a subtitle and footnotes written with placeholders filled from the view drawn, as text and never evaluated, and one footnote every chart writes last, with the date, the bio.viz version, and R&#39;s method and counts behind each statistic printed, naming the R and gsm.bio versions of a stored result; under the chart, a PNG of it with its title and footnotes drawn in, the statistics R returned and the table it drew from as CSV; and a specification, the chart&#39;s settings and filters as JSON data, that rebuilds the same chart.</p><p class="card-links"><a href="../output/evidence.html">Evidence</a> · <a href="../output/api.html">API</a></p></div></li></ul>
+</section>
+
+<section id="demo-data">
+  <h2>Demo data</h2>
+  <p class="lead">
+    Every demo and most tests run on one made-up study, generated in
+    <a href="https://github.com/jwildfire/gsm.bio">gsm.bio</a> from a seeded model with known effects
+    planted in it, so a test can assert an answer that is known in advance. No real participant
+    is in it.
+  </p>
+  <ul class="gallery"><li class="card" data-file="synthetic_results.csv"><div class="card-body"><h3>Results</h3><p>One row per participant, biomarker and visit: 11,472 rows.</p><p>Columns <code>USUBJID</code>, <code>VISIT</code>, <code>VISITNUM</code>, <code>TEST</code>, <code>STRESU</code>, <code>STRESN</code></p><p class="card-links"><a href="../data/synthetic-study/synthetic_results.csv">synthetic_results.csv</a></p></div></li><li class="card" data-file="synthetic_participants.csv"><div class="card-body"><h3>Participants</h3><p>One row per participant: 200 rows.</p><p>Columns <code>USUBJID</code>, <code>ARM</code>, <code>SEX</code>, <code>AGE</code>, <code>BMIBL</code>, <code>RESPONSE</code></p><p class="card-links"><a href="../data/synthetic-study/synthetic_participants.csv">synthetic_participants.csv</a></p></div></li><li class="card" data-file="synthetic_outcomes.csv"><div class="card-body"><h3>Outcomes</h3><p>One row per participant and endpoint: 200 rows.</p><p>Columns <code>USUBJID</code>, <code>PARAMCD</code>, <code>PARAM</code>, <code>AVAL</code>, <code>CNSR</code></p><p class="card-links"><a href="../data/synthetic-study/synthetic_outcomes.csv">synthetic_outcomes.csv</a></p></div></li></ul>
+  <ul class="demo-tips">
+    <li id="study-source">Copied byte for byte from gsm.bio at commit <a href="https://github.com/jwildfire/gsm.bio/tree/20e4a033e8196084556037c354f14c590e6d594f/inst/extdata"><code>20e4a03</code></a>, licence Apache License (&gt;= 2). Nothing is retyped or regenerated here.</li>
+    <li>The <a href="../data/synthetic-study/SOURCE.json">source record</a> holds each file's checksum, and the unit tests fail when a file no longer matches it.</li>
+  </ul>
+</section>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.2.0 — biomarker charts on the
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/73736f349ecb9f1c7c9aa27d6d0c9fb4e706d712"><code>73736f3</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+    <!-- The header's script is safety.viz's, as it is in the copied shell
+         (site/vendor/safety.viz-site/shell.html); the issue it names is
+         safety.viz's. tests/unit/site/siteStyles.test.js holds the two equal. -->
+    <script>
+      // Mark the nav link whose resolved URL is this page; works at any mount
+      // depth (site root, /dev/, /pr/N/). Renderer sub-pages match a chart link
+      // inside the Gallery dropdown, highlighting the current chart.
+      (function () {
+        var here = location.pathname.replace(/\/$/, '/index.html');
+        var links = document.querySelectorAll('.site-nav a');
+        for (var i = 0; i < links.length; i += 1) {
+          var href = links[i].getAttribute('href');
+          if (!href || href.indexOf('http') === 0) continue;
+          if (new URL(href, location.href).pathname === here) {
+            links[i].classList.add('current');
+            links[i].setAttribute('aria-current', 'page');
+            break;
+          }
+        }
+      })();
+
+      // Gallery dropdown (#71): progressive enhancement over the hover/focus CSS.
+      // The disclosure button toggles aria-expanded (which drives the menu open
+      // via CSS), supports keyboard access (Enter/Space toggle, Arrow keys to
+      // enter and move through items, Escape to close), and closes on outside
+      // click or when focus leaves the group. With JS off, hover/focus still
+      // reveal the menu and the Gallery link still works.
+      (function () {
+        var group = document.querySelector('.site-nav .nav-group');
+        if (!group) return;
+        var button = group.querySelector('.nav-disclosure');
+        var menu = group.querySelector('.nav-menu');
+        if (!button || !menu) return;
+        var items = Array.prototype.slice.call(menu.querySelectorAll('a'));
+
+        var isOpen = function () {
+          return button.getAttribute('aria-expanded') === 'true';
+        };
+        var setOpen = function (open) {
+          button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+        var focusItem = function (index) {
+          if (!items.length) return;
+          setOpen(true);
+          items[(index + items.length) % items.length].focus();
+        };
+
+        button.addEventListener('click', function () {
+          setOpen(!isOpen());
+        });
+        button.addEventListener('keydown', function (event) {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            focusItem(0);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            focusItem(items.length - 1);
+          } else if (event.key === 'Escape') {
+            setOpen(false);
+          }
+        });
+        menu.addEventListener('keydown', function (event) {
+          var index = items.indexOf(document.activeElement);
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            focusItem(index + 1);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            focusItem(index - 1);
+          } else if (event.key === 'Home') {
+            event.preventDefault();
+            focusItem(0);
+          } else if (event.key === 'End') {
+            event.preventDefault();
+            focusItem(items.length - 1);
+          } else if (event.key === 'Escape') {
+            event.preventDefault();
+            setOpen(false);
+            button.focus();
+          }
+        });
+
+        // Close when focus leaves the group or on an outside pointer press.
+        group.addEventListener('focusout', function (event) {
+          if (!group.contains(event.relatedTarget)) setOpen(false);
+        });
+        document.addEventListener('click', function (event) {
+          if (!group.contains(event.target)) setOpen(false);
+        });
+      })();
+    </script>
+  </body>
+</html>
