@@ -94,6 +94,22 @@ export function summarizeModule({ requirements, evidence } = {}) {
 
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
+// What a card says of its module is short, as safety.viz's cards are: the
+// registry's `card`, one or two sentences, so a screen of the gallery holds
+// two rows of charts. The fuller text, `blurb`, is at the head of a chart's
+// live demo. The registry is refused when a card runs past either limit.
+export const CARD_LIMITS = { sentences: 2, characters: 200 };
+
+// How many sentences a text has, counted by their ends: a full stop, a
+// question mark or an exclamation mark before a space or the end. Text with
+// no end is one sentence, and an abbreviation's stop counts as an end.
+export function sentencesOf(text) {
+  const said = String(text).trim();
+  if (!said) return 0;
+  const ends = said.match(/[.?!](?=\s|$)/g) || [];
+  return ends.length + (/[.?!]$/.test(said) ? 0 : 1);
+}
+
 // One module's card, as safety.viz's gallery draws a chart's: a picture when
 // there is one, the title as a link, what it is, and the links to its pages. A
 // chart's title leads to its live demo; a shared part has none, and its title
@@ -114,7 +130,7 @@ function moduleCard(entry, { root = '', hero = null, facts = '' } = {}) {
     `<h3><a href="${base}/${entry.demo ? 'index' : 'api'}.html">${escapeHtml(entry.title)}</a>` +
     `${statusBadge(entry)}</h3>` +
     statusNote(entry) +
-    `<p>${escapeHtml(entry.blurb)}</p>` +
+    `<p>${escapeHtml(entry.card)}</p>` +
     facts +
     moduleLinks(entry, root) +
     `</div></li>`
@@ -401,6 +417,20 @@ export function validateRegistry(config) {
     }
     if (!isText(entry.title)) say('needs a `title`.');
     if (!isText(entry.blurb)) say('needs a `blurb`.');
+    if (!isText(entry.card)) {
+      say('needs `card`, what its card says in one or two sentences.');
+    } else {
+      const sentences = sentencesOf(entry.card);
+      const characters = entry.card.trim().length;
+      if (sentences > CARD_LIMITS.sentences) {
+        say(`\`card\` is ${sentences} sentences; a card holds at most ${CARD_LIMITS.sentences}.`);
+      }
+      if (characters > CARD_LIMITS.characters) {
+        say(
+          `\`card\` is ${characters} characters; a card holds at most ${CARD_LIMITS.characters}.`
+        );
+      }
+    }
     if (!isText(entry.matrix) || !entry.matrix.endsWith('.md')) {
       say('needs `matrix`, the name of its requirement matrix in requirements/.');
     }
