@@ -549,8 +549,8 @@ test.describe('cross-tabulation: on a phone and on the site', () => {
     await expect(page.locator('.api-body h2 code').filter({ hasText: /^crossTab\(/ })).toHaveCount(
       1
     );
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/cross-tab\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Cross-tabulation');
     // The URL is the demo's before its scripts have run: wait for them.

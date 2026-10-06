@@ -25,7 +25,7 @@ const MODULES = JSON.parse(
 
 export const CANONICAL = process.platform === 'linux';
 
-// The three families site/site.css asks for. A capture taken before they
+// The three families the site's stylesheet asks for (safety.viz's, as copied). A capture taken before they
 // arrive, or when they never do, would show the fallback fonts: not the page a
 // reader sees, and a baseline nothing would match again.
 const FAMILIES = ['Instrument Sans', 'Instrument Serif', 'IBM Plex Mono'];

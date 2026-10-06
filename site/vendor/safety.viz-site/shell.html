@@ -7,25 +7,24 @@
     <title>{{title}}</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Crect x='2.5' y='8' width='3' height='5.5' fill='%23f97316'/%3E%3Crect x='6.5' y='3.5' width='3' height='10' fill='%23fb923c'/%3E%3Crect x='10.5' y='6' width='3' height='7.5' fill='%23f97316'/%3E%3C/svg%3E"
     />
-    <!-- safety.viz's site stylesheet, as copied (site/vendor/safety.viz-site/),
-         then the few rules that are this site's own. -->
-    <link rel="stylesheet" href="{{root}}vendor/safety.viz-site/site.css" />
     <link rel="stylesheet" href="{{root}}site.css" />
   </head>
   <body>
     <header class="site-header">
       <a class="site-name" href="{{root}}index.html">
-        bio.viz
+        safety.viz
         <span class="site-version">v{{version}}</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
+        <a class="nav-app" href="{{root}}demo/index.html">Demo app</a>
         {{galleryNav}}
-        <a href="{{root}}r-check/index.html">R check</a>
-        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a href="{{root}}domains/index.html">Domains</a>
+        <a href="{{root}}architecture.html">Architecture</a>
+        <a href="{{root}}about.html">About</a>
         <a
-          href="https://github.com/jwildfire/bio.viz"
+          href="https://github.com/jwildfire/safety.viz"
           aria-label="GitHub"
           title="GitHub"
           style="display: inline-flex; align-items: center"
@@ -47,20 +46,19 @@
     <main class="site-main">{{content}}</main>
     <footer class="site-footer">
       <p>
-        bio.viz v{{version}} — biomarker charts on the
-        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R.{{build}}
+        safety.viz v{{version}} — clinical safety graphics on one modern charting stack, migrated
+        from the <a href="https://github.com/SafetyGraphics">safetyGraphics</a> ecosystem originally
+        built by <a href="https://github.com/RhoInc">Rho, Inc.</a> (<a href="{{root}}about.html"
+          >credits</a
+        >).
       </p>
       <p>
-        Built in the open — follow the
+        Built in the open for the R/Pharma 2026 keynote — follow the
         <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
-        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
-        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+        <a href="https://github.com/jwildfire/safety.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/safety.viz/releases">releases</a>.
       </p>
     </footer>
-    <!-- The header's script is safety.viz's, as it is in the copied shell
-         (site/vendor/safety.viz-site/shell.html); the issue it names is
-         safety.viz's. tests/unit/site/siteStyles.test.js holds the two equal. -->
     <script>
       // Mark the nav link whose resolved URL is this page; works at any mount
       // depth (site root, /dev/, /pr/N/). Renderer sub-pages match a chart link

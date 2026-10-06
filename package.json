@@ -32,6 +32,8 @@
     "kit:check-source": "node tools/vendor-safety-viz.mjs --check-source",
     "portfolio:check": "node tools/vendor-portfolio-schema.mjs --check",
     "portfolio:check-source": "node tools/vendor-portfolio-schema.mjs --check-source",
+    "styles:check": "node tools/vendor-site-styles.mjs --check",
+    "styles:check-source": "node tools/vendor-site-styles.mjs --check-source",
     "statistics:check": "node tools/vendor-statistics.mjs --check",
     "statistics:check-source": "node tools/vendor-statistics.mjs --check-source"
   },

@@ -10,8 +10,8 @@
 // Fails, and so can never publish, on a malformed registry entry, a broken
 // internal link, a screenshot the evidence names but nobody committed, a
 // vendored file that no longer matches its record (the study, safety.viz's
-// bundle, gsm.bio's statistics file), or an API reference that has drifted from
-// the code (the same validation gates CI).
+// bundle, safety.viz's site stylesheet, gsm.bio's statistics file), or an API
+// reference that has drifted from the code (the same validation gates CI).
 //
 // SITE_COMMIT, when set by the deploy workflow, is printed in the footer so a
 // deployed page says which commit it was built from.
@@ -52,6 +52,7 @@ import {
 import {
   PORTFOLIO_SCHEMA,
   SAFETY_VIZ,
+  SITE_STYLES,
   STATISTICS,
   STUDY,
   readRecord,
@@ -85,7 +86,27 @@ if (errors.length) fail();
 
 rmSync(siteDir, { recursive: true, force: true });
 mkdirSync(siteDir, { recursive: true });
+
+// The styles (#91). Every page loads safety.viz's site stylesheet, published
+// as it was copied with its source record, and after it the few rules that are
+// this site's own. A copy that no longer matches its record stops the build.
+// The shell kept beside the stylesheet is the pattern site/shell.html follows;
+// it is not a page of this site and is not published.
+const stylesSource = path.join(rootDir, SITE_STYLES.directory);
+const stylesProblems = verifyVendored(stylesSource);
+errors.push(...stylesProblems.map((problem) => `${SITE_STYLES.directory}: ${problem}`));
+if (!stylesProblems.length) {
+  const stylesDir = path.join(siteDir, 'vendor/safety.viz-site');
+  mkdirSync(stylesDir, { recursive: true });
+  for (const file of ['site.css', 'SOURCE.json']) {
+    copyFileSync(path.join(stylesSource, file), path.join(stylesDir, file));
+  }
+}
 copyFileSync(path.join(rootDir, 'site/site.css'), path.join(siteDir, 'site.css'));
+
+// Every page's header lists the published charts under Gallery.
+const page = (options) =>
+  renderShell({ shell, version, build, modules: config.modules, ...options });
 
 // The committed script-tag bundle and its source map, at the same versioned
 // path a consumer would vendor.
@@ -110,16 +131,13 @@ for (const { module } of config.modules) {
 
 writeFileSync(
   path.join(siteDir, 'index.html'),
-  renderShell({
-    shell,
+  page({
     title: 'bio.viz — biomarker charts with every test computed by R',
     description:
       `bio.viz ${version}: charts for comparing groups and relating variables in biomarker ` +
       'data, with every statistical test computed by R. This page names the build it carries.',
     content: renderHome({ config, version, summaries }),
-    root: '',
-    version,
-    build
+    root: ''
   })
 );
 
@@ -136,8 +154,7 @@ for (const file of readdirSync(path.join(checkSource, 'data')).filter((f) => f.e
 }
 writeFileSync(
   path.join(checkDir, 'index.html'),
-  renderShell({
-    shell,
+  page({
     title: 'R check · bio.viz',
     description:
       'Two real tests run through R in the browser and compared with desktop R, with the ' +
@@ -147,9 +164,7 @@ writeFileSync(
       expected: readJson(path.join(checkSource, 'expected.json')),
       measured: readJson(path.join(checkSource, 'measured.json'))
     }),
-    root: '../',
-    version,
-    build
+    root: '../'
   })
 );
 
@@ -249,16 +264,13 @@ const heroes = Object.fromEntries(
 mkdirSync(path.join(siteDir, 'gallery'), { recursive: true });
 writeFileSync(
   path.join(siteDir, 'gallery/index.html'),
-  renderShell({
-    shell,
+  page({
     title: 'Gallery · bio.viz',
     description:
       'The charts in bio.viz, each with the tests that prove it and the reference for calling ' +
       'it, the shared parts they are built on, and the synthetic study the demos run on.',
     content: renderGallery({ config, study, heroes }),
-    root: '../',
-    version,
-    build
+    root: '../'
   })
 );
 
@@ -295,15 +307,11 @@ for (const entry of modules) {
     } else {
       writeFileSync(
         path.join(moduleDir, 'index.html'),
-        renderShell({
-          shell,
+        page({
           title: `${entry.title}: live demo · bio.viz`,
           description: `The bio.viz ${entry.title} chart, live, on the synthetic study: ${entry.blurb}`,
           content: renderDemoPage({ entry, version, study, kit, statistics }),
-          root: '../',
-          version,
-          build,
-          mainClass: 'wide'
+          root: '../'
         })
       );
     }
@@ -338,8 +346,7 @@ for (const entry of modules) {
     }
     writeFileSync(
       path.join(moduleDir, 'evidence.html'),
-      renderShell({
-        shell,
+      page({
         title: `${entry.title}: test evidence · bio.viz`,
         description:
           `Every requirement of the bio.viz ${entry.title} module, the tests named for it and ` +
@@ -351,9 +358,7 @@ for (const entry of modules) {
           evidence,
           screenshots
         }),
-        root: '../',
-        version,
-        build
+        root: '../'
       })
     );
   }
@@ -386,16 +391,13 @@ for (const entry of modules) {
   }
   writeFileSync(
     path.join(moduleDir, 'api.html'),
-    renderShell({
-      shell,
+    page({
       title: `${entry.title}: API reference · bio.viz`,
       description:
         `The interface of the bio.viz ${entry.title} module: what it exports, what each call ` +
         'takes and what it answers.',
       content: renderApiPage({ entry, config, markdown, pages: referencePages }),
-      root: '../',
-      version,
-      build
+      root: '../'
     })
   );
 }

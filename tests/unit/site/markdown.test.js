@@ -77,7 +77,9 @@ describe('markdown: blocks', () => {
         '| `a \\| b` | Either. |'
       ].join('\n')
     );
-    expect(html).toContain('<table class="doc-table">');
+    // `api` is safety.viz's class for a reference's table; `doc-table` is the
+    // one the site's own stylesheet restacks.
+    expect(html).toContain('<table class="api doc-table">');
     expect(html).toContain('<th scope="col">Option</th><th scope="col">Meaning</th>');
     expect(html).toContain(
       '<tr><td data-label="Option"><code>results</code></td>' +
