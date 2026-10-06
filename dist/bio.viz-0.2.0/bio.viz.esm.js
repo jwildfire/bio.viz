@@ -6861,7 +6861,9 @@ var GroupComparison = class {
       entry.drawn += panel.records.length;
       byVisit.set(panel.visit, entry);
     });
-    for (const [visit, { drawn, panel }] of byVisit) {
+    const overTime = this.level() === LEVELS.OVER_TIME;
+    if (overTime) this.addVisitsNote(byVisit, add);
+    for (const [visit, { drawn, panel }] of overTime ? [] : byVisit) {
       const where = several && visit !== null ? `${visit}: ` : "";
       add(`${where}${drawn} of ${panel.participants} participants drawn.`);
       panel.dropped.forEach((entry) => add(`${where}${entry.n} left out: ${entry.reason}.`, true));
@@ -6882,6 +6884,48 @@ var GroupComparison = class {
       add(`${model.shownLevels.length} of ${model.levels.length} levels shown.`);
     }
     this.addBaselineNote(model, add);
+  }
+  // The notes of one biomarker over time, for all its visits at once: the
+  // range of participants drawn at a visit, and each reason anyone was left
+  // out with its count added up over the visits. Every number is a sum, or the
+  // least and greatest, of what the visits' own notes print.
+  addVisitsNote(byVisit, add) {
+    const visits2 = [...byVisit.values()];
+    if (!visits2.length) return;
+    const range = (numbers) => {
+      const least = Math.min(...numbers);
+      const greatest = Math.max(...numbers);
+      return least === greatest ? `${least}` : `${least} to ${greatest}`;
+    };
+    add(
+      `${range(visits2.map((visit) => visit.drawn))} of ${range(visits2.map((visit) => visit.panel.participants))} participants drawn at each visit.`
+    );
+    const total = (lists) => {
+      const sums = /* @__PURE__ */ new Map();
+      lists.flat().forEach((entry) => sums.set(entry.reason, (sums.get(entry.reason) || 0) + entry.n));
+      return [...sums].map(([reason, n]) => `${n}, ${reason}`);
+    };
+    const over = `added up over the ${visits2.length} visit${visits2.length === 1 ? "" : "s"}`;
+    const left = total(
+      visits2.map(({ panel }) => [
+        ...panel.dropped,
+        ...panel.nonPositive ? [
+          {
+            reason: "zero or less, which a logarithmic scale cannot show",
+            n: panel.nonPositive
+          }
+        ] : []
+      ])
+    );
+    if (left.length) {
+      add(`Left out, ${over}: ${left.join("; ")}. Open a visit for its own counts.`, true);
+    }
+    const unused = total(
+      visits2.map(
+        ({ panel }) => panel.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT)
+      )
+    );
+    if (unused.length) add(`Rows not used, ${over}: ${unused.join("; ")}.`, true);
   }
   // ---- The statistics line ----------------------------------------------------
   // How many groups the chart draws: the levels on the axis. With no column to
