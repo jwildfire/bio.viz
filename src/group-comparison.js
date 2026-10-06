@@ -4,9 +4,12 @@
 //   BioViz.groupComparison('#chart', { group_by: 'ARM' }).init({ results, participants });
 //
 // It opens on a tile per biomarker, each a line per group through the group's
-// median at every scheduled visit, and a tile opens that biomarker alone, with
-// its visits as panels and R's test under each. Which of the two is drawn is
-// decided in src/group-comparison/level.js.
+// median at every scheduled visit. A tile opens that biomarker over time: one
+// picture, visit along the bottom and the groups side by side at each, with
+// the number in each group and R's test of the groups under each visit. A
+// visit there opens that visit alone, with its marks, a second grouping, its
+// panels and pairwise comparisons. Which of the three is drawn is decided in
+// src/group-comparison/level.js.
 //
 // The lifecycle is safety.viz's (init, setData, setSettings, render, resize,
 // destroy), so a page drives both libraries the same way.
@@ -56,15 +59,25 @@ import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES } from './shared/tables.js';
 import { coreSettings } from './shared/settings.js';
-import { MARKS, TILE_SUMMARIES, Y_SCALES, syncSettings } from './group-comparison/configure.js';
-import { LEVELS, levelOf } from './group-comparison/level.js';
+import {
+  MARKS,
+  TILE_SUMMARIES,
+  TIME_MARKS,
+  VISIT_ADJUSTMENTS,
+  Y_SCALES,
+  syncSettings
+} from './group-comparison/configure.js';
+import { LEVELS, hasOverTime, levelOf } from './group-comparison/level.js';
+import { buildOverTime, markOf, timeDomain } from './group-comparison/overTime.js';
 import {
   NO_TEST_CHOSEN,
   TEST_LABELS,
   createStatisticDesk,
   fitTest,
   groupsOf,
+  levelsScope,
   noTestText,
+  overTimeRequest,
   plain,
   scopeText,
   statisticRequest,
@@ -107,6 +120,49 @@ const VALUE_WORDS = {
 };
 // Said under a control that the trend tiles do not read.
 const NOT_ON_TILES = 'Applies when one biomarker is open.';
+// Said under Colour by and Panel by on the tiles and on one biomarker over
+// time, which take no second grouping and no panels.
+const AT_ONE_VISIT = 'Applies once a biomarker and a visit are open.';
+
+// One biomarker over time: what the Draw as control calls each form, what the
+// key above the picture calls it, and what its marks are.
+const TIME_MARK_LABELS = {
+  box: 'Boxes',
+  mean_se: 'Means with standard errors',
+  median_iqr: 'Medians with quartiles'
+};
+const TIME_MARK_WORDS = {
+  box: 'Boxes of the',
+  mean_se: 'Mean and standard error of the',
+  median_iqr: 'Median and quartiles of the'
+};
+const TIME_MARK_NOTES = {
+  box:
+    'Each box runs from the 25th to the 75th percentile, with a line at the median and a dot at ' +
+    'the mean; its whiskers end at the 5th and 95th percentiles.',
+  mean_se:
+    'Each point is a group’s mean at a visit, and its bar reaches one standard error either ' +
+    'side: the standard deviation over the square root of the number in the group.',
+  median_iqr:
+    'Each point is a group’s median at a visit, and its bar reaches from the 25th to the 75th ' +
+    'percentile.'
+};
+const ADJUSTMENT_LABELS = { none: 'None', holm: 'Holm', BH: 'Benjamini-Hochberg' };
+// What the row of tests says in one cell across every visit, while it has no
+// result for any: the sentence itself is on the statistics line beneath.
+const ROW_WORDS = {
+  waiting: 'Waiting for R…',
+  unavailable: 'Statistics unavailable',
+  error: 'R reported an error',
+  withheld: 'Not computed',
+  refused: 'Not shown',
+  none: 'No test'
+};
+// What one visit's cell says when it has no p-value.
+const CELL_WORDS = { withheld: 'not computed', error: 'error', refused: 'not shown' };
+// A visit's column is never narrower than this, in pixels: narrower, and the
+// picture and the table under it scroll together inside the chart.
+const VISIT_WIDTH = 56;
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's
@@ -129,7 +185,32 @@ ${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .3rem;font-size:.8rem;color:#1f2933}
 .bv-group-comparison .bv-legend-swatch{display:inline-block;width:.75em;height:.75em;margin-right:.35em;border-radius:2px}
 .bv-group-comparison .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
+.bv-group-comparison .bv-trail ol{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .35rem;margin:0;padding:0;list-style:none;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-trail li{display:flex;align-items:center;gap:.35rem}
+.bv-group-comparison .bv-trail li+li::before{content:'›';color:#52616f}
+.bv-group-comparison .bv-trail [aria-current]{font-weight:600;overflow-wrap:anywhere}
+.bv-group-comparison .sv-multiples.bv-time{display:block}
+.bv-group-comparison .bv-time-scroll{overflow-x:auto;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.6rem .5rem .5rem}
+.bv-group-comparison .bv-time-canvas{position:relative;height:360px}
+.bv-group-comparison .bv-time-canvas canvas{cursor:pointer}
+.bv-group-comparison .bv-time-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:.1rem 0 0;font-size:.78rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
+.bv-group-comparison .bv-time-table caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.bv-group-comparison .bv-time-table th,.bv-group-comparison .bv-time-table td{padding:.22rem .1rem;text-align:center;vertical-align:top;font-weight:400;overflow-wrap:anywhere}
+.bv-group-comparison .bv-time-table th[scope=row]{padding-right:.4rem;text-align:right;color:#3e4c59}
+.bv-group-comparison .bv-time-table tbody tr{border-top:1px solid #eef1f4}
+.bv-group-comparison .bv-time-table thead th{font-weight:600}
+.bv-group-comparison .bv-time-visit{display:block;width:100%;margin:0;padding:.2rem .1rem;border:1px solid transparent;border-radius:6px;background:none;color:#0b62a4;font:inherit;font-weight:600;line-height:1.2;cursor:pointer;overflow-wrap:anywhere}
+.bv-group-comparison .bv-time-visit:hover{border-color:#0b62a4;background:#eaf2fb}
+.bv-group-comparison .bv-time-visit:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.bv-group-comparison .bv-time-still{display:block;padding:.2rem .1rem;border:1px solid transparent;color:#3e4c59}
+.bv-group-comparison .bv-time-sub{display:block;font-size:.7rem;color:#52616f}
+.bv-group-comparison .bv-time-table tr[data-row=test] td{font-weight:600}
+.bv-group-comparison .bv-time-table tr[data-row=test] td[data-status]:not([data-status=shown]),.bv-group-comparison .bv-time-table tr[data-row=test] td[colspan]{font-weight:400;font-style:italic;color:#52616f}
+.bv-group-comparison .bv-stat-level{margin:0 0 .3rem}
 @media (max-width:600px){
+.bv-group-comparison .bv-time-canvas{height:300px}
+.bv-group-comparison .bv-time-scroll{padding:.4rem .25rem .35rem}
+.bv-group-comparison .bv-time-table{font-size:.72rem}
 .bv-group-comparison .bv-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .bv-group-comparison .sv-chart-wrap{height:380px;padding:.5rem}
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
@@ -179,6 +260,7 @@ class GroupComparison {
     this.state = {};
     this.asked = [];
     this.tiles = null;
+    this.overTime = null;
     this.connect();
     this.renderShell();
   }
@@ -248,9 +330,11 @@ class GroupComparison {
   /**
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `tile_summary`,
-   * `unscheduled_visits`, `test`, `pairwise`) moves its control:
-   * `start_value: null` returns to the tiles of every biomarker.
+   * `levels`, `color_by`, `panel_by`, `mark`, `time_mark`, `y_scale`,
+   * `tile_summary`, `unscheduled_visits`, `test`, `pairwise`,
+   * `visit_adjustment`) moves its control: `start_value: null` returns to the
+   * tiles of every biomarker, and `visits: null` with a biomarker named to that
+   * biomarker over time.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -280,11 +364,13 @@ class GroupComparison {
       color_by: 'colorBy',
       panel_by: 'panelBy',
       mark: 'mark',
+      time_mark: 'timeMark',
       y_scale: 'yScale',
       tile_summary: 'tileSummary',
       unscheduled_visits: 'unscheduledVisits',
       test: 'test',
       pairwise: 'pairwise',
+      visit_adjustment: 'visitAdjustment',
       filters: 'filters'
     };
     for (const [setting, key] of Object.entries(moved)) {
@@ -356,14 +442,34 @@ class GroupComparison {
     this.hiddenVisits = shown ? [] : this.unscheduled.visits;
   }
 
-  // Which level is drawn: every biomarker, or one biomarker's visits.
+  // Which level is drawn: every biomarker; one biomarker over time, when
+  // every visit it has is chosen; or one biomarker's visits, a panel each.
   level() {
-    return levelOf(this.state);
+    return levelOf(this.state, this.measureVisits());
   }
 
   // Whether the tiles of every biomarker are what is drawn.
   atTiles() {
     return this.level() === LEVELS.BIOMARKERS;
+  }
+
+  // The visits the open biomarker has values at, in visit order: read once
+  // for a biomarker and a table, because every control and every draw asks.
+  measureVisits() {
+    const { measure } = this.state;
+    if (measure === null || measure === undefined) return [];
+    const { results } = this.drawTables;
+    const kept = this.visitsOf;
+    if (kept && kept.results === results && kept.measure === measure) return kept.visits;
+    const visits = measureVisits(results, this.settings, measure);
+    this.visitsOf = { results, measure, visits };
+    return visits;
+  }
+
+  // What R's counts are of, when the automatic footnote has many to say: one
+  // biomarker over time is answered a count per visit.
+  get footnoteCounts() {
+    return this.overTime ? 'visits' : undefined;
   }
 
   // Opens one biomarker, or every biomarker (null), from the Biomarker control
@@ -426,11 +532,13 @@ class GroupComparison {
       colorBy: has(settings.color_by) ? settings.color_by : NONE,
       panelBy,
       mark: settings.mark,
+      timeMark: settings.time_mark,
       yScale: settings.y_scale,
       tileSummary: settings.tile_summary,
       unscheduledVisits: settings.unscheduled_visits,
       test: settings.test,
       pairwise: settings.pairwise,
+      visitAdjustment: settings.visit_adjustment,
       filters: startFilters(this)
     };
   }
@@ -476,14 +584,19 @@ class GroupComparison {
       return addControl(labelText, input, parent);
     };
 
-    const tiles = this.atTiles();
-    // A control the tiles do not read is switched off there, and says where it
-    // applies; what it is set to is kept.
-    const notOnTiles = (control) => {
-      if (!tiles) return;
+    const level = this.level();
+    const tiles = level === LEVELS.BIOMARKERS;
+    const overTime = level === LEVELS.OVER_TIME;
+    // A control the level drawn does not read is switched off there, and says
+    // where it applies; what it is set to is kept.
+    const switchOff = (control, words) => {
       const input = control.matches('select,input') ? control : control.querySelector('select');
       input.disabled = true;
-      control.after(kit.createElement('small', 'bv-control-note', NOT_ON_TILES));
+      control.after(kit.createElement('small', 'bv-control-note', words));
+    };
+    // The tiles and one biomarker over time take no second grouping and no panels.
+    const atOneVisit = (control) => {
+      if (tiles || overTime) switchOff(control, AT_ONE_VISIT);
     };
     const value = addSection('Value');
     select(
@@ -517,11 +630,26 @@ class GroupComparison {
         selected: shown.length === offered.length ? null : shown,
         onChange: (next) => {
           const chosen = next === null ? offered : next;
+          const before = this.level();
           // A visit the biomarker lacks keeps its place for another biomarker.
           state.visits = this.visits.all.filter(
             (visit) => chosen.includes(visit) || !offered.includes(visit)
           );
-          redraw(false);
+          // Every visit of a biomarker is its picture over time, and fewer are
+          // panels: the controls differ between the two, and are made again
+          // with this one left open where the reader was choosing.
+          if (this.level() === before) {
+            redraw(false);
+            return;
+          }
+          const active = document.activeElement;
+          const at = active && visits.contains(active) ? active.value : null;
+          redraw(true);
+          const again = this.controls.querySelector('[data-control="visits"]');
+          if (!again) return;
+          again.open = true;
+          const box = [...again.querySelectorAll('input')].find((input) => input.value === at);
+          if (at !== null && box) box.focus();
         }
       });
       visits.dataset.control = 'visits';
@@ -565,7 +693,7 @@ class GroupComparison {
         addControl('Levels', picker, group);
       }
       const optional = [[NONE, 'None'], ...columns];
-      notOnTiles(
+      atOneVisit(
         select(
           'color-by',
           'Colour by',
@@ -589,7 +717,7 @@ class GroupComparison {
         },
         group
       );
-      notOnTiles(panelBy);
+      atOneVisit(panelBy);
     } else {
       group.append(
         kit.createElement(
@@ -615,19 +743,34 @@ class GroupComparison {
         display
       );
     }
-    notOnTiles(
+    if (overTime) {
+      // One biomarker over time has forms of its own; the single view's mark
+      // is kept for when a visit is opened.
       select(
+        'time-mark',
+        'Draw as',
+        TIME_MARKS.map((mark) => [mark, TIME_MARK_LABELS[mark]]),
+        state.timeMark,
+        (next) => {
+          state.timeMark = next;
+          redraw(false);
+        },
+        display
+      );
+    } else {
+      const mark = select(
         'mark',
         'Draw as',
-        MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
+        MARKS.map((entry) => [entry, MARK_LABELS[entry]]),
         state.mark,
         (next) => {
           state.mark = next;
           redraw(false);
         },
         display
-      )
-    );
+      );
+      if (tiles) switchOff(mark, NOT_ON_TILES);
+    }
     select(
       'y-scale',
       'Scale',
@@ -660,9 +803,11 @@ class GroupComparison {
     // drawn, so they are filled in when the chart is drawn (syncTestControls).
     this.testControl = null;
     this.pairwiseControl = null;
+    this.adjustControl = null;
     // The tiles print no test, so they offer none: the section is there once a
-    // biomarker is open.
-    if (this.settings.statistic && !tiles) {
+    // biomarker is open. Over time it is there when a function is named that
+    // answers a row of visits.
+    if (this.settings.statistic && !tiles && (!overTime || this.settings.statistic_by_visit)) {
       const statistics = addSection('Statistics');
       const test = document.createElement('select');
       test.dataset.control = 'test';
@@ -671,15 +816,31 @@ class GroupComparison {
         redraw(false);
       };
       this.testControl = addControl('Test', test, statistics);
-      const pairwise = document.createElement('input');
-      pairwise.type = 'checkbox';
-      pairwise.dataset.control = 'pairwise';
-      pairwise.setAttribute('aria-label', 'Pairwise comparisons');
-      pairwise.onchange = () => {
-        state.pairwise = pairwise.checked;
-        redraw(false);
-      };
-      this.pairwiseControl = addControl('Pairwise comparisons', pairwise, statistics);
+      if (overTime) {
+        // The p-values under the visits, adjusted across them by R or not: the
+        // pairs of groups are compared once a visit is open.
+        this.adjustControl = select(
+          'visit-adjustment',
+          'Adjust across visits',
+          VISIT_ADJUSTMENTS.map((entry) => [entry, ADJUSTMENT_LABELS[entry]]),
+          state.visitAdjustment,
+          (next) => {
+            state.visitAdjustment = next;
+            redraw(false);
+          },
+          statistics
+        );
+      } else {
+        const pairwise = document.createElement('input');
+        pairwise.type = 'checkbox';
+        pairwise.dataset.control = 'pairwise';
+        pairwise.setAttribute('aria-label', 'Pairwise comparisons');
+        pairwise.onchange = () => {
+          state.pairwise = pairwise.checked;
+          redraw(false);
+        };
+        this.pairwiseControl = addControl('Pairwise comparisons', pairwise, statistics);
+      }
     }
 
     // Filters choose participants, so there are filters only with a participant table.
@@ -735,8 +896,9 @@ class GroupComparison {
   // The visits the Visit control offers: the open biomarker's, or every visit
   // on the tiles.
   visitsOffered() {
-    if (this.atTiles()) return this.visits.all;
-    return measureVisits(this.drawTables.results, this.settings, this.state.measure);
+    const { measure } = this.state;
+    if (measure === null || measure === undefined) return this.visits.all;
+    return this.measureVisits();
   }
 
   // Every level of the group column in the tables, whatever the filters are set to.
@@ -771,8 +933,9 @@ class GroupComparison {
   // nothing else: a test that does not fit is never asked of R. The pairwise
   // switch is there only when there are pairs to compare.
   syncTestControls(groups) {
-    const { testControl: select, pairwiseControl: pairwise, kit, state } = this;
-    if (!select) return;
+    const { testControl: control, pairwiseControl: pairwise, kit, state } = this;
+    if (!control) return;
+    const select = control.matches('select') ? control : control.querySelector('select');
     const offered = testsFor(groups);
     const fitted = fitTest(state.test, groups);
     select.innerHTML = '';
@@ -784,8 +947,17 @@ class GroupComparison {
     } else {
       kit.option(select, 'none', 'None: a test needs two or more groups', true);
     }
-    pairwise.checked = state.pairwise;
-    pairwise.parentElement.style.display = groups > 2 && fitted !== 'none' ? '' : 'none';
+    if (pairwise) {
+      pairwise.checked = state.pairwise;
+      pairwise.parentElement.style.display = groups > 2 && fitted !== 'none' ? '' : 'none';
+    }
+    // An adjustment is of p-values: with no test there is nothing to adjust.
+    if (this.adjustControl) {
+      const adjust = this.adjustControl.matches('select')
+        ? this.adjustControl
+        : this.adjustControl.querySelector('select');
+      adjust.disabled = !offered.length || fitted === 'none';
+    }
   }
 
   // ---- Drawing ----------------------------------------------------------------

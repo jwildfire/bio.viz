@@ -149,6 +149,59 @@ group_comparison_key <- function(dfRows, lView) {
   list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
 }
 
+# ---- The recipe: the key of the stored result for one biomarker over time -----
+#
+# The picture of one biomarker across its visits asks R once, for the test at
+# every visit (bio.viz#85).
+#
+# dfRows   the rows of every visit tested, one per participant and visit: the
+#          id, `y`, `x` and `visit`, each the row of that visit's own panel.
+#          The visits are in visit order. When the groups are a cut variable's,
+#          `x` is the factor cut() made, its levels low to high
+# lView    the view, by the chart's names: statistic_by_visit, test,
+#          visit_adjustment, measure, value_type, visits (the visits tested, in
+#          visit order: every visit the biomarker has values at, without the
+#          baseline visit when the value is a change, a fold change or a
+#          percent change from one baseline visit), baseline_visits,
+#          baseline_stat, group_by, filters, y_scale, unscheduled_visits
+#
+# The picture takes no second grouping and no panels, so the identity has no
+# `color_by`, `panel_by` or `panel`. In place of one panel's `visit` it has
+# `visits`, the visits tested. The arguments name the column of visits, the
+# visits in order, and the adjustment across them by p.adjust()'s name for it,
+# "none" when there is none. As for one panel, a column's groups are left to R
+# and a cut's are handed over low to high.
+group_comparison_by_visit_key <- function(dfRows, lView) {
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  chrVisits <- chart_text(lView$visits)
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  lDataId$visits <- as.list(chrVisits)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
+  lDataId$baseline_stat <- lView$baseline_stat
+  if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
+  lDataId$groups <- as.list(chrGroups)
+  if (length(lView$filters) > 0) {
+    lDataId$filters <- lapply(lView$filters, function(xValues) {
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
+    })
+  }
+  if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
+  lArgs <- list(
+    strValueCol = "y",
+    strGroupCol = "x",
+    strByCol = "visit",
+    strMethod = lView$test,
+    chrBy = as.list(chrVisits),
+    strPAdjust = lView$visit_adjustment
+  )
+  if (is.list(lView$group_by)) {
+    if (!is.factor(dfRows$x)) stop("the groups of a cut variable must be the factor cut() made")
+    lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
+  }
+  list(name = lView$statistic_by_visit, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
+}
+
 # ---- Reading the cases ---------------------------------------------------------
 
 read_text <- function(file) {
@@ -199,6 +252,44 @@ results <- lapply(seq_len(nrow(cases)), function(i) {
     list(case = case$case, file = case$file),
     key,
     list(value = do.call(key$name, c(list(rows), key$args)))
+  )
+})
+
+# One biomarker over time: one request for the whole row of visits. Beside what
+# R answered, `separately` holds what R gives when each visit is asked alone
+# and the p-values are then adjusted by p.adjust(): what each row of the answer
+# is held to.
+read_view_by_visit <- function(case) {
+  list(
+    statistic_by_visit = case$statistic_by_visit, test = case$test,
+    visit_adjustment = case$visit_adjustment, measure = case$measure,
+    value_type = case$value_type, visits = several(case$visits),
+    baseline_visits = several(case$baseline_visits), baseline_stat = case$baseline_stat,
+    group_by = one(case$group_by), filters = read_filters(case$filters), y_scale = case$y_scale
+  )
+}
+over_time_cases <- read_text("over-time-cases.csv")
+over_time <- lapply(seq_len(nrow(over_time_cases)), function(i) {
+  case <- as.list(over_time_cases[i, ])
+  rows <- read_rows(case$file)
+  view <- read_view_by_visit(case)
+  key <- group_comparison_by_visit_key(rows, view)
+  chrGroups <- sort(unique(rows$x), method = "radix")
+  alone <- vapply(view$visits, function(visit) {
+    answer <- Analyze_GroupDifference(rows[rows$visit == visit, ], "y", "x", strMethod = view$test,
+                                      chrGroups = chrGroups, bPairwise = FALSE)
+    if (identical(answer$status, "ok")) answer$p_value else NA_real_
+  }, numeric(1), USE.NAMES = FALSE)
+  adjusted <- alone
+  adjusted[!is.na(alone)] <- stats::p.adjust(alone[!is.na(alone)], method = view$visit_adjustment)
+  c(
+    list(case = case$case, file = case$file),
+    key,
+    list(
+      value = do.call(key$name, c(list(rows), lapply(key$args, unlist))),
+      separately = list(visits = as.list(view$visits), p_unadjusted = as.list(alone),
+                        p_value = as.list(adjusted))
+    )
   )
 })
 
@@ -314,9 +405,12 @@ lines <- c(
   "  ],",
   "  \"recipes\": [",
   paste0("    ", vapply(recipes, to_json, character(1)), c(rep(",", length(recipes) - 1), "")),
+  "  ],",
+  "  \"over_time\": [",
+  paste0("    ", vapply(over_time, to_json, character(1)), c(rep(",", length(over_time) - 1), "")),
   "  ]",
   "}"
 )
 writeLines(lines, out)
 cat(sprintf("Wrote %s with R %s: %d results from gsm.bio's statistics at %s\n", out,
-            made_by$r_version, length(results), substr(made_by$statistics_commit, 1, 7)))
+            made_by$r_version, length(results) + length(over_time), substr(made_by$statistics_commit, 1, 7)))

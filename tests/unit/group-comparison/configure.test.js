@@ -101,9 +101,10 @@ describe('group comparison: settings', () => {
     );
   });
 
-  it('GC-CFG-004: the chart has no setting that chooses an adjustment, a confidence level, a minimum group size or a cut (#16)', () => {
-    const names = Object.keys(DEFAULT_SETTINGS).join(' ');
-    expect(names).not.toMatch(/adjust|method|cut|alpha|signif|conf|min_group/i);
+  it('GC-CFG-004: the chart has no setting that chooses a confidence level, a minimum group size or a cut, and one that names an adjustment: the one R makes across the visits of one biomarker over time (#16, #85)', () => {
+    const names = Object.keys(DEFAULT_SETTINGS);
+    expect(names.filter((name) => /adjust/i.test(name))).toEqual(['visit_adjustment']);
+    expect(names.join(' ')).not.toMatch(/method|cut|alpha|signif|conf|min_group/i);
     expect(refused({ adjust: 'BH' })).toMatch(/`adjust` is not a setting/);
     expect(refused({ conf_level: 0.9 })).toMatch(/`conf_level` is not a setting/);
     expect(refused({ min_group: 2 })).toMatch(/`min_group` is not a setting/);

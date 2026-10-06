@@ -33,6 +33,20 @@ export const Y_SCALES = Object.freeze(['linear', 'log']);
 export const TILE_SUMMARIES = Object.freeze(['median', 'mean']);
 
 /**
+ * What one biomarker over time is drawn as: a box per group at each visit, each
+ * group's mean with one standard error either side, or its median with the
+ * quartiles either side, the last two joined across the visits by a line.
+ */
+export const TIME_MARKS = Object.freeze(['box', 'mean_se', 'median_iqr']);
+
+/**
+ * The adjustments of the p-values across the visits of one biomarker over
+ * time, by the names R's `p.adjust()` gives them: none, Holm's, or Benjamini
+ * and Hochberg's. R makes the adjustment; the chart only names it.
+ */
+export const VISIT_ADJUSTMENTS = Object.freeze(['none', 'holm', 'BH']);
+
+/**
  * The tests the statistics line can ask R for, by the names gsm.bio's
  * `Analyze_GroupDifference` gives them, and `none` for no test.
  */
@@ -63,6 +77,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   panel_by: null,
   mark: 'box',
   y_scale: 'linear',
+  // One biomarker over time, drawn when a biomarker is chosen with every visit
+  // it has: what the picture is drawn as.
+  time_mark: 'box',
   // What the controls offer.
   measures: null,
   groups: null,
@@ -89,6 +106,10 @@ export const DEFAULT_SETTINGS = Object.freeze({
   statistic: 'Analyze_GroupDifference',
   test: 't',
   pairwise: false,
+  // Under one biomarker over time: the R function that answers the test at
+  // every visit in one request, and how R adjusts the p-values across them.
+  statistic_by_visit: 'Analyze_GroupDifferenceBy',
+  visit_adjustment: 'none',
   waiting_note: null,
   // A way back, when another chart opened this one in its place.
   back: null,
@@ -138,6 +159,9 @@ export function syncSettings(overrides) {
     refuse(`\`value_type\` must be one of ${VALUE_TYPES.join(', ')}.`);
   }
   if (!MARKS.includes(settings.mark)) refuse(`\`mark\` must be one of ${MARKS.join(', ')}.`);
+  if (!TIME_MARKS.includes(settings.time_mark)) {
+    refuse(`\`time_mark\` must be one of ${TIME_MARKS.join(', ')}.`);
+  }
   if (!Y_SCALES.includes(settings.y_scale)) {
     refuse(`\`y_scale\` must be one of ${Y_SCALES.join(', ')}.`);
   }
@@ -184,6 +208,17 @@ export function syncSettings(overrides) {
   if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
   if (settings.statistic !== null && !isText(settings.statistic)) {
     refuse('`statistic` must be the name of an R function, or null for no statistics line.');
+  }
+  if (settings.statistic_by_visit !== null && !isText(settings.statistic_by_visit)) {
+    refuse(
+      '`statistic_by_visit` must be the name of an R function, or null for no test under the visits.'
+    );
+  }
+  if (!VISIT_ADJUSTMENTS.includes(settings.visit_adjustment)) {
+    refuse(
+      `\`visit_adjustment\` must be one of ${VISIT_ADJUSTMENTS.join(', ')}: the name R’s ` +
+        'p.adjust() gives the adjustment of the p-values across the visits.'
+    );
   }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');

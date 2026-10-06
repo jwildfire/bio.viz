@@ -1,0 +1,11 @@
+case,file,statistic_by_visit,test,visit_adjustment,measure,value_type,visits,baseline_visits,baseline_stat,group_by,filters,y_scale
+over-time-result,over-time-result.csv,Analyze_GroupDifferenceBy,t,none,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-result-holm,over-time-result.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-result-bh,over-time-result.csv,Analyze_GroupDifferenceBy,t,BH,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-change,over-time-change.csv,Analyze_GroupDifferenceBy,t,none,IL-6,change,Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-change-holm,over-time-change.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,change,Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-change-wilcoxon,over-time-change.csv,Analyze_GroupDifferenceBy,wilcoxon,BH,IL-6,change,Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,,linear
+over-time-anova,over-time-anova.csv,Analyze_GroupDifferenceBy,anova,none,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM_SEX,,linear
+over-time-kruskal-holm,over-time-anova.csv,Analyze_GroupDifferenceBy,kruskal,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM_SEX,,linear
+over-time-age-57,over-time-age-57.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=57,linear
+over-time-age-40-to-43,over-time-age-40-to-43.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=40|41|42|43,linear

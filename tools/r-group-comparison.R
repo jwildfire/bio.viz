@@ -156,6 +156,35 @@ visit_order <- unique(results[order(results$VISITNUM), c("VISIT", "VISITNUM")])$
 arms <- sort(unique(participants$ARM))
 tiles <- vapply(sort(unique(results$TEST), method = "radix"), tile, character(1), visits = visit_order, arms = arms)
 
+# One biomarker over time: by arm at every visit, what each form of the picture
+# is drawn from. The quantiles are quantile()'s default (type 7); the standard
+# error is the standard deviation over the square root of the count.
+over_time_cells <- function(measure, value, visits, arms) {
+  rows <- character(0)
+  for (visit in visits) {
+    values <- value_of(measure, visit, value)
+    for (arm in arms) {
+      x <- values[participants$ARM == arm & !is.na(values)]
+      q <- stats::quantile(x, c(0.05, 0.25, 0.5, 0.75, 0.95), names = FALSE)
+      rows <- c(rows, paste0(
+        "{\"visit\":", str(visit), ",\"level\":", str(arm), ",\"n\":", length(x),
+        ",\"q5\":", num(q[1]), ",\"q25\":", num(q[2]), ",\"median\":", num(q[3]),
+        ",\"q75\":", num(q[4]), ",\"q95\":", num(q[5]), ",\"mean\":", num(mean(x)),
+        ",\"sd\":", num(stats::sd(x)), ",\"se\":", num(stats::sd(x) / sqrt(length(x))), "}"
+      ))
+    }
+  }
+  paste0("[\n        ", paste(rows, collapse = ",\n        "), "\n      ]")
+}
+over_time_of <- function(measure, visits, arms) {
+  paste0(
+    "    {\"measure\":", str(measure), ",\"group_by\":\"ARM\"",
+    ",\"raw\":", over_time_cells(measure, "raw", visits, arms),
+    ",\"change\":", over_time_cells(measure, "change", visits, arms), "}"
+  )
+}
+over_time <- vapply(c("IL-6", "CRP"), over_time_of, character(1), visits = visit_order, arms = arms)
+
 lines <- c(
   "{",
   paste0(
@@ -168,6 +197,9 @@ lines <- c(
   "  ],",
   "  \"tiles\": [",
   paste(tiles, collapse = ",\n"),
+  "  ],",
+  "  \"over_time\": [",
+  paste(over_time, collapse = ",\n"),
   "  ]",
   "}"
 )

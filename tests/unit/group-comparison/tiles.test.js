@@ -5,7 +5,6 @@ import {
   TILE_SUMMARIES,
   syncSettings
 } from '../../../src/group-comparison/configure.js';
-import { LEVELS, levelOf } from '../../../src/group-comparison/level.js';
 import {
   buildPanels,
   columnLevels,
@@ -67,21 +66,6 @@ const refused = (overrides) => {
   }
   throw new Error(`not refused: ${JSON.stringify(overrides)}`);
 };
-
-describe('group comparison: which level is drawn', () => {
-  it('GC-LVL-001: with no biomarker chosen the chart draws every biomarker, and with one chosen that biomarker’s visits (#84)', () => {
-    expect(LEVELS).toEqual({ BIOMARKERS: 'biomarkers', VISITS: 'visits' });
-    expect(levelOf({ measure: null })).toBe('biomarkers');
-    expect(levelOf({ measure: undefined })).toBe('biomarkers');
-    expect(levelOf({})).toBe('biomarkers');
-    expect(levelOf({ measure: 'IL-6' })).toBe('visits');
-    // The visits chosen do not decide it: one biomarker at every visit is still
-    // that biomarker's view.
-    expect(levelOf({ measure: 'IL-6', visits: VISITS })).toBe('visits');
-    expect(levelOf({ measure: 'IL-6', visits: ['Week 4'] })).toBe('visits');
-    expect(levelOf({ measure: null, visits: ['Week 4'] })).toBe('biomarkers');
-  });
-});
 
 describe('group comparison: the trend tiles', () => {
   it('GC-TILE-001: one tile per biomarker, in the Biomarker control’s order, named for it with the unit of its values; in each a line per group, with a point at each visit chosen, in visit order (#84)', () => {

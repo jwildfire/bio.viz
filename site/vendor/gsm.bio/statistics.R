@@ -11,7 +11,9 @@
 # first, and after it only named arguments that JSON can carry: strings,
 # numbers, booleans and vectors of those. An argument that takes several
 # values accepts a vector or an unnamed list of single values. No argument is
-# a formula, a function or an expression.
+# a formula, a function or an expression. The two that answer by level,
+# Analyze_GroupDifferenceBy and Analyze_DifferenceGrid, take the data long: one
+# row per participant and level, and for the grid per biomarker too.
 #
 # Each statistic is the R function the design names, called with R's own
 # defaults. Nothing is reimplemented but the standardised difference, which is
@@ -269,6 +271,21 @@ Stat_Levels <- function(chrCategory, xGroups, strArg) {
   chrGroups
 }
 
+# A column an answer is given by, one answer per level: each row's level, the
+# levels to answer in order (the ones the caller named, or every one present
+# among the rows still in play), and which of those rows have no level or have
+# one that was not asked for.
+Stat_By <- function(dfData, strCol, strArg, xLevels, strLevelsArg, bAmong = TRUE) {
+  chrBy <- Stat_Category(dfData, strCol, strArg)
+  chrLevels <- Stat_Levels(chrBy[bAmong], xLevels, strLevelsArg)
+  if (length(chrLevels) == 0L) {
+    stop(sprintf("Column '%s' (%s) has no level to answer: it has no rows, or no value in any.", strCol, strArg), call. = FALSE)
+  }
+  bMissing <- bAmong & is.na(chrBy)
+  bOther <- bAmong & !is.na(chrBy) & !chrBy %in% chrLevels
+  list(value = chrBy, levels = chrLevels, missing = bMissing, other = bOther, used = bAmong & !bMissing & !bOther)
+}
+
 Stat_TooSmallReason <- function(chrGroups, nCounts, nMinGroup) {
   bSmall <- nCounts < nMinGroup
   sprintf(
@@ -505,6 +522,135 @@ Analyze_GroupDifference <- function(dfData, strValueCol, strGroupCol, strMethod 
       strTest = strMethod, strMethod = lParts$method, dfEstimates = dfEstimates,
       dfStatistic = lParts$statistic, nPValue = lParts$p_value, xCounts = lCounts,
       dfDropped = dfDropped, chrWarnings = chrWarnings, chrNotes = chrNotes, dfRows = dfRows
+    )
+  })
+}
+
+# The group test within each level of a column, a visit say, in one call. Every
+# row is Analyze_GroupDifference()'s own answer on that level's rows, so its
+# p-value is the one the chart prints when the level is opened alone. The
+# groups are the same at every level: a group with nobody at a level is too
+# small there, never quietly left out of that level's test.
+Analyze_GroupDifferenceBy <- function(dfData, strValueCol, strGroupCol, strByCol, strMethod = "t", chrGroups = NULL,
+                                      chrBy = NULL, strPAdjust = "none", nConfLevel = 0.95,
+                                      nMinGroup = nMinGroupDefault) {
+  Stat_Run(strMethod, function() {
+    Stat_CheckData(dfData)
+    Stat_CheckChoice(strMethod, c("t", "wilcoxon", "anova", "kruskal"), "strMethod")
+    Stat_CheckChoice(strPAdjust, stats::p.adjust.methods, "strPAdjust")
+    Stat_CheckNumber(nConfLevel, "nConfLevel", 0, 1)
+    Stat_CheckNumber(nMinGroup, "nMinGroup", 0)
+    nValue <- Stat_Numeric(dfData, strValueCol, "strValueCol")
+    chrGroup <- Stat_Category(dfData, strGroupCol, "strGroupCol")
+    lBy <- Stat_By(dfData, strByCol, "strByCol", chrBy, "chrBy")
+    chrByLevels <- lBy$levels
+    bIn <- lBy$used
+    chrLevels <- Stat_Levels(chrGroup[bIn], chrGroups, "chrGroups")
+    nGroups <- length(chrLevels)
+    if (nGroups == 0L) {
+      stop(sprintf("Column '%s' (strGroupCol) has no group in the levels answered.", strGroupCol), call. = FALSE)
+    }
+
+    # Rows with no level or a level not asked for, and then, within the levels
+    # answered, what the group test itself leaves out.
+    lSplit <- Stat_SplitByGroup(nValue[bIn], chrGroup[bIn], chrLevels)
+    dfDropped <- rbind(
+      Stat_Dropped(c("Missing level", "Level not selected"), c(sum(lBy$missing), sum(lBy$other))),
+      lSplit$dropped
+    )
+
+    nRows <- length(chrByLevels)
+    dfRows <- data.frame(by = chrByLevels, stringsAsFactors = FALSE)
+    for (iGroup in seq_len(nGroups)) {
+      dfRows[[paste0("group_", iGroup)]] <- chrLevels[iGroup]
+    }
+    for (iGroup in seq_len(nGroups)) {
+      dfRows[[paste0("n_", iGroup)]] <- NA_integer_
+    }
+    dfRows <- cbind(dfRows, data.frame(
+      counts = rep(NA_integer_, nRows), dropped = NA_integer_, estimate = NA_real_, lower = NA_real_,
+      upper = NA_real_, level = NA_real_, method = NA_character_, statistic = NA_real_,
+      p_unadjusted = NA_real_, p_value = NA_real_, adjustment = strPAdjust, adjusted_over = NA_integer_,
+      status = "ok", reason = NA_character_, warning = NA_character_, stringsAsFactors = FALSE
+    ))
+    chrCountCols <- paste0("n_", seq_len(nGroups))
+    chrWarnings <- character(0)
+    chrLevelNotes <- character(0)
+    lRowsOf <- split(seq_along(nValue), factor(lBy$value, levels = chrByLevels))
+
+    for (iRow in seq_len(nRows)) {
+      iLevel <- lRowsOf[[iRow]]
+      lLevel <- Analyze_GroupDifference(
+        data.frame(Value = nValue[iLevel], Group = chrGroup[iLevel], stringsAsFactors = FALSE), "Value", "Group",
+        strMethod = strMethod, chrGroups = chrLevels, bPairwise = FALSE, nConfLevel = nConfLevel, nMinGroup = nMinGroup
+      )
+      dfRows$status[iRow] <- lLevel$status
+      dfRows$reason[iRow] <- lLevel$reason
+      dfRows$dropped[iRow] <- sum(lLevel$dropped$n)
+      if (is.list(lLevel$counts)) {
+        nCounts <- unlist(lLevel$counts, use.names = FALSE)
+        dfRows[iRow, chrCountCols] <- as.list(nCounts)
+        dfRows$counts[iRow] <- sum(nCounts)
+      }
+      if (lLevel$status == "ok") {
+        dfRows$method[iRow] <- lLevel$method
+        dfRows$statistic[iRow] <- lLevel$statistic$value[1]
+        dfRows$p_unadjusted[iRow] <- lLevel$p_value
+        # With two groups, the difference in means, first minus second.
+        dfDifference <- lLevel$estimates[lLevel$estimates$name == "Difference in means", ]
+        if (nrow(dfDifference) == 1L) {
+          dfRows$estimate[iRow] <- dfDifference$estimate
+          dfRows$lower[iRow] <- dfDifference$lower
+          dfRows$upper[iRow] <- dfDifference$upper
+          dfRows$level[iRow] <- dfDifference$level
+        }
+      }
+      chrRowWarnings <- unlist(lLevel$warnings)
+      if (length(chrRowWarnings) > 0L) {
+        dfRows$warning[iRow] <- paste(chrRowWarnings, collapse = "; ")
+        chrWarnings <- c(chrWarnings, chrRowWarnings)
+      }
+      chrLevelNotes <- c(chrLevelNotes, unlist(lLevel$notes))
+    }
+
+    # Adjust across the levels that have a p-value; the others are not tests.
+    bTested <- !is.na(dfRows$p_unadjusted)
+    dfRows$p_value[bTested] <- stats::p.adjust(dfRows$p_unadjusted[bTested], method = strPAdjust)
+    dfRows$adjusted_over[bTested] <- sum(bTested)
+
+    bAny <- any(dfRows$status == "ok")
+    bAllSmall <- all(dfRows$status == "too_small")
+    chrNotes <- c(
+      sprintf(
+        "Each row is Analyze_GroupDifference()'s answer on the rows of one level of %s, for the same groups at every level: %s.",
+        strByCol, paste(chrLevels, collapse = ", ")
+      ),
+      if (strPAdjust == "none") {
+        sprintf(
+          "p_value is not adjusted across the levels: it is each level's own p-value. %d of the %d levels have one.",
+          sum(bTested), nRows
+        )
+      } else {
+        sprintf(
+          "p_value is adjusted across the %d levels that have a p-value by p.adjust(method = '%s'); %d of the %d levels have none and are left out of the adjustment. The intervals are not adjusted.",
+          sum(bTested), strPAdjust, sum(!bTested), nRows
+        )
+      },
+      unique(chrLevelNotes)
+    )
+    Stat_Result(
+      strTest = strMethod,
+      strStatus = if (bAny) "ok" else if (bAllSmall) "too_small" else "error",
+      strReason = if (bAny) {
+        NA_character_
+      } else if (bAllSmall) {
+        "Not computed: every level has a group below the minimum size. Each row gives its reason."
+      } else {
+        "No level could be computed. Each row gives its reason."
+      },
+      strMethod = if (bAny) dfRows$method[dfRows$status == "ok"][1] else NA_character_,
+      xCounts = Stat_GroupCounts(chrByLevels, dfRows$counts), dfDropped = dfDropped,
+      chrWarnings = chrWarnings, chrNotes = chrNotes, dfRows = dfRows
     )
   })
 }
@@ -1447,6 +1593,106 @@ Analyze_Screen <- function(dfData, chrCols, strComparison = "difference", strGro
       strMethod = if (bAny) dfRows$method[dfRows$status == "ok"][1] else NA_character_,
       xCounts = Stat_GroupCounts(chrCols, dfRows$counts),
       chrWarnings = chrWarnings, chrNotes = chrNotes, dfRows = dfRows
+    )
+  })
+}
+
+# The screen's standardised difference between two groups for every biomarker
+# at every level of a column, a visit say, in one call: a grid, one row per
+# cell. The data are long, one row per participant, biomarker and level. Every
+# cell is Analyze_Screen()'s own difference row for that biomarker on that
+# level's rows, so a cell and the screen opened at that level agree. The two
+# groups are the same in every cell, so every difference is the same way round.
+Analyze_DifferenceGrid <- function(dfData, strValueCol, strGroupCol, strBiomarkerCol, strByCol, chrGroups = NULL,
+                                   chrBiomarkers = NULL, chrBy = NULL, nConfLevel = 0.95,
+                                   nMinGroup = nMinGroupDefault) {
+  Stat_Run("difference", function() {
+    Stat_CheckData(dfData)
+    Stat_CheckNumber(nConfLevel, "nConfLevel", 0, 1)
+    Stat_CheckNumber(nMinGroup, "nMinGroup", 0)
+    nValue <- Stat_Numeric(dfData, strValueCol, "strValueCol")
+    chrGroup <- Stat_Category(dfData, strGroupCol, "strGroupCol")
+    lBiomarker <- Stat_By(dfData, strBiomarkerCol, "strBiomarkerCol", chrBiomarkers, "chrBiomarkers")
+    lBy <- Stat_By(dfData, strByCol, "strByCol", chrBy, "chrBy", lBiomarker$used)
+    bIn <- lBy$used
+    chrLevels <- Stat_Levels(chrGroup[bIn], chrGroups, "chrGroups")
+    if (length(chrLevels) != 2L) {
+      stop(sprintf(
+        "A standardised difference compares exactly two groups and %d were found. Name two in chrGroups.",
+        length(chrLevels)
+      ), call. = FALSE)
+    }
+
+    # Rows with no biomarker or level, or one not asked for, and then, within
+    # the cells, what the comparison itself leaves out.
+    lSplit <- Stat_SplitByGroup(nValue[bIn], chrGroup[bIn], chrLevels)
+    dfDropped <- rbind(
+      Stat_Dropped(
+        c("Missing biomarker", "Biomarker not selected", "Missing level", "Level not selected"),
+        c(sum(lBiomarker$missing), sum(lBiomarker$other), sum(lBy$missing), sum(lBy$other))
+      ),
+      lSplit$dropped
+    )
+
+    # One row per biomarker and level: the biomarkers in order, and within
+    # each the levels in order.
+    nBy <- length(lBy$levels)
+    nRows <- length(lBiomarker$levels) * nBy
+    dfRows <- data.frame(
+      biomarker = rep(lBiomarker$levels, each = nBy), by = rep(lBy$levels, times = length(lBiomarker$levels)),
+      counts = NA_integer_, n_1 = NA_integer_, n_2 = NA_integer_, dropped = NA_integer_, estimate = NA_real_,
+      lower = NA_real_, upper = NA_real_, level = NA_real_, status = "ok", reason = NA_character_,
+      warning = NA_character_, stringsAsFactors = FALSE
+    )
+    chrCellCols <- setdiff(names(dfRows), c("biomarker", "by"))
+    # The rows of each cell, the level varying fastest, as dfRows has them.
+    lRowsOf <- split(
+      seq_along(nValue),
+      list(factor(lBy$value, levels = lBy$levels), factor(lBiomarker$value, levels = lBiomarker$levels))
+    )
+    chrWarnings <- character(0)
+
+    for (iRow in seq_len(nRows)) {
+      iCell <- lRowsOf[[iRow]]
+      lCell <- Analyze_Screen(
+        data.frame(Value = nValue[iCell], Group = chrGroup[iCell], stringsAsFactors = FALSE), "Value",
+        strComparison = "difference", strGroupCol = "Group", chrGroups = chrLevels, strPAdjust = "none",
+        nConfLevel = nConfLevel, nMinGroup = nMinGroup
+      )
+      if (nrow(lCell$rows) == 1L) {
+        dfRows[iRow, chrCellCols] <- lCell$rows[chrCellCols]
+      } else {
+        dfRows$status[iRow] <- lCell$status
+        dfRows$reason[iRow] <- lCell$reason
+      }
+      chrWarnings <- c(chrWarnings, unlist(lCell$warnings))
+    }
+
+    bAny <- any(dfRows$status == "ok")
+    bAllSmall <- all(dfRows$status == "too_small")
+    Stat_Result(
+      strTest = "difference",
+      strStatus = if (bAny) "ok" else if (bAllSmall) "too_small" else "error",
+      strReason = if (bAny) {
+        NA_character_
+      } else if (bAllSmall) {
+        "Not computed: every cell has a group below the minimum size. Each row gives its reason."
+      } else {
+        "No cell could be computed. Each row gives its reason."
+      },
+      # The standardised difference has no R function to name it; this name is ours.
+      strMethod = if (bAny) "Standardised difference (Hedges' g)" else NA_character_,
+      xCounts = as.integer(sum(dfRows$counts, na.rm = TRUE)), dfDropped = dfDropped, chrWarnings = chrWarnings,
+      chrNotes = c(
+        sprintf("Each row's estimate: Standardised difference (Hedges' g), %s - %s.", chrLevels[1], chrLevels[2]),
+        sprintf(
+          "Each row is one cell of the grid: Analyze_Screen()'s difference row for that biomarker on the rows of one level of %s. counts is the rows used across the cells.",
+          strByCol
+        ),
+        "No p-values: a grid reports each standardised difference, its interval and the counts it rests on. Use Analyze_Screen() to test every biomarker at one level, or Analyze_GroupDifferenceBy() to test one biomarker at every level.",
+        "The standardised difference and its interval are computed here, not by an existing function."
+      ),
+      dfRows = dfRows
     )
   })
 }

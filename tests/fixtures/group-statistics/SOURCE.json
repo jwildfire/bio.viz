@@ -1,7 +1,7 @@
 {
   "fixture": "tests/fixtures/group-statistics",
   "derived_by": "tools/derive-group-statistics.mjs",
-  "rule": "Each case is one panel of the gallery's group comparison demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings.",
+  "rule": "Each case is one panel of the gallery's group comparison demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A case named over-time is one biomarker across its visits: its rows are long, one per participant and visit, the rows the chart hands R in one request for the whole row of visits.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
@@ -94,6 +94,48 @@
       "says": "Welch t-test between the arms in the panel for F, with panels by sex"
     }
   ],
+  "over_time_cases": [
+    {
+      "case": "over-time-result",
+      "says": "IL-6, the result itself, by arm across the five visits: a Welch t-test at each, unadjusted"
+    },
+    {
+      "case": "over-time-result-holm",
+      "says": "The same rows, the p-values adjusted across the five visits by Holm"
+    },
+    {
+      "case": "over-time-result-bh",
+      "says": "The same rows, the p-values adjusted across the five visits by Benjamini and Hochberg"
+    },
+    {
+      "case": "over-time-change",
+      "says": "IL-6, change from Baseline, by arm: the baseline visit is drawn and not sent, a Welch t-test at each of the four later visits"
+    },
+    {
+      "case": "over-time-change-holm",
+      "says": "The same rows, the p-values adjusted across the four visits by Holm"
+    },
+    {
+      "case": "over-time-change-wilcoxon",
+      "says": "The same rows, a Wilcoxon rank-sum test at each visit, adjusted by Benjamini and Hochberg"
+    },
+    {
+      "case": "over-time-anova",
+      "says": "IL-6, the result itself, across arm and sex, four groups: a one-way ANOVA at each visit, unadjusted"
+    },
+    {
+      "case": "over-time-kruskal-holm",
+      "says": "The same rows, a Kruskal-Wallis test at each visit, adjusted by Holm"
+    },
+    {
+      "case": "over-time-age-57",
+      "says": "IL-6, the result itself, by arm among participants aged 57: an arm is below the minimum group size at every visit"
+    },
+    {
+      "case": "over-time-age-40-to-43",
+      "says": "IL-6, the result itself, by arm among participants aged 40 to 43: two visits have an arm below the minimum group size, and the adjustment is across the other three"
+    }
+  ],
   "files": [
     {
       "file": "welch.csv",
@@ -170,6 +212,30 @@
     {
       "file": "cases.csv",
       "sha256": "d8806b4c04b9ba994a88a70cde2b156c224348de953348fb6cf8ec9bf01c194f"
+    },
+    {
+      "file": "over-time-result.csv",
+      "sha256": "514624614ab6147ef2627330e7b1c8240e06e46b7c2b2af291c0dc9e625b7676"
+    },
+    {
+      "file": "over-time-change.csv",
+      "sha256": "c34282fa7ec98f5e98867e1d1c3cf005fa67c2eed0428996a6087d4a29d84916"
+    },
+    {
+      "file": "over-time-anova.csv",
+      "sha256": "56226a44917c4e041ac3dba42ec81d1c3a75c7e70345fa3ad814afe6ea558766"
+    },
+    {
+      "file": "over-time-age-57.csv",
+      "sha256": "f471954c36d0333516b1a982e74f1aa1b4c40f5fc2a130e77cc496bf56d1a7d0"
+    },
+    {
+      "file": "over-time-age-40-to-43.csv",
+      "sha256": "73e4a56f079c6b14008a7e6e1fa671497eb56fe506c58db6c4bead44211f6115"
+    },
+    {
+      "file": "over-time-cases.csv",
+      "sha256": "17d52b34e0cba7da0e62342dc59a5b653b76c1a7c2a9c7e9f67995e1e70f8f1d"
     }
   ]
 }
