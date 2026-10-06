@@ -53,23 +53,24 @@ import {
   variableName
 } from './biomarker-screen/structureData.js';
 import {
-  VALUE_LABELS,
   addFilterControls,
-  shown,
+  checkTables,
   downloadCsv,
+  drawSafely,
   filtersForScope,
   findKit,
   lineStyles,
   mountShell,
+  ownHeading,
   readGiven,
   readOutcomesGiven,
   renderPager,
-  writeStatistic,
-  drawSafely,
-  checkTables,
-  writeTitles,
+  shown,
   specificationOf,
-  startFilters
+  startFilters,
+  VALUE_LABELS,
+  writeStatistic,
+  writeTitles
 } from './shared/chartHost.js';
 import { OUTCOME_DEFAULTS, checkOutcomes, laidOver, listEndpoints } from './shared/outcomes.js';
 import { pageCount, pageOf } from './shared/paging.js';
@@ -90,7 +91,8 @@ const STYLE_ID = 'bio-viz-biomarker-screen-styles';
 const C = `.${MODULE_CLASS}`;
 const STYLES = `${lineStyles(C)}
 ${C} .bv-screen{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
-${C} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;font-weight:600;color:#1f2933}
+${ownHeading(`${C} .bv-screen-title`, 600)}
+${C} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;color:#1f2933}
 ${C} .bv-screen-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
 ${C} .bv-screen-names{margin:.2rem 0 0;font-size:.85rem;color:#52616f}
 ${C} .bv-screen-head,${C} .bv-screen-row{display:grid;grid-template-columns:minmax(5.5rem,9rem) minmax(8rem,1fr) 11.8rem 5.4rem 5.8rem 5.6rem;align-items:center;gap:0 .6rem}

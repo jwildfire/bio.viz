@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { describeAnswer } from '../../src/cross-tab/statistic.js';
 import { captureEvidence, captureGallery } from './evidence.js';
+import { STYLED_BY_TAG, boxOf, byTag, lookOf, withoutSiteStyles } from './ownLook.js';
 import {
   expectDropsCounted,
   expectFailureSaid,
@@ -593,6 +594,61 @@ test.describe('cross-tabulation: on a phone and on the site', () => {
     await root(page).locator('.sv-sidebar-toggle').tap();
     await captureEvidence(page.locator('#demo'), 'CT-SITE-001', 'demo-on-a-phone');
     await context.close();
+  });
+
+  test('CT-SITE-004: on the demo page, whose stylesheet styles every table, heading and cell by its tag, the table of counts keeps the chart’s own look and size, the same as on a page with no stylesheet (#97)', async ({
+    page
+  }) => {
+    // The parts of the table: the table and its caption, each kind of heading
+    // and each kind of cell.
+    const PARTS = {
+      table: '#chart .bv-crosstab',
+      caption: '#chart .bv-crosstab caption',
+      corner: '#chart .bv-crosstab thead th.bv-corner',
+      column: '#chart .bv-crosstab thead th:not([class])',
+      totalHeading: '#chart .bv-crosstab thead th.bv-total',
+      row: '#chart .bv-crosstab tbody th',
+      cell: '#chart .bv-crosstab tbody td.bv-cell',
+      rowTotal: '#chart .bv-crosstab tbody td.bv-total',
+      totalsHeading: '#chart .bv-crosstab tfoot th',
+      total: '#chart .bv-crosstab tfoot td'
+    };
+    // On the test page, which has no stylesheet: the view the demo opens on.
+    await open(page, { settings: { row_by: 'ARM', col_by: 'RESPONSE', percent: 'row' } });
+    const bare = await lookOf(page, PARTS);
+    const face = await root(page).evaluate((element) => getComputedStyle(element).fontFamily);
+
+    await page.goto('/_site/cross-tab/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+    await expect(root(page).locator('.bv-crosstab tbody tr')).toHaveCount(2);
+    // The page does style a table by its tag: one that says nothing of itself
+    // is in capitals, ruled, with a margin above it.
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    // The chart's table is as it was, part for part, and the size it is with
+    // the page's stylesheet switched off: the page's rule would have made it
+    // as wide as the chart. (The demo names its columns, so the size is read
+    // on this page, not held to the test page's.)
+    const onSite = await lookOf(page, PARTS);
+    expect(onSite).toEqual(bare);
+    const box = await boxOf(page, PARTS.table);
+    expect(await withoutSiteStyles(page, () => boxOf(page, PARTS.table))).toEqual(box);
+    expect(box.width).toBeLessThan((await boxOf(page, '#chart .bv-crosstab-wrap')).width / 2);
+    // And in so many words: the chart's face, as written, nothing behind the
+    // table and no margin of the page's round it.
+    for (const part of ['corner', 'column', 'totalHeading', 'row', 'totalsHeading', 'cell']) {
+      expect(onSite[part], part).toMatchObject({
+        fontFamily: face,
+        textTransform: 'none',
+        letterSpacing: 'normal',
+        lineHeight: 'normal'
+      });
+    }
+    expect(onSite.table).toMatchObject({
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+      marginTop: '0px',
+      marginBottom: '0px'
+    });
+    expect(onSite.column.fontSize).toBe(onSite.cell.fontSize);
   });
 });
 

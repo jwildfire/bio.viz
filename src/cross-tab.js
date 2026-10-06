@@ -33,11 +33,11 @@ import {
 } from './cross-tab/statistic.js';
 import { buildTable, percentText } from './cross-tab/structureData.js';
 import {
-  PALETTE,
   addFilterControls,
   buildProfileFeed,
   checkTables,
   clearListing,
+  cutsOffered,
   drawSafely,
   filtersForScope,
   findKit,
@@ -45,17 +45,18 @@ import {
   lineStyles,
   mountShell,
   mountToolbar,
+  ownTable,
+  PALETTE,
   railSettings,
   readGiven,
   selectParticipant,
   showListing,
+  specificationOf,
+  startFilters,
   syncHost,
   toolbarStyles,
   writeStatistic,
-  writeTitles,
-  specificationOf,
-  startFilters,
-  cutsOffered
+  writeTitles
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES, categoryColumns, filterColumns, listMeasures } from './shared/tables.js';
@@ -66,6 +67,7 @@ const C = `.${MODULE_CLASS}`;
 const STYLES = `${lineStyles(C)}
 ${toolbarStyles(C)}
 ${C} .bv-crosstab-wrap{margin:0 0 .8rem;max-width:100%;overflow-x:auto}
+${ownTable(`${C} .bv-crosstab`)}
 ${C} .bv-crosstab{border-collapse:collapse;font-size:.85rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C} .bv-crosstab caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .4rem}
 ${C} .bv-crosstab th,${C} .bv-crosstab td{border:1px solid #d8dee4;padding:.3rem .55rem;text-align:right;vertical-align:top}

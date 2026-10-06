@@ -39,11 +39,11 @@ import {
 } from './stratified-survival/statistic.js';
 import { atRisk, buildSurvival, listEndpoints } from './stratified-survival/structureData.js';
 import {
-  PALETTE,
   addFilterControls,
   buildProfileFeed,
   checkTables,
   clearListing,
+  cutsOffered,
   drawSafely,
   filtersForScope,
   findKit,
@@ -51,18 +51,19 @@ import {
   lineStyles,
   mountShell,
   mountToolbar,
+  ownTable,
+  PALETTE,
   railSettings,
   readGiven,
   readOutcomesGiven,
   selectParticipant,
   showListing,
+  specificationOf,
+  startFilters,
   syncHost,
   toolbarStyles,
   writeStatistic,
-  writeTitles,
-  specificationOf,
-  startFilters,
-  cutsOffered
+  writeTitles
 } from './shared/chartHost.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { checkOutcomes, laidOver } from './shared/outcomes.js';
@@ -80,6 +81,7 @@ const STYLES = `${lineStyles(C)}
 ${toolbarStyles(C)}
 ${C} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
 ${C} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
+${ownTable(`${C} .bv-risk`)}
 ${C} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
 ${C} .bv-risk th,${C} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right;white-space:nowrap}

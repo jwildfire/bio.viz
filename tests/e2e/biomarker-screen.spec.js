@@ -23,6 +23,7 @@ import {
 } from '../../scripts/screen-statistics-lib.mjs';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
+import { STYLED_BY_TAG, byTag, lookOf, wearSiteStyles } from './ownLook.js';
 
 // The biomarker screen in a real page (#36): safety.viz's vendored bundle and
 // bio.viz's committed bundle, loaded as two script tags, drawing the vendored
@@ -1656,6 +1657,25 @@ test.describe('biomarker screen: on the site', () => {
       await back.locator('a[href="../biomarker-screen/index.html"]').click();
       await expect(page).toHaveURL(/\/_site\/biomarker-screen\/index\.html$/);
     }
+  });
+  test('BS-SITE-006: on a page whose stylesheet styles every heading by its tag, as the site’s and safety.viz’s demo app’s do, the screen’s title keeps the chart’s own look, the same as on a page with no stylesheet; the screen has no table for the page to restyle (#97)', async ({
+    page
+  }) => {
+    const PARTS = { title: '#chart .bv-screen-title' };
+    await open(page, { settings: WEEK_4 });
+    await withStored(page, stored('difference-week-4-change'));
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    const face = await root(page).evaluate((element) => getComputedStyle(element).fontFamily);
+    const bare = await lookOf(page, PARTS);
+
+    await wearSiteStyles(page);
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    const worn = await lookOf(page, PARTS);
+    expect(worn).toEqual(bare);
+    expect(worn.title).toMatchObject({ fontFamily: face, fontWeight: '600', lineHeight: 'normal' });
+    // Its rows are buttons in a list, not a table: nothing of the screen is a
+    // table, a heading cell or a cell.
+    expect(await root(page).locator('table, th, td').count()).toBe(0);
   });
 });
 

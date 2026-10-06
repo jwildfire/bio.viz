@@ -41,6 +41,7 @@
     "SS-SITE-002": "The gallery lists the chart with links to its live demo, its evidence page and its API reference; the demo opens on event-free survival by CRP at Baseline cut at its median, and draws the curves where R cannot be reached and says so.",
     "SS-SITE-003": "The API reference has a table row for every setting the chart has, with the default the code has; the site build fails when one is missing.",
     "SS-SITE-004": "The gallery card and the live demo mark the chart Experimental, with the reason, as the registry gives it, and no other chart is marked.",
+    "SS-SITE-005": "On the demo page, whose stylesheet styles every table, heading cell and cell by its tag, the table of numbers at risk keeps the chart's own look: its face, size, weight, spacing, rules, ground, margins and alignment are the same, part for part, as on a page with no stylesheet, with no capitals and no letter-spacing, and the table is the same size.",
     "SS-LIVE-001": "Against R and the survival package started in the browser on the demo: the log-rank p, each median with its interval and the hazard ratio with its interval equal desktop R's within 1 part in 10^8, before and after the cut line is moved to 4.",
     "SS-LIVE-002": "Against R in the browser: by arm, a column, equals desktop R's."
   }

@@ -807,6 +807,10 @@ test.describe('getting results out: what the #70 review found', () => {
   test('EXP-PNG-004: nothing a reader works the chart with is in the picture: every control of the frame (the toolbar, the hint, the listing, the bar of downloads, a chart’s own download and pager buttons) is marked to be left out (#70 review)', async ({
     page
   }) => {
+    // One test opens every chart in turn, so it has a limit of its own: on
+    // the CI runner it takes 18 to 28 seconds of the default 30, and a slow
+    // runner has put it over twice (#98). The limit grows with the charts.
+    test.setTimeout(30000 + 10000 * CHARTS.length);
     await blockR(page);
     for (const chart of CHARTS) {
       await openChart(page, chart);

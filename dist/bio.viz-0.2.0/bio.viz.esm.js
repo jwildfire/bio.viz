@@ -3569,6 +3569,13 @@ function applyStyles(id, styles) {
   style.textContent = styles;
   document.head.append(style);
 }
+var ownTable = (table) => `
+${table}{box-sizing:border-box;width:auto;margin:0;background:none;font-family:inherit;font-size:inherit;line-height:normal}
+${table} caption,${table} th,${table} td{box-sizing:content-box}
+${table} th,${table} td{border:0;padding:1px;background:none;color:inherit;font-family:inherit;font-size:inherit;letter-spacing:normal;text-transform:none;vertical-align:inherit}
+${table} th{font-weight:700;text-align:center}
+${table} td{text-align:inherit}`;
+var ownHeading = (heading, weight = 700) => `${heading}{box-sizing:content-box;font-family:inherit;font-weight:${weight};line-height:normal}`;
 var lineStyles = (root) => `
 ${root} .bv-statistic{margin:.6rem 0 0;font-size:.85rem;color:#1f2933;max-width:100%}
 ${root} .bv-statistic:empty{display:none}
@@ -3576,12 +3583,14 @@ ${root} .bv-statistic p{margin:0 0 .3rem}
 ${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
 ${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
 ${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+${ownTable(`${root} .bv-stat-pairs`)}
 ${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
 ${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
 ${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
 ${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
 ${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
 ${root} .bv-stat-method{display:block;color:#52616f}
+${ownHeading(`${root} .bv-panel h3`)}
 ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
@@ -9071,7 +9080,8 @@ var STYLE_ID3 = "bio-viz-correlation-matrix-styles";
 var C = `.${MODULE_CLASS2}`;
 var STYLES3 = `${lineStyles(C)}
 ${C} .bv-matrix{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
-${C} .bv-matrix-title{margin:0 0 .6rem;font-size:.92rem;font-weight:600;color:#1f2933}
+${ownHeading(`${C} .bv-matrix-title`, 600)}
+${C} .bv-matrix-title{margin:0 0 .6rem;font-size:.92rem;color:#1f2933}
 ${C} .bv-matrix-scroll{max-width:100%;overflow-x:auto}
 ${C} .bv-matrix-grid{display:grid;grid-template-columns:fit-content(var(--bv-label)) repeat(var(--bv-n),var(--bv-cell));gap:2px;width:max-content;font-size:.78rem;color:#1f2933}
 ${C} .bv-col-head{writing-mode:vertical-rl;transform:rotate(180deg);max-height:var(--bv-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-self:center;align-self:end;padding:.3rem 0;line-height:1.1}
@@ -9097,8 +9107,12 @@ ${C} .bv-pairs{margin-top:1rem;font-size:.85rem}
 ${C} .bv-pairs summary{cursor:pointer;font-weight:600;margin:0 0 .4rem}
 ${C} .bv-pairs-tools{margin:0 0 .4rem}
 ${C} .bv-pairs-tools button{padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;font:inherit;font-size:.8rem;cursor:pointer}
+${ownTable(`${C} .bv-pairs-table`)}
+/* The list is in the kit's listing, whose headings are small capitals: the
+   chart states them itself, where it leaned on the kit's rule before (#97). */
 ${C} .bv-pairs table{width:100%;border-collapse:collapse;background:#fff;table-layout:fixed}
 ${C} .bv-pairs th,${C} .bv-pairs td{border-bottom:1px solid #e3e8ee;padding:.4rem .5rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+${C} .bv-pairs th{font-size:.75rem;letter-spacing:.03em;text-transform:uppercase;color:#52616f}
 ${C} .bv-pairs thead th{border-bottom:2px solid #d8dee4;font-size:.8rem;font-weight:600;color:#52616f;overflow-wrap:normal}
 ${C} .bv-pairs th[scope=row]{font-weight:400}
 ${C} .bv-pairs thead th:nth-child(1){width:38%}
@@ -9869,7 +9883,7 @@ var CorrelationMatrix = class {
       "bio.viz-correlation-matrix-pairs.csv"
     );
     tools.append(download);
-    const table = document.createElement("table");
+    const table = kit.createElement("table", "bv-pairs-table");
     const header = document.createElement("tr");
     ["Pair", "Complete pairs", head].forEach((title) => {
       const cell = kit.createElement("th", null, title);
@@ -10347,6 +10361,7 @@ var STYLES4 = `${lineStyles(C2)}
 ${toolbarStyles(C2)}
 ${C2} .bv-chart-wrap{height:var(--bv-curves-height,340px);position:relative}
 ${C2} .bv-risk-wrap{margin:.5rem 0 .8rem;max-width:100%;overflow-x:auto}
+${ownTable(`${C2} .bv-risk`)}
 ${C2} .bv-risk{border-collapse:collapse;font-size:.8rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C2} .bv-risk caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .3rem}
 ${C2} .bv-risk th,${C2} .bv-risk td{border:1px solid #d8dee4;padding:0;text-align:right;white-space:nowrap}
@@ -11749,7 +11764,8 @@ var STYLE_ID5 = "bio-viz-biomarker-screen-styles";
 var C3 = `.${MODULE_CLASS4}`;
 var STYLES5 = `${lineStyles(C3)}
 ${C3} .bv-screen{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
-${C3} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;font-weight:600;color:#1f2933}
+${ownHeading(`${C3} .bv-screen-title`, 600)}
+${C3} .bv-screen-title{margin:0 0 .3rem;font-size:.92rem;color:#1f2933}
 ${C3} .bv-screen-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
 ${C3} .bv-screen-names{margin:.2rem 0 0;font-size:.85rem;color:#52616f}
 ${C3} .bv-screen-head,${C3} .bv-screen-row{display:grid;grid-template-columns:minmax(5.5rem,9rem) minmax(8rem,1fr) 11.8rem 5.4rem 5.8rem 5.6rem;align-items:center;gap:0 .6rem}
@@ -12886,6 +12902,7 @@ var C4 = `.${MODULE_CLASS5}`;
 var STYLES6 = `${lineStyles(C4)}
 ${toolbarStyles(C4)}
 ${C4} .bv-crosstab-wrap{margin:0 0 .8rem;max-width:100%;overflow-x:auto}
+${ownTable(`${C4} .bv-crosstab`)}
 ${C4} .bv-crosstab{border-collapse:collapse;font-size:.85rem;color:#1f2933;font-variant-numeric:tabular-nums}
 ${C4} .bv-crosstab caption{caption-side:top;text-align:left;font-weight:600;padding:0 0 .4rem}
 ${C4} .bv-crosstab th,${C4} .bv-crosstab td{border:1px solid #d8dee4;padding:.3rem .55rem;text-align:right;vertical-align:top}

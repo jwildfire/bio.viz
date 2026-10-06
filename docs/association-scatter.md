@@ -216,7 +216,7 @@ R names the coefficient `cor` or `rho`; the chart prints `Pearson’s r` and `Sp
 
 For Spearman's coefficient R's `cor.test` gives no interval, so none is printed and none is made up; R's note says so on the line: `R’s note: cor.test() gives no confidence interval for Spearman's rho, so none is reported.`
 
-With a colour, R also returns the coefficient within each level, and the chart prints them as a small table under the coefficient of everyone drawn. The levels are not adjusted for one another, and the caption says so. A level with too few pairs prints R's reason in its row and no number.
+With a colour, R also returns the coefficient within each level, and the chart prints them as a small table under the coefficient of everyone drawn. The levels are not adjusted for one another, and the caption says so. A level with too few pairs prints R's reason in its row and no number. The table's type, its rules and what is behind it are the chart's own, stated on the table and on every heading and cell, and so is a panel's heading: a page whose stylesheet styles every table and heading by its tag, as the site's and safety.viz's demo app's do, changes neither.
 
 Too few pairs in the panel as a whole prints R's reason, once, and no number: `Not computed: 4 complete pairs. The minimum is 5. Counts: n = 4.` The minimum is R's. A result R marks as an error prints R's message after `R reported an error:`. There are no stars, and the word significant is never printed.
 
