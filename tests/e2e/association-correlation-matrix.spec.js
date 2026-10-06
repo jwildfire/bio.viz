@@ -15,6 +15,7 @@ import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js'
 import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
+import { STYLED_BY_TAG, byTag, lookOf, wearSiteStyles } from './ownLook.js';
 
 // The correlation matrix in a real page (#27): safety.viz's vendored bundle and
 // bio.viz's committed bundle, loaded as two script tags, drawing the vendored
@@ -2602,6 +2603,43 @@ test.describe('correlation matrix: on the site', () => {
     await toMatrix.click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Correlation matrix');
+  });
+  test('CM-SITE-006: on a page whose stylesheet styles every table, heading and cell by its tag, as the site’s and safety.viz’s demo app’s do, the list of pairs and the grid’s title keep the chart’s own look, the same as on a page with no stylesheet (#97)', async ({
+    page
+  }) => {
+    const PARTS = {
+      title: '#chart .bv-matrix-title',
+      table: '#chart .bv-pairs table',
+      heading: '#chart .bv-pairs thead th',
+      pair: '#chart .bv-pairs tbody th',
+      cell: '#chart .bv-pairs tbody td'
+    };
+    await open(page);
+    await withStored(page, stored('biomarkers-baseline'));
+    await expect(pairs(page).locator('tbody tr')).toHaveCount(66);
+    const face = await root(page).evaluate((element) => getComputedStyle(element).fontFamily);
+    const bare = await lookOf(page, PARTS);
+
+    await wearSiteStyles(page);
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    const worn = await lookOf(page, PARTS);
+    expect(worn).toEqual(bare);
+    // In so many words: the chart's face, no capitals, no tinted ground under
+    // a heading, a rule beneath a row and none beside it, no margin round the
+    // table; and the title in the chart's face, not the page's serif.
+    for (const part of ['heading', 'pair', 'cell']) {
+      expect(worn[part], part).toMatchObject({
+        fontFamily: face,
+        textTransform: 'none',
+        letterSpacing: 'normal',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderLeftWidth: '0px',
+        borderRightWidth: '0px',
+        borderTopWidth: '0px'
+      });
+    }
+    expect(worn.table).toMatchObject({ marginTop: '0px', marginBottom: '0px' });
+    expect(worn.title).toMatchObject({ fontFamily: face, fontWeight: '600', lineHeight: 'normal' });
   });
 });
 
