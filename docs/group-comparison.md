@@ -11,7 +11,7 @@ It draws; it does not test. The line under the chart is where a test of the grou
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.groupComparison('#chart', {
     start_value: 'IL-6',

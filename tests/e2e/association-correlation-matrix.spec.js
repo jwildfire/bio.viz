@@ -2401,7 +2401,9 @@ test.describe('correlation matrix: on the site', () => {
     await expect(card).toContainText(
       'Which of these biomarkers, or which visits of one biomarker, are related?'
     );
-    await expect(card).toContainText('It prints no p-value.');
+    // The card is two sentences (#96), and still says the grid has no p-value;
+    // the fuller text, at the head of the demo, says so in a sentence of its own.
+    await expect(card).toContainText('with no p-value');
     // Every chart is listed, in the order they were built.
     await expect(page.locator('#charts [data-module]')).toHaveCount(6);
     expect(

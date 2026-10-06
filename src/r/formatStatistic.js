@@ -42,6 +42,13 @@ function formatCounts(counts) {
 
 // Three decimals. Where that would print "0.000" or "1.000" the bound is
 // printed instead, because a rounded number cannot claim either.
+// A p-value R returns can exceed 1 by the rounding of a sum of probabilities:
+// fisher.test() gives 1.0000000000000002 for a table none is less likely than.
+// A value that close to 1 is 1, and is printed as `p > 0.999`. Anything further
+// above 1 is not a p-value, and is refused as before.
+const P_ROUNDING = 1e-9;
+const isP = (p) => typeof p === 'number' && p >= 0 && p <= 1 + P_ROUNDING;
+
 function formatP(p) {
   const rounded = p.toFixed(3);
   if (p < 0.001 || rounded === '0.000') return 'p < 0.001';
@@ -111,7 +118,7 @@ function read(statistic) {
   }
 
   const p = result.p_value;
-  if (typeof p !== 'number' || !(p >= 0 && p <= 1)) {
+  if (!isP(p)) {
     return refused('the result has no p-value between 0 and 1');
   }
   if (!method) return refused('the result does not name its method');
@@ -529,7 +536,7 @@ export function formatScreenRow(row, groups = null) {
     return refuse('the row does not say how many rows its p-value was adjusted across');
   }
   const p = given.p_value;
-  if (typeof p !== 'number' || !(p >= 0 && p <= 1)) {
+  if (!isP(p)) {
     return refuse('the adjusted p-value is not a number between 0 and 1');
   }
   if (!isNumber(given.estimate)) return refuse('the estimate is not a number');
@@ -634,7 +641,7 @@ export function formatLevel(row, of = 'level') {
   // The p-value R computed before any adjustment is printed beside an adjusted
   // one, so both must be there, and how many levels the adjustment covered.
   const raw = given.p_unadjusted;
-  if (typeof raw !== 'number' || !(raw >= 0 && raw <= 1)) {
+  if (!isP(raw)) {
     return whole('refused', refused('the row has no unadjusted p-value between 0 and 1').text);
   }
   const unadjusted = formatP(raw);

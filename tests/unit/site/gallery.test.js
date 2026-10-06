@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
+  CARD_LIMITS,
   renderDemoPage,
   renderGallery,
   renderHome,
+  sentencesOf,
   validateRegistry
 } from '../../../scripts/site-lib.mjs';
 
@@ -21,7 +23,8 @@ const module = (overrides) => ({
   title: 'Library core',
   kind: 'shared',
   status: 'available',
-  blurb: 'Entry point & bundles.',
+  card: 'Entry point & bundles.',
+  blurb: 'The entry point and the two committed bundles, each reporting the package version.',
   matrix: 'core.md',
   api: { doc: 'core.md', surface: ['version'], source: ['src/main.js'] },
   ...overrides
@@ -31,7 +34,9 @@ const chart = module({
   title: 'Group comparison',
   kind: 'chart',
   demo: 'group-comparison.js',
-  blurb: 'One value across the levels of a category.',
+  card: 'Does this biomarker differ between these groups? One value across the levels of a category.',
+  blurb:
+    'Does this biomarker differ between these groups? One value across the levels of a category at chosen visits, as boxes, violins or points. Click a box to list its participants.',
   matrix: 'group-comparison.md',
   api: { doc: 'group-comparison.md', surface: ['groupComparison'], source: ['src/group'] }
 });
@@ -184,6 +189,78 @@ describe('gallery', () => {
     expect(
       realConfig.modules.filter((entry) => entry.status === 'experimental').map((e) => e.module)
     ).toEqual(['stratified-survival']);
+  });
+
+  it('CORE-SITE-023: a card says what its module is in the registry’s card text, at most two sentences and 200 characters, on the gallery and on the home page, and not in the fuller text, which stays at the head of a chart’s live demo; the registry as committed holds every module to it, and the group comparison’s card names its tiles, its picture over time and its single visit (#96)', () => {
+    expect(CARD_LIMITS).toEqual({ sentences: 2, characters: 200 });
+    // How sentences are counted: by their ends.
+    expect(sentencesOf('One. Two? Three!')).toBe(3);
+    expect(sentencesOf('R’s p-value, e.g. 0.05, printed.')).toBe(2);
+    expect(sentencesOf('No end')).toBe(1);
+    expect(sentencesOf('Kaplan–Meier curves per group, at 1.5 times the cut.')).toBe(1);
+
+    // The card prints the card text, escaped, and none of the fuller text.
+    const gallery = renderGallery({ config: config(module(), chart), study });
+    const home = renderHome({ config: config(module(), chart), version: '0.1.0', summaries: {} });
+    for (const html of [gallery, home]) {
+      expect(html).toContain(`<p>${chart.card}</p>`);
+      expect(html).toContain('<p>Entry point &amp; bundles.</p>');
+      expect(html).not.toContain('Click a box to list its participants.');
+      expect(html).not.toContain('each reporting the package version');
+    }
+    // The fuller text is where it was: at the head of the chart's demo page.
+    const demo = renderDemoPage({
+      entry: chart,
+      version: '0.1.0',
+      study,
+      kit: null,
+      statistics: null
+    });
+    expect(demo).toContain(`<p class="tagline">${chart.blurb}`);
+
+    // The registry as committed: every module, chart or shared part.
+    expect(realConfig.modules).toHaveLength(9);
+    for (const entry of realConfig.modules) {
+      expect(typeof entry.card, entry.module).toBe('string');
+      expect(sentencesOf(entry.card), `${entry.module}: ${entry.card}`).toBeLessThanOrEqual(2);
+      expect(entry.card.length, `${entry.module}: ${entry.card}`).toBeLessThanOrEqual(200);
+      expect(entry.card, entry.module).toMatch(/[.?!]$/);
+      // A chart's card opens on the question the chart answers, as its fuller text does.
+      if (entry.kind === 'chart') {
+        const question = entry.blurb.slice(0, entry.blurb.indexOf('?') + 1);
+        expect(question.length, entry.module).toBeGreaterThan(10);
+        expect(entry.card.startsWith(question), `${entry.module}: ${entry.card}`).toBe(true);
+        expect(entry.blurb.length, entry.module).toBeGreaterThan(entry.card.length);
+      }
+    }
+    const group = realConfig.modules.find((entry) => entry.module === 'group-comparison').card;
+    expect(group).toMatch(/tile/i);
+    expect(group).toMatch(/across the visits|over time/i);
+    expect(group).toMatch(/one visit|a single visit/i);
+    expect(group).not.toMatch(/grid/i);
+    const real = renderGallery({ config: realConfig, study: realStudy });
+    for (const entry of realConfig.modules) {
+      expect(real, entry.module).toContain(`<p>${entry.card.replace(/'/g, '&#39;')}</p>`);
+    }
+  });
+
+  it('CORE-SITE-023: the registry refuses an entry with no card text, with more than two sentences, or with more than 200 characters (#96)', () => {
+    const problems = (entry) => validateRegistry(config(entry)).join('\n');
+    expect(problems(module())).toBe('');
+    expect(problems(chart)).toBe('');
+    expect(problems(module({ card: undefined }))).toMatch(
+      /module core: needs `card`, what its card says in one or two sentences/
+    );
+    expect(problems(module({ card: '   ' }))).toMatch(/needs `card`/);
+    expect(problems(module({ card: 'One. Two. Three.' }))).toMatch(
+      /module core: `card` is 3 sentences; a card holds at most 2\./
+    );
+    const long = `${'word '.repeat(40)}end.`;
+    expect(long.length).toBe(204);
+    expect(problems(module({ card: long }))).toMatch(
+      /module core: `card` is 204 characters; a card holds at most 200\./
+    );
+    expect(problems(module({ card: `${'word '.repeat(39)}ends.` }))).toBe('');
   });
 
   it('CORE-SITE-004: each shared part is listed with links to its evidence page and API reference (#7)', () => {

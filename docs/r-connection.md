@@ -175,7 +175,7 @@ It reads these members of a statistics result, the names gsm.bio's functions ret
 | ------------ | ---------------- | ---------------------------------------------------------------------------------- |
 | `status`     | string           | `"ok"`, `"too_small"` or `"error"`. Absent is read as `"ok"`.                      |
 | `method`     | string           | The name of the test.                                                              |
-| `p_value`    | number, 0 to 1   | The p-value.                                                                       |
+| `p_value`    | number, 0 to 1   | The p-value. One within 0.000000001 above 1 is read as 1 (see the rules).          |
 | `counts`     | number or object | The counts used: one whole number, or an object of group name to whole number.     |
 | `adjustment` | string           | The multiplicity adjustment applied, if any. Absent, empty or `"none"` means none. |
 | `reason`     | string           | Why no number was computed, if none was.                                           |
@@ -193,6 +193,7 @@ The rules, from the design:
 
 - Never a p-value alone: without the method's name or the counts, the number is not printed.
 - Three decimals. Below 0.001 it prints `p < 0.001`; where it would round to 1.000 it prints `p > 0.999`.
+- A p-value is a number from 0 to 1, and one that is not is refused, not repaired. One allowance: R can return a p-value of 1 a rounding above it, because it is a sum of probabilities (`fisher.test()` gives 1.0000000000000002 for a table no other table is less likely than). A value within 0.000000001 above 1 is read as 1 and printed `p > 0.999`. Anything further above 1, and anything below 0, is refused. The same holds for a row's adjusted and unadjusted p-values.
 - Labelled `Exploratory, unadjusted.` unless the result names an adjustment, and then `Exploratory, adjusted (Holm).` An adjustment R names by its `p.adjust` method is printed by its usual name: `holm` as Holm, `hochberg` as Hochberg, `hommel` as Hommel, `bonferroni` as Bonferroni, `BH` and `fdr` as Benjamini-Hochberg, `BY` as Benjamini-Yekutieli. Any other name is printed as given.
 - No stars, and never the word significant.
 - A reason in place of a number when R declined to compute one, said once. A reason that already begins "Not computed", as gsm.bio's do, is printed as it is, with the counts after it as a sentence of their own. Any other reason is led in by the method's name and the words `not computed`: `Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).`

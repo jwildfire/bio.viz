@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.2.0, the second release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.2.0) ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/)); its site is the released one, <https://jwildfire.github.io/bio.viz/>, and `dev` holds the changes since. It has six charts, each holding every test to R: [group comparison](https://jwildfire.github.io/bio.viz/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/correlation-matrix/), a grid of R's coefficients whose cells open the scatter, [biomarker screen](https://jwildfire.github.io/bio.viz/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, a hazard ratio among its comparisons, [cross-tabulation](https://jwildfire.github.io/bio.viz/cross-tab/), a two-way table with R's chi-square or Fisher's exact test, and the [stratified survival chart](https://jwildfire.github.io/bio.viz/stratified-survival/), Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag. Every chart takes a title, a subtitle and footnotes, adds its own footnote naming R's method and counts, downloads as a PNG and as CSV, and writes a specification it can be made again from. Version 0.1.0, the first release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/).
+Version 0.3.0 ([release notes](NEWS.md)) is the third release; its site is the released one, <https://jwildfire.github.io/bio.viz/>. It has six charts, each holding every test to R: [group comparison](https://jwildfire.github.io/bio.viz/group-comparison/), which opens on a tile for every biomarker with a line per group across the visits, opens one biomarker across the visits with R's test under each, and opens one visit with the groups drawn and R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/correlation-matrix/), a grid of R's coefficients whose cells open the scatter, [biomarker screen](https://jwildfire.github.io/bio.viz/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, a hazard ratio among its comparisons, [cross-tabulation](https://jwildfire.github.io/bio.viz/cross-tab/), a two-way table with R's chi-square or Fisher's exact test, and the [stratified survival chart](https://jwildfire.github.io/bio.viz/stratified-survival/), Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag. Every chart takes a title, a subtitle and footnotes, adds its own footnote naming R's method and counts, downloads as a PNG and as CSV, and writes a specification it can be made again from. Version 0.2.0, the second release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.2.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/), and version 0.1.0, the first, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/).
 
 ## How it fits together
 
@@ -23,16 +23,16 @@ Version 0.2.0, the second release, is [on GitHub](https://github.com/jwildfire/b
 Vendor the committed bundle — no build step, no npm install:
 
 ```html
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
-  console.log(BioViz.version); // "0.2.0"
+  console.log(BioViz.version); // "0.3.0"
 </script>
 ```
 
 An ES module build is committed alongside:
 
 ```js
-import { version, core, r } from './dist/bio.viz-0.2.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.3.0/bio.viz.esm.js';
 ```
 
 ## Asking R for a statistic
@@ -64,7 +64,7 @@ One value across the levels of a category, as boxes, violins or points, with the
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
   BioViz.groupComparison('#chart', {
     start_value: 'IL-6',

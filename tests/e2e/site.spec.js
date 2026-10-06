@@ -224,6 +224,74 @@ test.describe('gallery', () => {
     expect(record).toEqual(study);
   });
 
+  test('CORE-SITE-024: on the gallery and the home page every card says what its module is in the registry’s card text, at most two sentences and five lines at 1280px; with the first row of charts at the top of a 1280 by 800 window the second row’s pictures are in it; and a chart’s fuller text is at the head of its live demo (#96)', async ({
+    page
+  }) => {
+    await blockR(page);
+    const said = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll('.gallery .card[data-module]')].map((card) => {
+          const text = card.querySelector(
+            '.card-body > p:not(.kit-status):not(.gallery-count):not(.card-links)'
+          );
+          const { height } = text.getBoundingClientRect();
+          return {
+            module: card.dataset.module,
+            text: text.textContent,
+            lines: Math.round(height / parseFloat(getComputedStyle(text).lineHeight))
+          };
+        })
+      );
+    for (const url of ['/_site/gallery/index.html', '/_site/index.html']) {
+      await page.goto(url);
+      const cards = await said();
+      expect(cards.map((card) => card.module).sort(), url).toEqual([...modules].sort());
+      for (const card of cards) {
+        const entry = config.modules.find((found) => found.module === card.module);
+        expect(card.text, `${url}, ${card.module}`).toBe(entry.card);
+        expect(
+          card.text.match(/[.?!](?=\s|$)/g).length,
+          `${url}, ${card.module}`
+        ).toBeLessThanOrEqual(2);
+        expect(card.lines, `${url}, ${card.module}: ${card.text}`).toBeLessThanOrEqual(5);
+      }
+    }
+
+    // Two rows of charts on one screen: the first row at the top of the
+    // window, and under it the second row's pictures, whole.
+    await page.goto('/_site/gallery/index.html');
+    expect(page.viewportSize()).toEqual({ width: 1280, height: 800 });
+    await page.evaluate(() =>
+      Promise.all([...document.images].map((image) => image.decode().catch(() => null)))
+    );
+    const rows = await page.evaluate(() => {
+      const cards = [...document.querySelectorAll('#charts .card')];
+      const top = cards[0].getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: 'instant' });
+      return cards.map((card) => {
+        const picture = card.querySelector('.card-thumb').getBoundingClientRect();
+        return {
+          top: Math.round(card.getBoundingClientRect().top),
+          pictureBottom: Math.round(picture.bottom),
+          window: window.innerHeight
+        };
+      });
+    });
+    const tops = [...new Set(rows.map((row) => row.top))];
+    expect(rows).toHaveLength(6);
+    expect(tops).toHaveLength(2);
+    expect(tops[0]).toBe(0);
+    for (const row of rows) {
+      expect(row.pictureBottom, JSON.stringify(row)).toBeLessThanOrEqual(row.window);
+    }
+
+    // The fuller text is not on a card; it is at the head of the chart's demo.
+    const group = config.modules.find((entry) => entry.module === 'group-comparison');
+    expect(group.blurb.length).toBeGreaterThan(group.card.length);
+    await page.goto('/_site/group-comparison/index.html');
+    await expect(page.locator('p.tagline').first()).toContainText(group.blurb);
+  });
+
   test('CORE-SITE-012: the gallery holds at a 390px-wide viewport with no horizontal scroll (#7)', async ({
     page
   }) => {

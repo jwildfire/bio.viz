@@ -1,6 +1,6 @@
 {
   "module": "association-scatter",
-  "generatedAt": "2026-10-06T11:04:21.658Z",
+  "generatedAt": "2026-10-06T13:50:14.677Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37453879773",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37453879773"
+    "id": "37473893110",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37473893110"
   },
   "records": [
     {
@@ -554,6 +554,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-022"],
       "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-024: on the gallery and the home page every card says what its module is in the registry’s card text, at most two sentences and five lines at 1280px; with the first row of charts at the top of a 1280 by 800 window the second row’s pictures are in it; and a chart’s fuller text is at the head of its live demo (#96)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-024"],
+      "issueRefs": [96],
       "screenshots": []
     },
     {
@@ -1178,6 +1186,22 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-016"],
       "issueRefs": [78],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-023: a card says what its module is in the registry’s card text, at most two sentences and 200 characters, on the gallery and on the home page, and not in the fuller text, which stays at the head of a chart’s live demo; the registry as committed holds every module to it, and the group comparison’s card names its tiles, its picture over time and its single visit (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-023: the registry refuses an entry with no card text, with more than two sentences, or with more than 200 characters (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
       "screenshots": []
     },
     {

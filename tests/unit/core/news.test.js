@@ -39,12 +39,17 @@ describe('the release log', () => {
     for (const section of released) {
       expect(section.body, section.heading).not.toMatch(/jwildfire\.github\.io\/bio\.viz\/dev\//);
     }
-    // The next version is open. It has no number yet, so it is the development
-    // version after the release (#82). It held one line saying that nothing had
-    // merged until something did (#84): now it says what has, under headings.
-    expect(all[0].heading).toBe('# bio.viz v0.2.0.9000 (Upcoming)');
+    // The first section is the package's version (#108): upcoming while the
+    // release is prepared, released once the release candidate promotes it.
+    // The development version that stood there after v0.2.0 (#82) is gone.
+    // It reads as release notes, under headings, and the release before it
+    // is the next section.
+    expect([`# bio.viz v${pkg.version} (Upcoming)`, `# bio.viz v${pkg.version}`]).toContain(
+      all[0].heading
+    );
+    expect(read('NEWS.md')).not.toMatch(/^# bio\.viz v[\d.]+\.9000/m);
     expect(all[0].body).not.toContain('_Nothing merged yet._');
     expect(all[0].body).toMatch(/^## What's new$/m);
-    expect(released[0].heading).toBe('# bio.viz v0.2.0');
+    expect(all[1].heading).toBe('# bio.viz v0.2.0');
   });
 });

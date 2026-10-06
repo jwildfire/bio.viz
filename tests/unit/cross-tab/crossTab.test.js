@@ -322,6 +322,82 @@ describe('cross-tabulation: what R is asked, and what the line says', () => {
     expect(describeAnswer({ status: 'ok', value: small.value }).text).toMatch(/col = > 10/);
   });
 
+  it('CT-STAT-017: a table with a margin below R’s minimum group size prints Fisher’s exact test as R computed it, the p-value with its method and counts and the odds ratio with its interval, while the chi-square test of the same table still prints R’s reason; R’s note that the minimum was not applied names the table’s variable, not the column the chart handed R (#104)', () => {
+    const names = { row: 'RESPONSE', col: 'CRP at Baseline, cut at 9.5' };
+    const fisher = caseOf('response-by-crp-9.5-fisher');
+    // Three participants are above the cut: a column below R's minimum of 5.
+    expect(fisher.col_totals).toEqual([197, 3]);
+    expect(fisher.value.status).toBe('ok');
+    expect(fisher.value.reason).toBeNull();
+    const groups = { rows: fisher.args.chrRowGroups, cols: fisher.args.chrColGroups };
+    const described = describeAnswer({ status: 'ok', value: fisher.value }, { names, groups });
+    expect(described.state).toBe('shown');
+    expect(described.text).toBe(
+      "Fisher's Exact Test for Count Data: p = 0.556 (n = 200). Exploratory, unadjusted."
+    );
+    expect(described.text).toBe(
+      `Fisher's Exact Test for Count Data: p = ${fisher.value.p_value.toFixed(3)} (n = ${fisher.value.counts}). Exploratory, unadjusted.`
+    );
+    expect(described.estimates).toHaveLength(1);
+    expect(described.estimates[0]).toMatch(
+      /^odds ratio \(Non-responder \/ Responder, odds of ≤ 9\.5 against > 9\.5\): [\d.]+, 95% confidence interval [\d.]+ to [\d.]+\.$/
+    );
+    // R's note, with the table's own name for the column where R says `col`.
+    expect(fisher.value.notes).toEqual([
+      "Fisher's exact test is exact at any count, so the minimum group size of 5 is not applied to it. Below it here: col = > 9.5 has 3."
+    ]);
+    expect(described.remarks).toEqual([
+      {
+        kind: 'note',
+        text: "R’s note: Fisher's exact test is exact at any count, so the minimum group size of 5 is not applied to it. Below it here: CRP at Baseline, cut at 9.5 = > 9.5 has 3."
+      }
+    ]);
+    // Both margins named in a note are both renamed; with no names given, R's
+    // words are printed as they are; and a note that names no margin is untouched.
+    const both = describeAnswer(
+      {
+        status: 'ok',
+        value: {
+          ...fisher.value,
+          notes: [
+            "Fisher's exact test is exact at any count, so the minimum group size of 5 is not applied to it. Below it here: row = b has 3; col = > 9.5 has 3.",
+            'A note about the col = and row = of something else.'
+          ]
+        }
+      },
+      { names: { row: 'Arm', col: 'Grade' } }
+    );
+    expect(both.remarks.map((remark) => remark.text)).toEqual([
+      "R’s note: Fisher's exact test is exact at any count, so the minimum group size of 5 is not applied to it. Below it here: Arm = b has 3; Grade = > 9.5 has 3.",
+      'R’s note: A note about the col = and row = of something else.'
+    ]);
+    expect(describeAnswer({ status: 'ok', value: fisher.value }).remarks[0].text).toContain(
+      'col = > 9.5 has 3'
+    );
+    // What the chart asks is the key R wrote, with no minimum group size in it.
+    expect(fisher.args).toEqual({
+      strRowCol: 'row',
+      strColCol: 'col',
+      strMethod: 'fisher',
+      chrRowGroups: ['Non-responder', 'Responder'],
+      chrColGroups: ['≤ 9.5', '> 9.5']
+    });
+
+    // Cut at 10, two are above it. Fisher's p-value is 1, which R returns a
+    // rounding above it, and it is printed, not refused.
+    const one = caseOf('response-by-crp-10-fisher');
+    expect(one.col_totals).toEqual([198, 2]);
+    expect(one.value.p_value).toBeGreaterThanOrEqual(1);
+    expect(describeAnswer({ status: 'ok', value: one.value }).text).toBe(
+      "Fisher's Exact Test for Count Data: p > 0.999 (n = 200). Exploratory, unadjusted."
+    );
+    // The chi-square test of that table is still withheld, with R's reason.
+    const chisq = caseOf('response-by-crp-10-chisq');
+    expect(chisq.counts).toEqual(one.counts);
+    expect(chisq.value.status).toBe('too_small');
+    expect(describeAnswer({ status: 'ok', value: chisq.value }).state).toBe('withheld');
+  });
+
   it('CT-STAT-014: a column’s categories are drawn in one order in every browser language, numbers in their names as numbers, and R is handed them in that order, so Fisher’s odds ratio is of the table drawn and says which row is over which (#78)', () => {
     // The arms renamed as doses: by code point "10 mg" comes first, by name
     // with numbers as numbers "2 mg" does.

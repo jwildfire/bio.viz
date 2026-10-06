@@ -70,6 +70,7 @@
     "PVAL-RULE-008": "A reason that already says the result was not computed is printed as it is, with the counts after it, so that \"not computed\" is said once.",
     "PVAL-RULE-009": "A result R marked as an error is printed as R's message, said to be an error, with the counts where R knew them and no number.",
     "PVAL-RULE-010": "An adjustment R names by its `p.adjust` method is printed by its usual name, `holm` as Holm and `BH` as Benjamini-Hochberg; any other name is printed as given.",
+    "PVAL-RULE-011": "A p-value R returns a rounding above 1, as `fisher.test()` does (1.0000000000000002) for a table no other is less likely than, is read as 1 and printed `p > 0.999`, in a result, a screen's row and a level's row; a value more than 0.000000001 above 1, or any below 0, is still refused.",
     "PVAL-EST-001": "An estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, each number to four significant figures; an estimate with no interval is printed without one.",
     "PVAL-EST-002": "An estimate with no name or no number (not-a-number among them), or with an interval that has a part missing, is refused, and no number is printed in its place.",
     "PVAL-EST-003": "An infinite estimate or bound R gave, as Fisher's odds ratio of a table with an empty cell, is printed in words (`infinite`, `infinity`, `minus infinity`) with the finite bound as it is; not-a-number is still refused.",
