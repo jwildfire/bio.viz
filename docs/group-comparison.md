@@ -2,7 +2,7 @@
 
 Does this biomarker differ between these groups? The chart draws one value across the levels of a category at chosen visits, as boxes, violins or points, with the number in each group beneath. It takes a second grouping by colour, panels by one further variable and a logarithmic scale. Clicking a box or a point lists its participants, and a row of the list opens the participant's profile.
 
-It opens on [a tile for every biomarker](#the-trend-tiles), each a line per group through the group's median at every scheduled visit, and a tile opens that biomarker alone. [Unscheduled visits](#unscheduled-visits) are left out of the chart until they are switched on.
+It has three levels. It opens on [a tile for every biomarker](#the-trend-tiles), each a line per group through the group's median at every scheduled visit. A tile opens [that biomarker over time](#one-biomarker-over-time): one picture, visit along the bottom and the groups side by side at each, with the number in each group and R's test of the groups under each visit. A visit there opens that visit alone, which is the comparison described first. [Unscheduled visits](#unscheduled-visits) are left out of the chart until they are switched on.
 
 It draws; it does not test. The line under the chart is where a test of the groups is printed, and that test is computed by R: the chart chooses which test to ask for, hands R the rows it drew through the [connection to R](r-connection.md), and prints what R returns. With no R attached the line says that statistics are unavailable.
 
@@ -28,7 +28,7 @@ It draws; it does not test. The line under the chart is where a test of the grou
 </script>
 ```
 
-That names a biomarker and a visit, so the chart opens on that biomarker at that visit. Leave `start_value` and `visits` out and it opens on the trend tiles: every biomarker, across every scheduled visit.
+That names a biomarker and a visit, so the chart opens on that biomarker at that visit. Leave `visits` out and it opens on that biomarker over time, across every visit it has. Leave `start_value` out too and it opens on the trend tiles: every biomarker, across every scheduled visit.
 
 ## What the page loads
 
@@ -79,55 +79,58 @@ Tables the chart cannot read (not arrays of records, or a results table without 
 
 Every setting, with its default. The column settings and the baseline settings are the [core's](core.md#default_settings), under the same names, and safety.viz's charts use the same names for the same columns.
 
-| Setting                     | Default                               | Meaning                                                                                                                                                                                                                                           |
-| --------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id_col`                    | `'USUBJID'`                           | The participant's id, in the results table.                                                                                                                                                                                                       |
-| `measure_col`               | `'TEST'`                              | The biomarker's name.                                                                                                                                                                                                                             |
-| `value_col`                 | `'STRESN'`                            | The result.                                                                                                                                                                                                                                       |
-| `visit_col`                 | `'VISIT'`                             | The visit's name.                                                                                                                                                                                                                                 |
-| `visit_order_col`           | `'VISITNUM'`                          | A number that orders the visits. May be null.                                                                                                                                                                                                     |
-| `unit_col`                  | `'STRESU'`                            | The unit of the result, printed in the value axis title. May be null.                                                                                                                                                                             |
-| `participant_id_col`        | `null`                                | The participant's id in the participant table, when it is not named as `id_col` is.                                                                                                                                                               |
-| `baseline_visits`           | `null`                                | The baseline visit, or a list of them. Null means the first visit in visit order.                                                                                                                                                                 |
-| `baseline_stat`             | `'mean'`                              | How several baseline visits are brought to one value: `mean`, `min`, `max` or `first`.                                                                                                                                                            |
-| `start_value`               | `null`                                | The biomarker the chart opens on. Null means none: the chart opens on [the trend tiles](#the-trend-tiles) of every biomarker, as it does for a name the table lacks.                                                                              |
-| `visits`                    | `null`                                | The visit, or visits, the chart opens on. Null means every visit the chart draws: every scheduled visit, and the unscheduled ones when they are switched on.                                                                                      |
-| `value_type`                | `'raw'`                               | The value type the chart opens on: `raw`, `baseline`, `change`, `fold_change` or `percent_change`, as the [core defines them](core.md#value_types).                                                                                               |
-| `group_by`                  | `null`                                | The column on the axis the chart opens on, or a biomarker or number [cut into groups](#a-cut-biomarker-as-the-groups): `{ measure: 'CRP', visit: 'Baseline', cut: 'median' }`. Null means the first column offered.                               |
-| `levels`                    | `null`                                | The levels of the group the chart opens on. Null means all of them.                                                                                                                                                                               |
-| `color_by`                  | `null`                                | The column of the second grouping, by colour. Null means none.                                                                                                                                                                                    |
-| `panel_by`                  | `null`                                | The column the panels are made by, or a cut variable, as `group_by` takes one. Null means none.                                                                                                                                                   |
-| `mark`                      | `'box'`                               | What a group is drawn as: `box`, `violin` or `points`.                                                                                                                                                                                            |
-| `y_scale`                   | `'linear'`                            | The scale of the value axis: `linear` or `log`.                                                                                                                                                                                                   |
-| `measures`                  | `null`                                | The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.                                                                                                                                     |
-| `groups`                    | `null`                                | The columns offered to group, colour and panel by, as names or `{ value_col, label }`. Null means the category columns the tables have.                                                                                                           |
-| `max_levels`                | `12`                                  | The most different values a column may hold and still be offered as a category.                                                                                                                                                                   |
-| `filters`                   | `null`                                | The filters, as names or `{ value_col, label }`, with safety.viz's `start`, `all` and `multiple`. Null means every category column of the participant table.                                                                                      |
-| `unscheduled_visits`        | `false`                               | Whether [unscheduled visits](#unscheduled-visits) are drawn. Off, they are in no tile, not in the Visit control and not a panel. The Unscheduled visits control switches it.                                                                      |
-| `unscheduled_visit_pattern` | `'/unscheduled\|early termination/i'` | The regular expression an unscheduled visit's name matches, written as text: `/source/flags`, or a plain source. safety.viz's default. Null means none.                                                                                           |
-| `unscheduled_visit_values`  | `null`                                | The unscheduled visits, by name, or a list of them. When given, the list decides alone and the pattern is not read; an empty list means no visit is unscheduled.                                                                                  |
-| `tile_summary`              | `'median'`                            | What a line of a [trend tile](#the-trend-tiles) goes through: each group's `median` at each visit, or its `mean`. The Tiles draw control switches it.                                                                                             |
-| `tile_min_spread`           | `1.25`                                | The least a tile's value axis spans, in standard deviations of the results at the baseline visit: a number, zero or more. Zero means no least. See [a tile's value axis](#a-tiles-value-axis).                                                    |
-| `overview_limit`            | `12`                                  | Not applied since v0.3.0. It was the most biomarkers v0.2.0's overview drew at a time; the tiles draw every biomarker. Still read and checked, a whole number of one or more, so settings and a specification written for v0.2.0 are not refused. |
-| `details`                   | `null`                                | The columns of the listing, as names or `{ value_col, label }`. Null means the participant, the group, the colour, the panel and the value.                                                                                                       |
-| `page_size`                 | `10`                                  | Rows on a page of the listing.                                                                                                                                                                                                                    |
-| `connection`                | `null`                                | The connection to R the statistics line asks. Null means one with no R attached.                                                                                                                                                                  |
-| `statistic`                 | `'Analyze_GroupDifference'`           | The R function the statistics line asks for: gsm.bio's, or one that takes the same arguments. Null means no statistics line and no Statistics controls.                                                                                           |
-| `test`                      | `'t'`                                 | The test the chart opens on: `t`, `wilcoxon`, `anova`, `kruskal` or `none`. See [which test](#which-test).                                                                                                                                        |
-| `pairwise`                  | `false`                               | Whether the chart opens with pairwise comparisons switched on. They are made only among more than two groups.                                                                                                                                     |
-| `waiting_note`              | `null`                                | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                                                                                                              |
-| `back`                      | `null`                                | A way back, for a chart that opened this one in its place: `{ label, action }`. A button above the chart calls `action` with the chart. Null means none.                                                                                          |
-| `profile`                   | `true`                                | Whether a row of the listing opens safety.viz's participant profile.                                                                                                                                                                              |
-| `profile_details`           | `null`                                | The participant's columns shown at the head of the profile. Null means the category columns.                                                                                                                                                      |
-| `studyday_col`              | `null`                                | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.                                                                                                |
-| `normal_col_high`           | `null`                                | A column holding the upper limit of normal of each result, when the results have one.                                                                                                                                                             |
-| `normal_col_low`            | `null`                                | A column holding the lower limit of normal.                                                                                                                                                                                                       |
-| `title`                     | `null`                                | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.                                                                                     |
-| `subtitle`                  | `null`                                | The line under the title, written the same way. Null means none.                                                                                                                                                                                  |
-| `page`                      | `0`                                   | Not applied since v0.3.0. It was the page of v0.2.0's overview; the tiles have no pages. Still read and checked, a whole number from 0, and kept by a specification.                                                                              |
-| `footnotes`                 | `null`                                | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                                                                                                    |
-| `downloads`                 | `true`                                | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                                                                                                               |
-| `png_scale`                 | `2`                                   | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.                                                                                                |
+| Setting                     | Default                               | Meaning                                                                                                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_col`                    | `'USUBJID'`                           | The participant's id, in the results table.                                                                                                                                                                                                                                                  |
+| `measure_col`               | `'TEST'`                              | The biomarker's name.                                                                                                                                                                                                                                                                        |
+| `value_col`                 | `'STRESN'`                            | The result.                                                                                                                                                                                                                                                                                  |
+| `visit_col`                 | `'VISIT'`                             | The visit's name.                                                                                                                                                                                                                                                                            |
+| `visit_order_col`           | `'VISITNUM'`                          | A number that orders the visits. May be null.                                                                                                                                                                                                                                                |
+| `unit_col`                  | `'STRESU'`                            | The unit of the result, printed in the value axis title. May be null.                                                                                                                                                                                                                        |
+| `participant_id_col`        | `null`                                | The participant's id in the participant table, when it is not named as `id_col` is.                                                                                                                                                                                                          |
+| `baseline_visits`           | `null`                                | The baseline visit, or a list of them. Null means the first visit in visit order.                                                                                                                                                                                                            |
+| `baseline_stat`             | `'mean'`                              | How several baseline visits are brought to one value: `mean`, `min`, `max` or `first`.                                                                                                                                                                                                       |
+| `start_value`               | `null`                                | The biomarker the chart opens on. Null means none: the chart opens on [the trend tiles](#the-trend-tiles) of every biomarker, as it does for a name the table lacks.                                                                                                                         |
+| `visits`                    | `null`                                | The visit, or visits, the chart opens on. Null means every visit the chart draws: every scheduled visit, and the unscheduled ones when they are switched on. With a biomarker named, every visit it has is [that biomarker over time](#one-biomarker-over-time), and fewer are a panel each. |
+| `value_type`                | `'raw'`                               | The value type the chart opens on: `raw`, `baseline`, `change`, `fold_change` or `percent_change`, as the [core defines them](core.md#value_types).                                                                                                                                          |
+| `group_by`                  | `null`                                | The column on the axis the chart opens on, or a biomarker or number [cut into groups](#a-cut-biomarker-as-the-groups): `{ measure: 'CRP', visit: 'Baseline', cut: 'median' }`. Null means the first column offered.                                                                          |
+| `levels`                    | `null`                                | The levels of the group the chart opens on. Null means all of them.                                                                                                                                                                                                                          |
+| `color_by`                  | `null`                                | The column of the second grouping, by colour. Null means none.                                                                                                                                                                                                                               |
+| `panel_by`                  | `null`                                | The column the panels are made by, or a cut variable, as `group_by` takes one. Null means none.                                                                                                                                                                                              |
+| `mark`                      | `'box'`                               | What a group is drawn as with a visit open: `box`, `violin` or `points`.                                                                                                                                                                                                                     |
+| `time_mark`                 | `'box'`                               | What [one biomarker over time](#one-biomarker-over-time) is drawn as: `box`, a box per group at each visit; `mean_se`, each group's mean with one standard error either side; or `median_iqr`, its median with the quartiles either side. The Draw as control switches it there.             |
+| `y_scale`                   | `'linear'`                            | The scale of the value axis: `linear` or `log`.                                                                                                                                                                                                                                              |
+| `measures`                  | `null`                                | The biomarkers the Biomarker control offers, in this order. Null means every biomarker in the table, by name.                                                                                                                                                                                |
+| `groups`                    | `null`                                | The columns offered to group, colour and panel by, as names or `{ value_col, label }`. Null means the category columns the tables have.                                                                                                                                                      |
+| `max_levels`                | `12`                                  | The most different values a column may hold and still be offered as a category.                                                                                                                                                                                                              |
+| `filters`                   | `null`                                | The filters, as names or `{ value_col, label }`, with safety.viz's `start`, `all` and `multiple`. Null means every category column of the participant table.                                                                                                                                 |
+| `unscheduled_visits`        | `false`                               | Whether [unscheduled visits](#unscheduled-visits) are drawn. Off, they are in no tile, not in the Visit control and not a panel. The Unscheduled visits control switches it.                                                                                                                 |
+| `unscheduled_visit_pattern` | `'/unscheduled\|early termination/i'` | The regular expression an unscheduled visit's name matches, written as text: `/source/flags`, or a plain source. safety.viz's default. Null means none.                                                                                                                                      |
+| `unscheduled_visit_values`  | `null`                                | The unscheduled visits, by name, or a list of them. When given, the list decides alone and the pattern is not read; an empty list means no visit is unscheduled.                                                                                                                             |
+| `tile_summary`              | `'median'`                            | What a line of a [trend tile](#the-trend-tiles) goes through: each group's `median` at each visit, or its `mean`. The Tiles draw control switches it.                                                                                                                                        |
+| `tile_min_spread`           | `1.25`                                | The least a tile's value axis spans, in standard deviations of the results at the baseline visit: a number, zero or more. Zero means no least. See [a tile's value axis](#a-tiles-value-axis).                                                                                               |
+| `overview_limit`            | `12`                                  | Not applied since v0.3.0. It was the most biomarkers v0.2.0's overview drew at a time; the tiles draw every biomarker. Still read and checked, a whole number of one or more, so settings and a specification written for v0.2.0 are not refused.                                            |
+| `details`                   | `null`                                | The columns of the listing, as names or `{ value_col, label }`. Null means the participant, the group, the colour, the panel and the value.                                                                                                                                                  |
+| `page_size`                 | `10`                                  | Rows on a page of the listing.                                                                                                                                                                                                                                                               |
+| `connection`                | `null`                                | The connection to R the statistics line asks. Null means one with no R attached.                                                                                                                                                                                                             |
+| `statistic`                 | `'Analyze_GroupDifference'`           | The R function the statistics line asks for: gsm.bio's, or one that takes the same arguments. Null means no statistics line and no Statistics controls.                                                                                                                                      |
+| `test`                      | `'t'`                                 | The test the chart opens on: `t`, `wilcoxon`, `anova`, `kruskal` or `none`. See [which test](#which-test).                                                                                                                                                                                   |
+| `pairwise`                  | `false`                               | Whether the chart opens with pairwise comparisons switched on. They are made only among more than two groups.                                                                                                                                                                                |
+| `statistic_by_visit`        | `'Analyze_GroupDifferenceBy'`         | The R function asked for the test at every visit of [one biomarker over time](#one-biomarker-over-time), in one request: gsm.bio's, or one that takes the same arguments and returns a row per visit. Null means no row of tests there.                                                      |
+| `visit_adjustment`          | `'none'`                              | How R adjusts the p-values across the visits of one biomarker over time, by the name R's `p.adjust()` gives it: `none`, `holm` or `BH`. The Adjust across visits control switches it. R makes the adjustment; the chart names it.                                                            |
+| `waiting_note`              | `null`                                | A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.                                                                                                                                                                         |
+| `back`                      | `null`                                | A way back, for a chart that opened this one in its place: `{ label, action }`. A button above the chart calls `action` with the chart. Null means none.                                                                                                                                     |
+| `profile`                   | `true`                                | Whether a row of the listing opens safety.viz's participant profile.                                                                                                                                                                                                                         |
+| `profile_details`           | `null`                                | The participant's columns shown at the head of the profile. Null means the category columns.                                                                                                                                                                                                 |
+| `studyday_col`              | `null`                                | A column of the results table holding the study day of each result: the time axis of the profile. Without it the profile draws no lines over time.                                                                                                                                           |
+| `normal_col_high`           | `null`                                | A column holding the upper limit of normal of each result, when the results have one.                                                                                                                                                                                                        |
+| `normal_col_low`            | `null`                                | A column holding the lower limit of normal.                                                                                                                                                                                                                                                  |
+| `title`                     | `null`                                | The title above the chart: text with placeholders such as `{n}`, filled from the view drawn ([titles and footnotes](#titles-and-footnotes)). Null means none.                                                                                                                                |
+| `subtitle`                  | `null`                                | The line under the title, written the same way. Null means none.                                                                                                                                                                                                                             |
+| `page`                      | `0`                                   | Not applied since v0.3.0. It was the page of v0.2.0's overview; the tiles have no pages. Still read and checked, a whole number from 0, and kept by a specification.                                                                                                                         |
+| `footnotes`                 | `null`                                | Footnotes under the chart: text, or a list of texts, with placeholders. The chart's own footnote is always last. Null means none but that one.                                                                                                                                               |
+| `downloads`                 | `true`                                | Whether the downloads are offered under the chart: the PNG, the statistics and the table ([downloads](#downloads)).                                                                                                                                                                          |
+| `png_scale`                 | `2`                                   | The PNG's resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.                                                                                                                                           |
 
 ## Titles and footnotes
 
@@ -136,7 +139,7 @@ The settings `title`, `subtitle` and `footnotes` are text with named placeholder
 | Placeholder | What it holds                                                                    |
 | ----------- | -------------------------------------------------------------------------------- |
 | `{measure}` | The biomarker drawn, or `every biomarker` on the trend tiles.                    |
-| `{visits}`  | The visits drawn, separated by commas.                                           |
+| `{visits}`  | The visits chosen, separated by commas.                                          |
 | `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on.          |
 | `{group}`   | What the groups are, as the Group control names it; empty for none.              |
 | `{n}`       | How many participants are drawn: on the trend tiles, behind a point of any tile. |
@@ -146,19 +149,19 @@ The settings `title`, `subtitle` and `footnotes` are text with named placeholder
 
 ## Downloads
 
-Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-group-comparison-….png`. The trend tiles ask R nothing, so they offer the PNG and the table:
+Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as `bio.viz-group-comparison-….png`, at every level. The trend tiles ask R nothing, so they offer the PNG and the table:
 
-| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else ([the PNG](output.md#the-png)). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
-| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.                                                                                                                                                                                                                                                                                       |
-| Table (CSV)      | The table the chart drew from: one row per participant per visit drawn: the participant, the visit, the group, the colour and the panel where there are any, and the value drawn. On the trend tiles, one row per participant, biomarker and visit, with the biomarker named: the values each point is the median or the mean of.                                                                                                                                                                      |
+| Download         | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PNG              | The chart's frame as a picture: the title and subtitle, the notes, what the chart draws (for one biomarker over time, the picture and the table under it), the statistics line and the footnotes, the chart's own last, at `png_scale` image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else ([the PNG](output.md#the-png)). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole. |
+| Statistics (CSV) | The statistics R returned for the view, as shown: a row for each answer's result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered. For one biomarker over time that is one answer, with a row for each visit holding its counts, its p-value as R computed it (`p_unadjusted`) and as R adjusted it (`p_value`), and the adjustment.                                                                                                                                                       |
+| Table (CSV)      | The table the chart drew from: one row per participant per visit drawn: the participant, the visit, the group, the colour and the panel where there are any, and the value drawn. On the trend tiles, one row per participant, biomarker and visit, with the biomarker named: the values each point is the median or the mean of. For one biomarker over time, one row per participant and visit: the values each box, mean or median is drawn from.                                                                                                                     |
 
 A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. `chart.fileOf(kind)` gives the same file without saving it: a promise of `{ name, blob }`, for `kind` `'png'`, `'statistics'` or `'table'`. The format of each file is in [Getting results out](output.md#downloads).
 
 ## What is drawn
 
-Each panel is one Chart.js chart. The levels of the group are along the axis; under each is its name and the number of participants drawn there, `n = 95`, and with a colour the number in each colour, `42 · 53`. The value axis is named for the variable, with its unit.
+This section is the view with a visit open: one biomarker at one visit, or at a few. Each panel is one Chart.js chart. The levels of the group are along the axis; under each is its name and the number of participants drawn there, `n = 95`, and with a colour the number in each colour, `42 · 53`. The value axis is named for the variable, with its unit.
 
 | Mark     | What it is                                                                                                                                                                                                          |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -188,33 +191,36 @@ With no biomarker chosen the chart draws every biomarker: the view it opens on w
 - In a tile, one line per group, in the group's colour, through the group's median at each visit chosen, in visit order along the tile. The Tiles draw control, the setting `tile_summary`, switches every line to the group's mean. The first and the last visit are named under the lines.
 - One key above all the tiles says what a line goes through and names the groups in their colours: `Median result by Arm:`, `Placebo`, `Treatment`. A group keeps its colour when another is left out by the Levels control.
 - Each biomarker has [its own value axis](#a-tiles-value-axis), and the axis's range and unit are printed under the tile: `6.1 to 8.3 pg/mL`.
-- A tile is a button named `View IL-6`, with its range read out with it: a click on it, or Enter or Space when the keyboard is on it, opens that biomarker alone, with its visits as panels, the listing, the participant profile and a statistics line under each panel. All Biomarkers in the Biomarker control leads back, and Reset chart returns to whichever the settings open on.
+- A tile is a button named `View IL-6`, with its range read out with it: a click on it, or Enter or Space when the keyboard is on it, opens [that biomarker over time](#one-biomarker-over-time), across every visit chosen. All Biomarkers in the Biomarker control leads back, and Reset chart returns to whichever the settings open on.
 - Every biomarker is drawn. There are no pages: a study of thirty-six biomarkers is thirty-six tiles.
 
 Every visit chosen keeps its place along every tile, so the tiles line up. Where a group has no value at a visit it has no point there, and its line runs on to its next value; a biomarker with no value to draw says so in its tile.
 
 Which of the chart's levels is drawn is decided by what the controls are set to, in one place (`src/group-comparison/level.js`), and the chart's root element carries it as `data-level`:
 
-| Level        | When                                                                       | What is drawn                                                 |
-| ------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `biomarkers` | No biomarker chosen: `start_value` null, or All Biomarkers in the control. | The trend tiles.                                              |
-| `visits`     | A biomarker chosen.                                                        | That biomarker, a panel per visit chosen, each with R's test. |
+| Level        | When                                                                                           | What is drawn                                                                         |
+| ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `biomarkers` | No biomarker chosen: `start_value` null, or All Biomarkers in the control.                     | The trend tiles.                                                                      |
+| `over-time`  | A biomarker chosen, and every visit it has values at: the Visit control on all visits.         | [That biomarker over time](#one-biomarker-over-time), with R's test under each visit. |
+| `visits`     | A biomarker chosen and some of its visits; or a biomarker with one visit; or a baseline value. | That biomarker, a panel per visit chosen, each with R's test.                         |
+
+Once a biomarker is open the level is named above the chart, as a trail that leads back: `All biomarkers › IL-6 over time › Week 4`. Each part before the last is a button.
 
 Group by, Levels, Value, Scale, Visit and the filters apply to every tile, as they do to one biomarker. Three controls are not read by the tiles; each is switched off there, keeps what it is set to, and says where it applies:
 
-| Control    | On the tiles                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------------- |
-| Colour by  | Switched off, with the words `Applies when one biomarker is open.` A tile's lines are the groups. |
-| Panel by   | Switched off, with the same words.                                                                |
-| Draw as    | Switched off, with the same words. A tile draws lines, not boxes, violins or points.              |
-| Tiles draw | There only on the tiles: Medians or Means.                                                        |
-| Statistics | Not there. The tiles print no test, so they offer none.                                           |
+| Control    | On the tiles                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| Colour by  | Switched off, with the words `Applies once a biomarker and a visit are open.` A tile's lines are the groups. |
+| Panel by   | Switched off, with the same words.                                                                           |
+| Draw as    | Switched off, with the words `Applies when one biomarker is open.` A tile draws lines.                       |
+| Tiles draw | There only on the tiles: Medians or Means.                                                                   |
+| Statistics | Not there. The tiles print no test, so they offer none.                                                      |
 
 For a change, a fold change or a percent change from baseline a tile keeps the baseline visit, where every line starts at no change, and draws a dashed line across the tile there. A baseline value has no visit, so each group is one point, the tile says `Baseline value` under it, and the note above says so.
 
 Nothing is pooled, and nothing is compared. Every point is a description of the records that biomarker's own view draws for that group at that visit, one per participant from the [core's frame](core.md): how many there are, their median and their mean. The quantile rule and the mean are the ones a box is drawn from, and on the synthetic study every tile's medians, means and counts are held to desktop R's `median()`, `mean()` and `length()`. The counts of who was left out, and why, are a biomarker's own and are given when it is opened.
 
-The tiles print no statistics line and ask R for nothing: no request, no start of R, no waiting text, and `chart.statistics()` is an empty list. A page never shows dozens of unadjusted p-values at once. A test is asked for and printed only with one biomarker open, one per panel.
+The tiles print no statistics line and ask R for nothing: no request, no start of R, no waiting text, and `chart.statistics()` is an empty list. A page never shows dozens of unadjusted p-values at once. A test is asked for and printed only with one biomarker open: one request for the row of visits over time, and one per panel with a visit open.
 
 ### A tile's value axis
 
@@ -242,6 +248,54 @@ The range is printed to the figures the axis's span calls for, `59 to 184 ng/mL`
 
 Each tile is one Chart.js chart, drawn with the kit's Chart.js, and nothing in a tile answers the pointer: the tile does. Every biomarker is framed on its own rows of the results table, so the work grows with the table and not with the table times the number of biomarkers. The browser test named `GC-OVW-017` times the first draw of thirty-six tiles on every run, at a desk's width and at a phone's, and prints what it found.
 
+## One biomarker over time
+
+With a biomarker chosen and the Visit control on all visits, the chart draws that biomarker across every visit it has values at, in one picture. It is what a tile opens, what `start_value: 'IL-6'` with no `visits` opens on, and the level named `over-time`.
+
+- Visit along the bottom, evenly spaced in visit order; at each visit the groups side by side, each in its colour, which is the colour it has on the tiles. One Chart.js chart, on one value axis named for the biomarker, its value and its unit.
+- A key above names what is drawn and the groups, and a sentence under it says what a mark is.
+- Under the axis, lined up with the visits, a table: the visits' names; a row per group of the number of participants drawn there; and the row of R's tests.
+- A visit's name is a button, `View IL-6 at Week 4`: a click on it, or Enter or Space, or a click anywhere in that visit's part of the picture, opens that visit alone, in [the view with a visit open](#what-is-drawn), with its marks, its second grouping, its panels, its test menu and pairwise comparisons, its listing and the participant profile. All in the Visit control leads back, as does the trail above the chart.
+- The picture and its table are one block. When the visits are too many for the chart's width, each less than 50 pixels wide, the block scrolls sideways inside the chart and the page does not.
+
+The Draw as control, the setting `time_mark`, chooses among three forms:
+
+| `time_mark`  | Draw as                    | What is drawn for a group at a visit                                                                                                            |
+| ------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `box`        | Boxes                      | safety.viz's box, as with a visit open: the quartiles, a line at the median, whiskers to the 5th and 95th percentiles and a marker at the mean. |
+| `mean_se`    | Means with standard errors | A point at the mean, with a bar one standard error either side, and a line per group joining its means across the visits.                       |
+| `median_iqr` | Medians with quartiles     | A point at the median, with a bar from the 25th to the 75th percentile, and a line per group joining its medians across the visits.             |
+
+The value axis covers what the form draws, with a little room: the ends of the whiskers, of the standard errors or of the quartiles. So the same biomarker's axis is narrower under means than under boxes.
+
+Each visit's rows are the rows that visit's own view draws, one per participant from the [core's frame](core.md): nothing is pooled across visits, and a click from a visit here to that visit alone shows the same participants. The numbers describe the values drawn and compare no group with another. The quantiles and the mean are the ones a box is drawn from. The standard error is the standard deviation, R's `sd()`, over the square root of the number in the group; a group of one has a mean and no bar. On the synthetic study every count, quantile, mean, standard deviation and standard error is held to desktop R's.
+
+Colour by and Panel by are switched off here, each with the words `Applies once a biomarker and a visit are open.`, and keep what they are set to: the picture takes no second grouping and no panels. Group by, Levels, Value, Scale, Unscheduled visits and the filters apply as they do everywhere. A group with nobody at a visit has no mark there and a count of 0; a line runs on to the group's next value.
+
+For a change, a fold change or a percent change from one baseline visit, the baseline visit is drawn, where every group starts at no change, with a dashed line across the picture there. It is not tested, its name is not a button, and the note above the chart says so: there the value is the same for everyone. With several baseline visits a value at one of them varies, and every visit is tested and opens.
+
+### The test under each visit
+
+The row of tests is R's. The chart asks R once, for the whole row: the test the Test control names, between the groups drawn, at every visit, on the rows drawn there. The function is gsm.bio's `Analyze_GroupDifferenceBy`, the setting `statistic_by_visit`, each of whose rows is what `Analyze_GroupDifference` answers for that visit alone. So the p-value under a visit is the one printed when that visit is opened.
+
+| In the row                  | When                                                                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `p = 0.221`, `p < 0.001`    | R's p-value for that visit, printed by the [shared rule](r-connection.md#formatstatisticstatistic). Hovering it gives the whole sentence, with the method and each group's count as R used them. |
+| `not tested`                | The baseline visit of a change, a fold change or a percent change. It is not sent to R.                                                                                                          |
+| `not computed`              | R declined: a group there is below R's minimum size. R's reason is printed under the table, with the counts.                                                                                     |
+| `error`                     | R reported an error for that visit. R's message is printed under the table.                                                                                                                      |
+| `Waiting for R…`            | Across every visit, from the moment the row is asked for until R answers.                                                                                                                        |
+| `Statistics unavailable`    | Across every visit, with no R attached and no stored result for the view. The picture and the counts are drawn all the same.                                                                     |
+| `No test chosen`, `No test` | Across every visit, when the Test control is on None, or fewer than two groups are drawn. R is not asked.                                                                                        |
+
+The row's heading names the test and says `p, unadjusted` or, when R adjusted, `p, adjusted (Holm)`. The Adjust across visits control, the setting `visit_adjustment`, offers None, Holm and Benjamini-Hochberg, and is None by default. It is sent to R as `strPAdjust`, by `p.adjust()`'s own name for it, and R adjusts across the visits that have a p-value; the p-values in the row are then R's adjusted ones, and the adjustment named is the one R returned with them. Nothing is adjusted here. A visit R did not compute is not a test, and is left out of the adjustment.
+
+The groups are the same at every visit: every group drawn. A visit where one of them has nobody, or fewer than R's minimum, is not computed, and R says which group: `Week 8: Not computed: Placebo has 3. The minimum group size is 5. Counts: Placebo n = 3, Treatment n = 5.` It is never tested between the groups that happen to be there.
+
+The statistics line under the table says the rest: the method as R named it, how many visits were tested, and the label, `Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, unadjusted.` or `… Exploratory, adjusted (Holm) across 5 visits.`; then R's reason for each visit it did not compute; R's own warnings and notes; and what the tests cover. Where R names the visits' tests differently, as `wilcox.test` does between an exact and an approximate p-value, each visit's whole sentence is given. There are no pairwise comparisons here: those are made with a visit open.
+
+The two rules of [waiting, and never a stale answer](#waiting-and-never-a-stale-answer) hold: the row waits from the moment it is asked for, and an answer that arrives after the chart was drawn again is dropped. What R is sent, and the key a stored result carries, are in [what R is asked](#the-row-of-visits).
+
 ## Unscheduled visits
 
 A results table often holds visits that were not planned: an unscheduled draw holding one participant, an early termination. Drawn beside a scheduled visit holding two hundred, such a visit says little and takes as much room. The chart leaves them out, at every level, unless they are switched on.
@@ -256,18 +310,18 @@ Which visits are unscheduled is safety.viz's rule, under the setting names safet
 
 Left out, the results at an unscheduled visit are set aside before the chart reads anything, so such a visit:
 
-- is in no tile, and is not a panel of an open biomarker;
+- is in no tile, is not a visit of a biomarker over time, and is not a panel of an open biomarker;
 - is not offered by the Visit control;
 - is not the baseline a change is measured from: with no `baseline_visits` named, the baseline is the first scheduled visit;
 - and a visit named in `visits` or `baseline_visits` is left out like any other, so name scheduled visits there.
 
 A note above the chart says how many are left out, and which: `2 unscheduled visits not drawn: Unscheduled 1, Early Termination. Switch on Unscheduled visits to draw them.` With more than four it names the first three and counts the rest.
 
-The Unscheduled visits control, in the Display section, switches them on, as safety.viz's results over time chart has one. It is there only when the results have a visit the rule names, so it is never a control that could do nothing; the synthetic study has none, and its demo shows neither the control nor the note. Switched on, the visits take their place in visit order in every tile, in the Visit control and among the panels, and the note goes. A specification keeps the switch and the two settings of the rule. One that holds no `unscheduled_visits`, as every specification written by v0.2.0, takes the default: a visit it names that is unscheduled is left out, and the notice above the chart says which and that `unscheduled_visits: true` draws it.
+The Unscheduled visits control, in the Display section, switches them on, as safety.viz's results over time chart has one. It is there only when the results have a visit the rule names, so it is never a control that could do nothing; the synthetic study has none, and its demo shows neither the control nor the note. Switched on, the visits take their place in visit order in every tile, along a biomarker over time, in the Visit control and among the panels, and the note goes. A specification keeps the switch and the two settings of the rule. One that holds no `unscheduled_visits`, as every specification written by v0.2.0, takes the default: a visit it names that is unscheduled is left out, and the notice above the chart says which and that `unscheduled_visits: true` draws it.
 
 The participant profile is safety.viz's own chart of one participant, and is given every result, unscheduled ones among them.
 
-With unscheduled visits drawn, the rows R is handed may be framed from a table that holds them, and a baseline found among them need not be the baseline found without them. So the [identity of the rows](#what-r-is-asked) then says `unscheduled_visits: true`. With them left out, or with none in the results, the identity is exactly what it was before the chart knew of them.
+With unscheduled visits drawn, the rows R is handed may be framed from a table that holds them, and a baseline found among them need not be the baseline found without them. So the [identity of the rows](#what-r-is-asked) then says `unscheduled_visits: true`, for one panel and for the row of visits alike. With them left out, or with none in the results, the identity is exactly what it was before the chart knew of them.
 
 ## A cut biomarker as the groups
 
@@ -297,25 +351,26 @@ BioViz.groupComparison('#chart', {
 
 In safety.viz's sidebar, in five sections.
 
-| Section    | Control              | What it sets                                                                                                                                                                                                                                          |
-| ---------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Value      | Biomarker            | All Biomarkers, which is the trend tiles, or one biomarker.                                                                                                                                                                                           |
-| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline.                                                                                                                                                                |
-| Value      | Visit                | The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; on the tiles, every visit. An unscheduled visit is offered only when they are drawn. Not shown for a baseline value, which has no visit. |
-| Groups     | Group by             | The column on the axis.                                                                                                                                                                                                                               |
-| Groups     | Levels               | Which of its levels are drawn.                                                                                                                                                                                                                        |
-| Groups     | Colour by            | The second grouping, or none. Switched off on the tiles.                                                                                                                                                                                              |
-| Groups     | Panel by             | The variable the panels are made by, or none. Switched off on the tiles.                                                                                                                                                                              |
-| Display    | Tiles draw           | Medians or means: what a tile's lines go through. Only on the tiles.                                                                                                                                                                                  |
-| Display    | Draw as              | Box, violin or points. Switched off on the tiles.                                                                                                                                                                                                     |
-| Display    | Scale                | Linear or logarithmic.                                                                                                                                                                                                                                |
-| Display    | Unscheduled visits   | Whether [unscheduled visits](#unscheduled-visits) are drawn. Only when the results have one.                                                                                                                                                          |
-| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.                                                                                                                                                                  |
-| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with more than two groups.                                                                                                                                                                    |
-| Filters    | one per filter       | The participants drawn. Only with a participant table.                                                                                                                                                                                                |
-|            | Reset chart          | Returns every control to what the chart opened on.                                                                                                                                                                                                    |
+| Section    | Control              | What it sets                                                                                                                                                                                                                                                                                                              |
+| ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Value      | Biomarker            | All Biomarkers, which is the trend tiles, or one biomarker.                                                                                                                                                                                                                                                               |
+| Value      | Value                | The value type: result, baseline, change, fold change or percent change from baseline.                                                                                                                                                                                                                                    |
+| Value      | Visit                | The visit, or visits. With one biomarker open, only the visits that biomarker has values at, in visit order; on the tiles, every visit. All of them is the biomarker over time, and fewer are a panel each. An unscheduled visit is offered only when they are drawn. Not shown for a baseline value, which has no visit. |
+| Groups     | Group by             | The column on the axis.                                                                                                                                                                                                                                                                                                   |
+| Groups     | Levels               | Which of its levels are drawn.                                                                                                                                                                                                                                                                                            |
+| Groups     | Colour by            | The second grouping, or none. Switched off on the tiles and over time.                                                                                                                                                                                                                                                    |
+| Groups     | Panel by             | The variable the panels are made by, or none. Switched off on the tiles and over time.                                                                                                                                                                                                                                    |
+| Display    | Tiles draw           | Medians or means: what a tile's lines go through. Only on the tiles.                                                                                                                                                                                                                                                      |
+| Display    | Draw as              | With a visit open: box, violin or points. Over time: boxes, means with standard errors or medians with quartiles. Switched off on the tiles.                                                                                                                                                                              |
+| Display    | Scale                | Linear or logarithmic.                                                                                                                                                                                                                                                                                                    |
+| Display    | Unscheduled visits   | Whether [unscheduled visits](#unscheduled-visits) are drawn. Only when the results have one.                                                                                                                                                                                                                              |
+| Statistics | Test                 | The test R is asked for, from the ones that fit the number of groups drawn, or none.                                                                                                                                                                                                                                      |
+| Statistics | Pairwise comparisons | Whether every pair of groups is compared as well. Shown with a visit open and more than two groups.                                                                                                                                                                                                                       |
+| Statistics | Adjust across visits | How R adjusts the p-values across the visits: none, Holm or Benjamini-Hochberg. Only over time.                                                                                                                                                                                                                           |
+| Filters    | one per filter       | The participants drawn. Only with a participant table.                                                                                                                                                                                                                                                                    |
+|            | Reset chart          | Returns every control to what the chart opened on.                                                                                                                                                                                                                                                                        |
 
-The Statistics section is there when the setting `statistic` names a function and one biomarker is open. There is no control that chooses an adjustment, a confidence level or a minimum group size: those are R's. A cut is chosen in the settings, as part of the variable that makes the groups.
+The Statistics section is there when the setting `statistic` names a function and one biomarker is open; over time it also needs `statistic_by_visit`. There is no control that chooses a confidence level or a minimum group size: those are R's. The one adjustment a control chooses is across the visits of a biomarker over time, and R makes it. A cut is chosen in the settings, as part of the variable that makes the groups.
 
 ## Listing and participant profile
 
@@ -327,7 +382,7 @@ The profile was made for laboratory results that carry a reference range. For re
 
 ## The statistics line
 
-Under each panel of one biomarker's view; [the trend tiles](#the-trend-tiles) have none. The chart computes no test, no estimate, no interval, no p-value and no adjustment. It chooses which test to ask R for, hands R the rows of the panel through the connection in the setting `connection`, and prints what R returns through the formatters every chart shares: [`formatStatistic`, `formatEstimate` and `formatComparison`](r-connection.md#formatstatisticstatistic). With no connection given the chart makes one with no R attached, and the line reads `Statistics are unavailable: no R is attached to this chart.`
+Under each panel of the view with a visit open; [the trend tiles](#the-trend-tiles) have none, and [one biomarker over time](#the-test-under-each-visit) has a row of tests in the table under its picture and one line beneath. The chart computes no test, no estimate, no interval, no p-value and no adjustment. It chooses which test to ask R for, hands R the rows of the panel through the connection in the setting `connection`, and prints what R returns through the formatters every chart shares: [`formatStatistic`, `formatEstimate` and `formatComparison`](r-connection.md#formatstatisticstatistic). With no connection given the chart makes one with no R attached, and the line reads `Statistics are unavailable: no R is attached to this chart.`
 
 ### Which test
 
@@ -413,11 +468,62 @@ Nothing else is sent. A column's groups are the ones in the rows, in the order R
 
 A member that is not set is left out, never written as null. A list is a list whatever its length. Sorting by code point is what R's `sort(x, method = "radix")` does, so both sides write the same list without a locale.
 
-`chart.statistics()` returns what the chart has asked for the panels now drawn, one entry per panel that asked: `{ panel, name, args, dataId, rows, answer }`, where `rows` is the number of rows handed over and `answer` is what the connection resolved to, or null while R has not answered. It is the key a stored result must carry, read from the chart itself.
+`chart.statistics()` returns what the chart has asked for the panels now drawn, one entry per panel that asked: `{ panel, name, args, dataId, rows, answer }`, where `rows` is the number of rows handed over and `answer` is what the connection resolved to, or null while R has not answered. It is the key a stored result must carry, read from the chart itself. One biomarker over time is one entry, whose `panel` is empty.
+
+#### The row of visits
+
+For one biomarker over time, one call for every visit:
+
+```js
+connection.run('Analyze_GroupDifferenceBy', {
+  data, // one row per participant and visit: the participant's id, `y`, `x` and `visit`
+  args: {
+    strValueCol: 'y',
+    strGroupCol: 'x',
+    strByCol: 'visit',
+    strMethod: 't',
+    chrBy: ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'],
+    strPAdjust: 'none'
+  },
+  dataId // what the rows are: see below
+});
+```
+
+The rows are long: each visit's rows are the rows that visit's own panel hands R, with the visit named in `visit`, in visit order. The baseline visit of a change, a fold change or a percent change from one baseline visit is not among them, and is in neither `chrBy` nor the identity.
+
+| Argument      | Value                                                                                                                             |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `strValueCol` | Always `'y'`.                                                                                                                     |
+| `strGroupCol` | Always `'x'`.                                                                                                                     |
+| `strByCol`    | Always `'visit'`.                                                                                                                 |
+| `strMethod`   | The test asked for: `'t'`, `'wilcoxon'`, `'anova'` or `'kruskal'`.                                                                |
+| `chrBy`       | The visits tested, in visit order, so R answers them in that order. Always sent.                                                  |
+| `strPAdjust`  | The adjustment across the visits, by `p.adjust()`'s name: `'none'`, `'holm'` or `'BH'`. Always sent, `'none'` when there is none. |
+| `chrGroups`   | Only when the groups are a cut variable's: the groups drawn, low to high.                                                         |
+
+Nothing else is sent. As for one panel, a column's groups are left to R, which takes every group in the rows, the same at every visit, and sorts them by code point; a cut's are named low to high. No pairwise comparison is asked for, and the confidence level and the minimum group size are gsm.bio's defaults.
+
+The identity is the one a panel has, with the visits tested in place of one visit, and with no colour and no panel, which the picture does not take:
+
+| Member               | Value                                                                  | Left out when                               |
+| -------------------- | ---------------------------------------------------------------------- | ------------------------------------------- |
+| `chart`              | `'group-comparison'`.                                                  | never                                       |
+| `measure`            | The biomarker.                                                         | never                                       |
+| `value_type`         | `raw`, `change`, `fold_change` or `percent_change`.                    | never                                       |
+| `visits`             | The visits tested, as a list in visit order: the same list as `chrBy`. | never                                       |
+| `baseline_visits`    | The setting, as a list.                                                | the setting is null                         |
+| `baseline_stat`      | The setting.                                                           | never                                       |
+| `group_by`           | The column the groups come from, or the cut variable, as for a panel.  | never, when there is a test                 |
+| `groups`             | The distinct values of `x` in the rows, as text, sorted by code point. | never                                       |
+| `filters`            | As for a panel.                                                        | no filter is in force                       |
+| `positive_only`      | `true` on a logarithmic scale.                                         | the scale is linear                         |
+| `unscheduled_visits` | `true` when unscheduled visits are drawn and the results have some.    | they are left out, or the results have none |
+
+The members are written in that order. It has `visits`, a list, where a panel's identity has `visit`, one name; with the function's name, that keeps the two apart, and a stored result for one is never found for the other.
 
 ### Stored results, from R
 
-A page that ships R's answers gives the chart a connection with `results`: one stored result per panel of the views it computed. One biomarker at several visits is several panels, and so several stored results, each with its own `visit`. A view with no stored result reads `Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.` It is never answered with another view's numbers: a different test, pairwise switch, biomarker, visit, value type, group, colour, panel or filter is a different key.
+A page that ships R's answers gives the chart a connection with `results`: one stored result per panel of the views it computed, and one per biomarker over time, for the test and the adjustment it was computed with. One biomarker at a few visits is several panels, and so several stored results, each with its own `visit`; the same biomarker over time is one, with its `visits`. A view with no stored result reads `Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.` It is never answered with another view's numbers: a different test, pairwise switch, biomarker, visit, value type, group, colour, panel or filter is a different key.
 
 In R, the key of one panel's stored result, from the panel's rows and what the view is set to:
 
@@ -512,23 +618,71 @@ lKey <- group_comparison_key(dfRows, lView)
 lStored <- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lKey$args))))
 ```
 
+And the key of the stored result for one biomarker over time, the row of visits, from the long rows:
+
+```r
+# dfRows: the rows of every visit tested, one per participant and visit: the id,
+#         y, x and visit, each the row of that visit's own panel, in visit order.
+# lView:  the view, by the chart's names: statistic_by_visit, test,
+#         visit_adjustment, measure, value_type, visits (the visits tested, in
+#         visit order: every visit the biomarker has values at, without the
+#         baseline visit when the value is a change, a fold change or a percent
+#         change from one baseline visit), baseline_visits, baseline_stat,
+#         group_by, filters, y_scale, unscheduled_visits.
+group_comparison_by_visit_key <- function(dfRows, lView) {
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  chrVisits <- chart_text(lView$visits)
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  lDataId$visits <- as.list(chrVisits)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
+  lDataId$baseline_stat <- lView$baseline_stat
+  if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
+  lDataId$groups <- as.list(chrGroups)
+  if (length(lView$filters) > 0) {
+    lDataId$filters <- lapply(lView$filters, function(xValues) {
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
+    })
+  }
+  if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
+  lArgs <- list(
+    strValueCol = "y",
+    strGroupCol = "x",
+    strByCol = "visit",
+    strMethod = lView$test,
+    chrBy = as.list(chrVisits),
+    strPAdjust = lView$visit_adjustment
+  )
+  if (is.list(lView$group_by)) {
+    if (!is.factor(dfRows$x)) stop("the groups of a cut variable must be the factor cut() made")
+    lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
+  }
+  list(name = lView$statistic_by_visit, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
+}
+
+lKey <- group_comparison_by_visit_key(dfRows, lView)
+lStored <- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lapply(lKey$args, unlist)))))
+```
+
 When the groups are a cut variable's, `lView$group_by` is the cut variable as a named list, typed points as a list (`list(measure = "CRP", visit = "Baseline", value = "raw", cut = list(10))`), and `dfRows$x` is the factor the [cut rule](core.md#the-cut-rule)'s `cut()` made, whose levels are the groups low to high. `lView$test` is the test asked for, which is the setting `test` where it fits the number of groups on the axis and its counterpart where it does not. `lView$filters` is a named list of column to the values the filter lets through. `lView$unscheduled_visits` is `TRUE` only when the chart draws unscheduled visits and the results have some; `dfRows` is then framed from every result, and otherwise from the results at scheduled visits alone. Written to JSON, a single value is a single value and an unnamed list is an array (`jsonlite::toJSON(auto_unbox = TRUE)`), and the value is in [the shape the browser form gives](r-connection.md#stored-results).
 
-This is the function `tools/r-group-statistics.R` writes the chart's expected results with. The unit tests named `GC-STAT-023` hold the key it writes, for eighteen panels of the gallery's demo, to the key the chart asks with, and hand its results to a connection as stored results to see each one found.
+These are the functions `tools/r-group-statistics.R` writes the chart's expected results with. The unit tests named `GC-STAT-023` hold the key the first writes, for eighteen panels of the gallery's demo, to the key the chart asks with, and hand its results to a connection as stored results to see each one found; the tests named `GC-TIME-013` do the same for the second, for ten views of IL-6 over time, and `GC-TIME-014` holds each visit's p-value in R's one answer to what R gives when that visit is asked alone, and the adjusted one to `p.adjust()` of those.
 
 ### In the browser
 
 R in the browser is given one file, gsm.bio's `inst/statistics/statistics.R`, as the connection's `browser.sourceUrl`. This repository keeps a copy at `site/vendor/gsm.bio/statistics.R`, with a record of the gsm.bio commit it was copied from, and the site publishes it at `vendor/gsm.bio/statistics.R`. The file is sourced with base R alone. It names the survival package only inside its survival functions, which this chart never calls, so a page that draws only this chart installs no package: `browser: { sourceUrl, packages: [] }`.
 
-Nothing is fetched until the chart first asks for a test, which is the first time it draws a panel that prints one. A chart that opens on the trend tiles, as it does by default, asks for nothing until a biomarker is opened; so does one that opens with `test: 'none'`, until the reader chooses a test. Opening a biomarker at five visits asks five times, once per panel: R is started once for all of them, each panel waits and is answered for itself, and the page goes on answering clicks while they arrive. The `waiting_note` is said by the first panel that waits, not by every one.
+Nothing is fetched until the chart first asks for a test, which is the first time it draws a panel that prints one. A chart that opens on the trend tiles, as it does by default, asks for nothing until a biomarker is opened; so does one that opens with `test: 'none'`, until the reader chooses a test. Opening a biomarker over its five visits asks once, for the whole row. A biomarker at a few visits asks once per panel: R is started once for all of them, each panel waits and is answered for itself, and the page goes on answering clicks while they arrive. The `waiting_note` is said by the first that waits, not by every one.
 
-The answers are checked against desktop R. `tools/r-group-statistics.R` sources the same vendored file in desktop R, runs it on rows the chart's own code wrote, and writes `tests/fixtures/group-statistics-r.json` with the R version that made it. The browser tests named `GC-STAT-034` to `GC-STAT-042` run the gallery's chart against real R in the browser and hold every number to that file within 1 part in 10^8. R in the browser is a newer R than the desktop one that wrote the file, and R's own answer differs between them in one known case: with tied values and fewer than 50 in each group, `wilcox.test` in R 4.3 warns and approximates where R 4.6 computes the exact p-value. Where that happens the tests compare every other number and print both versions' numbers side by side; the tolerance is not widened.
+The answers are checked against desktop R. `tools/r-group-statistics.R` sources the same vendored file in desktop R, runs it on rows the chart's own code wrote, and writes `tests/fixtures/group-statistics-r.json` with the R version that made it. The browser tests named `GC-STAT-034` to `GC-STAT-042` and `GC-OVW-019` run the gallery's chart against real R in the browser and hold every number to that file within 1 part in 10^8, the row of tests under IL-6 over time among them, unadjusted and adjusted. R in the browser is a newer R than the desktop one that wrote the file, and R's own answer differs between them in one known case: with tied values and fewer than 50 in each group, `wilcox.test` in R 4.3 warns and approximates where R 4.6 computes the exact p-value. Where that happens the tests compare every other number and print both versions' numbers side by side; the tolerance is not widened.
 
 ## On a phone
 
 Below 900 pixels of width safety.viz's shell stacks: the controls above the chart, the participant profile below it. Below 600 pixels the controls start folded away, so the chart is on the first screen, and one tap on Controls opens them. Panels drop to one column. The listing wraps its cells instead of running off the page.
 
 The trend tiles sit two to a line, each whole, with its range beneath. A tap on a tile opens the biomarker, and the page is brought back to the chart's top. The Biomarker control, one tap away under Controls, lists every biomarker and leads back to all of them.
+
+One biomarker over time keeps its picture and the table under it lined up at any width. Five visits fit a phone's width; more scroll sideways inside the chart, the picture and the table together, and the page stays still. A tap on a visit's name opens that visit, and the trail above the chart leads back.
 
 ## What is not here
 
