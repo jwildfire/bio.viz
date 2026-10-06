@@ -2624,14 +2624,14 @@ test.describe('correlation matrix: on the site', () => {
     expect(await byTag(page)).toEqual(STYLED_BY_TAG);
     const worn = await lookOf(page, PARTS);
     expect(worn).toEqual(bare);
-    // In so many words: the chart's face, no capitals, no tinted ground under
-    // a heading, a rule beneath a row and none beside it, no margin round the
-    // table; and the title in the chart's face, not the page's serif.
+    // In so many words: the chart's face and its own small capitals, not the
+    // page's wider-spaced ones; no tinted ground under a heading, a rule
+    // beneath a row and none beside it, no margin round the table; and the
+    // title in the chart's face, not the page's serif.
+    expect(worn.heading).toMatchObject({ textTransform: 'uppercase', letterSpacing: '0.384px' });
     for (const part of ['heading', 'pair', 'cell']) {
       expect(worn[part], part).toMatchObject({
         fontFamily: face,
-        textTransform: 'none',
-        letterSpacing: 'normal',
         backgroundColor: 'rgba(0, 0, 0, 0)',
         borderLeftWidth: '0px',
         borderRightWidth: '0px',

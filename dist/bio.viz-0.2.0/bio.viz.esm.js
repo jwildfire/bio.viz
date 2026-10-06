@@ -9108,8 +9108,11 @@ ${C} .bv-pairs summary{cursor:pointer;font-weight:600;margin:0 0 .4rem}
 ${C} .bv-pairs-tools{margin:0 0 .4rem}
 ${C} .bv-pairs-tools button{padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;font:inherit;font-size:.8rem;cursor:pointer}
 ${ownTable(`${C} .bv-pairs-table`)}
+/* The list is in the kit's listing, whose headings are small capitals: the
+   chart states them itself, where it leaned on the kit's rule before (#97). */
 ${C} .bv-pairs table{width:100%;border-collapse:collapse;background:#fff;table-layout:fixed}
 ${C} .bv-pairs th,${C} .bv-pairs td{border-bottom:1px solid #e3e8ee;padding:.4rem .5rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+${C} .bv-pairs th{font-size:.75rem;letter-spacing:.03em;text-transform:uppercase;color:#52616f}
 ${C} .bv-pairs thead th{border-bottom:2px solid #d8dee4;font-size:.8rem;font-weight:600;color:#52616f;overflow-wrap:normal}
 ${C} .bv-pairs th[scope=row]{font-weight:400}
 ${C} .bv-pairs thead th:nth-child(1){width:38%}
