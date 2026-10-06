@@ -4012,10 +4012,29 @@ test.describe('group comparison: one biomarker over time, on a phone', () => {
       'p < 0.001',
       'p < 0.001'
     ]);
+    // No visit's name is broken inside a word, whatever the page's font: a
+    // name is on as many lines as it has words, at most, and inside its column.
+    const names = await page.locator('.bv-time-table thead th[data-visit] > *').evaluateAll((all) =>
+      all.map((name) => {
+        const range = document.createRange();
+        range.selectNodeContents(name);
+        return {
+          text: name.textContent,
+          lines: new Set([...range.getClientRects()].map((box) => Math.round(box.top))).size,
+          inside: name.scrollWidth <= name.clientWidth + 1
+        };
+      })
+    );
+    expect(names.map((name) => name.text)).toEqual(VISITS);
+    for (const name of names) {
+      expect(name.inside, name.text).toBe(true);
+      expect(name.lines, name.text).toBeLessThanOrEqual(name.text.split(' ').length);
+    }
+    expect(names[0].lines).toBe(1);
     const found = await overTimeOf(page);
     expect(found.charts).toBe(1);
     expect(found.trail.map((step) => step.text)).toEqual(['All biomarkers', 'IL-6 over time']);
-    await captureEvidence(page.locator('.sv-root'), 'GC-TIME-031', 'over-time-on-a-phone');
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-031', 'over-time-on-a-phone');
 
     // A tap on a visit opens it, at the chart's top.
     await page.locator('button.bv-time-visit[data-visit="Week 4"]').tap();

@@ -256,7 +256,7 @@ With a biomarker chosen and the Visit control on all visits, the chart draws tha
 - A key above names what is drawn and the groups, and a sentence under it says what a mark is.
 - Under the axis, lined up with the visits, a table: the visits' names; a row per group of the number of participants drawn there; and the row of R's tests.
 - A visit's name is a button, `View IL-6 at Week 4`: a click on it, or Enter or Space, or a click anywhere in that visit's part of the picture, opens that visit alone, in [the view with a visit open](#what-is-drawn), with its marks, its second grouping, its panels, its test menu and pairwise comparisons, its listing and the participant profile. All in the Visit control leads back, as does the trail above the chart.
-- The picture and its table are one block. When the visits are too many for the chart's width, each less than 50 pixels wide, the block scrolls sideways inside the chart and the page does not.
+- The picture and its table are one block. When the visits are too many for the chart's width, each less than 50 pixels wide, the block scrolls sideways inside the chart and the page does not. A visit's name is never broken inside a word: where its longest word is wider than a visit's column the names are set smaller, down to four fifths of their size, and past that the columns are made as wide as the word needs.
 
 The Draw as control, the setting `time_mark`, chooses among three forms:
 

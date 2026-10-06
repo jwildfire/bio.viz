@@ -5118,6 +5118,8 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
   };
   var CELL_WORDS = { withheld: "not computed", error: "error", refused: "not shown" };
   var VISIT_WIDTH = 50;
+  var NAME_ROOM = 5;
+  var NAME_SCALE_LEAST = 0.8;
   var STYLE_ID = "bio-viz-group-comparison-styles";
   var STYLES = `${lineStyles(".bv-group-comparison")}
 ${toolbarStyles(".bv-group-comparison")}
@@ -5148,11 +5150,11 @@ ${toolbarStyles(".bv-group-comparison")}
 .bv-group-comparison .bv-time-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:.1rem 0 0;font-size:.78rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
 .bv-group-comparison .bv-time-table caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .bv-group-comparison .bv-time-table th,.bv-group-comparison .bv-time-table td{padding:.22rem .05rem;text-align:center;vertical-align:top;font-weight:400}
-.bv-group-comparison .bv-time-table th[scope=row],.bv-group-comparison .bv-time-table thead th{overflow-wrap:anywhere}
+.bv-group-comparison .bv-time-table th[scope=row]{overflow-wrap:anywhere}
 .bv-group-comparison .bv-time-table th[scope=row]{padding-right:.4rem;text-align:right;color:#3e4c59}
 .bv-group-comparison .bv-time-table tbody tr{border-top:1px solid #eef1f4}
 .bv-group-comparison .bv-time-table thead th{font-weight:600}
-.bv-group-comparison .bv-time-visit{display:block;width:100%;margin:0;padding:.2rem .1rem;border:1px solid transparent;border-radius:6px;background:none;color:#0b62a4;font:inherit;font-weight:600;line-height:1.2;cursor:pointer;overflow-wrap:anywhere}
+.bv-group-comparison .bv-time-visit{display:block;width:100%;margin:0;padding:.2rem .1rem;border:1px solid transparent;border-radius:6px;background:none;color:#0b62a4;font:inherit;font-weight:600;line-height:1.2;cursor:pointer}
 .bv-group-comparison .bv-time-visit:hover{border-color:#0b62a4;background:#eaf2fb}
 .bv-group-comparison .bv-time-visit:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
 .bv-group-comparison .bv-time-still{display:block;padding:.2rem .1rem;border:1px solid transparent;color:#3e4c59}
@@ -6223,10 +6225,36 @@ ${toolbarStyles(".bv-group-comparison")}
       table.heads.forEach((head) => {
         head.style.whiteSpace = "normal";
       });
-      inner.style.minWidth = `${gutter + built.visits.length * VISIT_WIDTH + 8}px`;
+      const count = built.visits.length;
+      const least = gutter + count * VISIT_WIDTH + 8;
+      const column = (Math.max(inner.clientWidth, least) - gutter - 8) / count;
+      const word = this.widestWord(table.names[0].parentElement, built.visits);
+      let needed = word + NAME_ROOM;
+      if (needed > column) {
+        const scale = Math.max(NAME_SCALE_LEAST, (column - NAME_ROOM) / word);
+        table.names.forEach((name) => {
+          name.style.fontSize = `${scale}em`;
+        });
+        needed = word * scale + NAME_ROOM;
+      }
+      inner.style.minWidth = `${Math.ceil(gutter + count * Math.max(VISIT_WIDTH, needed) + 8)}px`;
       const chart = this.drawTimeChart(canvas, built, { domain, gutter, table });
       chart.$overTime = built;
       this.askOverTime(round, built);
+    }
+    // The width of the longest single word among the visits' names, set as a
+    // visit's name is set in the table's heading.
+    widestWord(cell, visits2) {
+      const probe = this.kit.createElement("span", "bv-time-visit");
+      probe.style.cssText = "position:absolute;visibility:hidden;display:inline-block;width:auto;padding:0;border:0;white-space:nowrap";
+      cell.append(probe);
+      let widest = 0;
+      for (const word of new Set(visits2.flatMap((visit) => String(visit).split(/\s+/)))) {
+        probe.textContent = word;
+        widest = Math.max(widest, probe.getBoundingClientRect().width);
+      }
+      probe.remove();
+      return widest;
     }
     // The table under the picture: a column per visit, a row of the visits'
     // names, a row per group of the number drawn there, and the row of tests.
@@ -6271,6 +6299,7 @@ ${toolbarStyles(".bv-group-comparison")}
       corner.append(cornerWords);
       heads.push(cornerWords);
       names.append(corner);
+      const visitNames = [];
       built.columns.forEach((column) => {
         const cell = document.createElement("th");
         cell.scope = "col";
@@ -6282,10 +6311,12 @@ ${toolbarStyles(".bv-group-comparison")}
           button.setAttribute("aria-label", `View ${state.measure} at ${column.visit}`);
           button.onclick = () => this.openVisit(column.visit);
           cell.append(button);
+          visitNames.push(button);
         } else {
           const still = kit.createElement("span", "bv-time-still", column.visit);
           still.title = `${column.visit} is the baseline visit: there the ${VALUE_WORDS2[state.valueType]} is the same for everyone.`;
           cell.append(still);
+          visitNames.push(still);
         }
         names.append(cell);
       });
@@ -6317,7 +6348,7 @@ ${toolbarStyles(".bv-group-comparison")}
         this.timeRow = { row, lead, sub, built };
       }
       table.append(head, body);
-      return { element: table, heads, gutter, tail };
+      return { element: table, heads, names: visitNames, gutter, tail };
     }
     // The picture: one Chart.js chart, a dataset per group. Boxes are the kit's;
     // a mean or a median is a point with a bar through it, joined across the
