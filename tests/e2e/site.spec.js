@@ -257,8 +257,9 @@ test.describe('gallery', () => {
       }
     }
 
-    // Two rows of charts on one screen: the first row at the top of the
-    // window, and under it the second row's pictures, whole.
+    // What is measured: with the first row scrolled to the top of the window,
+    // the second row's pictures are whole inside it. Two whole rows of cards
+    // do not fit 800 pixels, and the second row's text is not held to (#112).
     await page.goto('/_site/gallery/index.html');
     expect(page.viewportSize()).toEqual({ width: 1280, height: 800 });
     await page.evaluate(() =>

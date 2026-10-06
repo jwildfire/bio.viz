@@ -239,7 +239,7 @@ describe('the pages and the two stylesheets', () => {
     }
   });
 
-  it('CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, and writes every colour and typeface as one of them (#91)', () => {
+  it('CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, writes every colour and typeface as one of them, and names no element by its tag alone but the page’s body (#91, #112)', () => {
     const rules = withoutComments(own);
     // No token is defined, and nothing is imported: the faces are the copy's.
     expect(rules).not.toMatch(/(^|[\s;{])--[\w-]+\s*:/);
@@ -271,6 +271,17 @@ describe('the pages and the two stylesheets', () => {
       .map((selector) => selector.trim())
       .filter((selector) => !/[.#]/.test(selector));
     expect(tagAlone).toEqual([]);
+    // And no rule of any kind names a tag alone (#112): a chart's parts are
+    // made of the same tags the site's pages are, and a rule on `pre` or `th`
+    // reaches them. The one exception is the page's own wrapping of a long
+    // string, which is inherited and is switched off again inside the chart.
+    const bare = [...rules.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .flatMap(([, selector, body]) =>
+        selector.split(',').map((one) => [one.trim(), body.trim().replace(/\s+/g, ' ')])
+      )
+      .filter(([selector]) => !/[.#]/.test(selector));
+    expect(bare).toEqual([['body', 'overflow-wrap: anywhere;']]);
+    expect(rules).toMatch(/#chart\s*\{\s*overflow-wrap:\s*normal;/);
     // Each token it reads is one the copy defines.
     const defined = new Set([...copied.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
     const used = new Set([...rules.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]));
@@ -334,6 +345,8 @@ describe('the pages and the two stylesheets', () => {
         'evidence',
         'evidence-gallery',
         'gallery',
+        // Named only to say where a snippet of code wraps (#112).
+        'reproduce',
         'req-ids',
         'site-header',
         'sub'

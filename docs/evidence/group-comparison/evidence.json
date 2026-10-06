@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-06T13:50:14.677Z",
+  "generatedAt": "2026-10-06T22:34:04.200Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37473893110",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37473893110"
+    "id": "37541330383",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37541330383"
   },
   "records": [
     {
@@ -853,11 +853,11 @@
       "screenshots": ["GC-TIME-025-over-time-with-no-r.png"]
     },
     {
-      "test": "GC-TIME-026: a visit’s name in the table is a button that opens that visit alone, by a click or by the keyboard, as the released single-visit view with its own question for R; the trail above the chart names the level drawn and leads back, as All in the Visit control does (#85)",
+      "test": "GC-TIME-026: a visit’s name in the table is a button that opens that visit alone, by a click or by the keyboard, as the released single-visit view with its own question for R; the trail above the chart names the level drawn and leads back, to the biomarker over time as All in the Visit control does and to every biomarker across every visit (#85, #112)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-TIME-026"],
-      "issueRefs": [85],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -923,6 +923,38 @@
       "requirementIds": ["GC-TIME-034"],
       "issueRefs": [85],
       "screenshots": ["GC-TIME-034-notes-for-all-the-visits.png"]
+    },
+    {
+      "test": "GC-TIME-035: opening one visit of a biomarker that lacks a visit of the study chooses that visit and no other, from its name and from the Visit control: the title and the value axis name the one visit, the tiles afterwards are drawn on it alone, and All still means every visit for the next biomarker (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-035"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-036: after a button of the trail is pressed with the keyboard, the keyboard’s place is on the level it led to, the trail’s own entry for it or, on the tiles, the Biomarker control; with the sidebar closed a tile or a visit’s name opened by the keyboard leaves it on the trail too, and the trail’s way back to the tiles on the first tile: it is never dropped to the page (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-036"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-037: a visit whose name has a space before or after it has R’s answer printed under it: the visit is matched to R’s row by the name the chart sent, as R returned it, and two visits that differ only by such a space each keep their own (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-037"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-038: when the settings name another visit column the Visit control offers that column’s visits and the open biomarker is drawn across them: the visits a biomarker has are read again for the settings in force, not kept from the column before (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-038"],
+      "issueRefs": [112],
+      "screenshots": []
     },
     {
       "test": "GC-UNS-003: with rows for unscheduled visits added to the study, such a visit is in no tile, not in the Visit control, not a visit of a biomarker over time and not a panel of one, and a note says how many are left out and which; the Unscheduled visits control, or `unscheduled_visits`, brings them in at every level (#84, #85)",
@@ -2421,11 +2453,11 @@
       "screenshots": []
     },
     {
-      "test": "the pages and the two stylesheets CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, and writes every colour and typeface as one of them (#91)",
+      "test": "the pages and the two stylesheets CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, writes every colour and typeface as one of them, and names no element by its tag alone but the page’s body (#91, #112)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CORE-SITE-019"],
-      "issueRefs": [91],
+      "issueRefs": [],
       "screenshots": []
     },
     {

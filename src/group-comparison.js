@@ -462,15 +462,26 @@ class GroupComparison {
   }
 
   // The visits the open biomarker has values at, in visit order: read once
-  // for a biomarker and a table, because every control and every draw asks.
+  // for a biomarker, a table and the settings, because every control and every
+  // draw asks. The settings name the columns the visits are read from, and
+  // are a new object whenever they change (setSettings), so a change to them
+  // reads the visits again.
   measureVisits() {
     const { measure } = this.state;
     if (measure === null || measure === undefined) return [];
     const { results } = this.drawTables;
+    const { settings } = this;
     const kept = this.visitsOf;
-    if (kept && kept.results === results && kept.measure === measure) return kept.visits;
-    const visits = measureVisits(results, this.settings, measure);
-    this.visitsOf = { results, measure, visits };
+    if (
+      kept &&
+      kept.results === results &&
+      kept.settings === settings &&
+      kept.measure === measure
+    ) {
+      return kept.visits;
+    }
+    const visits = measureVisits(results, settings, measure);
+    this.visitsOf = { results, settings, measure, visits };
     return visits;
   }
 
@@ -639,10 +650,7 @@ class GroupComparison {
         onChange: (next) => {
           const chosen = next === null ? offered : next;
           const before = this.level();
-          // A visit the biomarker lacks keeps its place for another biomarker.
-          state.visits = this.visits.all.filter(
-            (visit) => chosen.includes(visit) || !offered.includes(visit)
-          );
+          state.visits = this.visitsChosen(chosen, offered);
           // Every visit of a biomarker is its picture over time, and fewer are
           // panels: the controls differ between the two, and are made again
           // with this one left open where the reader was choosing.
@@ -899,6 +907,25 @@ class GroupComparison {
         ? ` ${absent.join(', ')} ${absent.length === 1 ? 'is' : 'are'} not in the tables.`
         : '')
     );
+  }
+
+  // The visits chosen, for the ones ticked among those offered: the ones
+  // ticked and no others, in visit order. A visit the open biomarker has no
+  // value at is not offered, and is never added to them: it would be named in
+  // the title and drawn on the tiles afterwards, though nobody chose it. With
+  // every visit offered ticked, which the control reads as All, every visit
+  // is chosen, so the next biomarker opened is drawn across all of its own.
+  visitsChosen(ticked, offered = this.visitsOffered()) {
+    const { all } = this.visits;
+    if (offered.every((visit) => ticked.includes(visit))) return [...all];
+    return all.filter((visit) => ticked.includes(visit));
+  }
+
+  // The visits drawn: those chosen that the open biomarker has values at, or
+  // on the tiles every one chosen. They are what a title names.
+  visitsDrawn() {
+    const offered = this.visitsOffered();
+    return (this.state.visits || []).filter((visit) => offered.includes(visit));
   }
 
   // The visits the Visit control offers: the open biomarker's, or every visit
@@ -1276,8 +1303,7 @@ class GroupComparison {
   openFromTile(measure) {
     this.selectMeasure(measure);
     if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-    const control = this.controls.querySelector('select[data-control="measure"]');
-    if (control && control.offsetParent !== null) control.focus();
+    this.keepPlace('select[data-control="measure"]');
   }
 
   // ---- Where the view is ----------------------------------------------------------
@@ -1305,11 +1331,14 @@ class GroupComparison {
       } else {
         const here = kit.createElement('span', null, text);
         here.setAttribute('aria-current', 'true');
+        // It can be given the keyboard's place (keepPlace) and is not a stop
+        // of its own on the way through the page.
+        here.tabIndex = -1;
         item.append(here);
       }
       list.append(item);
     };
-    step('All biomarkers', () => this.selectMeasure(null));
+    step('All biomarkers', () => this.openTiles());
     const offered = this.visitsOffered();
     if (level === LEVELS.OVER_TIME) {
       step(`${state.measure} over time`);
@@ -1332,16 +1361,37 @@ class GroupComparison {
     this.toolbar.append(trail);
   }
 
-  // Leads back from a visit to the biomarker over time: every visit it has is
-  // chosen again, as All in the Visit control does.
+  // Leads back from a visit to the biomarker over time: every visit is chosen
+  // again, as All in the Visit control does.
   openOverTime() {
-    const offered = this.visitsOffered();
-    const chosen = this.state.visits || [];
-    this.state.visits = this.visits.all.filter(
-      (visit) => chosen.includes(visit) || offered.includes(visit)
-    );
+    this.state.visits = [...this.visits.all];
     this.buildControls();
     this.render();
+    this.keepPlace();
+  }
+
+  // Leads back from a biomarker to every biomarker, from the trail. The trail
+  // leads up the levels, so the tiles are drawn across every visit, as its way
+  // back to the biomarker over time restores them: left on the one visit that
+  // was open, each tile would be a single point. All Biomarkers in the
+  // Biomarker control is the other way there, and keeps the visits chosen.
+  openTiles() {
+    this.state.visits = [...this.visits.all];
+    this.selectMeasure(null);
+    this.keepPlace('select[data-control="measure"]');
+  }
+
+  // Puts the keyboard's place where the view now drawn is, after a button that
+  // the draw removed was pressed: nothing else holds it, and the browser would
+  // drop it to the page. It goes to a control of the sidebar, when one is named
+  // and is on screen; or to the trail's entry for the level drawn; or, on the
+  // tiles, which have no trail, to the first tile.
+  keepPlace(control) {
+    const visible = (element) => element && element.offsetParent !== null;
+    const named = control ? this.controls.querySelector(control) : null;
+    const here = this.toolbar ? this.toolbar.querySelector('.bv-trail [aria-current]') : null;
+    const target = [named, here, this.root.querySelector('.bv-tile')].find(visible);
+    if (target) target.focus();
   }
 
   // Opens one visit of the biomarker drawn over time: the single-visit view,
@@ -1349,16 +1399,13 @@ class GroupComparison {
   // comparisons. The view replaces the picture, so the page is brought back to
   // the chart's top, and the keyboard's place is put on the Visit control.
   openVisit(visit) {
-    const offered = this.visitsOffered();
-    // A visit the biomarker lacks keeps its place for another biomarker.
-    this.state.visits = this.visits.all.filter(
-      (entry) => entry === visit || !offered.includes(entry)
-    );
+    // That visit and no other: a visit the biomarker has no value at is not
+    // chosen with it.
+    this.state.visits = [visit];
     this.buildControls();
     this.render();
     if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-    const control = this.controls.querySelector('[data-control="visits"] summary');
-    if (control && control.offsetParent !== null) control.focus();
+    this.keepPlace('[data-control="visits"] summary');
   }
 
   // ---- One biomarker over time ---------------------------------------------------
@@ -1887,7 +1934,10 @@ class GroupComparison {
       built.columns.forEach((column) => {
         const cell = document.createElement('td');
         cell.dataset.visit = column.visit;
-        const level = levels.find((entry) => entry.by === column.visit);
+        // R returns each visit under the name it was sent, so the two are
+        // matched as they are: a name with a space before or after it is its
+        // own visit, and the name as printed (`by`) has lost that space.
+        const level = levels.find((entry) => entry.visit === column.visit);
         if (!column.tested) {
           cell.dataset.status = 'untested';
           cell.textContent = 'not tested';
@@ -2438,7 +2488,7 @@ class GroupComparison {
     for (const record of records) ids.add(record[this.settings.id_col] ?? record.id);
     return {
       measure: state.measure ?? 'every biomarker',
-      visits: (state.visits || []).join(', '),
+      visits: this.visitsDrawn().join(', '),
       value: VALUE_LABELS[state.valueType] || state.valueType,
       group: state.groupBy ? this.labelOf(state.groupBy) : '',
       n: model || tiles ? ids.size : ''

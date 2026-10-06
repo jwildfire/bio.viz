@@ -139,7 +139,7 @@ The settings `title`, `subtitle` and `footnotes` are text with named placeholder
 | Placeholder | What it holds                                                                    |
 | ----------- | -------------------------------------------------------------------------------- |
 | `{measure}` | The biomarker drawn, or `every biomarker` on the trend tiles.                    |
-| `{visits}`  | The visits chosen, separated by commas.                                          |
+| `{visits}`  | The visits drawn, separated by commas: those chosen that the biomarker has.      |
 | `{value}`   | What is drawn of the value: `Result`, `Change from baseline` and so on.          |
 | `{group}`   | What the groups are, as the Group control names it; empty for none.              |
 | `{n}`       | How many participants are drawn: on the trend tiles, behind a point of any tile. |
@@ -204,7 +204,9 @@ Which of the chart's levels is drawn is decided by what the controls are set to,
 | `over-time`  | A biomarker chosen, and every visit it has values at: the Visit control on all visits.         | [That biomarker over time](#one-biomarker-over-time), with R's test under each visit. |
 | `visits`     | A biomarker chosen and some of its visits; or a biomarker with one visit; or a baseline value. | That biomarker, a panel per visit chosen, each with R's test.                         |
 
-Once a biomarker is open the level is named above the chart, as a trail that leads back: `All biomarkers › IL-6 over time › Week 4`. Each part before the last is a button.
+Once a biomarker is open the level is named above the chart, as a trail that leads back: `All biomarkers › IL-6 over time › Week 4`. Each part before the last is a button, and each leads back up to its level whole: `IL-6 over time` to the biomarker across every visit it has, and `All biomarkers` to the tiles across every visit, whichever visits were open. All Biomarkers in the Biomarker control is the other way to the tiles, and keeps the visits chosen. After one of the trail's buttons is pressed the keyboard's place is on the level it led to: the trail's own entry for it, or, on the tiles, the Biomarker control, or the first tile when the sidebar is closed.
+
+The visits chosen are the ones ticked or opened and no others. A biomarker may lack a visit other biomarkers have; that visit is not offered while the biomarker is open, is not added to the visits chosen when one of the biomarker's visits is opened, and is not named in a title. All in the Visit control is every visit, so the next biomarker opened is drawn across all of its own.
 
 Group by, Levels, Value, Scale, Visit and the filters apply to every tile, as they do to one biomarker. Three controls are not read by the tiles; each is switched off there, keeps what it is set to, and says where it applies:
 
