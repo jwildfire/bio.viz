@@ -1,7 +1,9 @@
-// Vendoring, as a copy with a record. Three things are made elsewhere and
-// copied here byte for byte: the synthetic biomarker study, from gsm.bio;
-// safety.viz's script-tag bundle, which a chart's page loads beside bio.viz; and
-// gsm.bio's statistics functions, the one file R in the browser is given.
+// Vendoring, as a copy with a record. These are made elsewhere and copied here
+// byte for byte: the synthetic biomarker study, from gsm.bio; safety.viz's
+// script-tag bundle, which a chart's page loads beside bio.viz; gsm.bio's
+// statistics functions, the one file R in the browser is given; safety.viz's
+// portfolio manifest format; and safety.viz's site stylesheet and page shell,
+// which this site's pages are styled and laid out from.
 // Nothing in this repository retypes, regenerates or reshapes any of them. Beside
 // each copy sits a record, SOURCE.json, naming the repository and commit it
 // came from and, for each file, its checksum and size (and, for a CSV file, its
@@ -68,6 +70,24 @@ export const PORTFOLIO_SCHEMA = {
   repository: 'https://github.com/jwildfire/safety.viz',
   directory: 'src/data/schema',
   files: [{ file: 'portfolio.json', source: 'src/data/schema/portfolio.json' }]
+};
+
+// safety.viz's site styles (#91): the stylesheet every page of its site loads,
+// and the page shell its header, navigation and footer are written in. Every
+// page of this site loads the stylesheet as it is, before a short one of this
+// site's own (site/site.css), so the two sites share one look; the shell is
+// kept beside it as the pattern site/shell.html follows, and a unit test holds
+// that file's header, footer and navigation script to it. Neither is edited
+// here. The site publishes the stylesheet, with this record, and not the shell.
+export const SITE_STYLES = {
+  name: 'safety.viz site stylesheet and page shell',
+  label: 'styles',
+  repository: 'https://github.com/jwildfire/safety.viz',
+  directory: 'site/vendor/safety.viz-site',
+  files: [
+    { file: 'site.css', source: 'site/site.css' },
+    { file: 'shell.html', source: 'site/shell.html' }
+  ]
 };
 
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');

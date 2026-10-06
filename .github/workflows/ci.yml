@@ -71,6 +71,12 @@ jobs:
       - name: Vendored portfolio schema equals safety.viz at the recorded commit
         run: npm run portfolio:check-source
 
+      # And for safety.viz's site stylesheet and page shell, which every page of
+      # the site is styled and laid out from: fetched from safety.viz at the
+      # recorded commit and compared.
+      - name: Copied site styles equal safety.viz at the recorded commit
+        run: npm run styles:check-source
+
       # Desktop R, at the version that made site/r-check/expected.json, so the
       # step after it re-derives the committed expected results instead of
       # trusting them: the R check page's, the numbers the group comparison

@@ -33,9 +33,10 @@ tests/e2e/fixtures/data/
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/
 
-# safety.viz's bundle and gsm.bio's statistics file, each copied byte for byte
-# by its vendoring tool (tools/vendor-safety-viz.mjs, tools/vendor-statistics.mjs),
-# with its record.
+# safety.viz's bundle, its site stylesheet and page shell, and gsm.bio's
+# statistics file, each copied byte for byte by its vendoring tool
+# (tools/vendor-safety-viz.mjs, tools/vendor-site-styles.mjs,
+# tools/vendor-statistics.mjs), with its record.
 site/vendor/
 
 # safety.viz's portfolio manifest format, copied byte for byte by
