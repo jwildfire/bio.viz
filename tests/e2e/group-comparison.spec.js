@@ -228,25 +228,30 @@ test.describe('group comparison: what is drawn', () => {
     );
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'GC-DRAW-001', 'boxes-by-arm');
-    // The gallery's picture: the chart's frame titled as its demo is, with its
-    // footnotes and its own last (#66).
-    await page.evaluate(
-      ({ results, ...titles }) =>
-        window.__gc.chart.setSettings({
-          ...titles,
-          connection: window.BioViz.r.createConnection({ results })
-        }),
-      {
-        results: stored('welch'),
-        title: '{value}: {measure} by {group}',
-        subtitle: 'At {visits}',
-        footnotes: [
-          'Synthetic study from gsm.bio: no real participant is shown.',
-          'Filters: {filters}.'
-        ]
-      }
-    );
-    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001');
+    // The gallery's picture: the view the chart opens on, as its demo opens:
+    // the trend tiles on the synthetic study, a tile per biomarker by arm at
+    // every visit, titled as the demo is, with its footnotes and its own last
+    // (#66, #108). The tiles print no statistic and ask R for nothing, and
+    // their own footnote says so.
+    await page.evaluate((opening) => window.__gc.chart.setSettings(opening), {
+      start_value: null,
+      visits: null,
+      value_type: 'raw',
+      baseline_visits: 'Baseline',
+      group_by: 'ARM',
+      groups: [
+        { value_col: 'ARM', label: 'Arm' },
+        { value_col: 'SEX', label: 'Sex' }
+      ],
+      title: '{value}: {measure} by {group}',
+      subtitle: 'At {visits}',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    expect((await tilesOf(page)).tiles.map((tile) => tile.measure)).toEqual(BIOMARKERS);
+    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001', { statistics: false });
   });
 
   test('GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)', async ({

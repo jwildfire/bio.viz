@@ -1,10 +1,10 @@
 {
   "name": "bio.viz",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R.",
   "private": true,
   "bioviz": {
-    "development": true
+    "development": false
   },
   "type": "module",
   "module": "src/main.js",
