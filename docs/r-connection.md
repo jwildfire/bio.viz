@@ -339,6 +339,29 @@ It returns the sentence, and its parts for a table:
 
 An adjusted p-value is given beside the unadjusted one: `Week 12: Welch Two Sample t-test: p = 0.193 unadjusted, p = 0.579 adjusted across 3 visits (Placebo n = 5, Treatment n = 5). Exploratory, adjusted (Holm).` A level R could not compute gives R's reason and each group's count and no number: `Week 2: Not computed: Treatment has 1. The minimum group size is 5. Counts: Placebo n = 6, Treatment n = 1.`
 
+## `formatCell(row, of)`
+
+Formats one cell of a difference grid from the answer's `rows`: the standardised difference in means between two groups for one biomarker on the rows of one level of a column, a visit say, as gsm.bio's `Analyze_DifferenceGrid` returns it, one row per biomarker and level. A cell is an estimate with its interval and its counts and has no p-value, so nothing here is labelled exploratory or adjusted; what the rules ask of it is that the estimate is never without what it is an estimate of, which way round it is, and each group's count. It reads `biomarker`, `by`, `n_1`, `n_2`, `estimate`, `lower`, `upper`, `level`, `status` and `reason`. `of` is `{ groups, method }`: the two groups compared, first then second, since the estimate is the first minus the second and the row does not name them, and the answer's `method`, the name R gives the estimate.
+
+It returns the sentence, and its parts for a table:
+
+| Member      | Meaning                                                                                                                                                                                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`    | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row with no biomarker or level, a cell whose two groups or whose estimate's name were not given, one with no counts, an estimate that is not a number or half an interval is `refused`. |
+| `text`      | The whole sentence: `IL-6 at Week 4: Standardised difference (Hedges' g), Placebo minus Treatment: 0.9795, 95% confidence interval 0.675 to 1.282 (Placebo n = 95, Treatment n = 91).`                                                                                |
+| `result`    | The same without the biomarker and the level.                                                                                                                                                                                                                         |
+| `biomarker` | The biomarker, or null.                                                                                                                                                                                                                                               |
+| `by`        | The level, or null.                                                                                                                                                                                                                                                   |
+| `groups`    | The two groups, first then second, or null.                                                                                                                                                                                                                           |
+| `n`         | Each group's count, in that order, or null.                                                                                                                                                                                                                           |
+| `estimate`  | The estimate to four significant figures, as every estimate is printed. Null unless `status` is `shown`.                                                                                                                                                              |
+| `short`     | The estimate to two decimal places, with a true minus sign, for a cell too small for more: `0.98`, `−0.21`. A value that rounds to nought is `0.00`, never `−0.00`. Null unless `status` is `shown`.                                                                  |
+| `interval`  | `95% confidence interval 0.675 to 1.282`, or null when R returned none.                                                                                                                                                                                               |
+| `bounds`    | The two ends alone, `0.675 to 1.282`, or null.                                                                                                                                                                                                                        |
+| `level`     | The level of the interval, `95%`, or null.                                                                                                                                                                                                                            |
+
+A cell R could not compute gives R's reason and each group's count and no number: `CRP at Baseline: Not computed: Treatment has 2. The minimum group size is 5. Counts: Placebo n = 7, Treatment n = 2.`
+
 ## Checked against real R
 
 The [R check page](https://jwildfire.github.io/bio.viz/dev/r-check/) runs this interface against real R: a rank-sum test and a log-rank test, through the precomputed form and through R in the browser, each beside the answer desktop R gives, with the megabytes and seconds that starting R in a browser costs. The browser tests named `RCON-LIVE-*` run that page on every pull request.

@@ -53,20 +53,24 @@ import {
   checkTables,
   writeTitles,
   specificationOf,
-  startFilters
+  startFilters,
+  renderPager
 } from './shared/chartHost.js';
+import { pageCount, pageOf } from './shared/paging.js';
 import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES } from './shared/tables.js';
 import { coreSettings } from './shared/settings.js';
 import {
   MARKS,
+  OPENING_VIEWS,
   TILE_SUMMARIES,
   TIME_MARKS,
   VISIT_ADJUSTMENTS,
   Y_SCALES,
   syncSettings
 } from './group-comparison/configure.js';
+import { SHADE_FULL, buildGrid, choosePair, pairOf, shadeOf } from './group-comparison/grid.js';
 import { LEVELS, hasOverTime, levelOf } from './group-comparison/level.js';
 import { buildOverTime, markOf, timeDomain } from './group-comparison/overTime.js';
 import {
@@ -74,6 +78,8 @@ import {
   TEST_LABELS,
   createStatisticDesk,
   fitTest,
+  gridRequest,
+  gridScope,
   groupsOf,
   levelsScope,
   noTestText,
@@ -118,6 +124,12 @@ const VALUE_WORDS = {
   fold_change: 'fold change from baseline',
   percent_change: 'percent change from baseline'
 };
+// The two forms of the opening view, as the View control names them.
+const VIEW_LABELS = { tiles: 'Trend tiles', grid: 'Difference grid' };
+// Said by the difference grid when it has no answer to draw from: the grid is
+// R's numbers and nothing else.
+const GRID_NEEDS_R = 'The difference grid needs R: every cell is a number R computes.';
+const TILES_NEED_NONE = 'The trend tiles ask R for nothing: choose Trend tiles under View.';
 // Said under a control that the trend tiles do not read.
 const NOT_ON_TILES = 'Applies when one biomarker is open.';
 // Said under Colour by and Panel by on the tiles and on one biomarker over
@@ -214,6 +226,32 @@ ${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .bv-time-table tr[data-row=test] td{font-weight:600}
 .bv-group-comparison .bv-time-table tr[data-row=test] td[data-status]:not([data-status=shown]),.bv-group-comparison .bv-time-table tr[data-row=test] td[colspan]{font-weight:400;font-style:italic;color:#52616f}
 .bv-group-comparison .bv-stat-level{margin:0 0 .3rem}
+.bv-group-comparison .sv-multiples.bv-grid-view{display:block}
+.bv-group-comparison .bv-grid-scale{display:inline-flex;flex-wrap:wrap;gap:2px}
+.bv-group-comparison .bv-grid-swatch{display:inline-block;min-width:2.6rem;padding:.1rem .35rem;border-radius:3px;font-size:.72rem;text-align:center;color:#1f2933;font-variant-numeric:tabular-nums}
+.bv-group-comparison .bv-grid-scroll{overflow-x:auto;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.5rem}
+.bv-group-comparison .bv-grid-scroll.sv-hidden,.bv-group-comparison .bv-grid-key.sv-hidden,.bv-group-comparison .bv-grid-caption.sv-hidden{display:none}
+.bv-group-comparison .bv-grid-table{width:100%;border-collapse:separate;border-spacing:2px;margin:0;background:none;font-size:.8rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
+.bv-group-comparison .bv-grid-table caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.bv-group-comparison .bv-grid-table th,.bv-group-comparison .bv-grid-table td{padding:0;border:0;background:none;color:inherit;font-family:inherit;font-size:inherit;font-weight:400;letter-spacing:normal;text-transform:none;text-align:center;vertical-align:middle}
+.bv-group-comparison .bv-grid-table thead th{padding:.2rem .2rem .3rem;font-weight:600;white-space:nowrap}
+.bv-group-comparison .bv-grid-table thead th:first-child,.bv-group-comparison .bv-grid-table tbody th{position:sticky;left:0;z-index:1;background:#fff;text-align:left}
+.bv-group-comparison .bv-grid-table thead th:first-child{padding-left:.45rem;color:#3e4c59}
+.bv-group-comparison .bv-grid-row{display:block;width:100%;margin:0;padding:.35rem .4rem;border:1px solid transparent;border-radius:6px;background:none;color:#0b62a4;font:inherit;font-weight:600;line-height:1.2;text-align:left;white-space:nowrap;cursor:pointer}
+.bv-group-comparison .bv-grid-row:hover{border-color:#0b62a4;background:#eaf2fb}
+.bv-group-comparison .bv-grid-row:focus-visible,.bv-group-comparison .bv-grid-cell:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.bv-group-comparison .bv-grid-table td{min-width:3.5rem;height:2.1rem;border-radius:4px}
+.bv-group-comparison .bv-grid-table td[data-status=waiting]{background:#f4f6f8}
+.bv-group-comparison .bv-grid-table td[data-status=untested]{border:1px dashed #d8dee4}
+.bv-group-comparison .bv-grid-cell{display:block;width:100%;height:100%;min-height:2.1rem;margin:0;padding:.3rem .2rem;border:1px solid transparent;border-radius:4px;background:none;color:#1f2933;font:inherit;line-height:1.2;cursor:pointer}
+.bv-group-comparison .bv-grid-cell:hover{border-color:#1f2933}
+.bv-group-comparison .bv-grid-cell:not([data-status=shown]){border-color:#e4e8ec;font-size:.72rem;font-style:italic;color:#52616f}
+.bv-group-comparison .bv-grid-reasons{margin:0 0 .3rem;font-size:.8rem;color:#3e4c59}
+.bv-group-comparison .bv-grid-reasons summary{cursor:pointer}
+.bv-group-comparison .bv-grid-reasons ul{margin:.3rem 0 0;padding-left:1.1rem}
+.bv-group-comparison .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:.5rem 0 0;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-overview-pager button{font:inherit;font-size:.8rem;padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
+.bv-group-comparison .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
 @media (max-width:600px){
 .bv-group-comparison .bv-time-canvas{height:300px}
 .bv-group-comparison .bv-time-scroll{padding:.4rem .25rem .35rem}
@@ -268,6 +306,7 @@ class GroupComparison {
     this.state = {};
     this.asked = [];
     this.tiles = null;
+    this.grid = null;
     this.overTime = null;
     this.connect();
     this.renderShell();
@@ -339,10 +378,11 @@ class GroupComparison {
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
    * `levels`, `color_by`, `panel_by`, `mark`, `time_mark`, `y_scale`,
-   * `tile_summary`, `unscheduled_visits`, `test`, `pairwise`,
-   * `visit_adjustment`) moves its control: `start_value: null` returns to the
-   * tiles of every biomarker, and `visits: null` with a biomarker named to that
-   * biomarker over time.
+   * `tile_summary`, `opening_view`, `grid_groups`, `page`,
+   * `unscheduled_visits`, `test`, `pairwise`, `visit_adjustment`) moves its
+   * control: `start_value: null` returns to the opening view of every
+   * biomarker, the tiles or the grid as `opening_view` says, and `visits: null`
+   * with a biomarker named to that biomarker over time.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -379,6 +419,11 @@ class GroupComparison {
       test: 'test',
       pairwise: 'pairwise',
       visit_adjustment: 'visitAdjustment',
+      opening_view: 'view',
+      grid_groups: 'gridGroups',
+      page: 'page',
+      // With no function to answer it there is no grid to be on.
+      statistic_grid: 'view',
       filters: 'filters'
     };
     for (const [setting, key] of Object.entries(moved)) {
@@ -456,9 +501,16 @@ class GroupComparison {
     return levelOf(this.state, this.measureVisits());
   }
 
-  // Whether the tiles of every biomarker are what is drawn.
+  // Whether the opening view of every biomarker is what is drawn: the tiles,
+  // or the difference grid.
   atTiles() {
     return this.level() === LEVELS.BIOMARKERS;
+  }
+
+  // Whether the difference grid is what is drawn: the opening view, in its
+  // second form.
+  atGrid() {
+    return this.atTiles() && this.state.view === 'grid';
   }
 
   // The visits the open biomarker has values at, in visit order: read once
@@ -477,6 +529,9 @@ class GroupComparison {
   // What R's counts are of, when the automatic footnote has many to say: one
   // biomarker over time is answered a count per visit.
   get footnoteCounts() {
+    // The grid's one count is of rows of values, a participant's at every
+    // biomarker and visit, not of participants.
+    if (this.grid) return 'rows';
     return this.overTime ? 'visits' : undefined;
   }
 
@@ -543,6 +598,10 @@ class GroupComparison {
       timeMark: settings.time_mark,
       yScale: settings.y_scale,
       tileSummary: settings.tile_summary,
+      // The grid is offered only when a function is named that answers it.
+      view: settings.statistic_grid ? settings.opening_view : 'tiles',
+      gridGroups: settings.grid_groups ? [...settings.grid_groups] : null,
+      page: settings.page,
       unscheduledVisits: settings.unscheduled_visits,
       test: settings.test,
       pairwise: settings.pairwise,
@@ -675,8 +734,9 @@ class GroupComparison {
         state.groupBy,
         (next) => {
           state.groupBy = next;
-          // The levels are the new column's.
+          // The levels are the new column's, and so are the two the grid compares.
           state.levels = null;
+          state.gridGroups = null;
           redraw(true);
         },
         group
@@ -737,8 +797,25 @@ class GroupComparison {
     }
 
     const display = addSection('Display');
+    const grid = tiles && state.view === 'grid';
+    // The opening view has two forms: a tile per biomarker, or the grid of
+    // differences. The grid is R's numbers, so it is offered only when a
+    // function is named that answers it.
+    if (tiles && this.settings.statistic_grid) {
+      select(
+        'view',
+        'View',
+        OPENING_VIEWS.map((view) => [view, VIEW_LABELS[view]]),
+        state.view,
+        (next) => {
+          state.view = next;
+          redraw(true);
+        },
+        display
+      );
+    }
     // What a tile's lines go through: a control of the tiles alone.
-    if (tiles) {
+    if (tiles && !grid) {
       select(
         'tile-summary',
         'Tiles draw',
@@ -812,6 +889,29 @@ class GroupComparison {
     this.testControl = null;
     this.pairwiseControl = null;
     this.adjustControl = null;
+    this.pairControls = null;
+    // The grid compares two groups, the first minus the second. With more
+    // than two drawn the reader chooses them, here; the groups offered are the
+    // ones drawn, so they are filled in when the grid is (syncPairControls).
+    if (grid) {
+      const statistics = addSection('Statistics');
+      const pick = (place, labelText) => {
+        const input = document.createElement('select');
+        input.dataset.control = place ? 'grid-second' : 'grid-first';
+        input.onchange = () => {
+          state.gridGroups = choosePair(this.grid.pair, place, input.value);
+          redraw(false);
+        };
+        return addControl(labelText, input, statistics);
+      };
+      const note = kit.createElement('small', 'bv-control-note bv-grid-pair-note');
+      this.pairControls = {
+        first: pick(0, 'Difference of'),
+        second: pick(1, 'Minus'),
+        note
+      };
+      statistics.append(note);
+    }
     // The tiles print no test, so they offer none: the section is there once a
     // biomarker is open. Over time it is there when a function is named that
     // answers a row of visits.
@@ -991,15 +1091,19 @@ class GroupComparison {
     this.multiplesWrap.innerHTML = '';
     this.statLine.textContent = '';
     this.statLine.dataset.state = 'empty';
-    this.multiplesWrap.classList.remove('bv-tiles', 'bv-time');
+    this.multiplesWrap.classList.remove('bv-tiles', 'bv-time', 'bv-grid-view');
     this.chartWrap.classList.remove('sv-hidden');
     this.model = null;
     this.tiles = null;
+    this.grid = null;
     this.overTime = null;
     this.timeRow = null;
     this.syncTestControls(0);
     const level = this.level();
     this.root.dataset.level = level;
+    // Which form the opening view takes, while it is what is drawn.
+    if (level === LEVELS.BIOMARKERS) this.root.dataset.view = this.state.view;
+    else delete this.root.dataset.view;
     this.writeTrail(level);
     this.noteHiddenVisits();
 
@@ -1015,9 +1119,11 @@ class GroupComparison {
       return;
     }
     // No biomarker chosen: every biomarker, a tile each. They print no test and
-    // ask R for nothing.
+    // ask R for nothing. Or, when the reader asks for it, the grid of
+    // differences, which is one request to R for every cell.
     if (level === LEVELS.BIOMARKERS) {
-      this.drawTiles();
+      if (this.state.view === 'grid') this.drawGrid(round);
+      else this.drawTiles();
       return;
     }
     // A biomarker and every visit it has: the biomarker over time, in one
@@ -1275,6 +1381,331 @@ class GroupComparison {
   // on screen.
   openFromTile(measure) {
     this.selectMeasure(measure);
+    if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+    const control = this.controls.querySelector('select[data-control="measure"]');
+    if (control && control.offsetParent !== null) control.focus();
+  }
+
+  // ---- The difference grid ------------------------------------------------------
+
+  // The opening view in its second form: a row per biomarker, in the Biomarker
+  // control's order, and a column per visit chosen; each cell the standardised
+  // difference in means between two groups, which R computes for every cell
+  // in one request. A cell is coloured by R's estimate, on a scale through a
+  // neutral middle, and prints it; the number, not the colour, is what it
+  // says. A cell is a button that opens its biomarker at its visit, and a row's
+  // heading one that opens its biomarker. Until R answers no cell is drawn,
+  // and with no R the grid says that it needs R.
+  drawGrid(round) {
+    const { kit, state, settings } = this;
+    // A page of biomarkers: R is asked for the rows drawn, and no others.
+    const page = pageOf(this.measures, settings.overview_limit, state.page);
+    state.page = page.page;
+    const built = buildTiles(this.drawTables, settings, this.drawingState(), page.items, {
+      filterMatches: kit.filterMatches
+    });
+    this.tiles = built;
+    this.chartWrap.classList.add('sv-hidden');
+    this.multiplesWrap.classList.add('bv-grid-view');
+    this.updateTileNotes(built);
+    const groups = built.groups.map((group) => group.level);
+    const pair = pairOf(groups, state.gridGroups);
+    const layout = buildGrid(built, { pair, valueType: state.valueType });
+    this.grid = { ...layout, page, cells: null };
+    this.syncPairControls(groups, pair);
+    if (!built.tiles.some((tile) => tile.axis)) {
+      this.footnote.textContent = built.filtered === 0 ? NOBODY_PASSES : NO_VALUE;
+      return;
+    }
+    const line = kit.createElement('div', 'bv-statistic bv-grid-line');
+    line.setAttribute('role', 'status');
+    if (!pair) {
+      // Fewer than two groups: there is nothing to take a difference of.
+      this.footnote.textContent = '';
+      this.multiplesWrap.append(line);
+      this.grid.line = line;
+      this.showGrid(
+        plain(
+          'none',
+          `The difference grid compares two groups, and ${
+            state.groupBy
+              ? groups.length
+                ? `only ${groups[0]} is drawn`
+                : 'none is drawn'
+              : 'no column makes a group'
+          }. Choose a Group by with two groups or more, or Trend tiles under View.`
+        )
+      );
+      return;
+    }
+    this.footnote.textContent = [
+      'Click a cell to view that biomarker at that visit, or a biomarker’s name to view it across the visits.',
+      ...this.cutNotes(built)
+    ].join(' ');
+
+    // What a cell is, and what its colour means: the ends of the scale are
+    // fixed, and each step of the key is read off the same rule a cell is.
+    const [first, second] = pair;
+    const key = kit.createElement('p', 'bv-legend bv-grid-key');
+    key.append(
+      kit.createElement(
+        'span',
+        null,
+        `Standardised difference in the ${VALUE_WORDS[state.valueType]}, ${first} minus ${second}:`
+      )
+    );
+    const scale = kit.createElement('span', 'bv-grid-scale');
+    scale.setAttribute('role', 'img');
+    scale.setAttribute(
+      'aria-label',
+      `Colour scale: orange below nought, where ${second} is higher; neutral at nought; blue above, where ${first} is higher; deepest at ${SHADE_FULL} and beyond.`
+    );
+    [-SHADE_FULL, -SHADE_FULL / 2, 0, SHADE_FULL / 2, SHADE_FULL].forEach((step) => {
+      const swatch = kit.createElement(
+        'span',
+        'bv-grid-swatch',
+        step === 0
+          ? '0'
+          : `${step < 0 ? '−' : ''}${Math.abs(step)}${Math.abs(step) === SHADE_FULL ? (step < 0 ? ' or less' : ' or more') : ''}`
+      );
+      swatch.style.background = shadeOf(step).color;
+      scale.append(swatch);
+    });
+    key.append(scale);
+    const caption = kit.createElement(
+      'p',
+      'bv-tile-caption bv-grid-caption',
+      `Each cell is the difference between the two groups’ means in pooled standard deviations (Hedges’ g), as R computed it: above nought ${first} is higher, below it ${second} is. The colour follows the number and is deepest at ${SHADE_FULL} and beyond; the number in the cell is the estimate.`
+    );
+
+    const scroll = kit.createElement('div', 'bv-grid-scroll');
+    const table = kit.createElement('table', 'bv-grid-table');
+    table.append(
+      kit.createElement(
+        'caption',
+        null,
+        `Standardised difference in the ${VALUE_WORDS[state.valueType]}, ${first} minus ${second}, for each biomarker at each visit`
+      )
+    );
+    const head = document.createElement('thead');
+    const names = document.createElement('tr');
+    const corner = kit.createElement('th', null, 'Biomarker');
+    corner.scope = 'col';
+    names.append(corner);
+    layout.columns.forEach((column) => {
+      const cell = kit.createElement('th', null, column.visit);
+      cell.scope = 'col';
+      cell.dataset.visit = column.visit;
+      names.append(cell);
+    });
+    head.append(names);
+    const body = document.createElement('tbody');
+    const cells = new Map();
+    const openable = state.valueType !== 'baseline';
+    layout.rows.forEach((row) => {
+      const line = document.createElement('tr');
+      line.dataset.measure = row.measure;
+      const heading = document.createElement('th');
+      heading.scope = 'row';
+      const button = kit.createElement('button', 'bv-grid-row', row.measure);
+      button.type = 'button';
+      button.dataset.measure = row.measure;
+      button.setAttribute('aria-label', `View ${row.measure} across the visits`);
+      button.onclick = () => this.openFromTile(row.measure);
+      heading.append(button);
+      line.append(heading);
+      row.cells.forEach((cell) => {
+        const made = document.createElement('td');
+        made.dataset.measure = row.measure;
+        made.dataset.visit = cell.visit;
+        if (cell.tested) {
+          made.dataset.status = 'waiting';
+          cells.set(`${row.measure}\u0000${cell.visit}`, made);
+        } else {
+          // The baseline visit of a change: a column with nothing to compare.
+          made.dataset.status = 'untested';
+          made.title = `${cell.visit} is the baseline visit: there the ${VALUE_WORDS[state.valueType]} is the same for everyone.`;
+          made.setAttribute(
+            'aria-label',
+            `${row.measure} at ${cell.visit}: not compared. ${made.title}`
+          );
+        }
+        line.append(made);
+      });
+      body.append(line);
+    });
+    table.append(head, body);
+    scroll.append(table);
+    this.multiplesWrap.append(key, caption, scroll, line);
+    if (page.pages > 1) {
+      this.multiplesWrap.append(
+        renderPager(kit, page, pageCount(page, 'in the Biomarker control’s order'), (to) => {
+          state.page = to;
+          this.render();
+        })
+      );
+    }
+    Object.assign(this.grid, {
+      line,
+      scroll,
+      table,
+      parts: [key, caption, scroll],
+      tds: cells,
+      openable
+    });
+    this.askGrid(round);
+  }
+
+  // The two controls that choose the groups the grid compares, filled with the
+  // groups drawn. With exactly two there is nothing to choose, and the controls
+  // are put away; the note under them says which way round the difference is.
+  syncPairControls(groups, pair) {
+    const { pairControls: controls, kit } = this;
+    if (!controls) return;
+    const fill = (control, chosen) => {
+      const select = control.matches('select') ? control : control.querySelector('select');
+      const holder = control.matches('select') ? control.parentElement : control;
+      select.innerHTML = '';
+      groups.forEach((group) => kit.option(select, group, group, group === chosen));
+      holder.style.display = groups.length > 2 ? '' : 'none';
+    };
+    fill(controls.first, pair ? pair[0] : null);
+    fill(controls.second, pair ? pair[1] : null);
+    controls.note.textContent = pair
+      ? `Each cell is ${pair[0]} minus ${pair[1]}.${groups.length > 2 ? '' : ' With two groups drawn there is no other pair to choose.'}`
+      : 'The grid compares two groups.';
+  }
+
+  // Asks R for every cell of the grid, in one request, and fills the grid when
+  // it answers.
+  askGrid(round) {
+    const { settings, state, grid } = this;
+    const request = gridRequest({
+      name: settings.statistic_grid,
+      settings,
+      state: this.drawingState(),
+      grid,
+      unscheduled: Boolean(state.unscheduledVisits) && this.unscheduled.visits.length > 0
+    });
+    const asked = {
+      panel: '',
+      name: request.name,
+      args: request.args,
+      dataId: request.dataId,
+      rows: request.rows,
+      answer: null
+    };
+    this.asked.push(asked);
+    round.ask(
+      request,
+      (description, answer) => {
+        if (answer) asked.answer = answer;
+        writeTitles(this);
+        this.showGrid(description);
+      },
+      {
+        grid: true,
+        groups: grid.pair,
+        scope: gridScope({
+          pair: grid.pair,
+          group: this.labelOf(state.groupBy),
+          untested: grid.untested,
+          value: VALUE_WORDS[state.valueType],
+          positive: state.yScale === 'log',
+          filters: filtersForScope(this)
+        })
+      }
+    );
+  }
+
+  // Writes the grid's cells and the line beneath from one description. With an
+  // answer for the cells, each holds R's estimate, printed, on the colour read
+  // off it, or says that it has none; the line names the estimate and which
+  // way round it is, counts the cells, gives R's reason for each cell it did
+  // not compute, R's own remarks and what the cells cover. With none, no cell
+  // is drawn: while R is awaited the grid keeps its place, and when there is
+  // no answer to wait for it is put away and the line says why.
+  showGrid(description) {
+    const { kit, grid } = this;
+    const { line, tds } = grid;
+    const cells = description.cells || null;
+    grid.cells = cells;
+    // With no answer and none awaited the grid is put away, its key with it.
+    const away = !cells && description.state !== 'waiting';
+    (grid.parts || []).forEach((part) => part.classList.toggle('sv-hidden', away));
+    if (cells) {
+      const answered = new Map(cells.map((cell) => [`${cell.biomarker}\u0000${cell.by}`, cell]));
+      for (const [where, td] of tds) {
+        const cell = answered.get(where);
+        td.innerHTML = '';
+        td.removeAttribute('style');
+        td.dataset.status = cell ? cell.status : 'missing';
+        const button = kit.createElement('button', 'bv-grid-cell');
+        button.type = 'button';
+        button.dataset.status = td.dataset.status;
+        const { measure, visit } = td.dataset;
+        const opens = grid.openable ? `Open ${measure} at ${visit}.` : `Open ${measure}.`;
+        if (!cell) {
+          button.textContent = 'no answer';
+          button.setAttribute('aria-label', `${measure} at ${visit}: R returned no row. ${opens}`);
+        } else if (cell.status === 'shown') {
+          // The colour is read off the estimate R returned; the figure is it.
+          const shade = shadeOf(cell.number);
+          button.textContent = cell.short;
+          button.style.background = shade.color;
+          button.dataset.side = shade.side;
+          button.title = cell.text;
+          button.setAttribute('aria-label', `${cell.text} ${opens}`);
+        } else {
+          button.textContent = CELL_WORDS[cell.status];
+          button.title = cell.text;
+          button.setAttribute('aria-label', `${cell.text} ${opens}`);
+        }
+        button.onclick = () => this.openCell(measure, visit);
+        td.append(button);
+      }
+    }
+    const needsR = description.state === 'unavailable';
+    writeStatistic(kit, line, {
+      estimates: [],
+      remarks: [],
+      scope: null,
+      ...description,
+      text: needsR ? `${GRID_NEEDS_R} ${description.text}` : description.text,
+      table: null
+    });
+    const after = line.querySelector('.bv-stat-result');
+    if (needsR) after.after(kit.createElement('p', 'bv-stat-level', TILES_NEED_NONE));
+    // A cell with no estimate says why: R's reasons, folded away under the result.
+    const details = description.details || [];
+    if (details.length) {
+      const reasons = kit.createElement('details', 'bv-grid-reasons bv-no-picture');
+      reasons.append(
+        kit.createElement(
+          'summary',
+          null,
+          `Why ${details.length === 1 ? '1 cell has' : `${details.length} cells have`} no number`
+        )
+      );
+      const list = document.createElement('ul');
+      details.forEach((said) => list.append(kit.createElement('li', null, said)));
+      reasons.append(list);
+      after.after(reasons);
+    }
+  }
+
+  // Opens a biomarker at one visit from its cell: the single-visit view. The
+  // view replaces the grid, so the page is brought back to the chart's top.
+  openCell(measure, visit) {
+    const { state } = this;
+    state.measure = measure;
+    if (state.valueType !== 'baseline') {
+      // The one visit, and any the biomarker lacks keep their place for another.
+      const has = measureVisits(this.drawTables.results, this.settings, measure);
+      state.visits = this.visits.all.filter((entry) => entry === visit || !has.includes(entry));
+    }
+    this.buildControls();
+    this.render();
     if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
     const control = this.controls.querySelector('select[data-control="measure"]');
     if (control && control.offsetParent !== null) control.focus();
@@ -2351,6 +2782,9 @@ class GroupComparison {
       time_mark: state.timeMark,
       y_scale: state.yScale,
       tile_summary: state.tileSummary,
+      opening_view: state.view,
+      grid_groups: state.gridGroups ? [...state.gridGroups] : null,
+      page: state.page,
       unscheduled_visits: Boolean(state.unscheduledVisits),
       test: state.test,
       pairwise: state.pairwise,
@@ -2378,6 +2812,7 @@ class GroupComparison {
    */
   tableOf() {
     const { model, state, settings, tiles } = this;
+    if (!model && this.grid) return this.gridTable();
     if (!model && tiles) return this.tilesTable();
     if (!model || !model.panels) return { columns: [], rows: [] };
     const visits = model.panels.some((panel) => panel.visit !== null && panel.visit !== undefined);
@@ -2415,6 +2850,20 @@ class GroupComparison {
     return { columns, rows };
   }
 
+  // The grid's table: the rows R was handed for its cells, one per
+  // participant, biomarker and visit, of the two groups compared.
+  gridTable() {
+    const { grid, state, settings } = this;
+    const columns = [
+      { value_col: settings.id_col, label: 'Participant' },
+      { value_col: 'biomarker', label: 'Biomarker' },
+      { value_col: 'visit', label: 'Visit' },
+      { value_col: 'x', label: this.labelOf(state.groupBy) },
+      { value_col: 'y', label: VALUE_LABELS[state.valueType] || state.valueType }
+    ];
+    return { columns, rows: grid.pair ? grid.data : [] };
+  }
+
   /** The placeholders a download's file name is made of, after the chart's name. */
   get viewFields() {
     return ['measure', 'visits', 'group'];
@@ -2429,11 +2878,14 @@ class GroupComparison {
     const { state, model, tiles } = this;
     // The participants drawn: in the one biomarker's panels, or, on the tiles,
     // behind a point of any of them.
+    // On the grid, behind a cell: the rows of the two groups compared.
     const records = model
       ? model.panels.flatMap((panel) => panel.records)
-      : tiles
-        ? tiles.tiles.flatMap((tile) => tile.records)
-        : [];
+      : this.grid
+        ? this.grid.data
+        : tiles
+          ? tiles.tiles.flatMap((tile) => tile.records)
+          : [];
     const ids = new Set();
     for (const record of records) ids.add(record[this.settings.id_col] ?? record.id);
     return {

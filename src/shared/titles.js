@@ -166,12 +166,15 @@ const countOf = (count) => {
  * Treatment n = 91` for up to four groups; and for more, the smallest and the
  * largest with how many there are, `n = 179 to 186 across 12 biomarkers`.
  * @param {number|object} counts What R returned as `counts`.
- * @param {string} [of] What the counts are of, for many: `'biomarkers'`.
+ * @param {string} [of] What the counts are of, for many: `'biomarkers'`; or
+ *   `'rows'` where R's one count is of rows of values and not of participants,
+ *   written `11304 rows of values`.
  * @returns {?string} The counts, or null when R returned none.
  */
 export function countsText(counts, of = 'groups') {
   const one = countOf(counts);
-  if (one !== null) return `n = ${one}`;
+  // One count is a number of participants, unless the chart says it is of rows.
+  if (one !== null) return of === 'rows' ? `${one} rows of values` : `n = ${one}`;
   if (counts === null || typeof counts !== 'object' || Array.isArray(counts)) return null;
   const entries = [];
   for (const [group, count] of Object.entries(counts)) {

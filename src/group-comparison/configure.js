@@ -18,6 +18,7 @@ import {
 } from '../shared/settings.js';
 import { DOWNLOAD_DEFAULTS, TITLE_DEFAULTS } from '../shared/titles.js';
 import { checkGrouping, isCut } from '../shared/cut.js';
+import { OPENING_VIEWS } from './grid.js';
 
 // What every chart's settings share is in src/shared/settings.js; the two this
 // file has always exported are still reached from here.
@@ -25,6 +26,8 @@ export { coreSettings, fieldSpec } from '../shared/settings.js';
 
 /** The marks a value can be drawn as. */
 export const MARKS = Object.freeze(['box', 'violin', 'points']);
+
+export { OPENING_VIEWS } from './grid.js';
 
 /** The scales of the value axis. */
 export const Y_SCALES = Object.freeze(['linear', 'log']);
@@ -93,9 +96,17 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // of the results at the baseline visit.
   tile_summary: 'median',
   tile_min_spread: 1.25,
-  // Of the overview v0.2.0 drew, a page of biomarkers at a time. The tiles
-  // draw every biomarker, so neither applies to them; both are still read and
-  // checked, so settings and a specification written for v0.2.0 are not refused.
+  // Which form the opening view takes, with no biomarker chosen: the trend
+  // tiles, or the difference grid, a row per biomarker and a column per visit,
+  // each cell the standardised difference between two groups.
+  opening_view: 'tiles',
+  // The two groups the grid compares, first and second: the difference is the
+  // first minus the second. Null means the first two groups drawn.
+  grid_groups: null,
+  // How many biomarkers a page of the grid holds, and the page it opens on,
+  // counted from zero: R is asked for the page drawn. The tiles draw every
+  // biomarker and read neither. They are the settings of the paged overview
+  // v0.2.0 drew, so a specification written for it is read as it was.
   overview_limit: 12,
   page: 0,
   // The listing of participants.
@@ -110,6 +121,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // every visit in one request, and how R adjusts the p-values across them.
   statistic_by_visit: 'Analyze_GroupDifferenceBy',
   visit_adjustment: 'none',
+  // For the difference grid: the R function that answers every cell in one
+  // request. Null means no grid is offered.
+  statistic_grid: 'Analyze_DifferenceGrid',
   waiting_note: null,
   // A way back, when another chart opened this one in its place.
   back: null,
@@ -173,6 +187,26 @@ export function syncSettings(overrides) {
   if (!Number.isInteger(settings.page) || settings.page < 0) {
     refuse('`page` must be a whole number, from 0.');
   }
+  if (!OPENING_VIEWS.includes(settings.opening_view)) {
+    refuse(`\`opening_view\` must be one of ${OPENING_VIEWS.join(', ')}.`);
+  }
+  if (settings.grid_groups !== null) {
+    const pair = settings.grid_groups;
+    if (
+      !Array.isArray(pair) ||
+      pair.length !== 2 ||
+      !pair.every((group) => isText(group) || typeof group === 'number') ||
+      String(pair[0]) === String(pair[1])
+    ) {
+      refuse(
+        '`grid_groups` must name two different groups, first and second, as the difference ' +
+          'grid compares them (the first minus the second), or be null for the first two drawn.'
+      );
+    }
+  }
+  if (settings.statistic_grid !== null && !isText(settings.statistic_grid)) {
+    refuse('`statistic_grid` must be the name of an R function, or null for no difference grid.');
+  }
   if (!TILE_SUMMARIES.includes(settings.tile_summary)) {
     refuse(`\`tile_summary\` must be one of ${TILE_SUMMARIES.join(', ')}.`);
   }
@@ -224,6 +258,7 @@ export function syncSettings(overrides) {
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
   settings.visits = textList(settings.visits, 'visits', { empty: true });
   settings.levels = textList(settings.levels, 'levels', { empty: true });
+  if (settings.grid_groups !== null) settings.grid_groups = settings.grid_groups.map(String);
   // A list of none is a list: it names no visit, and the pattern is not read.
   settings.unscheduled_visit_values = textList(
     settings.unscheduled_visit_values,
