@@ -2408,9 +2408,8 @@ test.describe('correlation matrix: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -2418,8 +2417,8 @@ test.describe('correlation matrix: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^correlationMatrix\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Correlation matrix');
     expect(

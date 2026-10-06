@@ -59,13 +59,13 @@ const screenshots = ['GC-DRAW-002-counts.png', 'GC-DRAW-001-boxes.png', 'GC-DRAW
 const render = (overrides = {}) =>
   renderEvidencePage({ entry, config, requirements, evidence, screenshots, ...overrides });
 const row = (html, id) =>
-  html.match(new RegExp(`<li class="requirement" id="${id}"[\\s\\S]*?</li>\\n`))[0];
+  html.match(new RegExp(`<tr class="requirement" id="${id}"[\\s\\S]*?</tr>\\n`))[0];
 const fact = (html, id) => html.match(new RegExp(`id="${id}">([\\s\\S]*?)</dd>`))[1];
 
 describe('evidence page', () => {
   it('CORE-SITE-006: every requirement is listed in the matrix’s order with its text (#7)', () => {
     const html = render();
-    const ids = [...html.matchAll(/<li class="requirement" id="([^"]+)"/g)].map((m) => m[1]);
+    const ids = [...html.matchAll(/<tr class="requirement" id="([^"]+)"/g)].map((m) => m[1]);
     expect(ids).toEqual(['GC-DRAW-001', 'GC-DRAW-002', 'GC-LIST-001']);
     expect(row(html, 'GC-DRAW-001')).toContain(
       'A box is drawn per level of the <code>group</code> variable.'
@@ -91,7 +91,7 @@ describe('evidence page', () => {
     expect(second).toContain('data-status="fail"');
     expect(second).toContain('<span class="chip status-fail">fail</span>');
     expect(fact(html, 'fact-tests')).toContain('3 ');
-    expect(fact(html, 'fact-tests')).toContain('(1 unit, 2 browser)');
+    expect(fact(html, 'fact-tests')).toContain('1 unit · 2 browser');
     expect(fact(html, 'fact-result')).toContain('1 test failing');
   });
 
@@ -138,6 +138,17 @@ describe('evidence page', () => {
     expect(row(html, 'GC-LIST-001')).not.toContain('<img');
     expect(fact(html, 'fact-screenshots')).toBe('2');
     expect(fact(render({ screenshots: [] }), 'fact-screenshots')).toBe('0');
+    // Every screenshot shown is shown once more, larger, with what it is of,
+    // in the matrix's order; a file named for no requirement of the module is
+    // in neither place.
+    const visual = html.match(/<section id="visual-evidence">[\s\S]*?<\/section>/)[0];
+    expect([...visual.matchAll(/<figcaption>(.*?)<\/figcaption>/g)].map((m) => m[1])).toEqual([
+      '<code>GC-DRAW-001</code> — boxes',
+      '<code>GC-DRAW-002</code> — counts'
+    ]);
+    expect(visual).toContain('href="evidence/GC-DRAW-001-boxes.png"');
+    expect(html).not.toContain('GC-DRAW-0011-other.png');
+    expect(render({ screenshots: [] })).not.toContain('id="visual-evidence"');
   });
 
   it('CORE-SITE-007: the build is told of a screenshot the evidence names that is not committed (#7)', () => {
@@ -186,7 +197,22 @@ describe('evidence page', () => {
     expect(html).toContain(
       'href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/evidence/group-comparison/evidence.json"'
     );
-    expect(html).toContain('href="api.html"');
-    expect(html).toContain('href="../gallery/index.html"');
+    // The tabs of a module's pages, as safety.viz's chart pages have them: a
+    // chart's live demo, this page and the reference. The gallery is in the
+    // header of every page.
+    const tabsOf = (page) => page.match(/<nav class="page-tabs"[\s\S]*?<\/nav>/)[0];
+    const tabs = tabsOf(render({ entry: { ...entry, demo: 'group-comparison.js' } }));
+    expect([...tabs.matchAll(/<a [^>]*>([^<]+)<\/a>/g)].map((m) => m[1])).toEqual([
+      'Live demo',
+      'Test evidence',
+      'API reference'
+    ]);
+    expect(tabs).toContain('<a class="current" aria-current="page" href="evidence.html">');
+    expect(tabs).toContain('href="index.html"');
+    expect(tabs).toContain('href="api.html"');
+    // A shared part has no live demo, and no tab for one.
+    expect(entry.demo).toBeUndefined();
+    expect(tabsOf(html)).not.toContain('Live demo');
+    expect(tabsOf(html)).toContain('href="api.html"');
   });
 });

@@ -1,6 +1,6 @@
 {
   "module": "cross-tab",
-  "generatedAt": "2026-10-06T06:04:50.215Z",
+  "generatedAt": "2026-10-06T03:48:14.737Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37421730255",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37421730255"
+    "id": "37410653136",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37410653136"
   },
   "records": [
     {
@@ -114,6 +114,46 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: every page is styled by safety.viz’s stylesheet as it was copied, published with its record, and then by the site’s own (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: the gallery’s cards, a module’s tabs, the fact panel, the evidence table and the reference’s sidebar are drawn by safety.viz’s rules (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: every page carries the header and the footer: the name and version, a Gallery list of every published chart, and links that all lead somewhere (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: the Gallery list opens from its button and from the keyboard, leads to a chart’s live demo, and the header marks the page a reader is on (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-021: the header holds at a 390px-wide viewport on every kind of page, and the Gallery list opens under it, on the screen (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-021"],
+      "issueRefs": [91],
       "screenshots": []
     },
     {
@@ -749,7 +789,7 @@
       "screenshots": []
     },
     {
-      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "test": "gallery the home page heads its word about the charts for one chart and for several (#26)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": [],
@@ -1034,6 +1074,62 @@
       "status": "pass",
       "requirementIds": [],
       "issueRefs": [1],
+      "screenshots": []
+    },
+    {
+      "test": "the copied site styles CORE-SITE-018: a copied file that is changed, missing, or beside one the record does not name fails the check, and the second check holds each file to safety.viz at the recorded commit (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the copied site styles CORE-SITE-018: safety.viz’s site stylesheet and page shell are in site/vendor/safety.viz-site/ with a record naming the repository, its dev branch, the commit and each file, and the copy matches its record (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the header’s Gallery entry lists each published chart, leading to its live demo, and is a plain link while none is published (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the shell’s header, navigation and footer are the copied shell’s, and its header script is the copied shell’s, character for character (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every class a page writes is styled by one of the two stylesheets, and the site’s own styles no class the pages do not write (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every page loads the copied stylesheet and then the site’s own, by paths that hold at any depth (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, and writes every colour and typeface as one of them (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
       "screenshots": []
     }
   ]

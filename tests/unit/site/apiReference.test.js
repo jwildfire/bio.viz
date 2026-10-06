@@ -120,6 +120,11 @@ describe('API reference page', () => {
     for (const [, id] of contents.matchAll(/href="#([^"]+)"/g)) {
       expect(page).toContain(`id="${id}"`);
     }
+    // The list is a narrow column beside the page (#91). A signature too long
+    // for it breaks after its opening bracket, not in the middle of a word;
+    // the heading it leads to is written as the file has it.
+    expect(contents).toContain('<code>createConnection(<wbr>options)</code>');
+    expect(page).not.toContain('<h2 id="createconnectionoptions"><code>createConnection(<wbr>');
   });
 
   it('CORE-SITE-009: a link to another reference file goes to that module’s page, and the page names the file it was rendered from (#7)', () => {

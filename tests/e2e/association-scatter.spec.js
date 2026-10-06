@@ -1823,9 +1823,8 @@ test.describe('association scatter: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -1833,8 +1832,8 @@ test.describe('association scatter: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^associationScatter\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Association scatter');
     expect(

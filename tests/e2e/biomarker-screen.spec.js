@@ -1507,8 +1507,8 @@ test.describe('biomarker screen: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^biomarkerScreen\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/biomarker-screen\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Biomarker screen');
     expect(
