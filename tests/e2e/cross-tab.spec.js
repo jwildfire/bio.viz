@@ -387,6 +387,72 @@ test.describe('cross-tabulation: the statistics line', () => {
     expect(errors).toEqual([]);
   });
 
+  test('CT-STAT-018: for a table with a column below R’s minimum group size, the page prints Fisher’s exact test as R computed it, with R’s note naming the table’s variable, and at 390px does not scroll sideways; the chi-square test of the same table still prints R’s reason and no number (#104)', async ({
+    browser
+  }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    const errors = watch(page);
+    await open(page);
+    const CUT = (at) => ({ measure: 'CRP', visit: 'Baseline', cut: [at] });
+    await withStored(
+      page,
+      stored('response-by-crp-9.5-fisher', 'response-by-crp-10-fisher', 'response-by-crp-10-chisq'),
+      { row_by: 'RESPONSE', col_by: CUT(9.5), test: 'fisher' }
+    );
+    // Three participants above the cut: Fisher's exact test, as R computed it.
+    const three = caseOf('response-by-crp-9.5-fisher');
+    expect(three.col_totals).toEqual([197, 3]);
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expectTable(await tableOf(page), three);
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      "Fisher's Exact Test for Count Data: p = 0.556 (n = 200). Exploratory, unadjusted."
+    );
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(resultText(three));
+    await expect(line(page).locator('.bv-stat-estimate')).toHaveText(
+      /^odds ratio \(Non-responder \/ Responder, odds of ≤ 9\.5 against > 9\.5\): [\d.]+, 95% confidence interval [\d.]+ to [\d.]+\.$/
+    );
+    await expect(line(page).locator('.bv-stat-remark')).toHaveText([
+      "R’s note: Fisher's exact test is exact at any count, so the minimum group size of 5 is not applied to it. Below it here: CRP at Baseline, cut at 9.5 = > 9.5 has 3."
+    ]);
+    await expect(line(page)).not.toContainText('col =');
+    const [asked] = await page.evaluate(() => window.__ct.chart.statistics());
+    expect(keyed({ ...asked, value: asked.answer.value })).toEqual(keyed(three));
+    const measure = () =>
+      page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth
+      }));
+    expect(await measure()).toEqual({ viewport: 390, scrollWidth: 390 });
+
+    // Two above the cut: R's p-value is 1, which fisher.test() returns a
+    // rounding above it. It is printed, as the largest a p-value is shown.
+    const two = caseOf('response-by-crp-10-fisher');
+    expect(two.col_totals).toEqual([198, 2]);
+    expect(two.value.p_value).toBeGreaterThan(1);
+    await page.evaluate((col_by) => window.__ct.chart.setSettings({ col_by }), CUT(10));
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      "Fisher's Exact Test for Count Data: p > 0.999 (n = 200). Exploratory, unadjusted."
+    );
+    await expect(line(page)).toHaveAttribute('data-state', 'shown');
+    expectTable(await tableOf(page), two);
+    await expect(line(page).locator('.bv-stat-remark')).toContainText([
+      'Below it here: CRP at Baseline, cut at 10 = > 10 has 2.'
+    ]);
+
+    // The same table by chi-square: the minimum group size still stops it.
+    await page.evaluate(() => window.__ct.chart.setSettings({ test: 'chisq' }));
+    await expect(line(page)).toHaveAttribute('data-state', 'withheld');
+    await expect(line(page)).toContainText(
+      'Not computed: CRP at Baseline, cut at 10 = > 10 has 2. The minimum group size is 5.'
+    );
+    await expect(line(page)).not.toContainText('p =');
+    await expect(line(page)).not.toContainText('p >');
+    expect(await measure()).toEqual({ viewport: 390, scrollWidth: 390 });
+    expect(errors).toEqual([]);
+    await context.close();
+  });
+
   test('CT-STAT-012: after a filter changes, the answer to the table no longer on screen is dropped when it arrives; the line shows the answer for the table drawn (#44, #58)', async ({
     page
   }) => {
@@ -648,7 +714,9 @@ test.describe('cross-tabulation: the demo, with R in the browser, live', () => {
       )
       .not.toMatch(/^(waiting|empty)$/);
 
-  async function holdToDesktop(name, settings) {
+  // `names` are the table's own names for its rows and columns, where one of
+  // R's notes names a category by the column the chart handed it.
+  async function holdToDesktop(name, settings, names) {
     const expected = caseOf(name);
     await page.evaluate((given) => window.BioVizDemo.chart.setSettings(given), settings);
     await answered();
@@ -665,7 +733,7 @@ test.describe('cross-tabulation: the demo, with R in the browser, live', () => {
     expect(differing, `${name}: within 1 part in ${1 / TOLERANCE.relative}`).toEqual([]);
     expectTable(await tableOf(page), expected);
     await expect(line(page).locator('.bv-stat-result')).toHaveText(resultText(expected));
-    const remarks = describeAnswer({ status: 'ok', value: expected.value }).remarks.map(
+    const remarks = describeAnswer({ status: 'ok', value: expected.value }, { names }).remarks.map(
       (remark) => remark.text
     );
     await expect(line(page).locator('.bv-stat-remark')).toHaveText(remarks);
@@ -708,5 +776,47 @@ test.describe('cross-tabulation: the demo, with R in the browser, live', () => {
     expect(asked.dataId).toEqual(expected.dataId);
     expect(compareValues(expected.value, asked.answer.value).filter((row) => !row.ok)).toEqual([]);
     expectTable(await tableOf(page), expected);
+  });
+
+  test('CT-LIVE-004: response by CRP at Baseline cut at 9.5 and at 10, which leave three and two participants above the cut: Fisher’s exact test is computed by R in this browser and is desktop R’s, and the chi-square test of the table cut at 10 is withheld with R’s reason (#104)', async () => {
+    // The test before this one left the women alone: everyone again.
+    await root(page).locator('select[data-filter="SEX"]').selectOption({ index: 0 });
+    await answered();
+    const CUT = (at) => ({ measure: 'CRP', visit: 'Baseline', cut: [at] });
+    const three = await holdToDesktop(
+      'response-by-crp-9.5-fisher',
+      { row_by: 'RESPONSE', col_by: CUT(9.5), test: 'fisher' },
+      { row: 'RESPONSE', col: 'CRP at Baseline, cut at 9.5' }
+    );
+    expect(three.col_totals).toEqual([197, 3]);
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      "Fisher's Exact Test for Count Data: p = 0.556 (n = 200). Exploratory, unadjusted."
+    );
+    await captureEvidence(
+      root(page).locator('.sv-main'),
+      'CT-LIVE-004',
+      'fisher-on-a-small-margin'
+    );
+    const two = await holdToDesktop(
+      'response-by-crp-10-fisher',
+      { col_by: CUT(10) },
+      { row: 'RESPONSE', col: 'CRP at Baseline, cut at 10' }
+    );
+    expect(two.col_totals).toEqual([198, 2]);
+    await expect(line(page).locator('.bv-stat-result')).toHaveText(
+      "Fisher's Exact Test for Count Data: p > 0.999 (n = 200). Exploratory, unadjusted."
+    );
+    // By chi-square the same table is withheld, by R, in R's words.
+    const small = caseOf('response-by-crp-10-chisq');
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ test: 'chisq' }));
+    await answered();
+    await expect(line(page)).toHaveAttribute('data-state', 'withheld');
+    const [asked] = await page.evaluate(() => window.BioVizDemo.chart.statistics());
+    expect(asked.answer.form).toBe('browser');
+    expect(asked.answer.value.status).toBe('too_small');
+    expect(asked.answer.value.reason).toBe(small.value.reason);
+    await expect(line(page)).toContainText(
+      'Not computed: CRP at Baseline, cut at 10 = > 10 has 2. The minimum group size is 5.'
+    );
   });
 });

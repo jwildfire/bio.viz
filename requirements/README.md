@@ -7,12 +7,12 @@ Tests are named by the requirement IDs in these matrices, so a test result can b
 | Matrix                                           | Module              | Rows |
 | ------------------------------------------------ | ------------------- | ---: |
 | [core.md](core.md)                               | core                |   81 |
-| [r-connection.md](r-connection.md)               | r-connection        |   84 |
+| [r-connection.md](r-connection.md)               | r-connection        |   85 |
 | [group-comparison.md](group-comparison.md)       | group-comparison    |  197 |
 | [association-scatter.md](association-scatter.md) | association-scatter |   87 |
 | [correlation-matrix.md](correlation-matrix.md)   | correlation-matrix  |   74 |
 | [biomarker-screen.md](biomarker-screen.md)       | biomarker-screen    |   78 |
-| [cross-tab.md](cross-tab.md)                     | cross-tab           |   31 |
+| [cross-tab.md](cross-tab.md)                     | cross-tab           |   38 |
 | [stratified-survival.md](stratified-survival.md) | stratified-survival |   38 |
 
 Row counts are the rows the extractor recognizes; `npm run requirements:check` prints the current count.
