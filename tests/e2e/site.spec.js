@@ -571,6 +571,21 @@ test.describe('styles and header', () => {
     const body = await page.locator('.api-body').boundingBox();
     expect(body.x).toBeGreaterThan(toc.x + toc.width);
     expect(Math.abs(body.y - toc.y)).toBeLessThan(2);
+
+    // The site's own rules stop at a chart. The page wraps a long string
+    // anywhere, so that nothing runs past a phone's edge; a chart's parts wrap
+    // as the chart has them. And a chart's many-choice control, a summary line
+    // as the site's folded lists are, is not drawn in the site's accent.
+    await page.goto('/_site/group-comparison/index.html');
+    await expect(page.locator('#chart summary').first()).toBeVisible();
+    expect(await drawn('body', ['overflowWrap'])).toEqual({ overflowWrap: 'anywhere' });
+    expect(await drawn('#chart', ['overflowWrap'])).toEqual({ overflowWrap: 'normal' });
+    await page.goto('/_site/core/evidence.html');
+    const accent = (await drawn('#shared-tests summary', ['color'])).color;
+    expect(accent).toBe('rgb(194, 65, 12)');
+    await page.goto('/_site/group-comparison/index.html');
+    await expect(page.locator('#chart summary').first()).toBeVisible();
+    expect((await drawn('#chart summary', ['color'])).color).not.toBe(accent);
   });
 
   test('CORE-SITE-020: every page carries the header and the footer: the name and version, a Gallery list of every published chart, and links that all lead somewhere (#91)', async ({

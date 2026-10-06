@@ -34,6 +34,13 @@ body {
   overflow-wrap: normal;
 }
 
+/* That stops at a chart. A chart's own parts wrap as the chart has them, on a
+   demo page as on any page it is put in: a table heading is not broken inside
+   a word because the page around it would be. */
+#chart {
+  overflow-wrap: normal;
+}
+
 /* Code wraps rather than scrolls: a phone reader sees the whole snippet. */
 pre {
   white-space: pre-wrap;
