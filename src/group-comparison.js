@@ -163,10 +163,12 @@ const CELL_WORDS = { withheld: 'not computed', error: 'error', refused: 'not sho
 // A visit's column is never narrower than this, in pixels: narrower, and the
 // picture and the table under it scroll together inside the chart.
 const VISIT_WIDTH = 50;
+// The table's first column, the row headings', is never narrower than this.
+const GUTTER_LEAST = 64;
 // A visit's name in the table's heading: the room its column keeps beside it,
 // and how small it is set, in ems, before its column is widened instead.
 const NAME_ROOM = 5;
-const NAME_SCALE_LEAST = 0.8;
+const NAME_SCALE_LEAST = 0.75;
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's
@@ -197,9 +199,9 @@ ${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .bv-time-scroll{overflow-x:auto;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.6rem .5rem .5rem}
 .bv-group-comparison .bv-time-canvas{position:relative;height:360px}
 .bv-group-comparison .bv-time-canvas canvas{cursor:pointer}
-.bv-group-comparison .bv-time-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:.1rem 0 0;font-size:.78rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
+.bv-group-comparison .bv-time-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:.1rem 0 0;background:none;font-size:.78rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
 .bv-group-comparison .bv-time-table caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.bv-group-comparison .bv-time-table th,.bv-group-comparison .bv-time-table td{padding:.22rem .05rem;text-align:center;vertical-align:top;font-weight:400}
+.bv-group-comparison .bv-time-table th,.bv-group-comparison .bv-time-table td{padding:.22rem .05rem;border:0;background:none;color:inherit;font-family:inherit;font-size:inherit;font-weight:400;letter-spacing:normal;text-transform:none;text-align:center;vertical-align:top}
 .bv-group-comparison .bv-time-table th[scope=row]{overflow-wrap:anywhere}
 .bv-group-comparison .bv-time-table th[scope=row]{padding-right:.4rem;text-align:right;color:#3e4c59}
 .bv-group-comparison .bv-time-table tbody tr{border-top:1px solid #eef1f4}
@@ -1437,15 +1439,20 @@ class GroupComparison {
       0,
       ...table.heads.map((head) => Math.ceil(head.getBoundingClientRect().width))
     );
-    const gutter = Math.min(widest + 10, Math.max(64, Math.floor(scroll.clientWidth / 3)));
+    const count = built.visits.length;
+    const third = Math.max(GUTTER_LEAST, Math.floor(scroll.clientWidth / 3));
+    // Where that would leave the visits less than their least width, the
+    // column is as wide as what they leave, and no narrower than its own
+    // least: a heading too long for it wraps onto a second line.
+    const room = inner.clientWidth - count * VISIT_WIDTH - 8;
+    const gutter = Math.min(widest + 10, third, Math.max(GUTTER_LEAST, room));
     table.heads.forEach((head) => {
       head.style.whiteSpace = 'normal';
     });
     // A visit's name is never broken inside a word. Where its longest word is
-    // wider than a visit's column, the names are set smaller, down to four
-    // fifths; past that the columns are made as wide as the word needs, and the
+    // wider than a visit's column, the names are set smaller, down to three
+    // quarters; past that the columns are made as wide as the word needs, and the
     // block scrolls sideways inside the chart.
-    const count = built.visits.length;
     const least = gutter + count * VISIT_WIDTH + 8;
     const column = (Math.max(inner.clientWidth, least) - gutter - 8) / count;
     const word = this.widestWord(table.names[0].parentElement, built.visits);

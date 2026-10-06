@@ -4632,6 +4632,86 @@ test.describe('group comparison: on the site', () => {
     expect(await measure()).toEqual(holds);
     await captureEvidence(page.locator('#demo'), 'GC-SITE-003', 'demo-on-a-phone');
   });
+
+  test('GC-TIME-033: on the demo page, whose stylesheet styles every table heading and cell by its tag, the table under the picture over time keeps the chart’s own look; and at 390px, where the site leaves the chart 340 pixels, it holds the five visits with nothing to scroll and no visit’s name broken inside a word (#85)', async ({
+    page
+  }) => {
+    // R's hosts are out of reach: the row of tests is there, with its heading
+    // in the table's first column, and says that R could not be reached.
+    await blockR(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/_site/group-comparison/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ start_value: 'IL-6' }));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    await expect(page.locator('.bv-time-table tr[data-row="test"]')).toHaveCount(1);
+    const held = await page.locator('.bv-time-scroll').evaluate((scroll) => ({
+      page: [document.documentElement.clientWidth, document.documentElement.scrollWidth],
+      client: scroll.clientWidth,
+      scroll: scroll.scrollWidth,
+      rights: [...scroll.querySelectorAll('tr[data-row="n"]')]
+        .slice(0, 1)
+        .flatMap((row) => [...row.querySelectorAll('td[data-visit]')])
+        .map((cell) => cell.getBoundingClientRect().right),
+      names: [...scroll.querySelectorAll('thead th[data-visit] > *')].map((name) => {
+        const range = document.createRange();
+        range.selectNodeContents(name);
+        return {
+          text: name.textContent,
+          lines: new Set([...range.getClientRects()].map((box) => Math.round(box.top))).size,
+          inside: name.scrollWidth <= name.clientWidth + 1
+        };
+      })
+    }));
+    expect(held.page).toEqual([390, 390]);
+    // The table is the chart's own on a page whose stylesheet styles every
+    // table heading and cell by its tag: its headings are in the chart's face,
+    // as written, with no rule around a cell and nothing behind it.
+    const look = await page.locator('.bv-time-table').evaluate((table) => {
+      const of = (element) => {
+        const style = getComputedStyle(element);
+        return {
+          face: style.fontFamily,
+          transform: style.textTransform,
+          spacing: style.letterSpacing,
+          rule: style.borderLeftWidth,
+          behind: style.backgroundColor
+        };
+      };
+      return {
+        face: getComputedStyle(table).fontFamily,
+        behind: getComputedStyle(table).backgroundColor,
+        parts: [
+          table.querySelector('thead th[data-visit]'),
+          table.querySelector('thead th[data-visit] > *'),
+          table.querySelector('tbody th[scope=row]'),
+          table.querySelector('tbody td[data-visit]')
+        ].map(of)
+      };
+    });
+    expect(look.behind).toBe('rgba(0, 0, 0, 0)');
+    for (const part of look.parts) {
+      expect(part).toEqual({
+        face: look.face,
+        transform: 'none',
+        spacing: 'normal',
+        rule: expect.stringMatching(/^[01]px$/),
+        behind: 'rgba(0, 0, 0, 0)'
+      });
+    }
+    expect(look.parts[2].rule).toBe('0px');
+    expect(look.parts[3].rule).toBe('0px');
+    // The site's own margins leave the chart less than the bare page does.
+    expect(held.client).toBeLessThan(350);
+    expect(held.scroll).toBe(held.client);
+    expect(held.rights).toHaveLength(5);
+    expect(Math.max(...held.rights)).toBeLessThanOrEqual(390);
+    expect(held.names.map((name) => name.text)).toEqual(VISITS);
+    for (const name of held.names) {
+      expect(name.inside, name.text).toBe(true);
+      expect(name.lines, name.text).toBeLessThanOrEqual(name.text.split(' ').length);
+    }
+  });
 });
 
 // Clicks the median of a cell of the demo page's chart.
