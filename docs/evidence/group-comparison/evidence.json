@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-05T03:22:51.878Z",
+  "generatedAt": "2026-10-06T00:18:46.746Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37259173857",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37259173857"
+    "id": "37393281025",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37393281025"
   },
   "records": [
     {
@@ -341,7 +341,7 @@
       "screenshots": []
     },
     {
-      "test": "GC-FILTER-006: on the demo, filters with nobody in common leave the overview and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
+      "test": "GC-FILTER-006: on the demo, filters with nobody in common leave the tiles and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-FILTER-006"],
@@ -445,83 +445,75 @@
       "screenshots": []
     },
     {
-      "test": "GC-OVW-011: with no biomarker named the chart opens on every biomarker at every visit: a row each, a panel per visit, the number in each group, and no statistics line (#17)",
+      "test": "GC-OVW-011: with no biomarker named the chart opens on a tile per biomarker: in each a line per group in the groups’ colours across every visit, its own value axis with the range and unit printed beneath, one key above them all, and no statistics line (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-011"],
-      "issueRefs": [17],
-      "screenshots": ["GC-OVW-011-a-biomarker-row.png"]
+      "issueRefs": [],
+      "screenshots": ["GC-OVW-011-trend-tiles.png"]
     },
     {
-      "test": "GC-OVW-012: a biomarker’s row is a button that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the overview (#17)",
+      "test": "GC-OVW-012: a tile is a button named for its biomarker that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the tiles (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-012"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-013: the overview asks R for nothing: no call, no request to R’s hosts and no waiting text; opening a biomarker asks once per visit panel, and each waits and is answered for itself (#17)",
+      "test": "GC-OVW-013: the tiles ask R for nothing: no call, no request to R’s hosts and no waiting text, however they are drawn again; opening a biomarker asks once per visit panel, and each waits and is answered for itself (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-013"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-014: the group, the levels, the colour, the mark, the scale, the value and the filters apply to the overview; Panel by waits for one biomarker and says so, and there is no Statistics section (#17)",
+      "test": "GC-OVW-014: Group by, Levels, Value, Scale, Visit and the filters apply to every tile; Colour by, Panel by and Draw as are switched off there and say where they apply, and there is no Statistics section (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-014"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-015: with more biomarkers than the limit the overview draws a page of them, says how many of how many, and reaches the rest by pages (#17)",
+      "test": "GC-OVW-015: with thirty-six biomarkers every one has a tile: there are no pages and no count of how many are shown, and `overview_limit` and `page`, still read, change nothing (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-015"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-016: at 390px a biomarker’s row is a card as wide as the page, its visits two to a line, and a tap on it opens the biomarker; the page does not scroll sideways (#17)",
+      "test": "GC-OVW-016: at 390px the tiles are two to a line, each whole with its range beneath, a tap on one opens its biomarker at the chart’s top, and the page does not scroll sideways (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-016"],
-      "issueRefs": [17],
-      "screenshots": ["GC-OVW-016-a-biomarker-row-on-a-phone.png"]
+      "issueRefs": [],
+      "screenshots": ["GC-OVW-016-trend-tiles-on-a-phone.png"]
     },
     {
-      "test": "GC-OVW-017: the first draw of twelve biomarkers at five visits is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17)",
+      "test": "GC-OVW-017: the first draw of thirty-six tiles is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-017"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-018: the live demo opens on the overview, twelve biomarkers at five visits, and fetches nothing for R until a biomarker is opened (#17)",
+      "test": "GC-OVW-018: the live demo opens on the trend tiles, one per biomarker of the synthetic study with a line per arm and no statistics line, and fetches nothing for R until a biomarker is opened (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-018"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-019: on the demo the overview starts no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17)",
+      "test": "GC-OVW-019: on the demo the tiles start no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-019"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "GC-OVW-020: in the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others (#52)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-020"],
-      "issueRefs": [52],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -722,6 +714,62 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-043"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-008: on the page each tile’s line goes through the medians desktop R gives for that arm at each visit, the result and the change from baseline alike, and through R’s means when the tiles are switched to means (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-008"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-009: on the page a tile’s value axis never spans less than the set multiple of desktop R’s standard deviation of the results at the baseline visit, the range printed under the tile is the axis’s own two ends, and the multiple is a setting (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-009"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-010: a specification written by bio.viz v0.2.0 is still read and rebuilds its view: one visit, and a panel per visit, with the panels, the groups and the questions for R the released chart had; and the overview it paged, as a tile for every biomarker (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-010"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-003: with rows for unscheduled visits added to the study, such a visit is in no tile, not in the Visit control and not a panel of an opened biomarker, and a note says how many are left out and which; the Unscheduled visits control, or `unscheduled_visits`, brings them in at every level (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-003"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-004: a list of names in `unscheduled_visit_values` decides alone which visits are unscheduled, whatever the pattern says, and another pattern names others; the note counts and names what is left out (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-004"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-005: left out, an unscheduled visit is not the baseline a change is measured from: with no baseline visit named it is the first scheduled visit, and with unscheduled visits switched on, the first visit of all (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-005"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-006: a specification that names an unscheduled visit, as one written by v0.2.0 for a study that has them, is read; the visit is left out like any other, and the notice above the chart says which and by which setting, not that it is missing from the tables; with `unscheduled_visits` true in it the visit is drawn and nothing is said (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-006"],
+      "issueRefs": [84],
       "screenshots": []
     },
     {
@@ -1165,6 +1213,14 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: a specification the released chart wrote GC-TILE-010: every specification bio.viz v0.2.0 wrote is read as it stands, held by this version’s schema, and taken by the chart’s settings; the two settings its overview paged by are read, and the settings this version adds keep their defaults (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-010"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: filters that let nobody through GC-FILTER-005: with no kit on the page an empty selection lets everyone through, as it is not a filter in force (#29)",
       "suite": "unit",
       "status": "pass",
@@ -1173,7 +1229,7 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel, one biomarker or the overview, and the core still refuses a results table with no rows (#29)",
+      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel and no tile, one biomarker or every biomarker, and the core still refuses a results table with no rows (#29)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-FILTER-005"],
@@ -1405,62 +1461,6 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: the overview GC-OVW-003: the overview has one row per biomarker, in the Biomarker control’s order, and in each row one panel per visit, in visit order (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-003"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-004: every panel of the overview is what that biomarker’s own view draws at that visit: one record per participant, and nothing pooled across visits or biomarkers (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-004"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-005: each biomarker has its own value axis, shared across its visits (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-005"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-006: the group, the levels, the colour, the scale and the filters apply to every row; panels by a further variable do not, because the panels are the visits (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-006"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-007: a baseline value has no visit, so each biomarker has one panel; and for a change from baseline the one baseline visit is not drawn, where the change is the same for everyone (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-007"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-008: a page of the overview holds at most the limit, in the control’s order, and says how many it shows of how many (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-008"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-009: the levels the overview offers are the group column’s own, from the table that holds it (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-009"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
       "test": "group comparison: the statistics line GC-STAT-001: with no R attached the line reads exactly what the connection answers (#9)",
       "suite": "unit",
       "status": "pass",
@@ -1509,6 +1509,110 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: the trend tiles GC-OVW-006: the group, the levels, the value, the scale, the visits and the filters apply to every tile; a second grouping by colour, panels by a further variable and the mark do not (#17, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-006"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-OVW-009: the levels the tiles offer are the group column’s own, from the table that holds it (#17, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-009"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-OVW-020: every visit chosen keeps its place along every tile, so the tiles line up; where a group has no value at a visit it has no point there, and its line runs on to its next value (#52, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-020"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-001: one tile per biomarker, in the Biomarker control’s order, named for it with the unit of its values; in each a line per group, with a point at each visit chosen, in visit order (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-001"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-002: a point describes the records that biomarker’s own view draws for that group at that visit, one per participant from the core’s frame: their number, their median and their mean; nothing is pooled across visits or biomarkers (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-002"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-003: on the synthetic study every tile’s medians, means and counts, by arm at every visit, for the result and for the change from baseline, equal desktop R’s median(), mean() and length() (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-003"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-004: each biomarker has its own value axis: from the least point drawn to the greatest, widened about its middle until it spans the set multiple of the standard deviation of the results at the baseline visit, with a little room; the standard deviation is desktop R’s sd() (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-004"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-005: the least an axis may span is in the units of what is drawn: the standard deviation itself for a result, a baseline or a change, over the mean for a fold change and a hundred times that for a percent change, and on a logarithmic axis a ratio from the standard deviation of the logarithms; where there is no such number the axis is left at its points (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-005"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-006: the settings of the tiles: `tile_summary`, the median or the mean, the median by default, and `tile_min_spread`, a number of zero or more, 1.25 by default; a value neither can take is refused (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-006"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-007: for a change from baseline a tile keeps the baseline visit, where every line starts at no change; a baseline value has no visit, so each line is one point (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-007"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the visits one biomarker’s view draws GC-OVW-007: a baseline value has no visit, so one biomarker has one panel; and for a change from baseline the one baseline visit is not a panel, where the change is the same for everyone (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-007"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: unscheduled visits GC-UNS-001: the chart has safety.viz’s three settings of unscheduled visits, under its names and with its defaults, and a value none can take is refused by name (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-001"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: unscheduled visits GC-UNS-002: with unscheduled visits left out their rows are set aside before anything is framed: they are in no tile and no panel and are not the baseline, R is asked what it is asked of the table without them, and the identity says `unscheduled_visits: true` only when they are drawn and the results have some (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-002"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: what R is asked GC-STAT-010: the request is the function, the panel’s rows, and four arguments: the two column names, the test and whether to compare every pair (#16)",
       "suite": "unit",
       "status": "pass",
@@ -1549,11 +1653,11 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: what the chart opens on GC-OVW-002: the most biomarkers the overview draws at a time is a setting, twelve by default, and a value it cannot take is refused (#17)",
+      "test": "group comparison: what the chart opens on GC-OVW-002: `overview_limit` and `page`, the settings of the overview v0.2.0 paged, are still settings, checked as they were, so what was written for it is not refused (#17, #84)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-OVW-002"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -1602,6 +1706,14 @@
       "status": "pass",
       "requirementIds": ["GC-DATA-011"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: which level is drawn GC-LVL-001: with no biomarker chosen the chart draws every biomarker, and with one chosen that biomarker’s visits (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-LVL-001"],
+      "issueRefs": [84],
       "screenshots": []
     },
     {
@@ -1893,11 +2005,11 @@
       "screenshots": []
     },
     {
-      "test": "the many-biomarkers fixture GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds three times the overview’s limit of biomarkers (#17)",
+      "test": "the many-biomarkers fixture GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds thirty-six biomarkers, three times the study’s (#17, #84)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-OVW-010"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {

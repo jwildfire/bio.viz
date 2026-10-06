@@ -133,6 +133,8 @@ group_comparison_key <- function(dfRows, lView) {
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  # Unscheduled visits are drawn, and the results have some.
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
   lArgs <- list(
     strValueCol = "y",
     strGroupCol = "x",
@@ -261,6 +263,20 @@ recipes <- local({
     # leaves a group below R's minimum size.
     cut_case("cut-median", "median", "t"),
     cut_case("cut-too-small", list(10), "t"),
+    # A view with unscheduled visits drawn (#84): the identity says so, and is
+    # otherwise the one the same rows have without them.
+    local({
+      case <- as.list(cases[cases$case == "welch", ])
+      rows <- read_rows(case$file)
+      view <- read_view(case)
+      view$unscheduled_visits <- TRUE
+      key <- group_comparison_key(rows, view)
+      c(
+        list(case = "unscheduled-visits", file = case$file),
+        key,
+        list(value = do.call(key$name, c(list(rows), key$args)))
+      )
+    }),
     # The edge of the claim: numbers of 13 significant digits, the most for
     # which R's reading of a number is exact enough to find the fewest digits;
     # and NaN, which JSON cannot hold as a value but the chart writes "NaN".

@@ -13,7 +13,6 @@
 import { frame, visits as visitsInOrder } from '../core/frame.js';
 import { label as variableLabel } from '../core/variable.js';
 import { coreSettings } from '../shared/settings.js';
-import { pageCount, pageOf } from '../shared/paging.js';
 import { keepFiltered, levelsOf, unitOf } from '../shared/tables.js';
 import { cutOf, groupLabel, isCut } from '../shared/cut.js';
 
@@ -226,8 +225,11 @@ export function tickLabel(level, cells) {
  * @param {object} [options]
  * @param {Function} [options.filterMatches] safety.viz's test of one value
  *   against one filter's selection.
- * @param {boolean} [options.everyVisit] Draw every visit chosen, as the
- *   overview does, rather than only the ones the biomarker has values at.
+ * @param {boolean} [options.everyVisit] Keep every visit chosen, as the trend
+ *   tiles do, rather than only the ones the biomarker has values at.
+ * @param {boolean} [options.keepBaseline] Keep the one baseline visit of a
+ *   change, a fold change or a percent change, as the trend tiles do, where
+ *   every line starts from it; a panel of it is not drawn.
  * @returns {object} The panels, and what is common to them.
  */
 export function buildPanels({ results, participants }, settings, state, options = {}) {
@@ -270,13 +272,15 @@ export function buildPanels({ results, participants }, settings, state, options 
   // Only the visits the biomarker has values at, in visit order: read from
   // the results before the filters, so a visit is not dropped because the
   // filters leave nobody there.
-  // The overview keeps every visit in every row, so its rows line up: a
-  // biomarker with no result at a visit has an empty panel there.
+  // The trend tiles keep every visit in every tile, so the tiles line up: a
+  // biomarker with no result at a visit has no point there.
   const atMeasure = options.everyVisit
     ? state.visits
     : measureVisits(results, settings, state.measure);
   const asked = state.visits.filter((visit) => atMeasure.includes(visit));
-  const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
+  const drawnVisits = options.keepBaseline
+    ? asked
+    : visitsDrawn(asked, state.valueType, baselineVisits);
   const visitList = needsVisit ? drawnVisits : [null];
   const yOf = (visit) =>
     needsVisit
@@ -449,56 +453,4 @@ export function yTitle(results, settings, state) {
   if (valueType === 'percent_change') return `${words} (%)`;
   const unit = unitOf(results, settings, measure);
   return unit ? `${words} (${unit})` : words;
-}
-
-// ---- The overview ---------------------------------------------------------------
-
-/**
- * The biomarkers one page of the overview draws: at most `limit` of them, in
- * the Biomarker control's order. A page that does not exist is brought back to
- * the nearest that does.
- * @param {string[]} measures Every biomarker the control offers, in its order.
- * @param {number} limit The most biomarkers drawn at a time.
- * @param {number} [page=0] The page asked for, counted from zero.
- * @returns {{measures: string[], page: number, pages: number, from: number,
- *   to: number, total: number}} The page's biomarkers, which page it is of how
- *   many, and the first and last of them counted from one.
- */
-export function overviewPage(measures, limit, page = 0) {
-  const { items, ...rest } = pageOf(measures, limit, page);
-  return { measures: items, ...rest };
-}
-
-/**
- * How many biomarkers a page of the overview shows, of how many, in words.
- * @param {{from: number, to: number, total: number, pages: number}} page A page, as `overviewPage` gives it.
- * @returns {string} A sentence.
- */
-export const overviewCount = (page) => pageCount(page, 'in the Biomarker control’s order');
-
-/**
- * The overview: one row per biomarker of the page, each row one panel per visit
- * drawn. A row is what the single-biomarker view of that biomarker would draw,
- * without panels by a further variable: the same frames from the core, one
- * record per participant in every panel, and one value axis for the row.
- * Nothing is pooled across visits or across biomarkers.
- *
- * @param {{results: object[], participants: ?object[]}} tables The tables.
- * @param {object} settings The chart's settings (syncSettings).
- * @param {object} state What the controls are set to. Its `measure` is not
- *   read, and its `panelBy` is not applied: the panels are the visits.
- * @param {string[]} measures The biomarkers to draw, in order.
- * @param {object} [options] As `buildPanels` takes them.
- * @returns {Array<{measure: string, title: string, model: object}>} One entry
- *   per biomarker: its name, the name of its value axis, and its panels.
- */
-export function buildOverview(tables, settings, state, measures, options = {}) {
-  return measures.map((measure) => {
-    const row = { ...state, measure, panelBy: '' };
-    return {
-      measure,
-      title: yTitle(tables.results, settings, { ...row, visits: [] }),
-      model: buildPanels(tables, settings, row, { ...options, everyVisit: true })
-    };
-  });
 }

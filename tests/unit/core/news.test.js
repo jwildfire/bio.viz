@@ -41,10 +41,10 @@ describe('the release log', () => {
     }
     // The next version is open. It has no number yet, so it is the development
     // version after the release (#82). It held one line saying that nothing had
-    // merged until something did: now it says what has, under headings.
+    // merged until something did (#84): now it says what has, under headings.
     expect(all[0].heading).toBe('# bio.viz v0.2.0.9000 (Upcoming)');
     expect(all[0].body).not.toContain('_Nothing merged yet._');
-    expect(all[0].body).toMatch(/^## \S/m);
+    expect(all[0].body).toMatch(/^## What's new$/m);
     expect(released[0].heading).toBe('# bio.viz v0.2.0');
   });
 });

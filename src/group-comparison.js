@@ -3,9 +3,10 @@
 //
 //   BioViz.groupComparison('#chart', { group_by: 'ARM' }).init({ results, participants });
 //
-// It opens on an overview of every biomarker at every visit, one row per
-// biomarker, and a row opens that biomarker alone, with its visits as panels
-// and R's test under each.
+// It opens on a tile per biomarker, each a line per group through the group's
+// median at every scheduled visit, and a tile opens that biomarker alone, with
+// its visits as panels and R's test under each. Which of the two is drawn is
+// decided in src/group-comparison/level.js.
 //
 // The lifecycle is safety.viz's (init, setData, setSettings, render, resize,
 // destroy), so a page drives both libraries the same way.
@@ -21,7 +22,9 @@
 // the connection, and it prints what comes back through the shared formatters.
 
 import { createConnection } from './r/connection.js';
+import { visits as visitsInOrder } from './core/frame.js';
 import { UNUSED } from './core/reasons.js';
+import { scheduledResults } from './core/unscheduled.js';
 import {
   PALETTE,
   SCALE_LABELS,
@@ -42,7 +45,6 @@ import {
   syncHost,
   writeStatistic,
   mountToolbar,
-  renderPager,
   toolbarStyles,
   drawSafely,
   checkTables,
@@ -53,7 +55,9 @@ import {
 import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES } from './shared/tables.js';
-import { MARKS, Y_SCALES, syncSettings } from './group-comparison/configure.js';
+import { coreSettings } from './shared/settings.js';
+import { MARKS, TILE_SUMMARIES, Y_SCALES, syncSettings } from './group-comparison/configure.js';
+import { LEVELS, levelOf } from './group-comparison/level.js';
 import {
   NO_TEST_CHOSEN,
   TEST_LABELS,
@@ -67,7 +71,6 @@ import {
   testsFor
 } from './group-comparison/statistic.js';
 import {
-  buildOverview,
   buildPanels,
   categoryColumns,
   columnLevels,
@@ -76,10 +79,9 @@ import {
   listMeasures,
   listVisits,
   measureVisits,
-  overviewCount,
-  overviewPage,
   yTitle
 } from './group-comparison/structureData.js';
+import { buildTiles } from './group-comparison/tiles.js';
 
 const NONE = '';
 
@@ -88,12 +90,23 @@ const NONE = '';
 // their own, after the columns.
 const CUT_KEY = 'bv-cut:';
 
-// The Biomarker control's entry for the overview of every biomarker, as
-// safety.viz's histogram has one for every measure. In the chart's state the
-// overview is a biomarker of null.
+// The Biomarker control's entry for every biomarker, as safety.viz's histogram
+// has one for every measure. In the chart's state it is a biomarker of null.
 const OVERVIEW = 'bv_overview';
 
 const MARK_LABELS = { box: 'Box', violin: 'Violin', points: 'Points' };
+const SUMMARY_LABELS = { median: 'Medians', mean: 'Means' };
+// What a tile's lines go through, at the head of the key above the tiles.
+const SUMMARY_WORDS = { median: 'Median', mean: 'Mean' };
+const VALUE_WORDS = {
+  raw: 'result',
+  baseline: 'baseline value',
+  change: 'change from baseline',
+  fold_change: 'fold change from baseline',
+  percent_change: 'percent change from baseline'
+};
+// Said under a control that the trend tiles do not read.
+const NOT_ON_TILES = 'Applies when one biomarker is open.';
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's
@@ -101,21 +114,23 @@ const STYLE_ID = 'bio-viz-group-comparison-styles';
 const STYLES = `${lineStyles('.bv-group-comparison')}
 ${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
-.bv-group-comparison .sv-multiples.bv-overview{display:block}
-.bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
-.bv-group-comparison .bv-overview-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--bv-panel-min,150px),1fr));gap:.4rem .6rem}
-.bv-group-comparison .bv-overview-panel{min-width:0;max-width:340px}
-.bv-group-comparison .bv-overview-panel h4{font-size:.78rem;font-weight:600;margin:0 0 .1rem;color:#52616f}
-.bv-group-comparison .bv-overview-canvas{height:150px;position:relative}
-.bv-group-comparison .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .8rem;font-size:.85rem;color:#1f2933}
-.bv-group-comparison .bv-overview-pager button{font:inherit;padding:.3rem .7rem;border:1px solid #c5ccd3;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-.bv-group-comparison .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
-.bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .6rem;font-size:.8rem;color:#1f2933}
+.bv-group-comparison .sv-multiples.bv-tiles{display:block}
+.bv-group-comparison .bv-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:.6rem}
+.bv-group-comparison .bv-tile{display:flex;flex-direction:column;align-items:stretch;gap:.15rem;min-width:0;margin:0;padding:.5rem .55rem .45rem;border:1px solid #d8dee4;border-radius:8px;background:#fff;color:#1f2933;font:inherit;text-align:left;cursor:pointer}
+.bv-group-comparison .bv-tile:hover{border-color:#0b62a4;box-shadow:0 1px 4px rgba(11,98,164,.18)}
+.bv-group-comparison .bv-tile:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.bv-group-comparison .bv-tile-name{display:block;font-size:.85rem;font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+.bv-group-comparison .bv-tile-canvas{display:block;position:relative;height:74px}
+.bv-group-comparison .bv-tile-visits{display:flex;justify-content:space-between;gap:.4rem;font-size:.66rem;line-height:1.2;color:#52616f}
+.bv-group-comparison .bv-tile-visits[data-single]{justify-content:center}
+.bv-group-comparison .bv-tile-range{display:block;margin-top:.1rem;font-size:.72rem;line-height:1.25;color:#3e4c59;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.bv-group-comparison .bv-tile-empty{display:block;font-size:.72rem;color:#52616f}
+.bv-group-comparison .bv-tile-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
+.bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .3rem;font-size:.8rem;color:#1f2933}
 .bv-group-comparison .bv-legend-swatch{display:inline-block;width:.75em;height:.75em;margin-right:.35em;border-radius:2px}
 .bv-group-comparison .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
 @media (max-width:600px){
-.bv-group-comparison .bv-overview-canvas{height:118px}
-.bv-group-comparison .bv-overview-row{padding:.55rem .6rem}
+.bv-group-comparison .bv-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .bv-group-comparison .sv-chart-wrap{height:380px;padding:.5rem}
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
@@ -126,14 +141,20 @@ const NOTHING_AFTER_BASELINE =
   'The only visit chosen is the baseline visit, where this value is the same for everyone. ' +
   'Choose a later visit to draw.';
 
-// Why nothing is drawn: nobody passes the filters; or nobody that does has a
-// value for this choice; or the only visit chosen is the baseline visit of a
-// change. `rows` are the overview's, when it is the overview.
-function nothingDrawn(model, rows = [{ model }]) {
+const NO_VALUE = 'No participant has a value to draw for this choice.';
+
+// Why nothing is drawn of one biomarker: nobody passes the filters; or nobody
+// that does has a value for this choice; or the only visit chosen is the
+// baseline visit of a change.
+function nothingDrawn(model) {
   if (model.filtered === 0) return NOBODY_PASSES;
-  return model.noRows || rows.some((row) => row.model.panels.length)
-    ? 'No participant has a value to draw for this choice.'
-    : NOTHING_AFTER_BASELINE;
+  return model.noRows || model.panels.length ? NO_VALUE : NOTHING_AFTER_BASELINE;
+}
+
+// Names in a sentence: all of a few, or the first three and how many more.
+function listed(names) {
+  if (names.length <= 4) return names.join(', ');
+  return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
 }
 
 /**
@@ -146,6 +167,9 @@ class GroupComparison {
     if (!this.element) throw new Error(`bio.viz: group comparison target not found: ${element}`);
     this.settings = syncSettings(settings);
     this.tables = { results: [], participants: null };
+    this.drawTables = this.tables;
+    this.unscheduled = { results: [], visits: [] };
+    this.hiddenVisits = [];
     this.charts = [];
     this.model = null;
     this.measures = [];
@@ -154,7 +178,7 @@ class GroupComparison {
     this.filterSpecs = [];
     this.state = {};
     this.asked = [];
-    this.overview = null;
+    this.tiles = null;
     this.connect();
     this.renderShell();
   }
@@ -213,6 +237,7 @@ class GroupComparison {
       this.setSettings(settings);
     }
     this.readTables();
+    this.readVisits(this.settings.unscheduled_visits);
     this.state = this.seedState();
     this.buildProfileFeed();
     this.buildControls();
@@ -223,9 +248,9 @@ class GroupComparison {
   /**
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `test`, `pairwise`)
-   * moves its control: `start_value: null` returns to the overview of every
-   * biomarker.
+   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `tile_summary`,
+   * `unscheduled_visits`, `test`, `pairwise`) moves its control:
+   * `start_value: null` returns to the tiles of every biomarker.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -239,7 +264,12 @@ class GroupComparison {
     syncHost(this);
     if ('back' in given) mountToolbar(this);
     if ('connection' in given || 'waiting_note' in given) this.connect();
+    const offered = this.visits.all || [];
     this.readTables();
+    // The switch as the settings now give it, or as the control was left.
+    this.readVisits(
+      'unscheduled_visits' in given ? next.unscheduled_visits : this.state.unscheduledVisits
+    );
     const opening = this.seedState();
     const moved = {
       start_value: 'measure',
@@ -251,16 +281,19 @@ class GroupComparison {
       panel_by: 'panelBy',
       mark: 'mark',
       y_scale: 'yScale',
+      tile_summary: 'tileSummary',
+      unscheduled_visits: 'unscheduledVisits',
       test: 'test',
       pairwise: 'pairwise',
-      filters: 'filters',
-      // Another limit is other pages: the overview starts at its first.
-      overview_limit: 'page'
+      filters: 'filters'
     };
     for (const [setting, key] of Object.entries(moved)) {
       if (setting in given) this.state[key] = opening[key];
     }
     this.repairState(opening);
+    // A visit the settings bring back, by switching unscheduled visits on or by
+    // another rule for which they are, is drawn: it joins the visits chosen.
+    if (!('visits' in given)) this.chooseNewVisits(offered);
     this.buildProfileFeed();
     this.kit.syncProfileRail(this.host, () => this.railSettings());
     this.buildControls();
@@ -272,7 +305,18 @@ class GroupComparison {
   readTables() {
     const { results } = this.tables;
     this.measures = results.length ? listMeasures(results, this.settings) : [];
-    this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
+    // The results at scheduled visits, and the visits the rule names
+    // (src/core/unscheduled.js); readVisits says which of the two is drawn.
+    const found = scheduledResults(results, this.settings);
+    const named = new Set(found.visits);
+    this.unscheduled = {
+      results: found.results,
+      // Those with a result to draw, in visit order: what the switch brings back.
+      visits:
+        results.length && named.size
+          ? visitsInOrder(results, coreSettings(this.settings)).filter((visit) => named.has(visit))
+          : []
+    };
     this.categories = results.length ? categoryColumns(this.tables, this.settings) : [];
     // The cut variables the settings name, each once.
     this.cutOptions = [];
@@ -290,22 +334,40 @@ class GroupComparison {
       this.kit.normalizeFilterSpec(spec)
     );
     // As safety.viz's histogram does: a biomarker the table does not have opens
-    // the overview, and says so where a developer will see it.
-    const named = this.settings.start_value;
-    if (results.length && named !== null && !this.measures.includes(named)) {
+    // on every biomarker, and says so where a developer will see it.
+    const start = this.settings.start_value;
+    if (results.length && start !== null && !this.measures.includes(start)) {
       console.warn(
-        `The initial biomarker [${named}] does not exist. Defaulting to the all-biomarkers overview.`
+        `The initial biomarker [${start}] does not exist. Defaulting to the all-biomarkers overview.`
       );
     }
   }
 
-  // Whether the overview of every biomarker is what is drawn.
-  isOverview() {
-    return this.state.measure === null || this.state.measure === undefined;
+  // The tables the chart draws from and the visits it offers, with unscheduled
+  // visits drawn (`shown`) or left out. Left out, their rows are set aside
+  // before anything is listed or framed, so they are in no level of the chart:
+  // not in a tile, not in the Visit control, not a panel, and not the baseline
+  // a change is measured from. The participant profile is safety.viz's own
+  // chart of one participant, and is given every result.
+  readVisits(shown) {
+    const results = shown ? this.tables.results : this.unscheduled.results;
+    this.drawTables = { results, participants: this.tables.participants };
+    this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
+    this.hiddenVisits = shown ? [] : this.unscheduled.visits;
   }
 
-  // Opens one biomarker, or the overview (null), from the Biomarker control or
-  // from a row of the overview.
+  // Which level is drawn: every biomarker, or one biomarker's visits.
+  level() {
+    return levelOf(this.state);
+  }
+
+  // Whether the tiles of every biomarker are what is drawn.
+  atTiles() {
+    return this.level() === LEVELS.BIOMARKERS;
+  }
+
+  // Opens one biomarker, or every biomarker (null), from the Biomarker control
+  // or from a tile.
   selectMeasure(measure) {
     this.state.measure = measure;
     this.buildControls();
@@ -355,9 +417,8 @@ class GroupComparison {
     if (isCut(settings.panel_by)) panelBy = this.cutKey(settings.panel_by);
     else if (has(settings.panel_by)) panelBy = settings.panel_by;
     return {
-      // No biomarker named, or one the table does not have: the overview.
+      // No biomarker named, or one the table does not have: every biomarker.
       measure: measures.includes(settings.start_value) ? settings.start_value : null,
-      page: settings.page,
       visits: [...this.visits.start],
       valueType: settings.value_type,
       groupBy,
@@ -366,6 +427,8 @@ class GroupComparison {
       panelBy,
       mark: settings.mark,
       yScale: settings.y_scale,
+      tileSummary: settings.tile_summary,
+      unscheduledVisits: settings.unscheduled_visits,
       test: settings.test,
       pairwise: settings.pairwise,
       filters: startFilters(this)
@@ -413,14 +476,22 @@ class GroupComparison {
       return addControl(labelText, input, parent);
     };
 
-    const overview = this.isOverview();
+    const tiles = this.atTiles();
+    // A control the tiles do not read is switched off there, and says where it
+    // applies; what it is set to is kept.
+    const notOnTiles = (control) => {
+      if (!tiles) return;
+      const input = control.matches('select,input') ? control : control.querySelector('select');
+      input.disabled = true;
+      control.after(kit.createElement('small', 'bv-control-note', NOT_ON_TILES));
+    };
     const value = addSection('Value');
     select(
       'measure',
       'Biomarker',
       [[OVERVIEW, 'All Biomarkers'], ...this.measures.map((measure) => [measure, measure])],
-      overview ? OVERVIEW : state.measure,
-      // The controls differ between the overview and one biomarker.
+      tiles ? OVERVIEW : state.measure,
+      // The controls differ between the tiles and one biomarker.
       (next) => this.selectMeasure(next === OVERVIEW ? null : next),
       value
     );
@@ -437,8 +508,8 @@ class GroupComparison {
       value
     );
     if (state.valueType !== 'baseline') {
-      // With one biomarker open, the visits it has values at; in the overview,
-      // every visit.
+      // With one biomarker open, the visits it has values at; on the tiles,
+      // every visit. An unscheduled visit is offered only when they are drawn.
       const offered = this.visitsOffered();
       const shown = state.visits.filter((visit) => offered.includes(visit));
       const visits = kit.multiSelect({
@@ -494,16 +565,18 @@ class GroupComparison {
         addControl('Levels', picker, group);
       }
       const optional = [[NONE, 'None'], ...columns];
-      select(
-        'color-by',
-        'Colour by',
-        optional,
-        state.colorBy,
-        (next) => {
-          state.colorBy = next;
-          redraw(false);
-        },
-        group
+      notOnTiles(
+        select(
+          'color-by',
+          'Colour by',
+          optional,
+          state.colorBy,
+          (next) => {
+            state.colorBy = next;
+            redraw(false);
+          },
+          group
+        )
       );
       const panelBy = select(
         'panel-by',
@@ -516,18 +589,7 @@ class GroupComparison {
         },
         group
       );
-      // In the overview the panels are the visits of each biomarker: a further
-      // panel variable waits until a biomarker is opened, and the control says so.
-      if (overview) {
-        panelBy.disabled = true;
-        panelBy.after(
-          kit.createElement(
-            'small',
-            'bv-control-note',
-            'Applies when one biomarker is open. In the overview each biomarker’s panels are its visits.'
-          )
-        );
-      }
+      notOnTiles(panelBy);
     } else {
       group.append(
         kit.createElement(
@@ -539,16 +601,32 @@ class GroupComparison {
     }
 
     const display = addSection('Display');
-    select(
-      'mark',
-      'Draw as',
-      MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
-      state.mark,
-      (next) => {
-        state.mark = next;
-        redraw(false);
-      },
-      display
+    // What a tile's lines go through: a control of the tiles alone.
+    if (tiles) {
+      select(
+        'tile-summary',
+        'Tiles draw',
+        TILE_SUMMARIES.map((summary) => [summary, SUMMARY_LABELS[summary]]),
+        state.tileSummary,
+        (next) => {
+          state.tileSummary = next;
+          redraw(false);
+        },
+        display
+      );
+    }
+    notOnTiles(
+      select(
+        'mark',
+        'Draw as',
+        MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
+        state.mark,
+        (next) => {
+          state.mark = next;
+          redraw(false);
+        },
+        display
+      )
     );
     select(
       'y-scale',
@@ -562,14 +640,29 @@ class GroupComparison {
       display
     );
 
+    // Unscheduled visits, as safety.viz's results over time chart switches
+    // them: there only when the results have a visit the rule names, so the
+    // control is never one that could do nothing.
+    if (this.unscheduled.visits.length) {
+      const unscheduled = document.createElement('input');
+      unscheduled.type = 'checkbox';
+      unscheduled.dataset.control = 'unscheduled-visits';
+      unscheduled.checked = Boolean(state.unscheduledVisits);
+      unscheduled.setAttribute('aria-label', 'Show unscheduled visits');
+      unscheduled.onchange = () => this.showUnscheduled(unscheduled.checked);
+      const inline = kit.createElement('div', 'sv-control-inline');
+      inline.append(unscheduled, document.createTextNode('Show'));
+      addControl('Unscheduled visits', inline, display);
+    }
+
     // What R is asked: the test, and whether every pair of groups is compared
     // as well. The tests offered are the ones that fit the number of groups
     // drawn, so they are filled in when the chart is drawn (syncTestControls).
     this.testControl = null;
     this.pairwiseControl = null;
-    // The overview prints no test, so it offers none: the section is there once
-    // a biomarker is open.
-    if (this.settings.statistic && !overview) {
+    // The tiles print no test, so they offer none: the section is there once a
+    // biomarker is open.
+    if (this.settings.statistic && !tiles) {
       const statistics = addSection('Statistics');
       const test = document.createElement('select');
       test.dataset.control = 'test';
@@ -593,30 +686,70 @@ class GroupComparison {
     addFilterControls(this, { addSection, addControl }, () => redraw(false));
 
     addReset(() => {
+      this.readVisits(this.settings.unscheduled_visits);
       this.state = this.seedState();
       this.buildControls();
       this.render();
     });
   }
 
+  // Switches unscheduled visits on or off, from the control. A visit that
+  // comes back is drawn: it joins the visits chosen, as every visit is chosen
+  // when the chart opens.
+  showUnscheduled(shown) {
+    const offered = this.visits.all;
+    this.state.unscheduledVisits = shown;
+    this.readVisits(shown);
+    this.chooseNewVisits(offered);
+    this.buildControls();
+    this.render();
+  }
+
+  // Adds to the visits chosen the ones now offered that were not `offered`
+  // before, and drops any no longer offered.
+  chooseNewVisits(offered) {
+    const chosen = this.state.visits || [];
+    this.state.visits = this.visits.all.filter(
+      (visit) => chosen.includes(visit) || !offered.includes(visit)
+    );
+  }
+
+  // Why a specification's visits are not all drawn, when the reason is that
+  // some are unscheduled and left out: said in place of "not in the tables",
+  // which they are (src/shared/chartHost.js, noticesOf).
+  noticeOf(setting, asked, drawn) {
+    if (setting !== 'visits' || !Array.isArray(asked)) return null;
+    const left = asked.filter((visit) => this.hiddenVisits.includes(visit));
+    if (!left.length) return null;
+    const kept = drawn || [];
+    const absent = asked.filter((visit) => !left.includes(visit) && !kept.includes(visit));
+    return (
+      `Visits: ${listed(left)} ${left.length === 1 ? 'is an unscheduled visit' : 'are unscheduled visits'}, ` +
+      `left out unless \`unscheduled_visits\` is true, so the chart draws ${kept.length ? kept.join(', ') : 'none'}.` +
+      (absent.length
+        ? ` ${absent.join(', ')} ${absent.length === 1 ? 'is' : 'are'} not in the tables.`
+        : '')
+    );
+  }
+
   // The visits the Visit control offers: the open biomarker's, or every visit
-  // in the overview.
+  // on the tiles.
   visitsOffered() {
-    if (this.isOverview()) return this.visits.all;
-    return measureVisits(this.tables.results, this.settings, this.state.measure);
+    if (this.atTiles()) return this.visits.all;
+    return measureVisits(this.drawTables.results, this.settings, this.state.measure);
   }
 
   // Every level of the group column in the tables, whatever the filters are set to.
   levelsOffered() {
     if (!this.state.groupBy) return [];
-    // In the overview no one biomarker says which levels have a value: the
-    // levels are the column's own.
-    if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
+    // On the tiles no one biomarker says which levels have a value: the levels
+    // are the column's own.
+    if (this.atTiles()) return columnLevels(this.drawTables, this.state.groupBy);
     // A failure here is the drawing's to say: the chart is drawn next, through
     // drawSafely, which says it in the footnote. The control offers nothing.
     try {
       const model = buildPanels(
-        this.tables,
+        this.drawTables,
         this.settings,
         {
           ...this.drawingState(),
@@ -678,13 +811,15 @@ class GroupComparison {
     this.multiplesWrap.innerHTML = '';
     this.statLine.textContent = '';
     this.statLine.dataset.state = 'empty';
-    this.multiplesWrap.classList.remove('bv-overview');
+    this.multiplesWrap.classList.remove('bv-tiles');
     this.chartWrap.classList.remove('sv-hidden');
     this.model = null;
-    this.overview = null;
+    this.tiles = null;
     this.syncTestControls(0);
+    this.root.dataset.level = this.level();
+    this.noteHiddenVisits();
 
-    const { results } = this.tables;
+    const { results } = this.drawTables;
     const needsVisit = this.state.valueType !== 'baseline';
     if (!results.length || !this.measures.length) {
       this.footnote.textContent = 'No results to draw.';
@@ -695,14 +830,14 @@ class GroupComparison {
       this.footnote.textContent = 'Choose a visit to draw.';
       return;
     }
-    // No biomarker chosen: every biomarker, a row each. It prints no test and
-    // asks R for nothing.
-    if (this.isOverview()) {
-      this.drawOverview();
+    // No biomarker chosen: every biomarker, a tile each. They print no test and
+    // ask R for nothing.
+    if (this.atTiles()) {
+      this.drawTiles();
       return;
     }
 
-    const model = buildPanels(this.tables, this.settings, this.drawingState(), {
+    const model = buildPanels(this.drawTables, this.settings, this.drawingState(), {
       filterMatches: this.kit.filterMatches
     });
     this.model = model;
@@ -757,153 +892,237 @@ class GroupComparison {
     });
   }
 
-  // ---- The overview -----------------------------------------------------------
+  // ---- The trend tiles ---------------------------------------------------------
 
-  // Every biomarker, a row each, in the Biomarker control's order; in a row one
-  // small panel per visit, all on that biomarker's own value axis. A row is a
-  // button: a click, or Enter or Space on it, opens its biomarker. Each panel
-  // is its own Chart.js chart, as safety.viz's small multiples are, so the
-  // number alive at once is the page's biomarkers times the visits, and
-  // `overview_limit` keeps that bounded.
-  drawOverview() {
+  // Every biomarker, a tile each, in the Biomarker control's order; in a tile
+  // one line per group through the group's median (or mean) at each visit
+  // chosen, on the biomarker's own value axis, whose range is printed under
+  // it. One key above them all. A tile is a button: a click, or Enter or Space
+  // on it, opens its biomarker. Each tile is one small Chart.js chart, and
+  // every biomarker is drawn: there are no pages.
+  drawTiles() {
     const { kit, state, settings } = this;
-    const page = overviewPage(this.measures, settings.overview_limit, state.page);
-    state.page = page.page;
-    const rows = buildOverview(this.tables, settings, this.drawingState(), page.measures, {
+    const built = buildTiles(this.drawTables, settings, this.drawingState(), this.measures, {
       filterMatches: kit.filterMatches
     });
-    this.overview = { ...page, rows };
+    this.tiles = built;
     this.chartWrap.classList.add('sv-hidden');
-    this.multiplesWrap.classList.add('bv-overview');
-    this.updateOverviewNotes(rows);
-
-    const pager = () => this.overviewPager(page);
-    this.multiplesWrap.append(pager());
-    const drawn = rows.filter((row) => row.model.panels.some((panel) => panel.records.length));
-    if (!drawn.length) {
-      // Every row of the overview is framed on the same participants.
-      this.footnote.textContent = rows.length
-        ? nothingDrawn(rows[0].model, rows)
-        : NOTHING_AFTER_BASELINE;
+    this.multiplesWrap.classList.add('bv-tiles');
+    this.updateTileNotes(built);
+    if (!built.tiles.some((tile) => tile.axis)) {
+      this.footnote.textContent = built.filtered === 0 ? NOBODY_PASSES : NO_VALUE;
       return;
     }
     this.footnote.textContent = [
       'Click a biomarker to view it alone, with a test under each visit.',
-      ...this.cutNotes(drawn[0].model)
+      ...this.cutNotes(built)
     ].join(' ');
 
-    // With a second grouping, one key for the whole overview: the small panels
-    // carry no legend of their own.
-    const colors = drawn[0].model.colors;
-    if (colors.length > 1 || colors[0] !== null) {
-      const legend = kit.createElement('p', 'bv-legend');
-      legend.append(kit.createElement('span', null, `${this.labelOf(state.colorBy)}:`));
-      colors.forEach((color, index) => {
-        const entry = kit.createElement('span');
-        const swatch = kit.createElement('span', 'bv-legend-swatch');
-        swatch.style.background = this.colorOf(index);
-        entry.append(swatch, document.createTextNode(color));
-        legend.append(entry);
-      });
-      this.multiplesWrap.append(legend);
-    }
-
-    // A panel is as wide as its groups' labels need, so a row holds as many
-    // visits side by side as fit and wraps the rest: five across on a desk,
-    // fewer on a phone.
-    const groups = Math.max(...rows.map((row) => row.model.shownLevels.length), 1);
-    const narrow = this.root.clientWidth < 600;
-    const least = narrow ? 120 : 132;
-    this.multiplesWrap.style.setProperty(
-      '--bv-panel-min',
-      `${Math.min(300, Math.max(least, groups * (narrow ? 44 : 52) + 30))}px`
+    // One key for all the tiles: what a line goes through, and each group in
+    // its colour. A tile carries no legend of its own.
+    const key = kit.createElement('p', 'bv-legend bv-tile-key');
+    const by = state.groupBy ? ` by ${this.labelOf(state.groupBy)}` : '';
+    key.append(
+      kit.createElement(
+        'span',
+        null,
+        `${SUMMARY_WORDS[state.tileSummary]} ${VALUE_WORDS[state.valueType]}${by}:`
+      )
     );
+    built.groups.forEach((group) => {
+      const entry = kit.createElement('span');
+      entry.dataset.group = group.level;
+      const swatch = kit.createElement('span', 'bv-legend-swatch');
+      swatch.style.background = this.colorOf(group.index);
+      entry.append(swatch, document.createTextNode(group.level));
+      key.append(entry);
+    });
+    const spread = settings.tile_min_spread;
+    const caption = kit.createElement(
+      'p',
+      'bv-tile-caption',
+      'Each biomarker has its own value axis, printed under its tile.' +
+        (spread > 0
+          ? ` It is never narrower than ${shown(spread)} standard deviation${spread === 1 ? '' : 's'} ` +
+            'of the results at the baseline visit, so lines that differ by less stay close to flat.'
+          : '')
+    );
+    const grid = kit.createElement('div', 'bv-tile-grid');
+    this.multiplesWrap.append(key, caption, grid);
 
-    rows.forEach(({ measure, title, model }) => {
-      const row = kit.createElement('div', 'sv-multiple sv-overview-panel bv-overview-row');
-      row.dataset.measure = measure;
-      row.setAttribute('role', 'button');
-      row.tabIndex = 0;
-      row.setAttribute('aria-label', `View ${measure}`);
-      const open = () => this.openFromOverview(measure);
-      row.onclick = open;
-      row.onkeydown = (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          open();
-        }
-      };
-      row.append(kit.createElement('h3', null, title));
-      const panels = kit.createElement('div', 'bv-overview-panels');
-      row.append(panels);
-      this.multiplesWrap.append(row);
-      const shown = model.panels.filter((panel) => panel.records.length);
-      if (!shown.length) {
-        row.append(kit.createElement('p', 'bv-panel-note', 'No participant has a value to draw.'));
+    this.tileSeries = (this.tileSeries || 0) + 1;
+    built.tiles.forEach((tile, index) => {
+      const button = kit.createElement('button', 'bv-tile');
+      button.type = 'button';
+      button.dataset.measure = tile.measure;
+      button.setAttribute('aria-label', `View ${tile.measure}`);
+      button.onclick = () => this.openFromTile(tile.measure);
+      button.append(kit.createElement('span', 'bv-tile-name', tile.measure));
+      grid.append(button);
+      if (!tile.axis) {
+        button.append(
+          kit.createElement('span', 'bv-tile-empty', 'No participant has a value to draw.')
+        );
         return;
       }
-      // One value axis for the biomarker, across its visits: as far as its
-      // marks reach, so a small panel is not flattened by a value no mark shows.
-      const domain = this.domain({ extent: this.reach(model) });
-      model.panels.forEach((panel) => {
-        const cell = kit.createElement('div', 'bv-overview-panel');
-        cell.dataset.visit = panel.visit ?? '';
-        cell.append(kit.createElement('h4', null, panel.title || panel.visit || 'Baseline value'));
-        const wrap = kit.createElement('div', 'bv-overview-canvas');
-        const canvas = document.createElement('canvas');
-        wrap.append(canvas);
-        cell.append(wrap);
-        panels.append(cell);
-        if (panel.records.length) {
-          const chart = this.drawPanel(canvas, panel, model, { title, domain, compact: true });
-          chart.$measure = measure;
+      const wrap = kit.createElement('span', 'bv-tile-canvas');
+      const canvas = document.createElement('canvas');
+      wrap.append(canvas);
+      // Where the line starts and ends: the first and the last visit drawn.
+      const visits = kit.createElement('span', 'bv-tile-visits');
+      const named = tile.visits.map((visit) => visit ?? 'Baseline value');
+      if (named.length === 1) visits.dataset.single = 'true';
+      [...new Set([named[0], named[named.length - 1]])].forEach((visit) =>
+        visits.append(kit.createElement('span', null, visit))
+      );
+      const range = kit.createElement('span', 'bv-tile-range', tile.range);
+      range.id = `bv-tile-range-${this.tileSeries}-${index}`;
+      button.setAttribute('aria-describedby', range.id);
+      button.append(wrap, visits, range);
+      const chart = this.drawTile(canvas, tile);
+      chart.$measure = tile.measure;
+      chart.$tile = tile;
+    });
+  }
+
+  // One tile's chart: a line per group through its points, in visit order
+  // along the tile, with nothing that answers the pointer, because the tile it
+  // is in is what is clicked. A group with no value at a visit has no point
+  // there, and its line runs on to its next value.
+  drawTile(canvas, tile) {
+    const { state } = this;
+    const last = tile.visits.length - 1;
+    const datasets = tile.lines.map((line) => {
+      const hex = this.colorOf(line.index);
+      return {
+        label: line.level,
+        data: line.points
+          .map((point, at) => ({ x: at, y: point.value }))
+          .filter((point) => point.y !== null),
+        borderColor: hex,
+        backgroundColor: hex,
+        borderWidth: 2,
+        pointRadius: 2,
+        pointHoverRadius: 2,
+        tension: 0
+      };
+    });
+    const chart = new this.kit.Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: { datasets },
+      options: {
+        animation: false,
+        maintainAspectRatio: false,
+        responsive: true,
+        parsing: false,
+        events: [],
+        layout: { padding: { top: 2, right: 5, bottom: 2, left: 5 } },
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: {
+            type: 'linear',
+            min: last ? -0.15 : -0.5,
+            max: last ? last + 0.15 : 0.5,
+            display: false
+          },
+          y: {
+            type: state.yScale === 'log' ? 'logarithmic' : 'linear',
+            min: tile.axis.min,
+            max: tile.axis.max,
+            display: false
+          }
         }
-      });
+      },
+      plugins: [this.tileFrame(tile)]
     });
-    if (page.pages > 1) this.multiplesWrap.append(pager());
+    const said = tile.lines
+      .map(
+        (line) =>
+          `${line.level} ${line.points.map((point) => (point.value === null ? 'none' : shown(point.value))).join(', ')}`
+      )
+      .join('; ');
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute(
+      'aria-label',
+      `${tile.measure}, ${SUMMARY_WORDS[state.tileSummary].toLowerCase()} ${VALUE_WORDS[state.valueType]} at ` +
+        `${tile.visits.map((visit) => visit ?? 'baseline').join(', ')}: ${said}`
+    );
+    this.charts.push(chart);
+    return chart;
   }
 
-  // How many biomarkers are shown of how many, and, when there are more than
-  // one page of them, the way to the rest.
-  overviewPager(page) {
-    return renderPager(this.kit, page, overviewCount(page), (to) => {
-      this.state.page = to;
-      this.render();
-      // The next page starts at its top.
-      if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-    });
+  // What a tile draws beside its lines: the line it stands on, and, for a
+  // value worked out against a baseline, a dashed line where no change is.
+  tileFrame(tile) {
+    return {
+      id: 'gc-tile-frame',
+      beforeDatasetsDraw: (chart) => {
+        const { ctx, chartArea, scales } = chart;
+        ctx.save();
+        ctx.strokeStyle = '#c5ccd3';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, chartArea.bottom);
+        ctx.lineTo(chartArea.right, chartArea.bottom);
+        ctx.stroke();
+        const { reference } = tile;
+        if (reference !== null && reference > tile.axis.min && reference < tile.axis.max) {
+          const y = scales.y.getPixelForValue(reference);
+          ctx.setLineDash([2, 3]);
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
   }
 
-  // Opens a biomarker from its row. The single view replaces the overview, so
+  // Opens a biomarker from its tile. The single view replaces the tiles, so
   // the page is brought back to the chart's top, and the keyboard's place is
   // put on the Biomarker control when it is on screen.
-  openFromOverview(measure) {
+  openFromTile(measure) {
     this.selectMeasure(measure);
     if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
     const control = this.controls.querySelector('select[data-control="measure"]');
     if (control && control.offsetParent !== null) control.focus();
   }
 
-  // Above the overview: what applies to every row. The counts of who was
+  // Above the tiles: what applies to every one of them. The counts of who was
   // drawn and left out are a biomarker's own, and are given when it is opened.
-  updateOverviewNotes(rows) {
+  updateTileNotes(built) {
     const { kit, state } = this;
     const add = (text) => this.notes.append(kit.createElement('span', null, text));
-    const [first] = rows;
-    if (!first) return;
-    const { model } = first;
-    if (model.filtered !== null && model.filtered < this.tables.participants.length) {
-      add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
+    if (built.filtered !== null && built.filtered < this.tables.participants.length) {
+      add(`${built.filtered} of ${this.tables.participants.length} participants pass the filters.`);
     }
     if (state.levels) {
       const offered = this.levelsOffered();
-      const shown = offered.filter((level) => state.levels.includes(level));
-      if (shown.length < offered.length) add(`${shown.length} of ${offered.length} levels shown.`);
+      const kept = offered.filter((level) => state.levels.includes(level));
+      if (kept.length < offered.length) add(`${kept.length} of ${offered.length} levels shown.`);
     }
     if (state.valueType === 'baseline') {
-      add('A baseline value has no visit: each biomarker has one panel.');
+      add('A baseline value has no visit: each group is one point.');
+    } else if (state.valueType !== 'raw' && built.baselineVisits) {
+      add(`Baseline visit: ${built.baselineVisits.join(', ')}.`);
     }
-    this.addBaselineNote(model, add);
+  }
+
+  // Says how many unscheduled visits are left out, and which, whatever level
+  // is drawn; nothing when they are drawn or there are none.
+  noteHiddenVisits() {
+    const hidden = this.hiddenVisits;
+    if (!hidden.length) return;
+    const one = hidden.length === 1;
+    const note = this.kit.createElement(
+      'span',
+      'bv-hidden-visits',
+      `${hidden.length} unscheduled visit${one ? '' : 's'} not drawn: ${listed(hidden)}. ` +
+        `Switch on Unscheduled visits to draw ${one ? 'it' : 'them'}.`
+    );
+    note.dataset.hidden = String(hidden.length);
+    this.notes.append(note);
   }
 
   // The baseline visit of a value worked out against one, and that it is not
@@ -914,18 +1133,6 @@ class GroupComparison {
       ? ` It is not drawn: there the ${VALUE_LABELS[this.state.valueType].toLowerCase()} is the same for everyone.`
       : '';
     add(`Baseline visit: ${model.baselineVisits.join(', ')}.${notDrawn}`);
-  }
-
-  // How far a biomarker's marks reach across its panels. A box is drawn from
-  // its whiskers, the 5th and 95th percentiles; a violin and points reach the
-  // least and greatest value.
-  reach(model) {
-    if (this.state.mark !== 'box') return model.extent;
-    const cells = model.panels.flatMap((panel) => panel.cells.filter((cell) => cell.n));
-    return [
-      Math.min(...cells.map((cell) => cell.stats.q5)),
-      Math.max(...cells.map((cell) => cell.stats.q95))
-    ];
   }
 
   // The value axis: the extent of what is drawn, with a little room. On a
@@ -944,10 +1151,7 @@ class GroupComparison {
     return PALETTE[index % PALETTE.length];
   }
 
-  // `compact` is a panel of the overview: small, with no legend, no axis
-  // titles and nothing that answers the pointer, because the row it is in is
-  // what is clicked.
-  drawPanel(canvas, panel, model, { title, domain, compact = false }) {
+  drawPanel(canvas, panel, model, { title, domain }) {
     const { state } = this;
     const groupLabel = state.groupBy ? this.labelOf(state.groupBy) : '';
     const coloured = model.colors.length > 1 || model.colors[0] !== null;
@@ -973,7 +1177,7 @@ class GroupComparison {
         showLine: false,
         backgroundColor: hexToRgba(hex, 0.55),
         borderColor: hex,
-        pointRadius: state.mark === 'points' ? (compact ? 1.5 : 3) : 0,
+        pointRadius: state.mark === 'points' ? 3 : 0,
         pointHoverRadius: state.mark === 'points' ? 5 : 0,
         pointHitRadius: state.mark === 'points' ? 4 : 14
       };
@@ -987,17 +1191,14 @@ class GroupComparison {
         maintainAspectRatio: false,
         responsive: true,
         interaction: { mode: 'nearest', intersect: true },
-        ...(compact
-          ? { events: [], layout: { padding: { top: 4, right: 4 } } }
-          : { onClick: (event) => this.onChartClick(chart, panel, event) }),
+        onClick: (event) => this.onChartClick(chart, panel, event),
         plugins: {
           legend: {
-            display: coloured && !compact,
+            display: coloured,
             position: 'top',
             title: { display: coloured, text: this.labelOf(state.colorBy) }
           },
           tooltip: {
-            enabled: !compact,
             callbacks: {
               title: () => '',
               label: (context) => this.tooltip(context.raw)
@@ -1010,14 +1211,13 @@ class GroupComparison {
             min: -0.5,
             max: model.shownLevels.length - 0.5,
             grid: { display: false },
-            title: { display: Boolean(groupLabel) && !compact, text: groupLabel },
+            title: { display: Boolean(groupLabel), text: groupLabel },
             ticks: {
               autoSkip: false,
               // A panel turns its labels when they would run together, as a
               // narrow visit panel's long group names would; labels that fit
               // stay level.
-              maxRotation: compact ? 50 : 90,
-              ...(compact ? { font: { size: 10 }, padding: 2 } : {}),
+              maxRotation: 90,
               callback: (value) => (Number.isInteger(value) ? (panel.ticks[value] ?? '') : '')
             },
             afterBuildTicks: (axis) => {
@@ -1029,11 +1229,8 @@ class GroupComparison {
             min: domain[0],
             max: domain[1],
             // The ends of the axis are room about the data, not round numbers.
-            ticks: {
-              includeBounds: false,
-              ...(compact ? { font: { size: 10 }, maxTicksLimit: 4 } : {})
-            },
-            title: { display: !compact, text: title }
+            ticks: { includeBounds: false },
+            title: { display: true, text: title }
           }
         }
       },
@@ -1208,7 +1405,10 @@ class GroupComparison {
       pairwise: this.state.pairwise,
       settings: this.settings,
       state: this.drawingState(),
-      panel
+      panel,
+      // The rows framed hold unscheduled visits only when the results have
+      // some and they are switched on.
+      unscheduled: Boolean(this.state.unscheduledVisits) && this.unscheduled.visits.length > 0
     });
     const asked = {
       panel: panel.title,
@@ -1269,9 +1469,10 @@ class GroupComparison {
       panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
       mark: state.mark,
       y_scale: state.yScale,
+      tile_summary: state.tileSummary,
+      unscheduled_visits: Boolean(state.unscheduledVisits),
       test: state.test,
-      pairwise: state.pairwise,
-      page: state.page || 0
+      pairwise: state.pairwise
     };
   }
 
@@ -1288,13 +1489,13 @@ class GroupComparison {
   /**
    * The table the chart drew from, one row per participant drawn, for the
    * table download (#67): which field of a row each column holds, and its
-   * heading. In the overview, one row per participant, biomarker and visit
-   * drawn on its page of biomarkers (#78).
+   * heading. On the trend tiles, one row per participant, biomarker and visit:
+   * the values each point is the median or the mean of (#78, #84).
    * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
    */
   tableOf() {
-    const { model, state, settings, overview } = this;
-    if (!model && overview) return this.overviewTable();
+    const { model, state, settings, tiles } = this;
+    if (!model && tiles) return this.tilesTable();
     if (!model || !model.panels) return { columns: [], rows: [] };
     const visits = model.panels.some((panel) => panel.visit !== null && panel.visit !== undefined);
     const columns = [{ value_col: settings.id_col, label: 'Participant' }];
@@ -1312,23 +1513,21 @@ class GroupComparison {
     return { columns, rows };
   }
 
-  // The overview's table: every value drawn on its page of biomarkers, each
-  // row naming its biomarker and its visit. The overview draws no panel
-  // column; its values are of the one value type the controls choose.
-  overviewTable() {
-    const { overview, state, settings } = this;
+  // The tiles' table: every value behind a point of any tile, each row naming
+  // its biomarker and its visit. The tiles draw no colour and no panel column;
+  // the values are of the one value type the controls choose.
+  tilesTable() {
+    const { tiles, state, settings } = this;
+    const visits = state.valueType !== 'baseline';
     const columns = [
       { value_col: settings.id_col, label: 'Participant' },
-      { value_col: 'biomarker', label: 'Biomarker' },
-      { value_col: 'visit', label: 'Visit' }
+      { value_col: 'biomarker', label: 'Biomarker' }
     ];
+    if (visits) columns.push({ value_col: 'visit', label: 'Visit' });
     if (state.groupBy) columns.push({ value_col: 'x', label: this.labelOf(state.groupBy) });
-    if (state.colorBy) columns.push({ value_col: 'color', label: this.labelOf(state.colorBy) });
     columns.push({ value_col: 'y', label: VALUE_LABELS[state.valueType] || state.valueType });
-    const rows = overview.rows.flatMap((row) =>
-      row.model.panels.flatMap((panel) =>
-        panel.records.map((record) => ({ ...record, biomarker: row.measure, visit: panel.visit }))
-      )
+    const rows = tiles.tiles.flatMap((tile) =>
+      tile.records.map((record) => ({ ...record, biomarker: tile.measure }))
     );
     return { columns, rows };
   }
@@ -1344,24 +1543,22 @@ class GroupComparison {
    * @returns {object}
    */
   placeholders() {
-    const { state, model, overview } = this;
-    // The participants drawn: in the one biomarker's panels, or, in the
-    // overview, anywhere on its page of biomarkers.
-    const panels = model
-      ? model.panels
-      : overview
-        ? overview.rows.flatMap((row) => row.model.panels)
+    const { state, model, tiles } = this;
+    // The participants drawn: in the one biomarker's panels, or, on the tiles,
+    // behind a point of any of them.
+    const records = model
+      ? model.panels.flatMap((panel) => panel.records)
+      : tiles
+        ? tiles.tiles.flatMap((tile) => tile.records)
         : [];
     const ids = new Set();
-    for (const panel of panels) {
-      for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
-    }
+    for (const record of records) ids.add(record[this.settings.id_col] ?? record.id);
     return {
       measure: state.measure ?? 'every biomarker',
       visits: (state.visits || []).join(', '),
       value: VALUE_LABELS[state.valueType] || state.valueType,
       group: state.groupBy ? this.labelOf(state.groupBy) : '',
-      n: model || overview ? ids.size : ''
+      n: model || tiles ? ids.size : ''
     };
   }
 

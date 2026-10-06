@@ -1,7 +1,7 @@
 // The group comparison chart's demo: the chart, on the synthetic study, opening
-// on every biomarker at every visit, by arm, with R attached, in this browser.
-// A row of that overview opens one biomarker, and R is started then, the first
-// time a panel that prints a test is drawn. IL-6 is the biomarker the study was
+// on a tile for every biomarker, a line per arm across the visits, with R
+// attached, in this browser. A tile opens its biomarker, and R is started
+// then, the first time a panel that prints a test is drawn. IL-6 is the biomarker the study was
 // planted with: its change from Baseline to Week 4 differs between the arms.
 //
 // What the page sets is kept on `BioVizDemo.groupComparison`, where a script can
@@ -23,7 +23,7 @@
         'Synthetic study from gsm.bio: no real participant is shown.',
         'Filters: {filters}.'
       ],
-      // No biomarker and no visit named: the overview, at every visit.
+      // No biomarker and no visit named: the tiles, at every visit.
       start_value: null,
       visits: null,
       // The result itself, so that the baseline visit is a panel like the rest;
@@ -66,8 +66,8 @@
     function (study) {
       // Making the connection fetches nothing. R is started the first time the
       // chart asks for a test, which is the first time it draws a panel that
-      // prints one: the overview this page opens on prints none, so R starts
-      // when a biomarker is opened.
+      // prints one: the tiles this page opens on print none, so R starts when
+      // a biomarker is opened.
       var connection = window.BioViz.r.createConnection({ browser: demo.browser });
       var chart = window.BioViz.groupComparison(
         '#chart',

@@ -29,6 +29,10 @@ site/r-check/data/
 # unit tests hold each to what its tool writes.
 tests/e2e/fixtures/data/
 
+# What the released chart wrote, read from the git tag by
+# tools/write-released-specifications.mjs: its bytes are the tool's.
+tests/fixtures/group-comparison-specifications-0.2.0.json
+
 # The vendored synthetic study and its source record are written by
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/

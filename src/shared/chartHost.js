@@ -526,6 +526,8 @@ const said = (value) =>
  * What a chart made from a specification draws other than the specification
  * asks, setting by setting and filter by filter, once the chart has its
  * tables: `{ kind, name, asked, drawn, said }`, `kind` `setting` or `filter`.
+ * A setting is said not to be in the tables, unless the chart gives another
+ * reason in its `noticeOf(setting, asked, drawn)`.
  * @param {object} chart The chart, made by `fromSpecification`.
  * @returns {object[]}
  */
@@ -541,12 +543,16 @@ export function noticesOf(chart) {
     const drawn = view[key];
     if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
     const name = SETTING_NAMES[key] || `\`${key}\``;
+    // A chart that knows another reason says it in its own words (`noticeOf`).
+    const own = typeof chart.noticeOf === 'function' ? chart.noticeOf(key, asked, drawn) : null;
     notices.push({
       kind: 'setting',
       name: key,
       asked,
       drawn,
-      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
+      said:
+        own ||
+        `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
     });
   }
   const id = settings.participant_id_col || settings.id_col;

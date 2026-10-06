@@ -6,7 +6,9 @@
 //                                results on the R check page
 //   tools/r-group-comparison.R   tests/fixtures/group-comparison-r.json, the
 //                                quantiles and violin outlines the group
-//                                comparison chart's arithmetic is held to
+//                                comparison chart's arithmetic is held to,
+//                                and the medians, means and baseline standard
+//                                deviations its trend tiles are held to
 //   tools/r-group-statistics.R   tests/fixtures/group-statistics-r.json, what
 //                                gsm.bio's vendored statistics file answers for
 //                                the rows the group comparison chart hands R
@@ -64,7 +66,7 @@ const FIXTURES = [
   {
     script: 'tools/r-group-comparison.R',
     committed: 'tests/fixtures/group-comparison-r.json',
-    body: 'comparisons'
+    body: ['comparisons', 'tiles']
   },
   {
     script: 'tools/r-group-statistics.R',

@@ -8,9 +8,9 @@
 // vendored study keeps its two tables apart, so this joins one column of the
 // participant table onto the results rows of a few biomarkers.
 //
-// The second is a results table with more biomarkers than the overview draws at
-// a time, for the overview's pages. The vendored study has twelve biomarkers,
-// which is the overview's limit, so this writes a part of it three times over,
+// The second is a results table with more biomarkers than a screen holds, for
+// the group comparison chart's trend tiles, which draw every one. The vendored
+// study has twelve biomarkers, so this writes a part of it three times over,
 // under three names for each biomarker.
 
 import { sha256 } from './vendor-lib.mjs';
@@ -79,7 +79,7 @@ export function deriveResultsWithColumn(sources, spec = RESULTS_WITH_ARM) {
   };
 }
 
-// More biomarkers than the overview's default limit of twelve: thirty-six.
+// More biomarkers than a screen holds: thirty-six, three times the study's.
 export const MANY_BIOMARKERS = {
   file: 'tests/e2e/fixtures/data/results-many-biomarkers.csv',
   record: 'tests/e2e/fixtures/data/results-many-biomarkers.json',
@@ -141,8 +141,8 @@ export function deriveManyBiomarkers(sources, spec = MANY_BIOMARKERS) {
           .map((suffix) => `"${suffix}"`)
           .join(' and ')} added to the ${spec.measure_col} of every row. It makes ` +
         `${measures} biomarkers of the study's ${measures / spec.copies.length}, so that there ` +
-        'are more than the overview draws at a time. The copies are the same results under ' +
-        'other names, and say nothing about any biomarker.',
+        'are more than a screen holds. The copies are the same results under other names, and ' +
+        'say nothing about any biomarker.',
       derived_from: [
         { file: spec.sources.results, sha256: sha256(sources.results) },
         { file: spec.sources.participants, sha256: sha256(sources.participants) }
