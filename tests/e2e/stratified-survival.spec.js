@@ -776,19 +776,19 @@ test.describe('stratified survival: on a phone and on the site', () => {
     await blockR(page);
     await page.goto('/_site/gallery/index.html');
     const card = page.locator('#charts [data-module="stratified-survival"]');
-    await expect(card.locator('h3')).toHaveText('Stratified survival');
+    await expect(card.locator('h3 a')).toHaveText('Stratified survival');
     await expect(card).toContainText('Do participants with high and low levels');
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/stratified-survival\/evidence\.html$/);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
-    await expect(page.locator('h1')).toHaveText('The stratified survival chart');
+    await expect(page.locator('h1')).toContainText('The stratified survival chart');
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^stratifiedSurvival\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/stratified-survival\/index\.html$/);
-    await expect(page.locator('h1')).toHaveText('Stratified survival');
+    await expect(page.locator('h1')).toContainText('Stratified survival');
     await page.waitForFunction(() => Boolean(window.BioVizDemo && window.BioVizDemo.ready));
     await page.evaluate(() => window.BioVizDemo.ready);
     const levels = await page.evaluate(() => window.BioVizDemo.chart.model.levels);
@@ -805,16 +805,20 @@ test.describe('stratified survival: on a phone and on the site', () => {
     await blockR(page);
     await page.goto('/_site/gallery/index.html');
     const card = page.locator('#charts [data-module="stratified-survival"]');
-    await expect(card.locator('.module-status .status-experimental')).toHaveText('Experimental');
-    await expect(card.locator('.module-status')).toContainText('awaits its clinical review');
-    await card.getByRole('link', { name: 'Live demo' }).click();
-    await expect(page.locator('.hero .module-status .status-experimental')).toHaveText(
-      'Experimental'
+    // The badge is after the chart's title, as safety.viz marks an experimental
+    // chart, with the reason written out under it.
+    await expect(card.locator('h3 .site-badge')).toHaveText('Experimental');
+    await expect(card.locator('.kit-status')).toContainText('awaits its clinical review');
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
+    await expect(page.locator('h1 .site-badge')).toHaveText('Experimental');
+    await expect(page.locator('.demo-page > .kit-status')).toContainText(
+      'awaits its clinical review'
     );
     await expect(page.locator('#chart .sv-experimental')).toHaveCount(1);
     // The other charts are not marked.
     await page.goto('/_site/gallery/index.html');
-    await expect(page.locator('#charts .module-status')).toHaveCount(1);
+    await expect(page.locator('#charts .site-badge')).toHaveCount(1);
+    await expect(page.locator('#charts .kit-status')).toHaveCount(1);
   });
 
   test('SS-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#61)', async ({

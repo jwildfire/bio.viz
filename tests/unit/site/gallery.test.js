@@ -66,13 +66,25 @@ describe('gallery', () => {
     const charts = section(html, 'charts');
     expect(charts).not.toContain('No chart is published yet.');
     expect(charts).toContain('data-module="group-comparison"');
-    expect(charts).toContain('<h3>Group comparison</h3>');
+    // The card is safety.viz's gallery card: the title leads to the live demo,
+    // and its links are worded as safety.viz's are.
+    expect(charts).toContain('<li class="card" data-module="group-comparison">');
+    expect(charts).toContain(
+      '<h3><a href="../group-comparison/index.html">Group comparison</a></h3>'
+    );
     expect(charts).toContain('One value across the levels of a category.');
-    expect(charts).toContain('href="../group-comparison/evidence.html"');
-    expect(charts).toContain('href="../group-comparison/api.html"');
-    // A chart has a live demo, and its card leads to it.
-    expect(charts).toContain('<a href="../group-comparison/index.html">Live demo</a>');
-    expect(section(html, 'shared-parts')).not.toContain('Live demo');
+    expect(charts).toContain(
+      '<p class="card-links"><a href="../group-comparison/index.html">Demo</a> · ' +
+        '<a href="../group-comparison/evidence.html">Evidence</a> · ' +
+        '<a href="../group-comparison/api.html">API</a></p>'
+    );
+    // A shared part has no live demo: its title leads to its reference.
+    expect(section(html, 'shared-parts')).not.toContain('>Demo</a>');
+    expect(section(html, 'shared-parts')).toContain(
+      '<h3><a href="../core/api.html">Library core</a></h3>'
+    );
+    // The list says how many charts it holds.
+    expect(charts).toContain('<span class="gallery-count">1 published</span>');
     // The shared part stays out of the list of charts.
     expect(charts).not.toContain('data-module="core"');
   });
@@ -88,8 +100,11 @@ describe('gallery', () => {
       }),
       'charts'
     );
-    expect(withHero).toContain('src="../group-comparison/evidence/GC-DRAW-001-boxes-by-arm.png"');
-    expect(withHero).toContain('alt="Group comparison: a screenshot captured by its tests"');
+    expect(withHero).toContain(
+      '<a class="card-thumb" href="../group-comparison/index.html">' +
+        '<img src="../group-comparison/evidence/GC-DRAW-001-boxes-by-arm.png" ' +
+        'alt="Group comparison: a screenshot captured by its tests"></a>'
+    );
   });
 
   it('CORE-SITE-003: a chart that is registered but not yet available is not listed as published (#7)', () => {
@@ -107,23 +122,30 @@ describe('gallery', () => {
       status: 'experimental',
       statusNote: 'Its estimator awaits its clinical review.'
     };
+    // The badge is safety.viz's pill, after the chart's title, and the reason
+    // is written out under it; the pill's own title is the reason too.
     const badge =
-      '<p class="module-status"><span class="status-badge status-experimental">Experimental</span> ' +
-      'Its estimator awaits its clinical review.</p>';
+      ' <span class="site-badge" title="Its estimator awaits its clinical review.">' +
+      'Experimental</span>';
+    const reason = '<p class="kit-status">Its estimator awaits its clinical review.</p>';
     const gallery = section(
       renderGallery({ config: config(module(), experimental), study }),
       'charts'
     );
     expect(gallery).toContain('data-module="group-comparison"');
-    expect(gallery).toContain('<a href="../group-comparison/index.html">Live demo</a>');
-    expect(gallery).toContain(badge);
+    expect(gallery).toContain('<a href="../group-comparison/index.html">Demo</a>');
+    expect(gallery).toContain(
+      `<h3><a href="../group-comparison/index.html">Group comparison</a>${badge}</h3>${reason}`
+    );
     const home = renderHome({
       config: config(module(), experimental),
       version: '0.1.0',
       summaries: {}
     });
     expect(home).toContain('<h2>The first chart</h2>');
-    expect(home).toContain(badge);
+    expect(home).toContain(
+      `<h3><a href="group-comparison/index.html">Group comparison</a>${badge}</h3>${reason}`
+    );
     const demo = renderDemoPage({
       entry: experimental,
       version: '0.1.0',
@@ -131,11 +153,14 @@ describe('gallery', () => {
       kit: null,
       statistics: null
     });
-    expect(demo.match(/<section class="hero">[\s\S]*?<\/section>/)[0]).toContain(badge);
-    // An available chart carries no badge.
-    expect(
-      section(renderGallery({ config: config(module(), chart), study }), 'charts')
-    ).not.toContain('module-status');
+    expect(demo).toContain(`<h1>Group comparison${badge}</h1>`);
+    // The reason is above the tabs and the chart.
+    expect(demo.indexOf(reason)).toBeGreaterThan(demo.indexOf('<h1>'));
+    expect(demo.indexOf(reason)).toBeLessThan(demo.indexOf('<nav class="page-tabs"'));
+    // An available chart carries no badge and no reason.
+    const plain = section(renderGallery({ config: config(module(), chart), study }), 'charts');
+    expect(plain).not.toContain('site-badge');
+    expect(plain).not.toContain('kit-status');
     // The registry takes the status, and asks why.
     expect(validateRegistry(config(experimental))).toEqual([]);
     const { statusNote, ...unsaid } = experimental;
@@ -201,10 +226,10 @@ describe('gallery', () => {
     const one = renderHome({ config: config(module(), chart), version: '0.1.0', summaries: {} });
     expect(one).not.toContain('No charts yet');
     expect(one).toContain('<h2>The first chart</h2>');
-    expect(one).toContain('href="group-comparison/index.html">Live demo</a>');
+    expect(one).toContain('<a href="group-comparison/index.html">Demo</a>');
   });
 
-  it('the home page heads its callout for one chart and for several (#26)', () => {
+  it('the home page heads its word about the charts for one chart and for several (#26)', () => {
     const second = { ...chart, module: 'association-scatter', title: 'Association scatter' };
     const two = renderHome({
       config: config(module(), chart, second),
@@ -213,7 +238,7 @@ describe('gallery', () => {
     });
     expect(two).toContain('<h2>The charts</h2>');
     expect(two).not.toContain('The first chart');
-    expect(two).toContain('href="association-scatter/index.html">Live demo</a>');
+    expect(two).toContain('<a href="association-scatter/index.html">Demo</a>');
   });
 
   it('the home page links each module’s evidence page and API reference, and the gallery (#7)', () => {

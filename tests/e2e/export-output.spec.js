@@ -1319,10 +1319,10 @@ test.describe('getting results out: the gallery’s pictures', () => {
   }) => {
     await page.goto('/_site/gallery/index.html');
     const cards = await page.evaluate(() =>
-      [...document.querySelectorAll('li.module[data-module]')]
+      [...document.querySelectorAll('li.card[data-module]')]
         .filter((card) => card.querySelector('h3'))
         .map((card) => {
-          const picture = card.querySelector('.module-hero img');
+          const picture = card.querySelector('.card-thumb img');
           return {
             module: card.dataset.module,
             src: picture ? picture.getAttribute('src') : null
@@ -1340,7 +1340,7 @@ test.describe('getting results out: the gallery’s pictures', () => {
     await expect
       .poll(() =>
         page.evaluate(() =>
-          [...document.querySelectorAll('.module-hero img')].every(
+          [...document.querySelectorAll('.card-thumb img')].every(
             (picture) => picture.complete && picture.naturalWidth > 0
           )
         )

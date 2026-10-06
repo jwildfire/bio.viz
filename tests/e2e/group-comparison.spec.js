@@ -2153,9 +2153,8 @@ test.describe('group comparison: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/group-comparison\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -2163,8 +2162,8 @@ test.describe('group comparison: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^groupComparison\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/group-comparison\/index\.html$/);
     expect(errors).toEqual([]);
   });
