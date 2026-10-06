@@ -17,7 +17,12 @@
 // (`statisticRequest`), so the same request can be written down ahead of time,
 // by R, as a stored result.
 
-import { formatComparison, formatEstimate, formatStatistic } from '../r/formatStatistic.js';
+import {
+  formatComparison,
+  formatEstimate,
+  formatLevel,
+  formatStatistic
+} from '../r/formatStatistic.js';
 import { isCut } from '../shared/cut.js';
 import {
   createDesk,
@@ -152,6 +157,73 @@ export function statisticRequest({
   };
 }
 
+/**
+ * What the chart asks R under one biomarker over time: the group test at every
+ * visit, in one request. The rows are long, one per participant and visit,
+ * each the row the single-visit view hands R for that visit with the visit
+ * named in `visit`; R answers a row per visit, and makes the adjustment across
+ * them that the chart names. The baseline visit of a change is not sent: it is
+ * drawn and not tested.
+ *
+ * A member of the identity that is not set is left out, never written as null.
+ * It has no colour and no panel: the picture takes neither.
+ *
+ * @param {object} parts
+ * @param {string} parts.name The R function (the setting `statistic_by_visit`).
+ * @param {string} parts.test The test: `t`, `wilcoxon`, `anova` or `kruskal`.
+ * @param {string} parts.adjustment How R adjusts the p-values across the
+ *   visits, by `p.adjust()`'s name for it: `none`, `holm` or `BH`.
+ * @param {object} parts.settings The chart's settings.
+ * @param {object} parts.state What the controls are set to.
+ * @param {object} parts.built The picture, as `buildOverTime` gives it.
+ * @param {boolean} [parts.unscheduled] Whether the rows were framed with
+ *   unscheduled visits among the results, as `statisticRequest` takes it.
+ * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
+ */
+export function overTimeRequest({
+  name,
+  test,
+  adjustment,
+  settings,
+  state,
+  built,
+  unscheduled = false
+}) {
+  const tested = built.columns.filter((column) => column.tested);
+  const visits = tested.map((column) => column.visit);
+  const data = tested.flatMap((column) =>
+    column.panel.records.map((record) => ({ ...record, visit: column.visit }))
+  );
+  const filters = filtersInForce(state.filters);
+  const dataId = {
+    chart: 'group-comparison',
+    measure: state.measure,
+    value_type: state.valueType,
+    visits,
+    ...(settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {}),
+    baseline_stat: settings.baseline_stat,
+    ...(state.groupBy ? { group_by: state.groupBy } : {}),
+    groups: groupsOf(data),
+    ...(Object.keys(filters).length ? { filters } : {}),
+    ...(state.yScale === 'log' ? { positive_only: true } : {}),
+    ...(unscheduled ? { unscheduled_visits: true } : {})
+  };
+  const args = {
+    strValueCol: 'y',
+    strGroupCol: 'x',
+    strByCol: 'visit',
+    strMethod: test,
+    // The visits in visit order: R would sort their names otherwise.
+    chrBy: visits,
+    strPAdjust: adjustment
+  };
+  // As for one panel: a cut's groups are handed to R low to high, and a
+  // column's are left to R, which takes every group in the rows, the same at
+  // every visit, and sorts them as the identity does.
+  if (isCut(state.groupBy)) args.chrGroups = built.groups.map((group) => group.level);
+  return { name, data, args, dataId, rows: data.length };
+}
+
 // ---- What the line says ---------------------------------------------------------
 
 const present = (value) => value !== undefined && value !== null;
@@ -234,6 +306,101 @@ export function describeAnswer(result, context = {}) {
 }
 
 /**
+ * What the answer for a row of visits reads as: each visit's result in parts,
+ * for the row of tests under the picture, and the sentence, R's remarks and
+ * the scope for the line beneath.
+ *
+ * Every part is R's, through `formatLevel`: a visit's p-value is the one R
+ * returned as `p_value`, adjusted across the visits when R says it adjusted,
+ * and the adjustment and the number of visits it covered are R's too. Nothing
+ * is worked out here.
+ *
+ * @param {object} result What `connection.run` resolved to.
+ * @param {object} [context]
+ * @param {string} [context.scope] What the tests cover, in a sentence.
+ * @returns {{state: string, text: string, estimates: string[], pairs: null,
+ *   details: string[], remarks: Array<{kind: string, text: string}>,
+ *   scope: ?string, levels: ?object[]}} `levels` is one entry per visit R
+ *   answered, as `formatLevel` gives it, or null when R answered no row;
+ *   `details` are the sentences for the visits that have no p-value, each led
+ *   by its visit, and, where the visits' tests differ in name, every visit's.
+ */
+export function describeLevels(result, context = {}) {
+  if (!(result && result.status === 'ok')) {
+    const failure = failureOf(result);
+    return { ...plain(failure.state, failure.text), details: [], levels: null };
+  }
+  const value = result.value && typeof result.value === 'object' ? result.value : {};
+  const rows = Array.isArray(value.rows)
+    ? value.rows.filter((row) => row && typeof row === 'object' && 'by' in row)
+    : [];
+  const whole = formatStatistic(value);
+  if (!rows.length) {
+    // R answered no row: what it said of the whole request, or a refusal.
+    const said =
+      whole.status === 'shown'
+        ? plain('refused', 'p-values not shown: the result has no row for any visit.')
+        : plain(whole.status, whole.text);
+    return { ...said, details: [], remarks: remarksOf(value), levels: null };
+  }
+  const levels = rows.map((row) => formatLevel(row, 'visit'));
+  const shown = levels.filter((level) => level.status === 'shown');
+  const methods = [...new Set(shown.map((level) => level.method))];
+  const count = (visits) => (visits === 1 ? '1 visit' : `${visits} visits`);
+  let state = 'shown';
+  let text;
+  if (!shown.length) {
+    // No visit has a p-value: R's word for the whole request, said once.
+    state = whole.status === 'shown' ? 'withheld' : whole.status;
+    text = whole.status === 'shown' ? 'No visit has a p-value.' : whole.text;
+  } else {
+    const lead =
+      methods.length === 1
+        ? `${methods[0]} at each visit`
+        : 'A test at each visit, named with it beneath';
+    // R writes one adjustment on every row, and how many visits it covered.
+    const [{ label, adjustment, over }] = shown;
+    const labelled = adjustment ? `${label.replace(/\.$/, '')} across ${count(over)}.` : label;
+    text = `${lead}, on the participants drawn there: ${count(shown.length)} tested. ${labelled}`;
+  }
+  return {
+    ...plain(state, text),
+    // A visit with no p-value says why, as R worded it; and where the visits'
+    // tests differ in name, each visit's whole sentence is given.
+    details: levels
+      .filter((level) => level.status !== 'shown' || methods.length > 1)
+      .map((level) => level.text),
+    remarks: remarksOf(value),
+    scope: context.scope || null,
+    levels
+  };
+}
+
+/**
+ * What the tests under one biomarker over time cover, in plain words.
+ * @param {object} parts
+ * @param {string} parts.group The label of the column the groups come from.
+ * @param {string[]} [parts.untested] The baseline visit of a change, which is
+ *   drawn and not tested.
+ * @param {string} [parts.value] The value type in words, for that sentence.
+ * @param {Array<{label: string, values: string[]}>} [parts.filters] The filters in force.
+ * @returns {string} One or more sentences.
+ */
+export function levelsScope({ group, untested = [], value = 'value', filters = [] }) {
+  const named = group.includes(',') ? `${group},` : group;
+  const said = [
+    `Each visit has a test of its own, of the levels of ${named} on the participants drawn at that visit.`
+  ];
+  if (untested.length) {
+    said.push(
+      `${untested.join(', ')} is not tested: it is the baseline visit, where the ${value} is the same for everyone.`
+    );
+  }
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(' ');
+}
+
+/**
  * Why a panel has no test: a test compares two or more groups.
  * @param {?string[]} groups The groups the panel's rows hold, or null when no
  *   column makes a group.
@@ -292,7 +459,9 @@ export function createStatisticDesk({ connection, note = null }) {
   return createDesk({
     connection,
     note,
-    describe: describeAnswer,
+    // An answer for a row of visits reads as a row of results, one per visit.
+    describe: (result, context) =>
+      context && context.levels ? describeLevels(result, context) : describeAnswer(result, context),
     waiting: (said) => plain('waiting', said)
   });
 }

@@ -36,7 +36,9 @@ const resultOf = (name) => fromR.results.find((result) => result.case === name);
 describe('the rows R is run on', () => {
   it('GC-STAT-021: deriving each case’s rows again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#16)', () => {
     const { files, record } = deriveGroupStatistics(sources);
-    expect(files.map((entry) => entry.file)).toEqual([
+    // The cases of one panel come first; the rows of one biomarker over time
+    // follow them, and have a test of their own (GC-TIME-012).
+    expect(files.map((entry) => entry.file).slice(0, CASES.length + 1)).toEqual([
       ...CASES.map((entry) => `${entry.case}.csv`),
       'cases.csv'
     ]);

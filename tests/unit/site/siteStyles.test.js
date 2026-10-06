@@ -331,6 +331,7 @@ describe('the pages and the two stylesheets', () => {
         'api-layout',
         'card-thumb',
         'chip',
+        'evidence',
         'evidence-gallery',
         'gallery',
         'req-ids',

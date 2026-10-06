@@ -26,7 +26,8 @@
 // `formatComparison` one row of its `rows` that compares two groups,
 // `formatGroup` one row of its `rows` that is one group's own result, and
 // `formatPair` one row that is one pair of variables in a correlation matrix,
-// and `formatScreenRow` one row of a biomarker screen.
+// `formatScreenRow` one row of a biomarker screen, and `formatLevel` one row
+// that is the group test at one level of a column, a visit say.
 
 const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
 const isCount = (value) => Number.isInteger(value) && value >= 0;
@@ -567,5 +568,103 @@ export function formatScreenRow(row, groups = null) {
     adjustment,
     over,
     label
+  };
+}
+
+/**
+ * Formats one level's result from a by-level answer's `rows`: the test of the
+ * groups R ran on the rows of one level of a column, a visit say, as gsm.bio's
+ * `Analyze_GroupDifferenceBy` returns it. The p-value is `p_value`, which R
+ * adjusted across the levels that have one when it names an adjustment, and
+ * is held to the rules a whole result is held to: never without the method,
+ * each group's count and its label. Nothing is computed.
+ *
+ * @param {{by?: string, group_1?: string, n_1?: number, group_2?: string,
+ *   n_2?: number, method?: string, p_unadjusted?: number, p_value?: number,
+ *   adjustment?: string, adjusted_over?: number, status?: string,
+ *   reason?: string}} row One row of `rows`: one level. It names its groups in
+ *   `group_1`, `group_2` and so on, however many there are, with each one's
+ *   count in `n_1`, `n_2` and so on.
+ * @param {string} [of='level'] What a level is called, in the singular, where
+ *   the sentence says how many the adjustment covered: `'visit'`.
+ * @returns {{status: 'shown'|'withheld'|'error'|'refused', text: string,
+ *   result: string, by: ?string, groups: ?string[], n: ?number[],
+ *   method: ?string, p: ?string, unadjusted: ?string, adjustment: ?string,
+ *   over: ?number, label: ?string}} `text` is the whole sentence, and `result`
+ *   the same without the level's name. The parts are for a table: `by` is the
+ *   level; `groups` and `n` are the groups and their counts; `method`, `p`,
+ *   `unadjusted` and `label` are given only when `status` is `shown`: `p` is
+ *   the p-value to print, R's `p_value`, and `unadjusted` the one R computed
+ *   before any adjustment; `adjustment` is the adjustment's name, or null when
+ *   the p-value is unadjusted, and `over` how many levels R adjusted across.
+ */
+export function formatLevel(row, of = 'level') {
+  const given = row && typeof row === 'object' ? row : {};
+  const by = text(given.by);
+  const groups = [];
+  const n = [];
+  for (let at = 1; Object.hasOwn(given, `group_${at}`); at += 1) {
+    groups.push(text(given[`group_${at}`]));
+    n.push(given[`n_${at}`]);
+  }
+  const named = groups.length >= 2 && groups.every(Boolean);
+  const counted = named && n.every(isCount);
+  const none = { method: null, p: null, unadjusted: null, adjustment: null, over: null };
+  const whole = (status, result) => ({
+    status,
+    text: by ? `${by}: ${result}` : result,
+    result,
+    by,
+    groups: named ? groups : null,
+    n: counted ? n : null,
+    ...none,
+    label: null
+  });
+  if (!by) return whole('refused', refused('the row does not name its level').text);
+  if (!named) return whole('refused', refused('the row does not name its groups').text);
+  const parts = read({
+    status: given.status,
+    method: given.method,
+    p_value: given.p_value,
+    adjustment: given.adjustment,
+    reason: given.reason,
+    counts: counted ? Object.fromEntries(groups.map((group, at) => [group, n[at]])) : undefined
+  });
+  if (parts.status !== 'shown') return whole(parts.status, parts.text);
+  // The p-value R computed before any adjustment is printed beside an adjusted
+  // one, so both must be there, and how many levels the adjustment covered.
+  const raw = given.p_unadjusted;
+  if (typeof raw !== 'number' || !(raw >= 0 && raw <= 1)) {
+    return whole('refused', refused('the row has no unadjusted p-value between 0 and 1').text);
+  }
+  const unadjusted = formatP(raw);
+  let result = parts.text;
+  let over = null;
+  if (parts.adjustment) {
+    if (!isCount(given.adjusted_over) || given.adjusted_over < 1) {
+      return whole(
+        'refused',
+        refused('the row does not say how many levels its p-value was adjusted across').text
+      );
+    }
+    over = given.adjusted_over;
+    const counts = formatCounts(Object.fromEntries(groups.map((group, at) => [group, n[at]])));
+    result =
+      `${parts.method}: ${unadjusted} unadjusted, ${parts.p} adjusted across ${over} ` +
+      `${of}${over === 1 ? '' : 's'} (${counts}). ${parts.label}`;
+  }
+  return {
+    status: 'shown',
+    text: `${by}: ${result}`,
+    result,
+    by,
+    groups,
+    n,
+    method: parts.method,
+    p: parts.p,
+    unadjusted,
+    adjustment: parts.adjustment,
+    over,
+    label: parts.label
   };
 }

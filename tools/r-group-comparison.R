@@ -5,7 +5,9 @@
 # the trend tiles it opens on: for every biomarker the median, the mean and the
 # count of each arm at each visit, and the standard deviation of its results at
 # the baseline visit, which a tile's value axis is never narrower than a
-# multiple of.
+# multiple of; and about one biomarker over time: for IL-6 and CRP, by arm at
+# every visit, the count, the quantiles, the mean, the standard deviation and
+# the standard error each form of the picture is drawn from.
 #
 #   Rscript tools/r-group-comparison.R                 writes tests/fixtures/group-comparison-r.json
 #   Rscript tools/r-group-comparison.R <output file>   writes somewhere else (the check
@@ -13,7 +15,9 @@
 #
 # The chart's own arithmetic (src/group-comparison/structureData.js) is held to
 # this file by the unit tests named GC-BOX and GC-VIOLIN, and the tiles'
-# (src/group-comparison/tiles.js) by the unit and browser tests named GC-TILE.
+# (src/group-comparison/tiles.js) by the unit and browser tests named GC-TILE,
+# and the picture over time's (src/group-comparison/overTime.js) by the unit and
+# browser tests named GC-TIME.
 # The numbers in it are never typed in: rerun this script to change them.
 #
 # Base R only, and nothing of bio.viz: the tables are read from the vendored CSV
@@ -31,6 +35,11 @@
 #               visit, for the result and for the change from Baseline; and of
 #               every participant's result at Baseline, stats::sd(x), mean(x)
 #               and stats::sd(log10(x))
+#   over_time   length(x), stats::quantile(x, c(.05, .25, .5, .75, .95)),
+#               mean(x), stats::sd(x) and stats::sd(x) / sqrt(length(x)) of each
+#               arm at each visit, for the result and for the change from
+#               Baseline: a standard error describes the values drawn, and
+#               compares no group with another
 #
 # Numbers are written with 17 significant digits, which is enough to read back
 # the identical double.
@@ -156,6 +165,35 @@ visit_order <- unique(results[order(results$VISITNUM), c("VISIT", "VISITNUM")])$
 arms <- sort(unique(participants$ARM))
 tiles <- vapply(sort(unique(results$TEST), method = "radix"), tile, character(1), visits = visit_order, arms = arms)
 
+# One biomarker over time: by arm at every visit, what each form of the picture
+# is drawn from. The quantiles are quantile()'s default (type 7); the standard
+# error is the standard deviation over the square root of the count.
+over_time_cells <- function(measure, value, visits, arms) {
+  rows <- character(0)
+  for (visit in visits) {
+    values <- value_of(measure, visit, value)
+    for (arm in arms) {
+      x <- values[participants$ARM == arm & !is.na(values)]
+      q <- stats::quantile(x, c(0.05, 0.25, 0.5, 0.75, 0.95), names = FALSE)
+      rows <- c(rows, paste0(
+        "{\"visit\":", str(visit), ",\"level\":", str(arm), ",\"n\":", length(x),
+        ",\"q5\":", num(q[1]), ",\"q25\":", num(q[2]), ",\"median\":", num(q[3]),
+        ",\"q75\":", num(q[4]), ",\"q95\":", num(q[5]), ",\"mean\":", num(mean(x)),
+        ",\"sd\":", num(stats::sd(x)), ",\"se\":", num(stats::sd(x) / sqrt(length(x))), "}"
+      ))
+    }
+  }
+  paste0("[\n        ", paste(rows, collapse = ",\n        "), "\n      ]")
+}
+over_time_of <- function(measure, visits, arms) {
+  paste0(
+    "    {\"measure\":", str(measure), ",\"group_by\":\"ARM\"",
+    ",\"raw\":", over_time_cells(measure, "raw", visits, arms),
+    ",\"change\":", over_time_cells(measure, "change", visits, arms), "}"
+  )
+}
+over_time <- vapply(c("IL-6", "CRP"), over_time_of, character(1), visits = visit_order, arms = arms)
+
 lines <- c(
   "{",
   paste0(
@@ -168,6 +206,9 @@ lines <- c(
   "  ],",
   "  \"tiles\": [",
   paste(tiles, collapse = ",\n"),
+  "  ],",
+  "  \"over_time\": [",
+  paste(over_time, collapse = ",\n"),
   "  ]",
   "}"
 )

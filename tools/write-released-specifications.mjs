@@ -2,7 +2,9 @@
 // specifications of the group comparison chart written by the released chart
 // itself, bio.viz v0.2.0, with what that chart drew and asked R for each. The
 // tests named GC-TILE-010 hold this version to them: a specification the
-// released chart wrote is still read, and still rebuilds its view (#84).
+// released chart wrote is still read, and still rebuilds its view (#84). The
+// one that names a biomarker and every visit is held by GC-TIME-032: it is
+// read, and opens on the biomarker over time, not on a panel per visit (#85).
 //
 //   node tools/write-released-specifications.mjs
 //
@@ -75,6 +77,11 @@ const CASES = [
     what: 'The overview four biomarkers at a time, on its second page, by sex, on a logarithmic scale.',
     settings: { group_by: 'SEX', overview_limit: 4, y_scale: 'log' },
     then: 'next-page'
+  },
+  {
+    name: 'one-biomarker-every-visit',
+    what: 'IL-6, the result, by arm, with no visit named: v0.2.0 drew a panel for every visit, where this version draws the biomarker over time.',
+    settings: { start_value: 'IL-6', value_type: 'raw', group_by: 'ARM' }
   }
 ];
 

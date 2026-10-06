@@ -456,6 +456,246 @@
         }
       },
       "asked": []
+    },
+    {
+      "name": "one-biomarker-every-visit",
+      "what": "IL-6, the result, by arm, with no visit named: v0.2.0 drew a panel for every visit, where this version draws the biomarker over time.",
+      "specification": {
+        "format": "bio.viz specification",
+        "format_version": 1,
+        "bio_viz_version": "0.2.0",
+        "chart": "group-comparison",
+        "settings": {
+          "id_col": "USUBJID",
+          "measure_col": "TEST",
+          "value_col": "STRESN",
+          "visit_col": "VISIT",
+          "visit_order_col": "VISITNUM",
+          "unit_col": "STRESU",
+          "participant_id_col": null,
+          "baseline_visits": null,
+          "baseline_stat": "mean",
+          "start_value": "IL-6",
+          "visits": [
+            "Baseline",
+            "Week 2",
+            "Week 4",
+            "Week 8",
+            "Week 12"
+          ],
+          "value_type": "raw",
+          "group_by": "ARM",
+          "levels": null,
+          "color_by": null,
+          "panel_by": null,
+          "mark": "box",
+          "y_scale": "linear",
+          "measures": null,
+          "groups": null,
+          "max_levels": 12,
+          "filters": [
+            {
+              "value_col": "ARM",
+              "label": "ARM"
+            },
+            {
+              "value_col": "SEX",
+              "label": "SEX"
+            },
+            {
+              "value_col": "RESPONSE",
+              "label": "RESPONSE"
+            }
+          ],
+          "overview_limit": 12,
+          "page": 0,
+          "details": null,
+          "page_size": 10,
+          "statistic": "Analyze_GroupDifference",
+          "test": "t",
+          "pairwise": false,
+          "waiting_note": null,
+          "profile": true,
+          "profile_details": null,
+          "studyday_col": null,
+          "normal_col_high": null,
+          "normal_col_low": null,
+          "title": null,
+          "subtitle": null,
+          "footnotes": null,
+          "downloads": true,
+          "png_scale": 2
+        },
+        "filters": []
+      },
+      "drew": {
+        "biomarker": "IL-6",
+        "panels": [
+          {
+            "title": "Baseline",
+            "visit": "Baseline",
+            "participants": 200,
+            "groups": [
+              "Placebo n = 100",
+              "Treatment n = 100"
+            ]
+          },
+          {
+            "title": "Week 2",
+            "visit": "Week 2",
+            "participants": 185,
+            "groups": [
+              "Placebo n = 92",
+              "Treatment n = 93"
+            ]
+          },
+          {
+            "title": "Week 4",
+            "visit": "Week 4",
+            "participants": 186,
+            "groups": [
+              "Placebo n = 95",
+              "Treatment n = 91"
+            ]
+          },
+          {
+            "title": "Week 8",
+            "visit": "Week 8",
+            "participants": 188,
+            "groups": [
+              "Placebo n = 93",
+              "Treatment n = 95"
+            ]
+          },
+          {
+            "title": "Week 12",
+            "visit": "Week 12",
+            "participants": 184,
+            "groups": [
+              "Placebo n = 92",
+              "Treatment n = 92"
+            ]
+          }
+        ],
+        "overview": null
+      },
+      "asked": [
+        {
+          "panel": "Baseline",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "raw",
+            "visit": "Baseline",
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ]
+          },
+          "rows": 200
+        },
+        {
+          "panel": "Week 2",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "raw",
+            "visit": "Week 2",
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ]
+          },
+          "rows": 185
+        },
+        {
+          "panel": "Week 4",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "raw",
+            "visit": "Week 4",
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ]
+          },
+          "rows": 186
+        },
+        {
+          "panel": "Week 8",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "raw",
+            "visit": "Week 8",
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ]
+          },
+          "rows": 188
+        },
+        {
+          "panel": "Week 12",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "raw",
+            "visit": "Week 12",
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ]
+          },
+          "rows": 184
+        }
+      ]
     }
   ]
 }

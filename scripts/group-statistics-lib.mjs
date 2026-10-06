@@ -13,13 +13,15 @@
 
 import vm from 'node:vm';
 import { syncSettings } from '../src/group-comparison/configure.js';
-import { fitTest, statisticRequest } from '../src/group-comparison/statistic.js';
-import { buildPanels } from '../src/group-comparison/structureData.js';
+import { buildOverTime } from '../src/group-comparison/overTime.js';
+import { fitTest, overTimeRequest, statisticRequest } from '../src/group-comparison/statistic.js';
+import { buildPanels, measureVisits } from '../src/group-comparison/structureData.js';
 import { sha256 } from './vendor-lib.mjs';
 
 export const GROUP_STATISTICS = {
   directory: 'tests/fixtures/group-statistics',
   cases: 'tests/fixtures/group-statistics/cases.csv',
+  overTimeCases: 'tests/fixtures/group-statistics/over-time-cases.csv',
   record: 'tests/fixtures/group-statistics/SOURCE.json',
   expected: 'tests/fixtures/group-statistics-r.json',
   sources: {
@@ -117,6 +119,101 @@ export const CASES = [
   }
 ];
 
+// One biomarker over time in one view, with one test and one adjustment across
+// the visits (#85): the whole row of visits is one request. `view` is laid over
+// the view every case starts from with every visit chosen; `rows` names the
+// case whose rows this one shares, when it differs only in what R is asked of
+// them.
+export const OVER_TIME_CASES = [
+  {
+    case: 'over-time-result',
+    says: 'IL-6, the result itself, by arm across the five visits: a Welch t-test at each, unadjusted',
+    view: { valueType: 'raw' },
+    test: 't',
+    adjustment: 'none'
+  },
+  {
+    case: 'over-time-result-holm',
+    says: 'The same rows, the p-values adjusted across the five visits by Holm',
+    rows: 'over-time-result',
+    view: { valueType: 'raw' },
+    test: 't',
+    adjustment: 'holm'
+  },
+  {
+    case: 'over-time-result-bh',
+    says: 'The same rows, the p-values adjusted across the five visits by Benjamini and Hochberg',
+    rows: 'over-time-result',
+    view: { valueType: 'raw' },
+    test: 't',
+    adjustment: 'BH'
+  },
+  {
+    case: 'over-time-change',
+    says: 'IL-6, change from Baseline, by arm: the baseline visit is drawn and not sent, a Welch t-test at each of the four later visits',
+    test: 't',
+    adjustment: 'none'
+  },
+  {
+    case: 'over-time-change-holm',
+    says: 'The same rows, the p-values adjusted across the four visits by Holm',
+    rows: 'over-time-change',
+    test: 't',
+    adjustment: 'holm'
+  },
+  {
+    case: 'over-time-change-wilcoxon',
+    says: 'The same rows, a Wilcoxon rank-sum test at each visit, adjusted by Benjamini and Hochberg',
+    rows: 'over-time-change',
+    test: 'wilcoxon',
+    adjustment: 'BH'
+  },
+  {
+    case: 'over-time-anova',
+    says: 'IL-6, the result itself, across arm and sex, four groups: a one-way ANOVA at each visit, unadjusted',
+    view: { valueType: 'raw', groupBy: 'ARM_SEX' },
+    test: 'anova',
+    adjustment: 'none'
+  },
+  {
+    case: 'over-time-kruskal-holm',
+    says: 'The same rows, a Kruskal-Wallis test at each visit, adjusted by Holm',
+    rows: 'over-time-anova',
+    view: { valueType: 'raw', groupBy: 'ARM_SEX' },
+    test: 'kruskal',
+    adjustment: 'holm'
+  },
+  {
+    case: 'over-time-age-57',
+    says: 'IL-6, the result itself, by arm among participants aged 57: an arm is below the minimum group size at every visit',
+    view: { valueType: 'raw', filters: { AGE: '57' } },
+    test: 't',
+    adjustment: 'holm'
+  },
+  {
+    case: 'over-time-age-40-to-43',
+    says: 'IL-6, the result itself, by arm among participants aged 40 to 43: two visits have an arm below the minimum group size, and the adjustment is across the other three',
+    view: { valueType: 'raw', filters: { AGE: ['40', '41', '42', '43'] } },
+    test: 't',
+    adjustment: 'holm'
+  },
+  {
+    case: 'over-time-age-39',
+    says: 'IL-6, the result itself, by arm among participants aged 39: at Week 12 the Treatment arm has nobody, and R still answers for both arms there',
+    view: { valueType: 'raw', filters: { AGE: '39' } },
+    test: 't',
+    adjustment: 'none'
+  },
+  {
+    case: 'over-time-age-40-to-43-unadjusted',
+    says: 'The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones',
+    rows: 'over-time-age-40-to-43',
+    view: { valueType: 'raw', filters: { AGE: ['40', '41', '42', '43'] } },
+    test: 't',
+    adjustment: 'none'
+  }
+];
+
 /**
  * The demo page's tables and settings, read from the demo's own scripts: they
  * are run with no page, where they only say what the page would use. The
@@ -201,6 +298,43 @@ export function requestOf(demo, entry) {
     settings: config,
     state,
     panel
+  });
+}
+
+/** What the controls are set to in a case of one biomarker over time. */
+export function overTimeStateOf(demo, entry) {
+  const config = syncSettings(demo.settings);
+  return {
+    ...VIEW,
+    // Every visit the biomarker has: what makes it the picture over time.
+    visits: measureVisits(demo.tables.results, config, VIEW.measure),
+    timeMark: 'box',
+    ...(entry.view || {}),
+    test: entry.test,
+    visitAdjustment: entry.adjustment
+  };
+}
+
+/**
+ * What the chart asks R in a case of one biomarker over time: the one request
+ * for the whole row of visits, made by the chart's own functions.
+ * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
+ */
+export function overTimeRequestOf(demo, entry) {
+  const config = syncSettings(demo.settings);
+  const state = overTimeStateOf(demo, entry);
+  const built = buildOverTime(demo.tables, config, state);
+  const test = fitTest(state.test, built.groups.length);
+  if (test !== entry.test) {
+    throw new Error(`${entry.case}: ${entry.test} does not fit ${built.groups.length} groups.`);
+  }
+  return overTimeRequest({
+    name: config.statistic_by_visit,
+    test,
+    adjustment: state.visitAdjustment,
+    settings: config,
+    state,
+    built
   });
 }
 
@@ -292,6 +426,64 @@ export function deriveGroupStatistics(sources) {
       'cases.csv'
     )
   });
+  // One biomarker over time: the long rows of the whole row of visits, one
+  // file per set of rows, and the list of cases R reads.
+  const config = syncSettings(demo.settings);
+  const overTime = OVER_TIME_CASES.map((entry) => {
+    const state = overTimeStateOf(demo, entry);
+    const asked = overTimeRequestOf(demo, entry);
+    const file = `${entry.rows || entry.case}.csv`;
+    if (!entry.rows) {
+      const columns = Object.keys(asked.data[0]);
+      files.push({
+        file,
+        text: csv(
+          columns,
+          asked.data.map((record) => columns.map((column) => record[column])),
+          file
+        )
+      });
+    }
+    return [
+      entry.case,
+      file,
+      config.statistic_by_visit,
+      state.test,
+      state.visitAdjustment,
+      state.measure,
+      state.valueType,
+      list(asked.dataId.visits),
+      list(config.baseline_visits),
+      config.baseline_stat,
+      state.groupBy,
+      Object.entries(state.filters)
+        .map(([column, selection]) => `${column}=${list([].concat(selection))}`)
+        .join(';'),
+      state.yScale
+    ];
+  });
+  files.push({
+    file: 'over-time-cases.csv',
+    text: csv(
+      [
+        'case',
+        'file',
+        'statistic_by_visit',
+        'test',
+        'visit_adjustment',
+        'measure',
+        'value_type',
+        'visits',
+        'baseline_visits',
+        'baseline_stat',
+        'group_by',
+        'filters',
+        'y_scale'
+      ],
+      overTime,
+      'over-time-cases.csv'
+    )
+  });
   return {
     files,
     record: {
@@ -300,9 +492,12 @@ export function deriveGroupStatistics(sources) {
       rule:
         "Each case is one panel of the gallery's group comparison demo in one view. Its rows are " +
         "the rows the chart hands R for that panel: one per participant, made by the core's " +
-        'frame from the vendored synthetic study with the demo page’s own settings.',
+        'frame from the vendored synthetic study with the demo page’s own settings. A case named ' +
+        'over-time is one biomarker across its visits: its rows are long, one per participant ' +
+        'and visit, the rows the chart hands R in one request for the whole row of visits.',
       derived_from: Object.values(GROUP_STATISTICS.sources).map((file) => ({ file })),
       cases: CASES.map(({ case: name, says }) => ({ case: name, says })),
+      over_time_cases: OVER_TIME_CASES.map(({ case: name, says }) => ({ case: name, says })),
       files: files.map(({ file, text }) => ({ file, sha256: sha256(Buffer.from(text)) }))
     }
   };

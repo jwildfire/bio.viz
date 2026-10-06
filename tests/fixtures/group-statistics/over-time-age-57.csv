@@ -1,0 +1,42 @@
+USUBJID,y,x,visit
+BIO-008,5.968,Placebo,Baseline
+BIO-038,10.515,Treatment,Baseline
+BIO-054,9.088,Placebo,Baseline
+BIO-072,6.753,Treatment,Baseline
+BIO-095,8.626,Placebo,Baseline
+BIO-117,8.375,Placebo,Baseline
+BIO-124,7.107,Placebo,Baseline
+BIO-145,8.038,Placebo,Baseline
+BIO-163,6.913,Placebo,Baseline
+BIO-008,5.645,Placebo,Week 2
+BIO-038,7.789,Treatment,Week 2
+BIO-054,9.965,Placebo,Week 2
+BIO-095,10.59,Placebo,Week 2
+BIO-117,10.11,Placebo,Week 2
+BIO-145,6.064,Placebo,Week 2
+BIO-163,6.26,Placebo,Week 2
+BIO-008,6.269,Placebo,Week 4
+BIO-038,8.496,Treatment,Week 4
+BIO-054,11.017,Placebo,Week 4
+BIO-095,9.432,Placebo,Week 4
+BIO-117,8.852,Placebo,Week 4
+BIO-124,9.033,Placebo,Week 4
+BIO-145,8.586,Placebo,Week 4
+BIO-163,8.804,Placebo,Week 4
+BIO-008,7.285,Placebo,Week 8
+BIO-038,8.273,Treatment,Week 8
+BIO-072,5.517,Treatment,Week 8
+BIO-095,6.788,Placebo,Week 8
+BIO-117,8.705,Placebo,Week 8
+BIO-124,9.164,Placebo,Week 8
+BIO-145,9.051,Placebo,Week 8
+BIO-163,7.72,Placebo,Week 8
+BIO-008,5.636,Placebo,Week 12
+BIO-038,7.627,Treatment,Week 12
+BIO-054,11.386,Placebo,Week 12
+BIO-072,6.108,Treatment,Week 12
+BIO-095,8.872,Placebo,Week 12
+BIO-117,10.773,Placebo,Week 12
+BIO-124,8.725,Placebo,Week 12
+BIO-145,7.445,Placebo,Week 12
+BIO-163,7.305,Placebo,Week 12

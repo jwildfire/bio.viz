@@ -4,9 +4,12 @@
 //   BioViz.groupComparison('#chart', { group_by: 'ARM' }).init({ results, participants });
 //
 // It opens on a tile per biomarker, each a line per group through the group's
-// median at every scheduled visit, and a tile opens that biomarker alone, with
-// its visits as panels and R's test under each. Which of the two is drawn is
-// decided in src/group-comparison/level.js.
+// median at every scheduled visit. A tile opens that biomarker over time: one
+// picture, visit along the bottom and the groups side by side at each, with
+// the number in each group and R's test of the groups under each visit. A
+// visit there opens that visit alone, with its marks, a second grouping, its
+// panels and pairwise comparisons. Which of the three is drawn is decided in
+// src/group-comparison/level.js.
 //
 // The lifecycle is safety.viz's (init, setData, setSettings, render, resize,
 // destroy), so a page drives both libraries the same way.
@@ -56,15 +59,25 @@ import { VALUE_TYPES, label as variableLabel } from './core/variable.js';
 import { cutNote, isCut } from './shared/cut.js';
 import { NOBODY_PASSES } from './shared/tables.js';
 import { coreSettings } from './shared/settings.js';
-import { MARKS, TILE_SUMMARIES, Y_SCALES, syncSettings } from './group-comparison/configure.js';
-import { LEVELS, levelOf } from './group-comparison/level.js';
+import {
+  MARKS,
+  TILE_SUMMARIES,
+  TIME_MARKS,
+  VISIT_ADJUSTMENTS,
+  Y_SCALES,
+  syncSettings
+} from './group-comparison/configure.js';
+import { LEVELS, hasOverTime, levelOf } from './group-comparison/level.js';
+import { buildOverTime, markOf, timeDomain } from './group-comparison/overTime.js';
 import {
   NO_TEST_CHOSEN,
   TEST_LABELS,
   createStatisticDesk,
   fitTest,
   groupsOf,
+  levelsScope,
   noTestText,
+  overTimeRequest,
   plain,
   scopeText,
   statisticRequest,
@@ -107,6 +120,55 @@ const VALUE_WORDS = {
 };
 // Said under a control that the trend tiles do not read.
 const NOT_ON_TILES = 'Applies when one biomarker is open.';
+// Said under Colour by and Panel by on the tiles and on one biomarker over
+// time, which take no second grouping and no panels.
+const AT_ONE_VISIT = 'Applies once a biomarker and a visit are open.';
+
+// One biomarker over time: what the Draw as control calls each form, what the
+// key above the picture calls it, and what its marks are.
+const TIME_MARK_LABELS = {
+  box: 'Boxes',
+  mean_se: 'Means with standard errors',
+  median_iqr: 'Medians with quartiles'
+};
+const TIME_MARK_WORDS = {
+  box: 'Boxes of the',
+  mean_se: 'Mean and standard error of the',
+  median_iqr: 'Median and quartiles of the'
+};
+const TIME_MARK_NOTES = {
+  box:
+    'Each box runs from the 25th to the 75th percentile, with a line at the median and a dot at ' +
+    'the mean; its whiskers end at the 5th and 95th percentiles.',
+  mean_se:
+    'Each point is a group’s mean at a visit, and its bar reaches one standard error either ' +
+    'side: the standard deviation over the square root of the number in the group.',
+  median_iqr:
+    'Each point is a group’s median at a visit, and its bar reaches from the 25th to the 75th ' +
+    'percentile.'
+};
+const ADJUSTMENT_LABELS = { none: 'None', holm: 'Holm', BH: 'Benjamini-Hochberg' };
+// What the row of tests says in one cell across every visit, while it has no
+// result for any: the sentence itself is on the statistics line beneath.
+const ROW_WORDS = {
+  waiting: 'Waiting for R…',
+  unavailable: 'Statistics unavailable',
+  error: 'R reported an error',
+  withheld: 'Not computed',
+  refused: 'Not shown',
+  none: 'No test'
+};
+// What one visit's cell says when it has no p-value.
+const CELL_WORDS = { withheld: 'not computed', error: 'error', refused: 'not shown' };
+// A visit's column is never narrower than this, in pixels: narrower, and the
+// picture and the table under it scroll together inside the chart.
+const VISIT_WIDTH = 50;
+// The table's first column, the row headings', is never narrower than this.
+const GUTTER_LEAST = 64;
+// A visit's name in the table's heading: the room its column keeps beside it,
+// and how small it is set, in ems, before its column is widened instead.
+const NAME_ROOM = 5;
+const NAME_SCALE_LEAST = 0.75;
 
 const STYLE_ID = 'bio-viz-group-comparison-styles';
 // The statistics line, the listing and the rail are styled as every chart's
@@ -129,7 +191,34 @@ ${toolbarStyles('.bv-group-comparison')}
 .bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .3rem;font-size:.8rem;color:#1f2933}
 .bv-group-comparison .bv-legend-swatch{display:inline-block;width:.75em;height:.75em;margin-right:.35em;border-radius:2px}
 .bv-group-comparison .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
+.bv-group-comparison .bv-trail ol{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .35rem;margin:0;padding:0;list-style:none;font-size:.85rem;color:#1f2933}
+.bv-group-comparison .bv-trail li{display:flex;align-items:center;gap:.35rem}
+.bv-group-comparison .bv-trail li+li::before{content:'›';color:#52616f}
+.bv-group-comparison .bv-trail [aria-current]{font-weight:600;overflow-wrap:anywhere}
+.bv-group-comparison .sv-multiples.bv-time{display:block}
+.bv-group-comparison .bv-time-scroll{overflow-x:auto;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.6rem .5rem .5rem}
+.bv-group-comparison .bv-time-canvas{position:relative;height:360px}
+.bv-group-comparison .bv-time-canvas canvas{cursor:pointer}
+.bv-group-comparison .bv-time-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:.1rem 0 0;background:none;font-size:.78rem;line-height:1.25;color:#1f2933;font-variant-numeric:tabular-nums}
+.bv-group-comparison .bv-time-table caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.bv-group-comparison .bv-time-table th,.bv-group-comparison .bv-time-table td{padding:.22rem .05rem;border:0;background:none;color:inherit;font-family:inherit;font-size:inherit;font-weight:400;letter-spacing:normal;text-transform:none;text-align:center;vertical-align:top}
+.bv-group-comparison .bv-time-table th[scope=row]{overflow-wrap:anywhere}
+.bv-group-comparison .bv-time-table th[scope=row]{padding-right:.4rem;text-align:right;color:#3e4c59}
+.bv-group-comparison .bv-time-table tbody tr{border-top:1px solid #eef1f4}
+.bv-group-comparison .bv-time-table thead th{font-weight:600}
+.bv-group-comparison .bv-time-visit{display:block;width:100%;margin:0;padding:.2rem .1rem;border:1px solid transparent;border-radius:6px;background:none;color:#0b62a4;font:inherit;font-weight:600;line-height:1.2;cursor:pointer}
+.bv-group-comparison .bv-time-visit:hover{border-color:#0b62a4;background:#eaf2fb}
+.bv-group-comparison .bv-time-visit:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.bv-group-comparison .bv-time-still{display:block;padding:.2rem .1rem;border:1px solid transparent;color:#3e4c59}
+.bv-group-comparison .bv-time-sub{display:block;font-size:.7rem;color:#52616f}
+.bv-group-comparison .bv-time-table tr[data-row=test] td{font-weight:600}
+.bv-group-comparison .bv-time-table tr[data-row=test] td[data-status]:not([data-status=shown]),.bv-group-comparison .bv-time-table tr[data-row=test] td[colspan]{font-weight:400;font-style:italic;color:#52616f}
+.bv-group-comparison .bv-stat-level{margin:0 0 .3rem}
 @media (max-width:600px){
+.bv-group-comparison .bv-time-canvas{height:300px}
+.bv-group-comparison .bv-time-scroll{padding:.4rem .25rem .35rem}
+.bv-group-comparison .bv-time-table{font-size:.7rem}
+.bv-group-comparison .bv-time-visit,.bv-group-comparison .bv-time-still{padding:.2rem 0}
 .bv-group-comparison .bv-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .bv-group-comparison .sv-chart-wrap{height:380px;padding:.5rem}
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
@@ -179,6 +268,7 @@ class GroupComparison {
     this.state = {};
     this.asked = [];
     this.tiles = null;
+    this.overTime = null;
     this.connect();
     this.renderShell();
   }
@@ -248,9 +338,11 @@ class GroupComparison {
   /**
    * Lay new settings over the current ones and draw again. A setting that says
    * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-   * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `tile_summary`,
-   * `unscheduled_visits`, `test`, `pairwise`) moves its control:
-   * `start_value: null` returns to the tiles of every biomarker.
+   * `levels`, `color_by`, `panel_by`, `mark`, `time_mark`, `y_scale`,
+   * `tile_summary`, `unscheduled_visits`, `test`, `pairwise`,
+   * `visit_adjustment`) moves its control: `start_value: null` returns to the
+   * tiles of every biomarker, and `visits: null` with a biomarker named to that
+   * biomarker over time.
    * @param {object} settings The settings to change.
    * @returns {GroupComparison} The chart, for chaining.
    */
@@ -280,11 +372,13 @@ class GroupComparison {
       color_by: 'colorBy',
       panel_by: 'panelBy',
       mark: 'mark',
+      time_mark: 'timeMark',
       y_scale: 'yScale',
       tile_summary: 'tileSummary',
       unscheduled_visits: 'unscheduledVisits',
       test: 'test',
       pairwise: 'pairwise',
+      visit_adjustment: 'visitAdjustment',
       filters: 'filters'
     };
     for (const [setting, key] of Object.entries(moved)) {
@@ -356,14 +450,34 @@ class GroupComparison {
     this.hiddenVisits = shown ? [] : this.unscheduled.visits;
   }
 
-  // Which level is drawn: every biomarker, or one biomarker's visits.
+  // Which level is drawn: every biomarker; one biomarker over time, when
+  // every visit it has is chosen; or one biomarker's visits, a panel each.
   level() {
-    return levelOf(this.state);
+    return levelOf(this.state, this.measureVisits());
   }
 
   // Whether the tiles of every biomarker are what is drawn.
   atTiles() {
     return this.level() === LEVELS.BIOMARKERS;
+  }
+
+  // The visits the open biomarker has values at, in visit order: read once
+  // for a biomarker and a table, because every control and every draw asks.
+  measureVisits() {
+    const { measure } = this.state;
+    if (measure === null || measure === undefined) return [];
+    const { results } = this.drawTables;
+    const kept = this.visitsOf;
+    if (kept && kept.results === results && kept.measure === measure) return kept.visits;
+    const visits = measureVisits(results, this.settings, measure);
+    this.visitsOf = { results, measure, visits };
+    return visits;
+  }
+
+  // What R's counts are of, when the automatic footnote has many to say: one
+  // biomarker over time is answered a count per visit.
+  get footnoteCounts() {
+    return this.overTime ? 'visits' : undefined;
   }
 
   // Opens one biomarker, or every biomarker (null), from the Biomarker control
@@ -426,11 +540,13 @@ class GroupComparison {
       colorBy: has(settings.color_by) ? settings.color_by : NONE,
       panelBy,
       mark: settings.mark,
+      timeMark: settings.time_mark,
       yScale: settings.y_scale,
       tileSummary: settings.tile_summary,
       unscheduledVisits: settings.unscheduled_visits,
       test: settings.test,
       pairwise: settings.pairwise,
+      visitAdjustment: settings.visit_adjustment,
       filters: startFilters(this)
     };
   }
@@ -476,14 +592,19 @@ class GroupComparison {
       return addControl(labelText, input, parent);
     };
 
-    const tiles = this.atTiles();
-    // A control the tiles do not read is switched off there, and says where it
-    // applies; what it is set to is kept.
-    const notOnTiles = (control) => {
-      if (!tiles) return;
+    const level = this.level();
+    const tiles = level === LEVELS.BIOMARKERS;
+    const overTime = level === LEVELS.OVER_TIME;
+    // A control the level drawn does not read is switched off there, and says
+    // where it applies; what it is set to is kept.
+    const switchOff = (control, words) => {
       const input = control.matches('select,input') ? control : control.querySelector('select');
       input.disabled = true;
-      control.after(kit.createElement('small', 'bv-control-note', NOT_ON_TILES));
+      control.after(kit.createElement('small', 'bv-control-note', words));
+    };
+    // The tiles and one biomarker over time take no second grouping and no panels.
+    const atOneVisit = (control) => {
+      if (tiles || overTime) switchOff(control, AT_ONE_VISIT);
     };
     const value = addSection('Value');
     select(
@@ -517,11 +638,26 @@ class GroupComparison {
         selected: shown.length === offered.length ? null : shown,
         onChange: (next) => {
           const chosen = next === null ? offered : next;
+          const before = this.level();
           // A visit the biomarker lacks keeps its place for another biomarker.
           state.visits = this.visits.all.filter(
             (visit) => chosen.includes(visit) || !offered.includes(visit)
           );
-          redraw(false);
+          // Every visit of a biomarker is its picture over time, and fewer are
+          // panels: the controls differ between the two, and are made again
+          // with this one left open where the reader was choosing.
+          if (this.level() === before) {
+            redraw(false);
+            return;
+          }
+          const active = document.activeElement;
+          const at = active && visits.contains(active) ? active.value : null;
+          redraw(true);
+          const again = this.controls.querySelector('[data-control="visits"]');
+          if (!again) return;
+          again.open = true;
+          const box = [...again.querySelectorAll('input')].find((input) => input.value === at);
+          if (at !== null && box) box.focus();
         }
       });
       visits.dataset.control = 'visits';
@@ -565,7 +701,7 @@ class GroupComparison {
         addControl('Levels', picker, group);
       }
       const optional = [[NONE, 'None'], ...columns];
-      notOnTiles(
+      atOneVisit(
         select(
           'color-by',
           'Colour by',
@@ -589,7 +725,7 @@ class GroupComparison {
         },
         group
       );
-      notOnTiles(panelBy);
+      atOneVisit(panelBy);
     } else {
       group.append(
         kit.createElement(
@@ -615,19 +751,34 @@ class GroupComparison {
         display
       );
     }
-    notOnTiles(
+    if (overTime) {
+      // One biomarker over time has forms of its own; the single view's mark
+      // is kept for when a visit is opened.
       select(
+        'time-mark',
+        'Draw as',
+        TIME_MARKS.map((mark) => [mark, TIME_MARK_LABELS[mark]]),
+        state.timeMark,
+        (next) => {
+          state.timeMark = next;
+          redraw(false);
+        },
+        display
+      );
+    } else {
+      const mark = select(
         'mark',
         'Draw as',
-        MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
+        MARKS.map((entry) => [entry, MARK_LABELS[entry]]),
         state.mark,
         (next) => {
           state.mark = next;
           redraw(false);
         },
         display
-      )
-    );
+      );
+      if (tiles) switchOff(mark, NOT_ON_TILES);
+    }
     select(
       'y-scale',
       'Scale',
@@ -660,9 +811,11 @@ class GroupComparison {
     // drawn, so they are filled in when the chart is drawn (syncTestControls).
     this.testControl = null;
     this.pairwiseControl = null;
+    this.adjustControl = null;
     // The tiles print no test, so they offer none: the section is there once a
-    // biomarker is open.
-    if (this.settings.statistic && !tiles) {
+    // biomarker is open. Over time it is there when a function is named that
+    // answers a row of visits.
+    if (this.settings.statistic && !tiles && (!overTime || this.settings.statistic_by_visit)) {
       const statistics = addSection('Statistics');
       const test = document.createElement('select');
       test.dataset.control = 'test';
@@ -671,15 +824,31 @@ class GroupComparison {
         redraw(false);
       };
       this.testControl = addControl('Test', test, statistics);
-      const pairwise = document.createElement('input');
-      pairwise.type = 'checkbox';
-      pairwise.dataset.control = 'pairwise';
-      pairwise.setAttribute('aria-label', 'Pairwise comparisons');
-      pairwise.onchange = () => {
-        state.pairwise = pairwise.checked;
-        redraw(false);
-      };
-      this.pairwiseControl = addControl('Pairwise comparisons', pairwise, statistics);
+      if (overTime) {
+        // The p-values under the visits, adjusted across them by R or not: the
+        // pairs of groups are compared once a visit is open.
+        this.adjustControl = select(
+          'visit-adjustment',
+          'Adjust across visits',
+          VISIT_ADJUSTMENTS.map((entry) => [entry, ADJUSTMENT_LABELS[entry]]),
+          state.visitAdjustment,
+          (next) => {
+            state.visitAdjustment = next;
+            redraw(false);
+          },
+          statistics
+        );
+      } else {
+        const pairwise = document.createElement('input');
+        pairwise.type = 'checkbox';
+        pairwise.dataset.control = 'pairwise';
+        pairwise.setAttribute('aria-label', 'Pairwise comparisons');
+        pairwise.onchange = () => {
+          state.pairwise = pairwise.checked;
+          redraw(false);
+        };
+        this.pairwiseControl = addControl('Pairwise comparisons', pairwise, statistics);
+      }
     }
 
     // Filters choose participants, so there are filters only with a participant table.
@@ -735,8 +904,9 @@ class GroupComparison {
   // The visits the Visit control offers: the open biomarker's, or every visit
   // on the tiles.
   visitsOffered() {
-    if (this.atTiles()) return this.visits.all;
-    return measureVisits(this.drawTables.results, this.settings, this.state.measure);
+    const { measure } = this.state;
+    if (measure === null || measure === undefined) return this.visits.all;
+    return this.measureVisits();
   }
 
   // Every level of the group column in the tables, whatever the filters are set to.
@@ -771,8 +941,9 @@ class GroupComparison {
   // nothing else: a test that does not fit is never asked of R. The pairwise
   // switch is there only when there are pairs to compare.
   syncTestControls(groups) {
-    const { testControl: select, pairwiseControl: pairwise, kit, state } = this;
-    if (!select) return;
+    const { testControl: control, pairwiseControl: pairwise, kit, state } = this;
+    if (!control) return;
+    const select = control.matches('select') ? control : control.querySelector('select');
     const offered = testsFor(groups);
     const fitted = fitTest(state.test, groups);
     select.innerHTML = '';
@@ -784,8 +955,17 @@ class GroupComparison {
     } else {
       kit.option(select, 'none', 'None: a test needs two or more groups', true);
     }
-    pairwise.checked = state.pairwise;
-    pairwise.parentElement.style.display = groups > 2 && fitted !== 'none' ? '' : 'none';
+    if (pairwise) {
+      pairwise.checked = state.pairwise;
+      pairwise.parentElement.style.display = groups > 2 && fitted !== 'none' ? '' : 'none';
+    }
+    // An adjustment is of p-values: with no test there is nothing to adjust.
+    if (this.adjustControl) {
+      const adjust = this.adjustControl.matches('select')
+        ? this.adjustControl
+        : this.adjustControl.querySelector('select');
+      adjust.disabled = !offered.length || fitted === 'none';
+    }
   }
 
   // ---- Drawing ----------------------------------------------------------------
@@ -811,12 +991,16 @@ class GroupComparison {
     this.multiplesWrap.innerHTML = '';
     this.statLine.textContent = '';
     this.statLine.dataset.state = 'empty';
-    this.multiplesWrap.classList.remove('bv-tiles');
+    this.multiplesWrap.classList.remove('bv-tiles', 'bv-time');
     this.chartWrap.classList.remove('sv-hidden');
     this.model = null;
     this.tiles = null;
+    this.overTime = null;
+    this.timeRow = null;
     this.syncTestControls(0);
-    this.root.dataset.level = this.level();
+    const level = this.level();
+    this.root.dataset.level = level;
+    this.writeTrail(level);
     this.noteHiddenVisits();
 
     const { results } = this.drawTables;
@@ -832,8 +1016,14 @@ class GroupComparison {
     }
     // No biomarker chosen: every biomarker, a tile each. They print no test and
     // ask R for nothing.
-    if (this.atTiles()) {
+    if (level === LEVELS.BIOMARKERS) {
       this.drawTiles();
+      return;
+    }
+    // A biomarker and every visit it has: the biomarker over time, in one
+    // picture, with one request to R for the test under every visit.
+    if (level === LEVELS.OVER_TIME) {
+      this.drawOverTime(round);
       return;
     }
 
@@ -914,7 +1104,7 @@ class GroupComparison {
       return;
     }
     this.footnote.textContent = [
-      'Click a biomarker to view it alone, with a test under each visit.',
+      'Click a biomarker to view it across the visits, with a test under each.',
       ...this.cutNotes(built)
     ].join(' ');
 
@@ -1079,14 +1269,648 @@ class GroupComparison {
     };
   }
 
-  // Opens a biomarker from its tile. The single view replaces the tiles, so
-  // the page is brought back to the chart's top, and the keyboard's place is
-  // put on the Biomarker control when it is on screen.
+  // Opens a biomarker from its tile: over time, when every visit is chosen.
+  // Its view replaces the tiles, so the page is brought back to the chart's
+  // top, and the keyboard's place is put on the Biomarker control when it is
+  // on screen.
   openFromTile(measure) {
     this.selectMeasure(measure);
     if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
     const control = this.controls.querySelector('select[data-control="measure"]');
     if (control && control.offsetParent !== null) control.focus();
+  }
+
+  // ---- Where the view is ----------------------------------------------------------
+
+  // The level drawn, named above the chart once a biomarker is open, each
+  // level above it a button that leads back: every biomarker, then this
+  // biomarker over time, then the visit or visits open.
+  writeTrail(level) {
+    const { kit, state } = this;
+    if (!this.toolbar) return;
+    const old = this.toolbar.querySelector('.bv-trail');
+    if (old) old.remove();
+    if (level === LEVELS.BIOMARKERS) return;
+    const trail = kit.createElement('nav', 'bv-trail');
+    trail.setAttribute('aria-label', 'Where this view is');
+    trail.dataset.level = level;
+    const list = document.createElement('ol');
+    const step = (text, onClick) => {
+      const item = document.createElement('li');
+      if (onClick) {
+        const button = kit.createElement('button', null, text);
+        button.type = 'button';
+        button.onclick = onClick;
+        item.append(button);
+      } else {
+        const here = kit.createElement('span', null, text);
+        here.setAttribute('aria-current', 'true');
+        item.append(here);
+      }
+      list.append(item);
+    };
+    step('All biomarkers', () => this.selectMeasure(null));
+    const offered = this.visitsOffered();
+    if (level === LEVELS.OVER_TIME) {
+      step(`${state.measure} over time`);
+    } else {
+      const chosen = state.visits.filter((visit) => offered.includes(visit));
+      const where =
+        state.valueType === 'baseline'
+          ? 'baseline value'
+          : chosen.length
+            ? listed(chosen)
+            : 'no visit chosen';
+      if (hasOverTime(state, offered)) {
+        step(`${state.measure} over time`, () => this.openOverTime());
+        step(where);
+      } else {
+        step(`${state.measure}, ${where}`);
+      }
+    }
+    trail.append(list);
+    this.toolbar.append(trail);
+  }
+
+  // Leads back from a visit to the biomarker over time: every visit it has is
+  // chosen again, as All in the Visit control does.
+  openOverTime() {
+    const offered = this.visitsOffered();
+    const chosen = this.state.visits || [];
+    this.state.visits = this.visits.all.filter(
+      (visit) => chosen.includes(visit) || offered.includes(visit)
+    );
+    this.buildControls();
+    this.render();
+  }
+
+  // Opens one visit of the biomarker drawn over time: the single-visit view,
+  // with its marks, its second grouping, its panels and its pairwise
+  // comparisons. The view replaces the picture, so the page is brought back to
+  // the chart's top, and the keyboard's place is put on the Visit control.
+  openVisit(visit) {
+    const offered = this.visitsOffered();
+    // A visit the biomarker lacks keeps its place for another biomarker.
+    this.state.visits = this.visits.all.filter(
+      (entry) => entry === visit || !offered.includes(entry)
+    );
+    this.buildControls();
+    this.render();
+    if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
+    const control = this.controls.querySelector('[data-control="visits"] summary');
+    if (control && control.offsetParent !== null) control.focus();
+  }
+
+  // ---- One biomarker over time ---------------------------------------------------
+
+  // One biomarker across every visit it has, in one picture: visit along the
+  // bottom, evenly spaced in visit order, and at each visit the groups side by
+  // side in their colours. Under the axis, lined up with the visits, a table:
+  // each visit's name, which opens that visit alone; the number in each group
+  // there; and R's test of the groups there, asked for in one request. The
+  // picture and the table are one block, which scrolls sideways inside the
+  // chart when the visits are too many for its width.
+  drawOverTime(round) {
+    const { kit, state, settings } = this;
+    const built = buildOverTime(this.drawTables, settings, this.drawingState(), {
+      filterMatches: kit.filterMatches
+    });
+    this.overTime = built;
+    this.model = built.model;
+    this.chartWrap.classList.add('sv-hidden');
+    this.syncTestControls(this.groupsDrawn(built.model));
+    this.updateNotes(built.model);
+    const domain = timeDomain(built, state.timeMark, state.yScale);
+    if (!domain) {
+      this.footnote.textContent = nothingDrawn(built.model);
+      return;
+    }
+    this.multiplesWrap.classList.add('bv-time');
+    this.footnote.textContent = [
+      'Click a visit to view it alone, with its marks, a second grouping and pairwise comparisons.',
+      ...this.cutNotes(built)
+    ].join(' ');
+
+    // The key: what is drawn, and each group in its colour.
+    const key = kit.createElement('p', 'bv-legend bv-time-key');
+    const by = state.groupBy ? ` by ${this.labelOf(state.groupBy)}` : '';
+    key.append(
+      kit.createElement(
+        'span',
+        null,
+        `${TIME_MARK_WORDS[state.timeMark]} ${VALUE_WORDS[state.valueType]}${by}:`
+      )
+    );
+    built.groups.forEach((group) => {
+      const entry = kit.createElement('span');
+      entry.dataset.group = group.level;
+      const swatch = kit.createElement('span', 'bv-legend-swatch');
+      swatch.style.background = this.colorOf(group.index);
+      entry.append(swatch, document.createTextNode(group.level));
+      key.append(entry);
+    });
+    const caption = kit.createElement(
+      'p',
+      'bv-tile-caption bv-time-caption',
+      TIME_MARK_NOTES[state.timeMark]
+    );
+
+    const scroll = kit.createElement('div', 'bv-time-scroll');
+    const inner = kit.createElement('div', 'bv-time-inner');
+    const wrap = kit.createElement('div', 'bv-time-canvas');
+    const canvas = document.createElement('canvas');
+    wrap.append(canvas);
+    const table = this.timeTable(built);
+    inner.append(wrap, table.element);
+    scroll.append(inner);
+    this.multiplesWrap.append(key, caption, scroll);
+    // The statistics line of this level is under the table its tests are in.
+    if (this.timeRow) {
+      const line = kit.createElement('div', 'bv-statistic bv-time-line');
+      line.setAttribute('role', 'status');
+      this.multiplesWrap.append(line);
+      this.timeRow.line = line;
+    }
+
+    // The table's first column is as wide as its longest heading, within a
+    // third of the block, and the picture's value axis is made as wide, so a
+    // visit's column in the table is under its place in the picture.
+    const widest = Math.max(
+      0,
+      ...table.heads.map((head) => Math.ceil(head.getBoundingClientRect().width))
+    );
+    const count = built.visits.length;
+    const third = Math.max(GUTTER_LEAST, Math.floor(scroll.clientWidth / 3));
+    // Where that would leave the visits less than their least width, the
+    // column is as wide as what they leave, and no narrower than its own
+    // least: a heading too long for it wraps onto a second line.
+    const room = inner.clientWidth - count * VISIT_WIDTH - 8;
+    const gutter = Math.min(widest + 10, third, Math.max(GUTTER_LEAST, room));
+    table.heads.forEach((head) => {
+      head.style.whiteSpace = 'normal';
+    });
+    // A visit's name is never broken inside a word. Where its longest word is
+    // wider than a visit's column, the names are set smaller, down to three
+    // quarters; past that the columns are made as wide as the word needs, and the
+    // block scrolls sideways inside the chart.
+    const least = gutter + count * VISIT_WIDTH + 8;
+    const column = (Math.max(inner.clientWidth, least) - gutter - 8) / count;
+    const word = this.widestWord(table.names[0].parentElement, built.visits);
+    let needed = word + NAME_ROOM;
+    if (needed > column) {
+      const scale = Math.max(NAME_SCALE_LEAST, (column - NAME_ROOM) / word);
+      table.names.forEach((name) => {
+        name.style.fontSize = `${scale}em`;
+      });
+      needed = word * scale + NAME_ROOM;
+    }
+    inner.style.minWidth = `${Math.ceil(gutter + count * Math.max(VISIT_WIDTH, needed) + 8)}px`;
+    const chart = this.drawTimeChart(canvas, built, { domain, gutter, table });
+    chart.$overTime = built;
+    this.askOverTime(round, built);
+  }
+
+  // The width of the longest single word among the visits' names, set as a
+  // visit's name is set in the table's heading.
+  widestWord(cell, visits) {
+    const probe = this.kit.createElement('span', 'bv-time-visit');
+    probe.style.cssText =
+      'position:absolute;visibility:hidden;display:inline-block;width:auto;padding:0;border:0;white-space:nowrap';
+    cell.append(probe);
+    let widest = 0;
+    for (const word of new Set(visits.flatMap((visit) => String(visit).split(/\s+/)))) {
+      probe.textContent = word;
+      widest = Math.max(widest, probe.getBoundingClientRect().width);
+    }
+    probe.remove();
+    return widest;
+  }
+
+  // The table under the picture: a column per visit, a row of the visits'
+  // names, a row per group of the number drawn there, and the row of tests.
+  timeTable(built) {
+    const { kit, state, settings } = this;
+    const table = kit.createElement('table', 'bv-time-table');
+    const tested = settings.statistic && settings.statistic_by_visit;
+    table.append(
+      kit.createElement(
+        'caption',
+        null,
+        `${state.measure} at each visit: the number in each group` +
+          (tested ? ', and R’s test of the groups.' : '.')
+      )
+    );
+    const columns = document.createElement('colgroup');
+    const gutter = document.createElement('col');
+    const tail = document.createElement('col');
+    columns.append(gutter, ...built.visits.map(() => document.createElement('col')), tail);
+    table.append(columns);
+    const heads = [];
+    // A row's heading, kept on one line while it is measured.
+    const heading = (row, text, sub) => {
+      const cell = document.createElement('th');
+      cell.scope = 'row';
+      const words = kit.createElement('span', 'bv-time-head');
+      words.style.whiteSpace = 'nowrap';
+      words.style.display = 'inline-block';
+      words.append(...[].concat(text));
+      if (sub) words.append(sub);
+      cell.append(words);
+      heads.push(words);
+      row.append(cell);
+      return cell;
+    };
+
+    const head = document.createElement('thead');
+    const names = document.createElement('tr');
+    names.dataset.row = 'visits';
+    const corner = document.createElement('th');
+    corner.scope = 'col';
+    const cornerWords = kit.createElement('span', 'bv-time-head', 'Visit');
+    cornerWords.style.whiteSpace = 'nowrap';
+    cornerWords.style.display = 'inline-block';
+    corner.append(cornerWords);
+    heads.push(cornerWords);
+    names.append(corner);
+    const visitNames = [];
+    built.columns.forEach((column) => {
+      const cell = document.createElement('th');
+      cell.scope = 'col';
+      cell.dataset.visit = column.visit;
+      if (column.tested) {
+        const button = kit.createElement('button', 'bv-time-visit', column.visit);
+        button.type = 'button';
+        button.dataset.visit = column.visit;
+        button.setAttribute('aria-label', `View ${state.measure} at ${column.visit}`);
+        button.onclick = () => this.openVisit(column.visit);
+        cell.append(button);
+        visitNames.push(button);
+      } else {
+        // The baseline visit of a change has nothing to compare when opened
+        // alone: it is named, and is not a button.
+        const still = kit.createElement('span', 'bv-time-still', column.visit);
+        still.title = `${column.visit} is the baseline visit: there the ${VALUE_WORDS[state.valueType]} is the same for everyone.`;
+        cell.append(still);
+        visitNames.push(still);
+      }
+      names.append(cell);
+    });
+    names.append(document.createElement('td'));
+    head.append(names);
+
+    const body = document.createElement('tbody');
+    built.groups.forEach((group) => {
+      const row = document.createElement('tr');
+      row.dataset.row = 'n';
+      row.dataset.group = group.level;
+      const swatch = kit.createElement('span', 'bv-legend-swatch');
+      swatch.style.background = this.colorOf(group.index);
+      heading(row, [swatch, document.createTextNode(group.level)]);
+      built.columns.forEach((column) => {
+        const cell = column.cells.find((entry) => entry.level === group.level);
+        const count = kit.createElement('td', null, `n = ${cell.n}`);
+        count.dataset.visit = column.visit;
+        row.append(count);
+      });
+      row.append(document.createElement('td'));
+      body.append(row);
+    });
+    if (tested) {
+      const row = document.createElement('tr');
+      row.dataset.row = 'test';
+      const sub = kit.createElement('span', 'bv-time-sub', 'p-value');
+      const lead = heading(row, 'Test', sub);
+      body.append(row);
+      this.timeRow = { row, lead, sub, built };
+    }
+    table.append(head, body);
+    return { element: table, heads, names: visitNames, gutter, tail };
+  }
+
+  // The picture: one Chart.js chart, a dataset per group. Boxes are the kit's;
+  // a mean or a median is a point with a bar through it, joined across the
+  // visits by its group's line.
+  drawTimeChart(canvas, built, { domain, gutter, table }) {
+    const { state } = this;
+    const mark = state.timeMark;
+    const joined = mark !== 'box';
+    const last = built.visits.length - 1;
+    const title = yTitle(this.drawTables.results, this.settings, state);
+    const datasets = built.groups.map((group) => {
+      const hex = this.colorOf(group.index);
+      const data = built.columns
+        .map((column) => {
+          const cell = column.cells.find((entry) => entry.level === group.level);
+          const made = markOf(cell, mark);
+          return made ? { x: cell.x, y: made.centre, made, cell, column } : null;
+        })
+        .filter(Boolean);
+      return {
+        label: group.level,
+        data,
+        showLine: joined,
+        borderColor: hex,
+        backgroundColor: hex,
+        borderWidth: 2,
+        tension: 0,
+        // A box's point is unseen, at its median, for the tooltip to hang on.
+        pointRadius: joined ? 3.5 : 0,
+        pointHoverRadius: joined ? 5 : 0,
+        pointHitRadius: 14
+      };
+    });
+    const chart = new this.kit.Chart(canvas.getContext('2d'), {
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        animation: false,
+        maintainAspectRatio: false,
+        responsive: true,
+        parsing: false,
+        interaction: { mode: 'nearest', intersect: true },
+        onClick: (event) => this.onTimeClick(chart, event),
+        layout: { padding: { top: 4, right: 8, bottom: 0, left: 0 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: () => '',
+              label: (context) => this.timeTooltip(context.raw)
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: -0.5,
+            max: last + 0.5,
+            grid: { display: false },
+            // The visits are named in the table beneath, each over its column.
+            ticks: { display: false },
+            afterBuildTicks: (axis) => {
+              axis.ticks = built.visits.map((_, index) => ({ value: index }));
+            }
+          },
+          y: {
+            type: state.yScale === 'log' ? 'logarithmic' : 'linear',
+            min: domain[0],
+            max: domain[1],
+            ticks: { includeBounds: false },
+            title: { display: true, text: title },
+            // As wide as the table's first column, so the visits line up.
+            afterFit: (axis) => {
+              axis.width = Math.max(axis.width, gutter);
+            }
+          }
+        }
+      },
+      plugins: [this.timeFrame(built, table), this.timeMarks(built)]
+    });
+    const said = built.groups
+      .map(
+        (group, index) =>
+          `${group.level} ${datasets[index].data.map((point) => shown(point.y)).join(', ')}`
+      )
+      .join('; ');
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute(
+      'aria-label',
+      `${title}, ${TIME_MARK_LABELS[mark].toLowerCase()} at ${built.visits.join(', ')}: ${said}`
+    );
+    this.charts.push(chart);
+    return chart;
+  }
+
+  // What the picture draws beside its marks: a faint line between one visit
+  // and the next, a dashed line where no change is, and, once the chart is
+  // laid out, the widths of the table's columns, so each visit's column is
+  // under its place along the axis.
+  timeFrame(built, table) {
+    const reference = { change: 0, percent_change: 0, fold_change: 1 }[this.state.valueType];
+    return {
+      id: 'gc-time-frame',
+      afterLayout: (chart) => {
+        const { chartArea, width } = chart;
+        if (!chartArea) return;
+        table.gutter.style.width = `${chartArea.left}px`;
+        table.tail.style.width = `${Math.max(width - chartArea.right, 0)}px`;
+      },
+      beforeDatasetsDraw: (chart) => {
+        const { ctx, chartArea, scales } = chart;
+        ctx.save();
+        ctx.strokeStyle = '#eef1f4';
+        ctx.lineWidth = 1;
+        for (let at = 1; at < built.visits.length; at += 1) {
+          const x = scales.x.getPixelForValue(at - 0.5);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.stroke();
+        }
+        if (reference !== undefined && reference > scales.y.min && reference < scales.y.max) {
+          const y = scales.y.getPixelForValue(reference);
+          ctx.strokeStyle = '#9aa5b1';
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+  }
+
+  // The marks of the picture: safety.viz's box for a box, and for a mean or a
+  // median the bar through its point, from the lower end to the upper, with a
+  // short cap at each.
+  timeMarks(built) {
+    const mark = this.state.timeMark;
+    const cells = built.columns.flatMap((column) => column.cells.filter((cell) => cell.n));
+    if (mark === 'box') {
+      return this.kit.boxWhiskerPlugin('gc-time', () =>
+        cells.map((cell) => ({
+          x: cell.x,
+          halfWidth: cell.halfWidth,
+          stats: cell.stats,
+          color: this.colorOf(cell.index)
+        }))
+      );
+    }
+    return {
+      id: 'gc-time-bars',
+      beforeDatasetsDraw: (chart) => {
+        const { ctx, scales, chartArea } = chart;
+        const yOf = (value) =>
+          Math.max(chartArea.top, Math.min(chartArea.bottom, scales.y.getPixelForValue(value)));
+        ctx.save();
+        ctx.lineWidth = 1.5;
+        for (const cell of cells) {
+          const made = markOf(cell, mark);
+          if (made.upper === made.lower) continue;
+          const x = scales.x.getPixelForValue(cell.x);
+          const cap = Math.min(5, (scales.x.getPixelForValue(cell.x + cell.halfWidth) - x) * 0.5);
+          ctx.strokeStyle = this.colorOf(cell.index);
+          ctx.beginPath();
+          ctx.moveTo(x, yOf(made.lower));
+          ctx.lineTo(x, yOf(made.upper));
+          for (const end of [made.lower, made.upper]) {
+            ctx.moveTo(x - cap, yOf(end));
+            ctx.lineTo(x + cap, yOf(end));
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+  }
+
+  timeTooltip(raw) {
+    if (!raw || !raw.cell) return '';
+    const { cell, column } = raw;
+    const { stats } = cell;
+    const lead = `${cell.level} at ${column.visit}: n = ${stats.n}`;
+    if (this.state.timeMark === 'mean_se') {
+      return [
+        lead,
+        `Mean ${shown(stats.mean)}`,
+        cell.se === null
+          ? 'One participant: no standard error'
+          : `Standard error ${shown(cell.se)}, from ${shown(raw.made.lower)} to ${shown(raw.made.upper)}`
+      ];
+    }
+    return [
+      lead,
+      `Median ${shown(stats.median)}`,
+      `Quartiles ${shown(stats.q25)} to ${shown(stats.q75)}`,
+      ...(this.state.timeMark === 'box'
+        ? [
+            `5th to 95th percentile ${shown(stats.q5)} to ${shown(stats.q95)}`,
+            `Mean ${shown(stats.mean)}`
+          ]
+        : [])
+    ];
+  }
+
+  // A click anywhere in a visit's part of the picture opens that visit, as its
+  // name in the table does; the baseline visit of a change is not opened.
+  onTimeClick(chart, event) {
+    const built = chart.$overTime;
+    const { chartArea, scales } = chart;
+    if (!built || event.x < chartArea.left || event.x > chartArea.right) return;
+    const column = built.columns[Math.round(scales.x.getValueForPixel(event.x))];
+    if (column && column.tested) this.openVisit(column.visit);
+  }
+
+  // Asks R for the test at every visit, in one request, and fills the row of
+  // tests when it answers. With no test chosen, or fewer than two groups, R is
+  // not asked, and the row says so.
+  askOverTime(round, built) {
+    const { settings, state } = this;
+    if (!this.timeRow) return;
+    const groups = this.groupsDrawn(built.model);
+    const test = fitTest(state.test, groups);
+    if (test === 'none') {
+      this.showLevels(plain('none', this.desk.idle(NO_TEST_CHOSEN)), 'No test chosen');
+      return;
+    }
+    if (test === null) {
+      this.showLevels(
+        plain(
+          'none',
+          noTestText(state.groupBy ? built.groups.map((group) => group.level) : null, false)
+        )
+      );
+      return;
+    }
+    this.timeRow.test = test;
+    const request = overTimeRequest({
+      name: settings.statistic_by_visit,
+      test,
+      adjustment: state.visitAdjustment,
+      settings,
+      state: this.drawingState(),
+      built,
+      unscheduled: Boolean(state.unscheduledVisits) && this.unscheduled.visits.length > 0
+    });
+    const asked = {
+      panel: '',
+      name: request.name,
+      args: request.args,
+      dataId: request.dataId,
+      rows: request.rows,
+      answer: null
+    };
+    this.asked.push(asked);
+    round.ask(
+      request,
+      (description, answer) => {
+        if (answer) asked.answer = answer;
+        writeTitles(this);
+        this.showLevels(description);
+      },
+      {
+        levels: true,
+        scope: levelsScope({
+          group: this.labelOf(state.groupBy),
+          untested: built.untested,
+          value: VALUE_WORDS[state.valueType],
+          filters: filtersForScope(this)
+        })
+      }
+    );
+  }
+
+  // Writes the row of tests and the statistics line beneath from one
+  // description. With a result for the visits, each visit's cell holds its
+  // p-value as R returned it, or says that it has none, and the row's heading
+  // names the adjustment R made; the line names the method, gives R's reason
+  // for each visit it did not compute, R's own remarks and what the tests
+  // cover. With none, one cell across the visits says so in a few words, and
+  // the line says it in full.
+  showLevels(description, words) {
+    const { kit } = this;
+    const { row, lead, sub, built, test, line } = this.timeRow;
+    while (lead.nextSibling) lead.nextSibling.remove();
+    row.dataset.state = description.state;
+    const head = lead.querySelector('.bv-time-head');
+    head.firstChild.textContent = test ? TEST_LABELS[test] : 'Test';
+    const levels = description.levels;
+    if (!levels) {
+      sub.textContent = 'p-value';
+      const cell = kit.createElement('td', null, words || ROW_WORDS[description.state] || '');
+      cell.colSpan = built.columns.length;
+      row.append(cell);
+    } else {
+      const adjusted = levels.find((level) => level.status === 'shown' && level.adjustment);
+      sub.textContent = adjusted ? `p, adjusted (${adjusted.adjustment})` : 'p, unadjusted';
+      built.columns.forEach((column) => {
+        const cell = document.createElement('td');
+        cell.dataset.visit = column.visit;
+        const level = levels.find((entry) => entry.by === column.visit);
+        if (!column.tested) {
+          cell.dataset.status = 'untested';
+          cell.textContent = 'not tested';
+          cell.title = `${column.visit} is the baseline visit: there the ${VALUE_WORDS[this.state.valueType]} is the same for everyone.`;
+        } else if (!level) {
+          cell.dataset.status = 'missing';
+          cell.textContent = 'no answer';
+        } else {
+          cell.dataset.status = level.status;
+          cell.textContent = level.status === 'shown' ? level.p : CELL_WORDS[level.status];
+          // The whole sentence, with the method and each group's count.
+          cell.title = level.text;
+        }
+        row.append(cell);
+      });
+    }
+    row.append(document.createElement('td'));
+    writeStatistic(kit, line, { ...description, table: null });
+    // A visit that has no p-value says why, under the result.
+    const after = line.querySelector('.bv-stat-result');
+    [...(description.details || [])].reverse().forEach((said) => {
+      after.after(kit.createElement('p', 'bv-stat-level', said));
+    });
   }
 
   // Above the tiles: what applies to every one of them. The counts of who was
@@ -1129,10 +1953,12 @@ class GroupComparison {
   // drawn when it was chosen: there the value is the same for everyone.
   addBaselineNote(model, add) {
     if (!model.baselineVisits || this.state.valueType === 'raw') return;
-    const notDrawn = model.visitsNotDrawn.length
-      ? ` It is not drawn: there the ${VALUE_LABELS[this.state.valueType].toLowerCase()} is the same for everyone.`
-      : '';
-    add(`Baseline visit: ${model.baselineVisits.join(', ')}.${notDrawn}`);
+    const same = `there the ${VALUE_LABELS[this.state.valueType].toLowerCase()} is the same for everyone.`;
+    let said = '';
+    if (model.visitsNotDrawn.length) said = ` It is not drawn: ${same}`;
+    // Over time it is drawn, where every group starts, and is not tested.
+    else if (this.overTime && this.overTime.untested.length) said = ` It is not tested: ${same}`;
+    add(`Baseline visit: ${model.baselineVisits.join(', ')}.${said}`);
   }
 
   // The value axis: the extent of what is drawn, with a little room. On a
@@ -1335,7 +2161,11 @@ class GroupComparison {
       entry.drawn += panel.records.length;
       byVisit.set(panel.visit, entry);
     });
-    for (const [visit, { drawn, panel }] of byVisit) {
+    // Over time a visit has no line of its own here: its counts are in the
+    // table under the picture, and its own note is printed when it is opened.
+    const overTime = this.level() === LEVELS.OVER_TIME;
+    if (overTime) this.addVisitsNote(byVisit, add);
+    for (const [visit, { drawn, panel }] of overTime ? [] : byVisit) {
       const where = several && visit !== null ? `${visit}: ` : '';
       add(`${where}${drawn} of ${panel.participants} participants drawn.`);
       panel.dropped.forEach((entry) => add(`${where}${entry.n} left out: ${entry.reason}.`, true));
@@ -1360,6 +2190,56 @@ class GroupComparison {
       add(`${model.shownLevels.length} of ${model.levels.length} levels shown.`);
     }
     this.addBaselineNote(model, add);
+  }
+
+  // The notes of one biomarker over time, for all its visits at once: the
+  // range of participants drawn at a visit, and each reason anyone was left
+  // out with its count added up over the visits. Every number is a sum, or the
+  // least and greatest, of what the visits' own notes print.
+  addVisitsNote(byVisit, add) {
+    const visits = [...byVisit.values()];
+    if (!visits.length) return;
+    const range = (numbers) => {
+      const least = Math.min(...numbers);
+      const greatest = Math.max(...numbers);
+      return least === greatest ? `${least}` : `${least} to ${greatest}`;
+    };
+    add(
+      `${range(visits.map((visit) => visit.drawn))} of ` +
+        `${range(visits.map((visit) => visit.panel.participants))} participants drawn at each visit.`
+    );
+    const total = (lists) => {
+      const sums = new Map();
+      lists
+        .flat()
+        .forEach((entry) => sums.set(entry.reason, (sums.get(entry.reason) || 0) + entry.n));
+      return [...sums].map(([reason, n]) => `${n}, ${reason}`);
+    };
+    const over = `added up over the ${visits.length} visit${visits.length === 1 ? '' : 's'}`;
+    const left = total(
+      visits.map(({ panel }) => [
+        ...panel.dropped,
+        ...(panel.nonPositive
+          ? [
+              {
+                reason: 'zero or less, which a logarithmic scale cannot show',
+                n: panel.nonPositive
+              }
+            ]
+          : [])
+      ])
+    );
+    if (left.length) {
+      add(`Left out, ${over}: ${left.join('; ')}. Open a visit for its own counts.`, true);
+    }
+    // A row with no usable result is already told above, by the participant it
+    // left without a value; the rest (duplicates, rows with no id) are not.
+    const unused = total(
+      visits.map(({ panel }) =>
+        panel.unused.filter((entry) => entry.reason !== UNUSED.MISSING_RESULT)
+      )
+    );
+    if (unused.length) add(`Rows not used, ${over}: ${unused.join('; ')}.`, true);
   }
 
   // ---- The statistics line ----------------------------------------------------
@@ -1468,11 +2348,13 @@ class GroupComparison {
       color_by: state.colorBy || null,
       panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
       mark: state.mark,
+      time_mark: state.timeMark,
       y_scale: state.yScale,
       tile_summary: state.tileSummary,
       unscheduled_visits: Boolean(state.unscheduledVisits),
       test: state.test,
-      pairwise: state.pairwise
+      pairwise: state.pairwise,
+      visit_adjustment: state.visitAdjustment
     };
   }
 
@@ -1490,7 +2372,8 @@ class GroupComparison {
    * The table the chart drew from, one row per participant drawn, for the
    * table download (#67): which field of a row each column holds, and its
    * heading. On the trend tiles, one row per participant, biomarker and visit:
-   * the values each point is the median or the mean of (#78, #84).
+   * the values each point is the median or the mean of (#78, #84). For one
+   * biomarker over time, one row per participant and visit (#85).
    * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
    */
   tableOf() {
@@ -1564,9 +2447,10 @@ class GroupComparison {
 
   /**
    * What the chart has asked R for the panels now drawn, and what R answered:
-   * one entry per panel that asked, in the order the panels are drawn. A
-   * request is exactly what the connection was given, so it is the key a
-   * stored result must carry to be found.
+   * one entry per panel that asked, in the order the panels are drawn. One
+   * biomarker over time is one entry, the request for the test at every visit,
+   * whose `panel` is empty. A request is exactly what the connection was
+   * given, so it is the key a stored result must carry to be found.
    * @returns {Array<{panel: string, name: string, args: object, dataId: object,
    *   rows: number, answer: ?object}>} `answer` is what the connection resolved
    *   to, or null while R has not answered.

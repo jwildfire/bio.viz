@@ -9,6 +9,9 @@
 //                                comparison chart's arithmetic is held to,
 //                                and the medians, means and baseline standard
 //                                deviations its trend tiles are held to
+//                                and the quantiles, means and standard errors
+//                                its picture of one biomarker over time is
+//                                held to
 //   tools/r-group-statistics.R   tests/fixtures/group-statistics-r.json, what
 //                                gsm.bio's vendored statistics file answers for
 //                                the rows the group comparison chart hands R
@@ -66,13 +69,14 @@ const FIXTURES = [
   {
     script: 'tools/r-group-comparison.R',
     committed: 'tests/fixtures/group-comparison-r.json',
-    body: ['comparisons', 'tiles']
+    body: ['comparisons', 'tiles', 'over_time']
   },
   {
     script: 'tools/r-group-statistics.R',
     committed: 'tests/fixtures/group-statistics-r.json',
-    // The results, and the recipe run on a data frame as R holds one (#49).
-    body: ['results', 'recipes']
+    // The results, the recipe run on a data frame as R holds one (#49), and
+    // the answers for one biomarker over time, a row of visits each (#85).
+    body: ['results', 'recipes', 'over_time']
   },
   {
     script: 'tools/r-association-statistics.R',
