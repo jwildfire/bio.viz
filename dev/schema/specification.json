@@ -104,6 +104,7 @@
                 "panel_by",
                 "mark",
                 "y_scale",
+                "time_mark",
                 "measures",
                 "groups",
                 "max_levels",
@@ -120,6 +121,8 @@
                 "statistic",
                 "test",
                 "pairwise",
+                "statistic_by_visit",
+                "visit_adjustment",
                 "waiting_note",
                 "profile",
                 "profile_details",
@@ -188,6 +191,9 @@
               "y_scale": {
                 "default": "linear"
               },
+              "time_mark": {
+                "default": "box"
+              },
               "measures": {
                 "default": null
               },
@@ -235,6 +241,12 @@
               },
               "pairwise": {
                 "default": false
+              },
+              "statistic_by_visit": {
+                "default": "Analyze_GroupDifferenceBy"
+              },
+              "visit_adjustment": {
+                "default": "none"
               },
               "waiting_note": {
                 "default": null
