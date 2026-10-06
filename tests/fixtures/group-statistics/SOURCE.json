@@ -17,7 +17,7 @@
     },
     {
       "file": "site/demo/group-comparison.js",
-      "sha256": "5d409e06a648e2a547a8d3396bdfc205d278bb47a2f301a9e14fbafa3449b2e8"
+      "sha256": "3eb82cf4a9e161a10b9b0583545fd91fc22768e12f2861c48172d5b90c50d733"
     }
   ],
   "cases": [
@@ -136,6 +136,10 @@
       "says": "IL-6, the result itself, by arm among participants aged 40 to 43: two visits have an arm below the minimum group size, and the adjustment is across the other three"
     },
     {
+      "case": "over-time-age-39",
+      "says": "IL-6, the result itself, by arm among participants aged 39: at Week 12 the Treatment arm has nobody, and R still answers for both arms there"
+    },
+    {
       "case": "over-time-age-40-to-43-unadjusted",
       "says": "The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones"
     }
@@ -238,8 +242,12 @@
       "sha256": "73e4a56f079c6b14008a7e6e1fa671497eb56fe506c58db6c4bead44211f6115"
     },
     {
+      "file": "over-time-age-39.csv",
+      "sha256": "18d12c494519786a52ccde2ae42c16552af74f4e6bfbeeb8a2cfa4d646025832"
+    },
+    {
       "file": "over-time-cases.csv",
-      "sha256": "a049222e07914a37517319d9dbbfcc451c2aea3bbf53b74235d8bec267fa2149"
+      "sha256": "4fcf0117871ccff1a7a4087f0d7a2dfbf7c3b6763ecc6852441793b722d3b861"
     }
   ]
 }

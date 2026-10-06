@@ -2217,7 +2217,7 @@ test.describe('group comparison: a specification the released chart wrote', () =
       'one-biomarker-every-visit'
     ]);
     // The last, a biomarker at every visit, no longer draws a panel a visit:
-    // GC-TIME-034 holds what it opens on now.
+    // GC-TIME-032 holds what it opens on now.
     for (const entry of released.cases.slice(0, 4)) {
       const rebuilt = await page.evaluate((specification) => {
         window.__gc.chart.destroy();
@@ -3571,7 +3571,7 @@ test.describe('group comparison: one biomarker over time', () => {
     ]);
   });
 
-  test('GC-TIME-028: a visit R did not compute reads not computed in its cell, with R’s reason in the cell’s title and under the table, and R’s adjustment is across the visits that have a p-value; when R computes none, every cell says so and the line gives R’s reason (#85)', async ({
+  test('GC-TIME-028: a visit R did not compute reads not computed in its cell, with R’s reason in the cell’s title and under the table, and R’s adjustment is across the visits that have a p-value; when R computes none, every cell says so and the line gives R’s reason; and at a visit where a group has nobody R still answers for every group and says which has none (#85)', async ({
     page
   }) => {
     await openOverTime(page, {
@@ -3579,7 +3579,7 @@ test.describe('group comparison: one biomarker over time', () => {
         visit_adjustment: 'holm',
         filters: [{ value_col: 'AGE', multiple: true, start: ['40', '41', '42', '43'] }]
       },
-      results: ['over-time-age-40-to-43', 'over-time-age-57']
+      results: ['over-time-age-40-to-43', 'over-time-age-57', 'over-time-age-39']
     });
     const some = overTimeResult('over-time-age-40-to-43');
     let found = await overTimeOf(page);
@@ -3653,6 +3653,46 @@ test.describe('group comparison: one biomarker over time', () => {
     // The picture is drawn: seven and two are still a box and a box.
     expect(found.charts).toBe(1);
     expect(found.counts.Treatment).toEqual(['n = 2', 'n = 1', 'n = 1', 'n = 2', 'n = 2']);
+
+    // Aged 39: at Week 12 the Treatment arm has nobody. The groups are the
+    // same at every visit, so R answers for both arms there and says that one
+    // has none; the visit is not tested between the groups that happen to be
+    // there, and the arm keeps its row and its colour, with no mark at Week 12.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({
+        visit_adjustment: 'none',
+        filters: [{ value_col: 'AGE', start: '39' }]
+      })
+    );
+    const nobody = overTimeResult('over-time-age-39');
+    found = await overTimeOf(page);
+    expect(found.statistics[0].dataId).toEqual(nobody.dataId);
+    expect(found.statistics[0].dataId.groups).toEqual(['Placebo', 'Treatment']);
+    expect(found.statistics[0].args).not.toHaveProperty('chrGroups');
+    expect(nobody.value.rows[4]).toMatchObject({
+      by: 'Week 12',
+      group_1: 'Placebo',
+      n_1: 3,
+      group_2: 'Treatment',
+      n_2: 0,
+      status: 'too_small'
+    });
+    expect(found.counts).toEqual({
+      Placebo: ['n = 3', 'n = 3', 'n = 3', 'n = 3', 'n = 3'],
+      Treatment: ['n = 1', 'n = 1', 'n = 1', 'n = 1', 'n = 0']
+    });
+    expect(found.groups.map((group) => [group.level, group.colour, group.points.length])).toEqual([
+      ['Placebo', COLOURS[0], 5],
+      ['Treatment', COLOURS[1], 4]
+    ]);
+    expect(found.test.cells[4]).toMatchObject({
+      visit: 'Week 12',
+      status: 'withheld',
+      text: 'not computed',
+      title:
+        'Week 12: Not computed: Placebo has 3; Treatment has 0. The minimum group size is 5. Counts: Placebo n = 3, Treatment n = 0.'
+    });
+    expect(found.line.levels[4]).toBe(found.test.cells[4].title);
   });
 
   test('GC-TIME-029: with more than two groups the row of tests is the several-group test desktop R returns at each visit, a one-way ANOVA or a Kruskal-Wallis test, adjusted across the visits when asked (#85)', async ({
@@ -3890,7 +3930,7 @@ test.describe('group comparison: one biomarker over time', () => {
     expect(errors).toEqual([]);
   });
 
-  test('GC-TIME-034: a specification written by bio.viz v0.2.0 that names a biomarker and every visit, which drew a panel for every visit, is read whole and now opens on the biomarker over time, with the same participants at each visit and one request where there were five (#85)', async ({
+  test('GC-TIME-032: a specification written by bio.viz v0.2.0 that names a biomarker and every visit, which drew a panel for every visit, is read whole and now opens on the biomarker over time, with the same participants at each visit and one request where there were five (#85)', async ({
     page
   }) => {
     await open(page);
@@ -5169,11 +5209,12 @@ test.describe('group comparison: the demo, with R in the browser, live', () => {
 });
 
 // ---------------------------------------------------------------------------
-// The demo as it opens, for real (#17, #84): the tiles, and then one biomarker
-// opened from its tile, with R in the browser. Like the group above this needs the
-// network, fails when R's host cannot be reached, and is not retried. It has a
-// browser of its own, on a new and empty profile, because what it watches is
-// the first time R is asked for on a page that opened without asking.
+// The demo as it opens, for real (#17, #84, #85): the tiles, then one biomarker
+// opened from its tile across its visits, then a few of its visits a panel
+// each, with R in the browser. Like the group above this needs the network,
+// fails when R's host cannot be reached, and is not retried. It has a browser
+// of its own, on a new and empty profile, because what it watches is the first
+// time R is asked for on a page that opened without asking.
 
 test.describe('group comparison: the demo’s tiles, with R in the browser, live', () => {
   test.describe.configure({ mode: 'serial', timeout: 240_000 });
@@ -5191,18 +5232,22 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
       baseURL: testInfo.project.use.baseURL,
       viewport: { width: 1280, height: 800 }
     });
-    // Every state each panel's statistics line takes, in the order it takes them.
+    // Every state the row of tests under the visits takes, and every state each
+    // panel's statistics line takes, in the order they take them.
     await context.addInitScript(() => {
       window.__lines = [];
+      const log = (panel, state, text) => {
+        if (!state) return;
+        const last = window.__lines.filter((one) => one.panel === panel).pop();
+        if (!last || last.state !== state) window.__lines.push({ panel, state, text });
+      };
       new MutationObserver(() => {
+        const row = document.querySelector('.bv-time-table tr[data-row="test"]');
+        const under = document.querySelector('.bv-time-line');
+        if (row) log('', row.dataset.state, under ? under.textContent : '');
         document.querySelectorAll('.bv-panel').forEach((panel) => {
           const line = panel.querySelector('.bv-statistic');
-          if (!line || !line.dataset.state) return;
-          const entry = { panel: panel.dataset.panel, state: line.dataset.state };
-          const last = window.__lines.filter((one) => one.panel === entry.panel).pop();
-          if (!last || last.state !== entry.state) {
-            window.__lines.push({ ...entry, text: line.textContent });
-          }
+          if (line) log(panel.dataset.panel, line.dataset.state, line.textContent);
         });
       }).observe(document, {
         subtree: true,
@@ -5221,18 +5266,129 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
     await context?.close();
   });
 
-  test('GC-OVW-019: on the demo the tiles start no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17, #84)', async ({}, testInfo) => {
+  test('GC-OVW-019: on the demo the tiles start no R; opening a biomarker starts it once, and the row of tests under its visits waits and then prints the p-values desktop R gives, unadjusted and adjusted, from one request each; a few of its visits, a panel each, each wait and print the test desktop R gives for that visit (#17, #84, #85)', async ({}, testInfo) => {
     // The tiles, as the page opens: R's hosts are in reach, and not asked.
     await expect(page.locator('.bv-tile')).toHaveCount(12);
     await page.waitForTimeout(1500);
     expect(forR()).toEqual([]);
     expect(await page.evaluate(() => window.BioVizDemo.chart.statistics())).toEqual([]);
 
-    // One biomarker, opened from its tile.
+    // One biomarker, opened from its tile: across its visits, in one picture.
     await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    const row = page.locator('.bv-time-table tr[data-row="test"]');
+    await expect(row).toHaveCount(1);
+    // While R starts the picture and the counts are there to read.
+    let found = await overTimeOf(page, 'BioVizDemo');
+    expect(found.level).toBe('over-time');
+    expect(found.charts).toBe(1);
+    expect(found.visits).toEqual(VISITS);
+    expect(found.counts).toEqual({
+      Placebo: ['n = 100', 'n = 92', 'n = 95', 'n = 93', 'n = 92'],
+      Treatment: ['n = 100', 'n = 93', 'n = 91', 'n = 95', 'n = 92']
+    });
+    await expect(row).toHaveAttribute('data-state', 'shown', { timeout: 200_000 });
+    // The row waited, saying what the first start costs, and then printed.
+    let log = await page.evaluate(() => window.__lines);
+    expect(log.map((entry) => [entry.panel, entry.state])).toEqual([
+      ['', 'waiting'],
+      ['', 'shown']
+    ]);
+    expect(log[0].text).toBe(
+      'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
+    );
+    // R was started once, and given its one file once.
+    expect(forR().filter((url) => url.endsWith('/webr.mjs'))).toEqual([
+      'https://webr.r-wasm.org/v0.6.0/webr.mjs'
+    ]);
+    expect(forR().filter((url) => url.endsWith('/statistics.R'))).toHaveLength(1);
+    expect(forR().filter((url) => url.endsWith('/R.wasm'))).toHaveLength(1);
+
+    // One request for the whole row, answered with what desktop R gives for
+    // the same rows: every member of the answer, and so the p-value under
+    // every visit, unadjusted and then adjusted.
+    const compared = [];
+    const holdRow = async (name) => {
+      const expected = overTimeResult(name);
+      const at = await overTimeOf(page, 'BioVizDemo');
+      expect(at.statistics, name).toHaveLength(1);
+      const [answer] = at.statistics;
+      expect(answer.answer.status, name).toBe('ok');
+      expect(answer.answer.form).toBe('browser');
+      expect({
+        name: answer.name,
+        args: answer.args,
+        dataId: answer.dataId,
+        rows: answer.rows
+      }).toEqual({
+        name: expected.name,
+        args: expected.args,
+        dataId: expected.dataId,
+        rows: expected.rows
+      });
+      // The rows R was sent are the ones desktop R read.
+      const sent = await page.evaluate(() =>
+        window.BioVizDemo.chart
+          .tableOf()
+          .rows.map((record) => [record.USUBJID, record.y, record.x, record.visit])
+      );
+      const rows = readFileSync(
+        new URL(`../fixtures/group-statistics/${expected.file}`, import.meta.url),
+        'utf8'
+      )
+        .trimEnd()
+        .split('\n')
+        .slice(1)
+        .map((line) => line.split(',').map((cell, index) => (index === 1 ? Number(cell) : cell)));
+      expect(sent, name).toEqual(rows);
+      const leaves = compareValues(expected.value, answer.answer.value);
+      expect(
+        leaves.filter((leaf) => !leaf.ok),
+        name
+      ).toEqual([]);
+      // Under each visit, the p-value R returned for it, by the shared rule.
+      expect(
+        at.test.cells.map((cell) => [cell.visit, cell.text]),
+        name
+      ).toEqual(expected.value.rows.map((entry) => [entry.by, printedP(entry.p_value)]));
+      answer.answer.value.rows.forEach((entry, index) => {
+        compared.push({
+          case: `${name} ${entry.by}`,
+          desktop: expected.value.rows[index].p_value,
+          browser: entry.p_value,
+          numbers: leaves.filter((leaf) => leaf.difference !== null).length
+        });
+      });
+      return at;
+    };
+    found = await holdRow('over-time-result');
+    expect(found.test.sub).toBe('p, unadjusted');
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, unadjusted.'
+    );
+    expect(found.line.scope).toBe(
+      'Each visit has a test of its own, of the levels of Arm on the participants drawn at that visit.'
+    );
+    // The switch: R is asked again, and its adjusted p-values take their place.
+    await choose(page, 'visit-adjustment', 'holm');
+    await expect(row.locator('.bv-time-sub')).toHaveText('p, adjusted (Holm)', {
+      timeout: 60_000
+    });
+    found = await holdRow('over-time-result-holm');
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, adjusted (Holm) across 5 visits.'
+    );
+    await choose(page, 'visit-adjustment', 'none');
+    await expect(row.locator('.bv-time-sub')).toHaveText('p, unadjusted', { timeout: 60_000 });
+
+    // A few of its visits, a panel each: each waits and prints for itself what
+    // desktop R gives for that panel's rows.
+    await page.evaluate(() => {
+      window.__lines = [];
+      window.BioVizDemo.chart.setSettings({ visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8'] });
+    });
     const lines = page.locator('.bv-panel .bv-statistic');
-    await expect(lines).toHaveCount(5);
-    // While R starts the page answers: a box lists its participants.
+    await expect(lines).toHaveCount(4);
+    // While R works the page answers: a box lists its participants.
     await page.locator('.bv-panel canvas').first().scrollIntoViewIfNeeded();
     const point = await page.evaluate(() => {
       const chart = window.BioVizDemo.chart.charts[0];
@@ -5245,47 +5401,30 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
     });
     await page.mouse.click(point.x, point.y);
     await expect(page.locator('.sv-listing-actions strong')).toHaveText('100 of 100 records');
-
-    for (const index of [0, 1, 2, 3, 4]) {
-      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 200_000 });
+    for (const index of [0, 1, 2, 3]) {
+      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
     }
-    // Each panel waited and then printed, for itself. The first to wait said
-    // what the first start costs, and only it.
-    const log = await page.evaluate(() => window.__lines);
-    for (const visit of VISITS) {
+    log = await page.evaluate(() => window.__lines);
+    for (const visit of VISITS.slice(0, 4)) {
       expect(
         log.filter((entry) => entry.panel === visit).map((entry) => entry.state),
         visit
       ).toEqual(['waiting', 'shown']);
     }
-    const waited = log.filter((entry) => entry.state === 'waiting').map((entry) => entry.text);
-    expect(waited).toEqual([
-      'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.',
-      WAITING,
-      WAITING,
-      WAITING,
-      WAITING
-    ]);
-    // R was started once for the five of them, and given its one file once.
-    expect(forR().filter((url) => url.endsWith('/webr.mjs'))).toEqual([
-      'https://webr.r-wasm.org/v0.6.0/webr.mjs'
-    ]);
-    expect(forR().filter((url) => url.endsWith('/statistics.R'))).toHaveLength(1);
-    expect(forR().filter((url) => url.endsWith('/R.wasm'))).toHaveLength(1);
-
-    // Five requests, one per visit panel, each answered with what desktop R
-    // gives for that panel's rows.
+    // R is running by now: no panel says what a first start costs.
+    expect(
+      log.filter((entry) => entry.state === 'waiting' && entry.panel).map((entry) => entry.text)
+    ).toEqual([WAITING, WAITING, WAITING, WAITING]);
     const asked = await page.evaluate(() => window.BioVizDemo.chart.statistics());
-    expect(asked.map((entry) => entry.panel)).toEqual(VISITS);
+    expect(asked.map((entry) => entry.panel)).toEqual(VISITS.slice(0, 4));
     const drawnRows = await page.evaluate(() =>
       window.BioVizDemo.chart.model.panels.map((panel) =>
         panel.records.map((record) => Object.values(record))
       )
     );
-    const cases = ['baseline', 'week-2', 'week-4', 'week-8', 'week-12'].map((visit) =>
+    const cases = ['baseline', 'week-2', 'week-4', 'week-8'].map((visit) =>
       resultOf(`result-${visit}`)
     );
-    const compared = [];
     cases.forEach((expected, index) => {
       const answer = asked[index];
       expect(answer.answer.status, expected.case).toBe('ok');
@@ -5326,8 +5465,7 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
       'Welch Two Sample t-test: p = 0.221 (Placebo n = 100, Treatment n = 100). Exploratory, unadjusted.',
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 92, Treatment n = 93). Exploratory, unadjusted.',
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
-      'Welch Two Sample t-test: p < 0.001 (Placebo n = 93, Treatment n = 95). Exploratory, unadjusted.',
-      'Welch Two Sample t-test: p < 0.001 (Placebo n = 92, Treatment n = 92). Exploratory, unadjusted.'
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 93, Treatment n = 95). Exploratory, unadjusted.'
     ]);
     await expect(page.locator('.bv-panel .bv-stat-estimate').first()).toHaveText(
       'Difference in means (Placebo - Treatment): 0.2522, 95% confidence interval -0.1533 to 0.6577.'
@@ -5336,14 +5474,16 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
       'This test compares the levels of Arm on the 200 participants drawn in this panel (Baseline). ' +
         'Each panel has a test of its own, and they are not adjusted for one another.'
     );
-    await testInfo.attach('tiles-five-panels-desktop-R-and-webR.json', {
+    await testInfo.attach('tiles-over-time-and-panels-desktop-R-and-webR.json', {
       body: JSON.stringify(compared, null, 2),
       contentType: 'application/json'
     });
-    console.log('\nIL-6 opened from its tile: five panels, desktop R beside R in the browser');
+    console.log(
+      '\nIL-6 opened from its tile: the row of tests, then four panels, desktop R beside R in the browser'
+    );
     for (const entry of compared) {
       console.log(
-        `  ${entry.case.padEnd(15)} p_value desktop ${String(entry.desktop).padEnd(24)} ` +
+        `  ${entry.case.padEnd(32)} p_value desktop ${String(entry.desktop).padEnd(24)} ` +
           `browser ${String(entry.browser).padEnd(24)} ${entry.numbers} numbers held equal`
       );
     }
@@ -5354,11 +5494,12 @@ test.describe('group comparison: the demo’s tiles, with R in the browser, live
     await expect(page.locator('.bv-tile')).toHaveCount(12);
     expect(await page.evaluate(() => window.BioVizDemo.chart.statistics())).toEqual([]);
     await expect(page.locator('.sv-main')).not.toContainText('Welch');
-    // Another biomarker: the same R answers, and nothing is fetched again.
+    // Another biomarker, at every visit again: the same R answers, and nothing
+    // is fetched again.
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ visits: null }));
     await page.locator('.bv-tile[data-measure="CRP"]').click();
-    for (const index of [0, 1, 2, 3, 4]) {
-      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
-    }
+    await expect(row).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
+    await expect(row.locator('td[data-visit]')).toHaveCount(5);
     await page.waitForTimeout(500);
     expect(forR().length).toBe(before);
   });

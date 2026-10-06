@@ -3,7 +3,7 @@
 // itself, bio.viz v0.2.0, with what that chart drew and asked R for each. The
 // tests named GC-TILE-010 hold this version to them: a specification the
 // released chart wrote is still read, and still rebuilds its view (#84). The
-// one that names a biomarker and every visit is held by GC-TIME-034: it is
+// one that names a biomarker and every visit is held by GC-TIME-032: it is
 // read, and opens on the biomarker over time, not on a panel per visit (#85).
 //
 //   node tools/write-released-specifications.mjs

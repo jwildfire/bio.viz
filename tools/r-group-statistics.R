@@ -9,23 +9,32 @@
 #
 # The rows are not worked out here. Each case in tests/fixtures/group-statistics/
 # is one panel of the gallery's demo chart, and its CSV file holds the rows the
-# chart's own code made for that panel (tools/derive-group-statistics.mjs). This
+# chart's own code made for that panel (tools/derive-group-statistics.mjs). The
+# cases named over-time- are one biomarker across its visits: one file of long
+# rows, a participant, a value, a group and a visit to a row, for the one
+# request the chart makes of Analyze_GroupDifferenceBy (bio.viz#85). This
 # script reads them, calls the function the chart calls with the arguments the
 # chart sends, and writes each answer as a stored result: the function's name,
 # its arguments, the identity of the rows, the number of rows and what R
 # returned.
 #
 # The name, the arguments and the identity are written by `group_comparison_key`
-# below from what an R user knows of a view: the settings, by the chart's own
-# names. That function is the recipe in docs/group-comparison.md, and the unit
-# tests hold what it writes to what the chart asks, so a stored result written
+# below, and for one biomarker over time by `group_comparison_by_visit_key`,
+# from what an R user knows of a view: the settings, by the chart's own names.
+# Those functions are the recipes in docs/group-comparison.md, and the unit
+# tests hold what they write to what the chart asks, so a stored result written
 # this way is found by the chart.
 #
 # The file records the R version that made it and the commit and checksum of the
 # statistics file it sourced. The numbers in it are never typed in: rerun this
 # script to change them.
 #
-# Base R and the stats package only: Analyze_GroupDifference needs nothing else.
+# Beside each answer for a row of visits the file holds what R gives for each
+# visit asked about alone, followed by stats::p.adjust() across the visits that
+# have a p-value: the unit tests hold the one answer to those.
+#
+# Base R and the stats package only: Analyze_GroupDifference and
+# Analyze_GroupDifferenceBy need nothing else.
 # The JSON is written by hand (tools/r-json.R), following the rules by which
 # bio.viz's connection turns an R value into JavaScript (docs/r-connection.md),
 # so that the file holds each value in exactly the shape R in the browser

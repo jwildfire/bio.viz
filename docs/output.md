@@ -117,7 +117,7 @@ The statistics R returned for the view drawn, as shown, as one table. For each a
 
 ### The table
 
-The table the chart drew from, one row per participant drawn, with the headings the chart's listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value, and on its trend tiles of every biomarker one row per participant, biomarker and visit, with the biomarker named; and so on, as each chart's reference says. A group or a category that is a cut biomarker has the value it was cut from beside it (`CRP at Baseline`), so the cut can be made again from the file. A number is written as it was drawn, unrounded.
+The table the chart drew from, one row per participant drawn, with the headings the chart's listing uses: for the cross-tabulation the participant, the row and the column; for the group comparison the participant, the visit, the group and the value, for one biomarker over time one such row per participant and visit, and on its trend tiles of every biomarker one row per participant, biomarker and visit, with the biomarker named; and so on, as each chart's reference says. A group or a category that is a cut biomarker has the value it was cut from beside it (`CRP at Baseline`), so the cut can be made again from the file. A number is written as it was drawn, unrounded.
 
 ### CSV
 
@@ -242,7 +242,7 @@ chart.notices;
 
 ### What a specification holds of the view, and what it does not
 
-It holds every setting as the controls read: the groupings, the visits, the test, the filters, what the group comparison's trend tiles draw and whether it draws unscheduled visits (`tile_summary`, `unscheduled_visits`), the page of the screen (`page`), the screen's order (`sort`), and the cut variables the Rows, Columns and Groups controls offer (`cuts`), a line moved on the survival chart among them. Made from it on the same tables, a chart opens on the same view and writes the same specification again.
+It holds every setting as the controls read: the groupings, the visits, the test, the filters, what the group comparison's trend tiles draw, what one biomarker over time is drawn as and how its p-values are adjusted across the visits, and whether it draws unscheduled visits (`tile_summary`, `time_mark`, `visit_adjustment`, `unscheduled_visits`), the page of the screen (`page`), the screen's order (`sort`), and the cut variables the Rows, Columns and Groups controls offer (`cuts`), a line moved on the survival chart among them. Made from it on the same tables, a chart opens on the same view and writes the same specification again.
 
 It does not hold what a reader does in passing, which ends when the chart draws again: a chart opened in place of another (a screen's row, a matrix's cell), the participants listed from a cell, a box, a region or a curve, the participant profile open beside it, and a cut line while it is being dragged.
 

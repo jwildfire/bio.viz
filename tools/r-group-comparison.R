@@ -5,7 +5,9 @@
 # the trend tiles it opens on: for every biomarker the median, the mean and the
 # count of each arm at each visit, and the standard deviation of its results at
 # the baseline visit, which a tile's value axis is never narrower than a
-# multiple of.
+# multiple of; and about one biomarker over time: for IL-6 and CRP, by arm at
+# every visit, the count, the quantiles, the mean, the standard deviation and
+# the standard error each form of the picture is drawn from.
 #
 #   Rscript tools/r-group-comparison.R                 writes tests/fixtures/group-comparison-r.json
 #   Rscript tools/r-group-comparison.R <output file>   writes somewhere else (the check
@@ -13,7 +15,9 @@
 #
 # The chart's own arithmetic (src/group-comparison/structureData.js) is held to
 # this file by the unit tests named GC-BOX and GC-VIOLIN, and the tiles'
-# (src/group-comparison/tiles.js) by the unit and browser tests named GC-TILE.
+# (src/group-comparison/tiles.js) by the unit and browser tests named GC-TILE,
+# and the picture over time's (src/group-comparison/overTime.js) by the unit and
+# browser tests named GC-TIME.
 # The numbers in it are never typed in: rerun this script to change them.
 #
 # Base R only, and nothing of bio.viz: the tables are read from the vendored CSV
@@ -31,6 +35,11 @@
 #               visit, for the result and for the change from Baseline; and of
 #               every participant's result at Baseline, stats::sd(x), mean(x)
 #               and stats::sd(log10(x))
+#   over_time   length(x), stats::quantile(x, c(.05, .25, .5, .75, .95)),
+#               mean(x), stats::sd(x) and stats::sd(x) / sqrt(length(x)) of each
+#               arm at each visit, for the result and for the change from
+#               Baseline: a standard error describes the values drawn, and
+#               compares no group with another
 #
 # Numbers are written with 17 significant digits, which is enough to read back
 # the identical double.

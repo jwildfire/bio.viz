@@ -198,6 +198,13 @@ export const OVER_TIME_CASES = [
     adjustment: 'holm'
   },
   {
+    case: 'over-time-age-39',
+    says: 'IL-6, the result itself, by arm among participants aged 39: at Week 12 the Treatment arm has nobody, and R still answers for both arms there',
+    view: { valueType: 'raw', filters: { AGE: '39' } },
+    test: 't',
+    adjustment: 'none'
+  },
+  {
     case: 'over-time-age-40-to-43-unadjusted',
     says: 'The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones',
     rows: 'over-time-age-40-to-43',

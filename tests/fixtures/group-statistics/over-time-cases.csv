@@ -9,4 +9,5 @@ over-time-anova,over-time-anova.csv,Analyze_GroupDifferenceBy,anova,none,IL-6,ra
 over-time-kruskal-holm,over-time-anova.csv,Analyze_GroupDifferenceBy,kruskal,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM_SEX,,linear
 over-time-age-57,over-time-age-57.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=57,linear
 over-time-age-40-to-43,over-time-age-40-to-43.csv,Analyze_GroupDifferenceBy,t,holm,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=40|41|42|43,linear
+over-time-age-39,over-time-age-39.csv,Analyze_GroupDifferenceBy,t,none,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=39,linear
 over-time-age-40-to-43-unadjusted,over-time-age-40-to-43.csv,Analyze_GroupDifferenceBy,t,none,IL-6,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,AGE=40|41|42|43,linear
