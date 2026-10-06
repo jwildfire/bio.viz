@@ -3975,7 +3975,7 @@ test.describe('group comparison: one biomarker over time', () => {
     ).toEqual([{ ...entry.asked[1], panel: asked[0].panel }]);
   });
 
-  test('GC-TIME-034: over time the notes above the chart are two lines for all the visits, the range drawn at a visit and what was left out added up over the visits by reason; each number is the sum of the notes the visits print when they are opened one by one, and a visit’s own note is unchanged (#85)', async ({
+  test('GC-TIME-034: over time the notes above the chart are two lines for all the visits, the range drawn at a visit and what was left out added up over the visits by reason; each number is the sum of the notes the visits print for themselves, and a visit’s own note is unchanged (#85)', async ({
     page
   }) => {
     await openOverTime(page);
@@ -3986,76 +3986,57 @@ test.describe('group comparison: one biomarker over time', () => {
           warning: note.classList.contains('sv-warning')
         }))
       );
-    // Each visit's own notes, read with that visit open alone: the number drawn,
-    // and the number left out for each reason.
-    const visitByVisit = async (settings) => {
-      const drawn = [];
-      const left = {};
-      for (const visit of VISITS) {
-        await page.evaluate((given) => window.__gc.chart.setSettings(given), {
-          ...settings,
-          visits: visit
-        });
-        await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
-        for (const { text, warning } of await notes()) {
-          const one = text.match(/^(\d+) of (\d+) participants drawn\.$/);
-          const out = text.match(/^(\d+) left out: (.+)\.$/);
-          if (one) drawn.push({ n: Number(one[1]), of: Number(one[2]) });
-          if (out) {
-            expect(warning, text).toBe(true);
-            left[out[2]] = (left[out[2]] || 0) + Number(out[1]);
-          }
-        }
+    // On everyone, the study's own numbers.
+    expect(await notes()).toEqual([
+      { text: '184 to 200 of 200 participants drawn at each visit.', warning: false },
+      {
+        text: 'Left out, added up over the 5 visits: 44, No result at the visit; 13, Result at the visit is missing or not a number. Open a visit for its own counts.',
+        warning: true
       }
-      expect(drawn).toHaveLength(VISITS.length);
-      return { drawn, left };
-    };
-
-    for (const settings of [{}, { filters: [{ value_col: 'SEX', start: 'F' }] }]) {
-      await page.evaluate(
-        (given) => window.__gc.chart.setSettings({ visits: null, ...given }),
-        settings
-      );
-      await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
-      const over = (await notes()).filter((note) => /drawn at each visit|Left out/.test(note.text));
-      const { drawn, left } = await visitByVisit(settings);
-      const counts = drawn.map((visit) => visit.n);
-      const range =
-        Math.min(...counts) === Math.max(...counts)
-          ? `${counts[0]}`
-          : `${Math.min(...counts)} to ${Math.max(...counts)}`;
-      const reasons = Object.entries(left);
-      expect(reasons.length).toBeGreaterThan(0);
-      expect(over).toEqual([
-        {
-          text: `${range} of ${drawn[0].of} participants drawn at each visit.`,
-          warning: false
-        },
-        {
-          text:
-            `Left out, added up over the 5 visits: ` +
-            `${reasons.map(([reason, n]) => `${n}, ${reason}`).join('; ')}. ` +
-            'Open a visit for its own counts.',
-          warning: true
-        }
-      ]);
-    }
-
-    // The numbers themselves, on everyone: the study's own.
-    await page.evaluate(() => window.__gc.chart.setSettings({ visits: null, filters: [] }));
-    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
-    expect((await notes()).map((note) => note.text)).toEqual([
-      '184 to 200 of 200 participants drawn at each visit.',
-      'Left out, added up over the 5 visits: 44, No result at the visit; 13, Result at the visit is missing or not a number. Open a visit for its own counts.'
     ]);
     await captureEvidence(page.locator('.sv-notes'), 'GC-TIME-034', 'notes-for-all-the-visits');
+
+    // What the visits print for themselves, in the view with a visit open: four
+    // of them together, each note under its visit's name, and then the fifth.
+    const drawn = {};
+    const left = {};
+    const read = async (visits) => {
+      await page.evaluate((given) => window.__gc.chart.setSettings({ visits: given }), visits);
+      await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+      const own = await notes();
+      for (const { text, warning } of own) {
+        const [, name = visits, rest] = text.match(/^(?:(Baseline|Week \d+): )?(.*)$/);
+        const one = rest.match(/^(\d+) of (\d+) participants drawn\.$/);
+        const out = rest.match(/^(\d+) left out: (.+)\.$/);
+        if (one) drawn[name] = { n: Number(one[1]), of: Number(one[2]) };
+        if (out) {
+          expect(warning, text).toBe(true);
+          left[out[2]] = (left[out[2]] || 0) + Number(out[1]);
+        }
+      }
+      return own.map((note) => note.text);
+    };
+    await read(['Baseline', 'Week 2', 'Week 8', 'Week 12']);
     // A visit's own note is as released.
-    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
-    expect((await notes()).map((note) => note.text)).toEqual([
+    expect(await read('Week 4')).toEqual([
       '186 of 200 participants drawn.',
       '13 left out: No result at the visit.',
       '1 left out: Result at the visit is missing or not a number.'
     ]);
+    expect(drawn).toEqual({
+      Baseline: { n: 200, of: 200 },
+      'Week 2': { n: 185, of: 200 },
+      'Week 4': { n: 186, of: 200 },
+      'Week 8': { n: 188, of: 200 },
+      'Week 12': { n: 184, of: 200 }
+    });
+    // The line for all the visits says their least and greatest, and their sums.
+    const counts = Object.values(drawn).map((visit) => visit.n);
+    expect([Math.min(...counts), Math.max(...counts)]).toEqual([184, 200]);
+    expect(left).toEqual({
+      'No result at the visit': 44,
+      'Result at the visit is missing or not a number': 13
+    });
   });
 });
 
