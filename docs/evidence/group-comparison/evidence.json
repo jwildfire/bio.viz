@@ -1,13 +1,16 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-05T23:56:50.770Z",
+  "generatedAt": "2026-10-06T00:02:44.812Z",
   "environment": {
-    "os": "darwin 23.6.0",
-    "node": "v24.14.0",
+    "os": "linux 6.17.0-1022-azure",
+    "node": "v22.23.3",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": null,
+  "run": {
+    "id": "37391807172",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37391807172"
+  },
   "records": [
     {
       "test": "CORE-SITE-001: the home page names the library and its version, and shows the version its bundle reports (#1)",
@@ -447,7 +450,7 @@
       "status": "pass",
       "requirementIds": ["GC-OVW-011"],
       "issueRefs": [],
-      "screenshots": []
+      "screenshots": ["GC-OVW-011-trend-tiles.png"]
     },
     {
       "test": "GC-OVW-012: a tile is a button named for its biomarker that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the tiles (#17, #84)",
@@ -487,7 +490,7 @@
       "status": "pass",
       "requirementIds": ["GC-OVW-016"],
       "issueRefs": [],
-      "screenshots": []
+      "screenshots": ["GC-OVW-016-trend-tiles-on-a-phone.png"]
     },
     {
       "test": "GC-OVW-017: the first draw of thirty-six tiles is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17, #84)",
