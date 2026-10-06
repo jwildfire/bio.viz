@@ -18,7 +18,7 @@
     <header class="site-header">
       <a class="site-name" href="../index.html">
         bio.viz
-        <span class="site-version">v0.2.0</span>
+        <span class="site-version">v0.3.0</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
         <div class="nav-group"><a href="../gallery/index.html">Gallery</a><button type="button" class="nav-disclosure" aria-expanded="false" aria-controls="gallery-menu" aria-label="Show charts"><span class="nav-caret" aria-hidden="true"></span></button><ul id="gallery-menu" class="nav-menu"><li><a href="../group-comparison/index.html">Group comparison</a></li><li><a href="../association-scatter/index.html">Association scatter</a></li><li><a href="../correlation-matrix/index.html">Correlation matrix</a></li><li><a href="../biomarker-screen/index.html">Biomarker screen</a></li><li><a href="../cross-tab/index.html">Cross-tabulation</a></li><li><a href="../stratified-survival/index.html">Stratified survival</a></li></ul></div>
@@ -66,7 +66,7 @@
 <h2 id="at-a-glance">At a glance</h2>
 <pre><code class="language-html">&lt;div id=&quot;chart&quot;&gt;&lt;/div&gt;
 &lt;script src=&quot;vendor/safety.viz/safety.viz.js&quot;&gt;&lt;/script&gt;
-&lt;script src=&quot;dist/bio.viz-0.2.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;dist/bio.viz-0.3.0/bio.viz.js&quot;&gt;&lt;/script&gt;
 &lt;script&gt;
   const chart = BioViz.groupComparison(&#39;#chart&#39;, {
     start_value: &#39;IL-6&#39;,
@@ -166,7 +166,7 @@
 <p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
 <table class="api doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
 <tbody><tr><td data-label="Placeholder"><code>{measure}</code></td><td data-label="What it holds">The biomarker drawn, or <code>every biomarker</code> on the trend tiles.</td></tr>
-<tr><td data-label="Placeholder"><code>{visits}</code></td><td data-label="What it holds">The visits chosen, separated by commas.</td></tr>
+<tr><td data-label="Placeholder"><code>{visits}</code></td><td data-label="What it holds">The visits drawn, separated by commas: those chosen that the biomarker has.</td></tr>
 <tr><td data-label="Placeholder"><code>{value}</code></td><td data-label="What it holds">What is drawn of the value: <code>Result</code>, <code>Change from baseline</code> and so on.</td></tr>
 <tr><td data-label="Placeholder"><code>{group}</code></td><td data-label="What it holds">What the groups are, as the Group control names it; empty for none.</td></tr>
 <tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants are drawn: on the trend tiles, behind a point of any tile.</td></tr>
@@ -202,7 +202,8 @@
 <tbody><tr><td data-label="Level"><code>biomarkers</code></td><td data-label="When">No biomarker chosen: <code>start_value</code> null, or All Biomarkers in the control.</td><td data-label="What is drawn">The trend tiles.</td></tr>
 <tr><td data-label="Level"><code>over-time</code></td><td data-label="When">A biomarker chosen, and every visit it has values at: the Visit control on all visits.</td><td data-label="What is drawn"><a href="#one-biomarker-over-time">That biomarker over time</a>, with R&#39;s test under each visit.</td></tr>
 <tr><td data-label="Level"><code>visits</code></td><td data-label="When">A biomarker chosen and some of its visits; or a biomarker with one visit; or a baseline value.</td><td data-label="What is drawn">That biomarker, a panel per visit chosen, each with R&#39;s test.</td></tr></tbody></table>
-<p>Once a biomarker is open the level is named above the chart, as a trail that leads back: <code>All biomarkers › IL-6 over time › Week 4</code>. Each part before the last is a button.</p>
+<p>Once a biomarker is open the level is named above the chart, as a trail that leads back: <code>All biomarkers › IL-6 over time › Week 4</code>. Each part before the last is a button, and each leads back up to its level whole: <code>IL-6 over time</code> to the biomarker across every visit it has, and <code>All biomarkers</code> to the tiles across every visit, whichever visits were open. All Biomarkers in the Biomarker control is the other way to the tiles, and keeps the visits chosen. After one of the trail&#39;s buttons is pressed the keyboard&#39;s place is on the level it led to: the trail&#39;s own entry for it, or, on the tiles, the Biomarker control, or the first tile when the sidebar is closed.</p>
+<p>The visits chosen are the ones ticked or opened and no others. A biomarker may lack a visit other biomarkers have; that visit is not offered while the biomarker is open, is not added to the visits chosen when one of the biomarker&#39;s visits is opened, and is not named in a title. All in the Visit control is every visit, so the next biomarker opened is drawn across all of its own.</p>
 <p>Group by, Levels, Value, Scale, Visit and the filters apply to every tile, as they do to one biomarker. Three controls are not read by the tiles; each is switched off there, keeps what it is set to, and says where it applies:</p>
 <table class="api doc-table"><thead><tr><th scope="col">Control</th><th scope="col">On the tiles</th></tr></thead>
 <tbody><tr><td data-label="Control">Colour by</td><td data-label="On the tiles">Switched off, with the words <code>Applies once a biomarker and a visit are open.</code> A tile&#39;s lines are the groups.</td></tr>
@@ -545,9 +546,9 @@ lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfRows), lapply(lKe
 </main>
     <footer class="site-footer">
       <p>
-        bio.viz v0.2.0 — biomarker charts on the
+        bio.viz v0.3.0 — biomarker charts on the
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/5eb22ab776a9137f60f7a8f3091f64db65380c95"><code>5eb22ab</code></a>.
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/a303f6b06ce30f74ad61b74a46c3ec19bd044197"><code>a303f6b</code></a>.
       </p>
       <p>
         Built in the open — follow the
