@@ -1301,11 +1301,19 @@
       "screenshots": []
     },
     {
-      "test": "the chart list CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column (#32)",
+      "test": "the chart list CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column; a setting of a table the entry does not name carries no column and is not required (#32, #99)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["CORE-MAN-005"],
-      "issueRefs": [32],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "the chart list CORE-MAN-008: every column a setting names, for every chart in the list, is a column of its domain in safety.viz’s standard set, read from the vendored safety.viz bundle; a list that names an outcomes column against the results table is refused (#99)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-MAN-008"],
+      "issueRefs": [99],
       "screenshots": []
     },
     {
