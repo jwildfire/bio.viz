@@ -56,7 +56,7 @@
 <div class="api-layout">
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
-  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#the-cut-rule">The cut rule</a></li><li><a href="#cuts"><code>CUTS</code></a></li><li><a href="#cutpointsvalues-cut"><code>cutPoints(values, cut)</code></a></li><li><a href="#cutgroupvalue-points"><code>cutGroup(value, points)</code></a></li><li><a href="#cutlabelspoints"><code>cutLabels(points)</code></a></li><li><a href="#cutwordscut"><code>cutWords(cut)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
+  <ul><li><a href="#loading-the-library">Loading the library</a></li><li><a href="#version"><code>version</code></a></li><li><a href="#a-variable">A variable</a></li><li><a href="#variablespec"><code>variable(spec)</code></a></li><li><a href="#the-cut-rule">The cut rule</a></li><li><a href="#cuts"><code>CUTS</code></a></li><li><a href="#cutpointsvalues-cut"><code>cutPoints(values, cut)</code></a></li><li><a href="#cutgroupvalue-points"><code>cutGroup(value, points)</code></a></li><li><a href="#cutlabelspoints"><code>cutLabels(points)</code></a></li><li><a href="#cutwordscut"><code>cutWords(cut)</code></a></li><li><a href="#value_types"><code>VALUE_TYPES</code></a></li><li><a href="#frametables-variables-settings"><code>frame(tables, variables, settings)</code></a></li><li><a href="#visitsresults-settings"><code>visits(results, settings)</code></a></li><li><a href="#unscheduled-visits">Unscheduled visits</a></li><li><a href="#unscheduled_defaults"><code>UNSCHEDULED_DEFAULTS</code></a></li><li><a href="#isunscheduledvisitvisit-settings"><code>isUnscheduledVisit(visit, settings)</code></a></li><li><a href="#scheduledresultsresults-settings"><code>scheduledResults(results, settings)</code></a></li><li><a href="#default_settings"><code>DEFAULT_SETTINGS</code></a></li><li><a href="#baseline_stats"><code>BASELINE_STATS</code></a></li><li><a href="#dropped"><code>DROPPED</code></a></li><li><a href="#unused"><code>UNUSED</code></a></li><li><a href="#labelspec"><code>label(spec)</code></a></li><li><a href="#handing-the-frame-to-r">Handing the frame to R</a></li><li><a href="#portfolio"><code>portfolio</code></a></li><li><a href="#what-is-not-here">What is not here</a></li><li><a href="#what-else-is-exported">What else is exported</a></li></ul>
 </nav>
 
 <article class="api-body">
@@ -211,6 +211,38 @@ cut_groups &lt;- function(x, points) {
 <p>So visits Screening (−1), Baseline (0), Day 1 (no number) and Week 4 (4) are in the order Screening, Baseline, Week 4, Day 1.</p>
 <pre><code class="language-js">BioViz.core.visits(results); // [&#39;Baseline&#39;, &#39;Week 2&#39;, &#39;Week 4&#39;, &#39;Week 8&#39;, &#39;Week 12&#39;]</code></pre>
 <p><code>results</code> is the results table and <code>settings</code> the same settings <code>frame</code> takes; only the column names are read.</p>
+<h2 id="unscheduled-visits">Unscheduled visits</h2>
+<p>A results table often holds visits that were not planned: an unscheduled draw, an early termination. A chart that reads a table visit by visit leaves them out unless asked, and which visits those are is decided once, here, by safety.viz&#39;s rule under safety.viz&#39;s setting names, so one mapping means the same in both libraries:</p>
+<ul><li>A visit is unscheduled when <code>unscheduled_visit_values</code> names it. A list decides alone: when there is one, the pattern is not read, and an empty list means no visit is unscheduled.</li><li>With no list, a visit is unscheduled when its name matches <code>unscheduled_visit_pattern</code>, a regular expression written as text, either <code>/source/flags</code> or a plain source.</li><li>With neither, no visit is unscheduled.</li></ul>
+<p>safety.viz&#39;s kit does not share its rule, so bio.viz carries a copy of the two functions in safety.viz&#39;s <code>src/unscheduled-visits.js</code>, and the copy&#39;s source says which safety.viz commit it was made from. A unit test reads safety.viz&#39;s own functions out of the bundle vendored at <code>site/vendor/safety.viz/</code>, runs them beside these, and holds the answers and the default pattern equal.</p>
+<p>The rule is in the core because it decides which rows a chart reads, and R code that prepares the same chart has to arrive at the same rows. A pattern is a JavaScript regular expression, and R&#39;s are not quite the same. So a caller in R that must agree with the page, as gsm.bio&#39;s widget must, works out the visits itself and names them in <code>unscheduled_visit_values</code>: a list is matched by name, and reads the same in both languages.</p>
+<p>The group comparison chart is the first to use the rule; <a href="../group-comparison/api.html#unscheduled-visits">its reference</a> says what it does with it. <code>frame()</code> and <code>visits()</code> do not apply it: they read the table they are given.</p>
+<h2 id="unscheduled_defaults"><code>UNSCHEDULED_DEFAULTS</code></h2>
+<p>The rule&#39;s three settings, with safety.viz&#39;s names and the defaults of safety.viz&#39;s results over time chart. A chart spreads them into its own settings.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>unscheduled_visits</code></td><td data-label="Default"><code>false</code></td><td data-label="Meaning">Whether unscheduled visits are drawn. The switch is the chart&#39;s to read: the two functions below answer the same whatever it says.</td></tr>
+<tr><td data-label="Setting"><code>unscheduled_visit_pattern</code></td><td data-label="Default"><code>&#39;/unscheduled|early termination/i&#39;</code></td><td data-label="Meaning">The regular expression an unscheduled visit&#39;s name matches, as text. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>unscheduled_visit_values</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The unscheduled visits, by name. When given, it decides alone.</td></tr></tbody></table>
+<p>As a value: <code>{ unscheduled_visits: false, unscheduled_visit_pattern: &#39;/unscheduled|early termination/i&#39;, unscheduled_visit_values: null }</code>.</p>
+<h2 id="isunscheduledvisitvisit-settings"><code>isUnscheduledVisit(visit, settings)</code></h2>
+<p>Whether a visit is unscheduled, by the rule above. <code>visit</code> is the visit&#39;s name. <code>settings</code> holds the rule&#39;s <code>unscheduled_visit_pattern</code> and <code>unscheduled_visit_values</code>; a setting left out is not defaulted here, so with no settings at all no visit is unscheduled. A pattern that is not a regular expression throws a <code>SyntaxError</code>, as safety.viz&#39;s does; a chart checks its pattern when its settings are read.</p>
+<pre><code class="language-js">const { isUnscheduledVisit, UNSCHEDULED_DEFAULTS } = BioViz.core;
+isUnscheduledVisit(&#39;Unscheduled 1&#39;, UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit(&#39;Early Termination&#39;, UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit(&#39;Week 4&#39;, UNSCHEDULED_DEFAULTS); // false
+isUnscheduledVisit(&#39;Unscheduled 1&#39;, { unscheduled_visit_values: [&#39;Retest&#39;] }); // false: the list decides</code></pre>
+<h2 id="scheduledresultsresults-settings"><code>scheduledResults(results, settings)</code></h2>
+<p>The results a chart reads when it draws only scheduled visits, and what was set aside. <code>results</code> is the results table. <code>settings</code> names the visit column, <code>visit_col</code>, and holds the rule&#39;s <code>unscheduled_visit_pattern</code> and <code>unscheduled_visit_values</code>.</p>
+<p>It answers <code>{ results, visits, rows }</code>: the rows at scheduled visits, in the table&#39;s order; the names of the unscheduled visits found, in the order first seen; and how many rows were set aside. A row with no visit is kept. A table with no unscheduled visit comes back as it is, the same array. Nothing given is changed.</p>
+<pre><code class="language-js">const {
+  results: scheduled,
+  visits,
+  rows
+} = BioViz.core.scheduledResults(results, {
+  visit_col: &#39;VISIT&#39;,
+  ...BioViz.core.UNSCHEDULED_DEFAULTS
+});
+// visits: [&#39;Unscheduled 1&#39;, &#39;Early Termination&#39;], rows: 31</code></pre>
 <h2 id="default_settings"><code>DEFAULT_SETTINGS</code></h2>
 <p>The settings and their defaults. The names are safety.viz&#39;s, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.</p>
 <table class="api doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
@@ -291,7 +323,7 @@ Object.keys(BioViz.portfolio.modules);
       <p>
         bio.viz v0.2.0 — biomarker charts on the
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/b612c08ce7d6db1c6653092106731e041bafc96c"><code>b612c08</code></a>.
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/988df403fb0120b7f44a2882c536c5062e1180e2"><code>988df40</code></a>.
       </p>
       <p>
         Built in the open — follow the
