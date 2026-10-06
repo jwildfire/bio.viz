@@ -273,10 +273,13 @@ test.describe('evidence pages', () => {
     // picture is the same whatever the page above it holds.
     const row = page.locator('#RCON-API-001');
     const top = await row.evaluate((element) => {
-      const table = element.closest('table');
+      // A spacer above the table, as tall as what the row lacks of a whole
+      // pixel, and one pixel more so that it is there to measure from.
+      const spacer = document.createElement('div');
+      spacer.style.height = '1px';
+      element.closest('table').before(spacer);
       const start = element.getBoundingClientRect().top + window.scrollY;
-      table.style.position = 'relative';
-      table.style.top = `${Math.ceil(start) - start}px`;
+      spacer.style.height = `${1 + Math.ceil(start) - start}px`;
       return element.getBoundingClientRect().top + window.scrollY;
     });
     expect(top).toBe(Math.round(top));
