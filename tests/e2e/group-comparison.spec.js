@@ -3979,7 +3979,7 @@ test.describe('group comparison: one biomarker over time', () => {
 test.describe('group comparison: one biomarker over time, on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
-  test('GC-TIME-031: at 390px the picture over time and its table hold five visits within the page, each visit’s column under its place; a tap on a visit opens it; with more visits than fit, the block scrolls sideways inside the chart and the page still does not (#85)', async ({
+  test('GC-TIME-031: at 390px the picture over time and its table hold five visits within the page, with no visit’s name broken inside a word; a tap on a visit opens it with the trail and the chart’s top on screen; with more visits than fit, the block scrolls sideways inside the chart and the page still does not (#85)', async ({
     page
   }) => {
     await openOverTime(page, {
@@ -4036,12 +4036,26 @@ test.describe('group comparison: one biomarker over time, on a phone', () => {
     expect(found.trail.map((step) => step.text)).toEqual(['All biomarkers', 'IL-6 over time']);
     await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-031', 'over-time-on-a-phone');
 
-    // A tap on a visit opens it, at the chart's top.
+    // A tap on a visit, far down the page, opens it with the trail and the
+    // top of the visit's chart on screen. The view is shorter than the picture
+    // it replaces, so the page may come to rest at its end, a few pixels past
+    // the chart's own top, once the statistics line under the chart is written.
     await page.locator('button.bv-time-visit[data-visit="Week 4"]').tap();
     await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('.sv-main > .bv-statistic')).toHaveAttribute(
+      'data-state',
+      'unavailable'
+    );
     expect(await layout(page)).toEqual(HOLDS);
-    const top = await page.locator('.sv-root').evaluate((root) => root.getBoundingClientRect().top);
-    expect(top).toBeGreaterThanOrEqual(-1);
+    const onScreen = await page.evaluate(() =>
+      ['.bv-trail', '.sv-chart-wrap'].map(
+        (selector) => document.querySelector(selector).getBoundingClientRect().top
+      )
+    );
+    for (const top of onScreen) {
+      expect(top).toBeGreaterThanOrEqual(0);
+      expect(top).toBeLessThan(844 / 2);
+    }
     await page.locator('.bv-trail button', { hasText: 'IL-6 over time' }).tap();
     await expect(page.locator('.bv-time-table')).toHaveCount(1);
     expect(await layout(page)).toEqual(HOLDS);
