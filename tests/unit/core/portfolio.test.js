@@ -10,6 +10,7 @@ import * as associationScatter from '../../../src/association-scatter/configure.
 import * as correlationMatrix from '../../../src/correlation-matrix/configure.js';
 import * as biomarkerScreen from '../../../src/biomarker-screen/configure.js';
 import * as crossTab from '../../../src/cross-tab/configure.js';
+import { OUTCOME_DEFAULTS } from '../../../src/shared/outcomes.js';
 
 // The chart list (#32, obot.roadmap#366): bio.viz's charts in safety.viz's
 // portfolio manifest format, version 2, so safety.viz's demo app can list and
@@ -52,6 +53,51 @@ const refusesNull = (configuration, key) => {
     return true;
   }
 };
+
+// Which table of a chart a column setting is of. `participant_id_col` is the
+// participant table's; the outcomes table's are the column settings the charts
+// share for it (src/shared/outcomes.js); every other is the results table's.
+const OUTCOME_COLUMNS = columnSettings(OUTCOME_DEFAULTS);
+const tableOf = (key) => {
+  if (key === 'participant_id_col') return 'participants';
+  return OUTCOME_COLUMNS.includes(key) ? 'outcomes' : 'results';
+};
+
+// safety.viz's standard set of domains, each with its columns: the `domains`
+// of safety.viz's own manifest, read out of the bundle vendored beside this
+// library (site/vendor/safety.viz/, held to its record by `npm run kit:check`).
+// It is the set a host checks a chart list against, and nothing of it is typed
+// here: copy the bundle again and the set is the new one.
+function standardDomains() {
+  const context = {};
+  vm.runInNewContext(
+    readFileSync(new URL('../../../site/vendor/safety.viz/safety.viz.js', import.meta.url), 'utf8'),
+    context
+  );
+  return JSON.parse(JSON.stringify(context.SafetyViz.portfolio.domains));
+}
+
+// Why a host that knows those domains cannot use an entry, or null when it
+// can: the column rule of safety.viz's app (`entryProblem`, src/app/libraries.js
+// there), which leaves the whole chart out when a setting names a column its
+// domain does not have. A setting with no column is one the host skips.
+const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+function columnProblem(entry, domains) {
+  for (const id of [...entry.domains, ...(entry.optionalDomains || [])]) {
+    if (!has(domains, id)) return `it reads ${id}, which is not one of the standard domains`;
+  }
+  for (const [key, setting] of Object.entries(entry.settings)) {
+    for (const id of [].concat(setting.domain)) {
+      if (!has(domains, id))
+        return `its ${key} setting reads ${id}, which is not a standard domain`;
+      if (setting.column === null) continue;
+      if (setting.column === '' || !has(domains[id].columns, setting.column)) {
+        return `its ${key} setting reads ${setting.column}, which is not a column of ${id}`;
+      }
+    }
+  }
+  return null;
+}
 
 // The available charts, but for one that says why it is left out of the list.
 const charts = config.modules.filter(
@@ -149,7 +195,8 @@ describe('the chart list', () => {
     }
   });
 
-  it('CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column (#32)', () => {
+  it('CORE-MAN-005: each entry’s settings are its chart’s column-name settings, with the chart’s defaults, required where the chart refuses no column; a setting of a table the entry does not name carries no column and is not required (#32, #99)', () => {
+    const unnamed = [];
     for (const [module, entry] of Object.entries(manifest.modules)) {
       const configuration = CONFIGURATIONS[module];
       expect(configuration, `${module} has no configuration in this test`).toBeTruthy();
@@ -157,6 +204,20 @@ describe('the chart list', () => {
       expect(Object.keys(entry.settings), module).toEqual(columnSettings(defaults));
       for (const [key, setting] of Object.entries(entry.settings)) {
         const where = `${module}.${key}`;
+        if (!has(entry.tables, tableOf(key))) {
+          // A column of a table the format cannot name for this entry (#63):
+          // the outcomes table. No host has such a table to map, so the
+          // setting names no column of any domain and is not required,
+          // whatever the chart's default. With `unmappedSettings: "omit"` the
+          // host passes nothing for it, and the chart keeps its own default
+          // for a page that hands it an outcomes table.
+          expect(tableOf(key), where).toBe('outcomes');
+          expect(setting, where).toEqual({ domain: 'bds', column: null, required: false });
+          expect(entry.unmappedSettings, where).toBe('omit');
+          expect(configuration.syncSettings({})[key], where).toBe(OUTCOME_DEFAULTS[key]);
+          unnamed.push(where);
+          continue;
+        }
         expect(setting.required, where).toBe(refusesNull(configuration, key));
         if (key === 'participant_id_col') {
           // Its default, null, means the participant table names the participant
@@ -175,6 +236,19 @@ describe('the chart list', () => {
         expect(setting.domain, where).toBe('bds');
       }
     }
+    // The rule has something to hold: the biomarker screen's six outcomes
+    // columns, four of which the chart gives a default and three of which it
+    // refuses to be made without.
+    expect(unnamed).toEqual(OUTCOME_COLUMNS.map((key) => `biomarker-screen.${key}`));
+    expect(OUTCOME_COLUMNS.filter((key) => OUTCOME_DEFAULTS[key] !== null)).toEqual([
+      'endpoint_col',
+      'endpoint_label_col',
+      'time_col',
+      'censor_col'
+    ]);
+    expect(
+      OUTCOME_COLUMNS.filter((key) => refusesNull(CONFIGURATIONS['biomarker-screen'], key))
+    ).toEqual(['endpoint_col', 'time_col', 'censor_col']);
   });
 
   it('CORE-MAN-005: a chart that refuses a null column is passed nothing for an unmapped one (#32)', () => {
@@ -184,5 +258,53 @@ describe('the chart list', () => {
       expect(refuses, module).toBe(true);
       expect(entry.unmappedSettings, module).toBe('omit');
     }
+  });
+
+  it('CORE-MAN-008: every column a setting names, for every chart in the list, is a column of its domain in safety.viz’s standard set, read from the vendored safety.viz bundle; a list that names an outcomes column against the results table is refused (#99)', () => {
+    const domains = standardDomains();
+    // The set is safety.viz's four domains, and the two this list reads have
+    // the columns its charts default to.
+    expect(Object.keys(domains)).toEqual(['subject', 'ae', 'bds', 'eg']);
+    for (const column of ['USUBJID', 'TEST', 'STRESN', 'VISIT', 'VISITNUM', 'STRESU']) {
+      expect(has(domains.bds.columns, column), column).toBe(true);
+    }
+    expect(has(domains.subject.columns, 'USUBJID')).toBe(true);
+
+    let named = 0;
+    for (const [module, entry] of Object.entries(manifest.modules)) {
+      expect(columnProblem(entry, domains), module).toBe(null);
+      for (const [key, setting] of Object.entries(entry.settings)) {
+        if (setting.column === null) {
+          // No column: a host skips it, so nothing can make it required.
+          expect(setting.required, `${module}.${key}`).toBe(false);
+          continue;
+        }
+        named += 1;
+        for (const id of [].concat(setting.domain)) {
+          expect(Object.keys(domains[id].columns), `${module}.${key}`).toContain(setting.column);
+        }
+      }
+    }
+    // Seven named columns for each of the five charts listed.
+    expect(named).toBe(7 * Object.keys(manifest.modules).length);
+
+    // The check refuses what the list said before (#99): each of the screen's
+    // outcomes columns named against the results table, which has no such
+    // column. It also refuses a column with no name, and a domain outside the set.
+    for (const key of ['endpoint_col', 'endpoint_label_col', 'time_col', 'censor_col']) {
+      const before = structuredClone(manifest.modules['biomarker-screen']);
+      before.settings[key].column = OUTCOME_DEFAULTS[key];
+      expect(columnProblem(before, domains), key).toBe(
+        `its ${key} setting reads ${OUTCOME_DEFAULTS[key]}, which is not a column of bds`
+      );
+    }
+    const blank = structuredClone(manifest.modules['cross-tab']);
+    blank.settings.unit_col.column = '';
+    expect(columnProblem(blank, domains)).toMatch(/^its unit_col setting reads /);
+    const outside = structuredClone(manifest.modules['cross-tab']);
+    outside.settings.unit_col.domain = 'outcomes';
+    expect(columnProblem(outside, domains)).toBe(
+      'its unit_col setting reads outcomes, which is not a standard domain'
+    );
   });
 });
