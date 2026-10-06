@@ -925,6 +925,14 @@ export function validateEvidenceScreenshots(evidence, evidenceDir, label = evide
 //
 // `pages` maps another module's reference file to that module's page, so a
 // link between two reference files stays on the site.
+//
+// The list of sections is a narrow column beside the page, as safety.viz's is,
+// and a heading here is often a whole signature. `breakAfterBracket` lets one
+// break after its opening bracket, so it does not break inside a word. Only the
+// text between tags is touched, and only in the list: the heading is as written.
+const breakAfterBracket = (html) =>
+  html.replace(/(^|>)([^<]+)/g, (match, open, text) => open + text.replace(/\(/g, '(<wbr>'));
+
 export function renderApiPage({ entry, config, markdown, pages = {} }) {
   const lines = String(markdown).split('\n');
   const titleAt = lines.findIndex((line) => /^#\s+/.test(line));
@@ -935,7 +943,10 @@ export function renderApiPage({ entry, config, markdown, pages = {} }) {
   });
   const contents = extractHeadings(body)
     .filter((heading) => heading.level === 2)
-    .map((heading) => `<li><a href="#${heading.id}">${mdInline(heading.text)}</a></li>`)
+    .map(
+      (heading) =>
+        `<li><a href="#${heading.id}">${breakAfterBracket(mdInline(heading.text))}</a></li>`
+    )
     .join('');
   const docUrl = `${escapeHtml(config.repoUrl)}/blob/HEAD/docs/${escapeHtml(entry.api.doc)}`;
   return `

@@ -158,6 +158,11 @@ test.describe('gallery', () => {
     }
     expect(errors).toEqual([]);
 
+    // The pointer is still on the header's Gallery link it clicked, and the
+    // list of charts opens under a pointer resting there (#91). Take it off the
+    // header, so the picture is of the gallery and not of the list over it.
+    await page.mouse.move(0, 600);
+    if (charts.length > 0) await expect(page.locator('#gallery-menu')).toBeHidden();
     await captureEvidence(page.locator('main'), 'CORE-SITE-003', 'gallery', { module: 'core' });
   });
 
