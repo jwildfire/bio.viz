@@ -26,6 +26,7 @@ npx playwright install chromium
 | `npm run data:check` / `data:check-source`   | Hold the vendored synthetic study to its record / to gsm.bio at the recorded commit              |
 | `npm run kit:check` / `kit:check-source`     | Hold the vendored safety.viz bundle to its record / to safety.viz at the recorded commit         |
 | `npm run statistics:check` / `:check-source` | Hold the vendored gsm.bio statistics file to its record / to gsm.bio at the recorded commit      |
+| `npm run styles:check` / `:check-source`     | Hold the copied safety.viz site styles to their record / to safety.viz at the recorded commit    |
 | `npm run portfolio:check` / `:check-source`  | Hold the vendored portfolio manifest schema to its record / to safety.viz at the recorded commit |
 | `npm run site`                               | Build the site into `_site/` (gitignored); fails on a broken internal link                       |
 
@@ -173,6 +174,18 @@ What a chart does work out is held to desktop R. `tools/r-group-comparison.R` wr
 | `r-check/index.html`     | `site/r-check/`                                                                                                        |
 | `portfolio.json`         | the chart list, `src/data/portfolio.json`, with the format it names at `schema/portfolio.json`                         |
 
+### The site's styles
+
+The site is laid out and styled as safety.viz's site is, so that a reader of one is at home on the other. It does that by loading safety.viz's own stylesheet, not by imitating it.
+
+- `site/vendor/safety.viz-site/` holds two files of safety.viz's site, copied byte for byte from its `dev` branch: `site.css`, the stylesheet every page of that site loads, and `shell.html`, the page its header, navigation and footer are written in. `SOURCE.json` beside them names the safety.viz commit and each file's checksum. `node tools/vendor-site-styles.mjs` makes the copy again. Never edit that folder: `npm test` and the site build fail when a file and its record disagree (`npm run styles:check`), and `npm run styles:check-source`, which continuous integration runs, compares each file with safety.viz at the recorded commit.
+- Every page loads that stylesheet first, published at `vendor/safety.viz-site/site.css` with its record, and then `site/site.css`. The shell is the pattern `site/shell.html` follows; it is not published.
+- `site/site.css` is short, and holds only what safety.viz's site has no rule for: what keeps a page inside a 390px screen where safety.viz's lets a table or a code sample scroll (code wraps, a table restacks as a list, the Gallery list opens under the header), a few words this site's pages use, and the R check page. It defines no token and names no colour or typeface of its own: every one is a `var(--…)` of safety.viz's. Before adding a rule there, look for a class in the copied stylesheet that already does it and write that class in the page.
+- The pages are written in safety.viz's markup by `scripts/site-lib.mjs`: `site-header` and its `nav-group`, `tagline`, `page-tabs`, `gallery` and `card`, `facts`, `table.evidence`, `evidence-gallery`, `api-layout` and `api-toc`, `demo-page`. `tests/unit/site/siteStyles.test.js` builds one of every page and fails when a page writes a class that neither stylesheet styles, when `site/site.css` styles a class no page writes, defines a token or names a colour, or when `site/shell.html`'s header, footer or script has drifted from the copied shell's.
+- After copying the styles again, run `npm test`, build the site and look at it beside safety.viz's: a test names what the shell must take from the new one, but a rule that changed under a class the pages already use is seen only by looking. Every site screenshot changes with the look, so ask for the baselines again with `update-baselines-all`.
+
+Two things differ from safety.viz's site on purpose, each a rule in `site/site.css` with its reason beside it: a picture on a gallery card or under Visual evidence is shown whole where safety.viz's is cropped to fill its frame, because a chart's picture here carries its footnotes at the bottom; and on a phone a table is a list and code wraps, because this site lets nothing run past the right edge.
+
 ### Registering a module
 
 A module is one entry in `site/config.json`, and that entry is all the site, the requirement extractor and the evidence pipeline need:
@@ -224,7 +237,7 @@ The Pages workflow writes the site to the `gh-pages` branch:
 | pull request from a branch here | `pr/{N}/`, with a comment linking it |
 | pull request closed             | `pr/{N}/` pages redirect to `dev/`   |
 
-Every page must hold at a 390px-wide viewport with no horizontal scroll; `tests/e2e/site.spec.js` measures the home page, the gallery and every module's evidence page and API reference, and a new page gets the same assertion. A table in a reference file is restacked as a list on a narrow screen rather than scrolled sideways.
+Every page must hold at a 390px-wide viewport with no horizontal scroll; `tests/e2e/site.spec.js` measures the home page, the gallery and every module's evidence page and API reference, and the header on one of every kind of page with its Gallery list open, and a new page gets the same assertion. A table, in a reference file or on an evidence page, is restacked as a list on a narrow screen rather than scrolled sideways.
 
 ## Chart definition of done
 

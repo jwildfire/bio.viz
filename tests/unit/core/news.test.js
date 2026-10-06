@@ -39,11 +39,12 @@ describe('the release log', () => {
     for (const section of released) {
       expect(section.body, section.heading).not.toMatch(/jwildfire\.github\.io\/bio\.viz\/dev\//);
     }
-    // The next version is open, with nothing in it until something merges. It
-    // has no number yet, so it is the development version after the release
-    // (#82).
+    // The next version is open. It has no number yet, so it is the development
+    // version after the release (#82). It held one line saying that nothing had
+    // merged until something did: now it says what has, under headings.
     expect(all[0].heading).toBe('# bio.viz v0.2.0.9000 (Upcoming)');
-    expect(all[0].body.trim()).toBe('_Nothing merged yet._');
+    expect(all[0].body).not.toContain('_Nothing merged yet._');
+    expect(all[0].body).toMatch(/^## \S/m);
     expect(released[0].heading).toBe('# bio.viz v0.2.0');
   });
 });

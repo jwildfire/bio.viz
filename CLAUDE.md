@@ -19,6 +19,7 @@ npm run fixtures:check        # desktop R re-derives every committed expected re
 npm run data:check            # the vendored synthetic study matches its record (:check-source asks gsm.bio)
 npm run kit:check             # the vendored safety.viz bundle matches its record (:check-source asks safety.viz)
 npm run statistics:check      # the vendored gsm.bio statistics file matches its record (:check-source asks gsm.bio)
+npm run styles:check          # the copied safety.viz site styles match their record (:check-source asks safety.viz)
 ```
 
 Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test:e2e`, `evidence:check` and `requirements:check` all pass. CI runs the same.
@@ -47,6 +48,7 @@ Before a pull request: `npm run format:check`, `build:check-dist`, `test`, `test
 - What two charts share is written once, in `src/shared/`: the statistics line's rounds and waiting state, the reading of the tables, the settings checks, and the kit's shell, filters, listing, download and participant rail. A chart imports nothing of another chart, with two exceptions, each of a public function a page calls, to open another chart in place: `src/correlation-matrix.js` imports `associationScatter`, and `src/biomarker-screen.js` imports `groupComparison`, `associationScatter` and `stratifiedSurvival`; neither imports anything under another chart's folder. What two charts share of an outcomes table is `src/shared/outcomes.js`.
 - Never type a number into `site/r-check/expected.json`. It is written by `npm run fixtures` (desktop R) and checked by `npm run fixtures:check`.
 - Never edit `site/data/synthetic-study/`. It is gsm.bio's study, copied byte for byte by `node tools/vendor-synthetic-study.mjs`, with a checksum per file in `SOURCE.json`.
+- The site's look is safety.viz's site stylesheet, loaded as it was copied. Never edit `site/vendor/safety.viz-site/`: it is copied by `node tools/vendor-site-styles.mjs`. `site/site.css` is loaded after it and holds only what safety.viz's has no rule for; it defines no token and names no colour or typeface. A page is written in safety.viz's classes (`scripts/site-lib.mjs`): a class neither stylesheet styles fails `npm test`.
 - A module's API reference page is its reference file in `docs/`, rendered. After changing an export, a parameter or a constant, change that file; `npm run site` and `npm test` fail when they disagree.
 - Every requirement row needs a test named for it, and a test may name only a row that exists; `npm run evidence` fails otherwise.
 - Screenshot baselines (`docs/evidence/<module>/*.png`) are made only on the Linux CI runner: label the pull request `update-baselines`, download the `evidence-baselines` artifact, commit it. After a version change, use `update-baselines-all`, which rewrites every picture and its `.drawn.json` record of the versions it draws: pixel tolerance does not see a footnote's version. Never commit a capture from another system.

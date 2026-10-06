@@ -7,7 +7,9 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 # bio.viz v0.2.0.9000 (Upcoming)
 
-_Nothing merged yet._
+## Also in this release
+
+- **The site is laid out and styled as safety.viz's is.** Every page of bio.viz's site now reads as a page of safety.viz's: the landing page, the gallery, each chart's live demo, evidence page and API reference, and the R check page. The header is safety.viz's, with a Gallery list that opens on every chart; the type, the colours, the gallery cards, a chart's three tabs, the panel of facts, the evidence table with its screenshots, the reference's list of sections beside it and the footer are safety.viz's too. The styles are safety.viz's own stylesheet, copied with a record of the commit it came from and loaded as it is, so the two sites cannot drift apart by retyping. The few rules that are bio.viz's own keep every page inside a phone's screen, where a table becomes a list and code wraps, and show a chart's picture whole, footnotes and all. Nothing about a chart changes. [Gallery](https://jwildfire.github.io/bio.viz/dev/gallery/), [obot.roadmap#369](https://github.com/jwildfire/obot.roadmap/issues/369), [#91](https://github.com/jwildfire/bio.viz/issues/91)
 
 # bio.viz v0.2.0
 
