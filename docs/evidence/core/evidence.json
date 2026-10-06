@@ -1,16 +1,13 @@
 {
   "module": "core",
-  "generatedAt": "2026-10-05T03:22:51.878Z",
+  "generatedAt": "2026-10-05T23:56:50.770Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "darwin 23.6.0",
+    "node": "v24.14.0",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
-  "run": {
-    "id": "37259173857",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37259173857"
-  },
+  "run": null,
   "records": [
     {
       "test": "CORE-API-001: a page that loads the committed bundle reads BioViz.version as the package version (#1)",
@@ -645,6 +642,30 @@
       "screenshots": []
     },
     {
+      "test": "core: which visits are unscheduled CORE-VISIT-001: a visit is unscheduled when a list names it, and with no list when its name matches the pattern; a list decides alone, an empty one means no visit, and with neither no visit is unscheduled (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VISIT-001"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "core: which visits are unscheduled CORE-VISIT-002: the settings carry safety.viz’s names and the defaults of its results over time chart, and the rule answers as safety.viz’s own does, read from the vendored bundle (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VISIT-002"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "core: which visits are unscheduled CORE-VISIT-003: `scheduledResults()` sets aside the rows at unscheduled visits and says which visits and how many rows; a table with none comes back as it is, and nothing given is changed (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-VISIT-003"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
       "test": "evidence normalizer buildEvidenceSets splits records per module and duplicates shared scaffold records (#1)",
       "suite": "unit",
       "status": "pass",
@@ -823,7 +844,7 @@
     {
       "test": "evidence pictures: the version each one draws CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, written for its own bytes (sha256), with the pictures it shows named; no record is left without its picture (#78)",
       "suite": "unit",
-      "status": "pass",
+      "status": "fail",
       "requirementIds": ["CORE-SITE-017"],
       "issueRefs": [78],
       "screenshots": []

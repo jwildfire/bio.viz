@@ -1,0 +1,461 @@
+{
+  "made_by": {
+    "tool": "tools/write-released-specifications.mjs",
+    "tag": "v0.2.0",
+    "commit": "4440a4377935b3cc7263a07cb64db760b2d4a1a5",
+    "bio_viz_version": "0.2.0",
+    "bundle": "dist/bio.viz-0.2.0/bio.viz.js",
+    "data": "site/data/synthetic-study/"
+  },
+  "cases": [
+    {
+      "name": "one-visit",
+      "what": "IL-6, change from baseline at Week 4, by arm, a Wilcoxon test, women only: the single-visit view.",
+      "specification": {
+        "format": "bio.viz specification",
+        "format_version": 1,
+        "bio_viz_version": "0.2.0",
+        "chart": "group-comparison",
+        "settings": {
+          "id_col": "USUBJID",
+          "measure_col": "TEST",
+          "value_col": "STRESN",
+          "visit_col": "VISIT",
+          "visit_order_col": "VISITNUM",
+          "unit_col": "STRESU",
+          "participant_id_col": null,
+          "baseline_visits": [
+            "Baseline"
+          ],
+          "baseline_stat": "mean",
+          "start_value": "IL-6",
+          "visits": [
+            "Week 4"
+          ],
+          "value_type": "change",
+          "group_by": "ARM",
+          "levels": null,
+          "color_by": null,
+          "panel_by": null,
+          "mark": "box",
+          "y_scale": "linear",
+          "measures": null,
+          "groups": null,
+          "max_levels": 12,
+          "filters": [
+            {
+              "value_col": "SEX",
+              "label": "Sex"
+            },
+            {
+              "value_col": "RESPONSE",
+              "label": "RESPONSE"
+            }
+          ],
+          "overview_limit": 12,
+          "page": 0,
+          "details": null,
+          "page_size": 10,
+          "statistic": "Analyze_GroupDifference",
+          "test": "wilcoxon",
+          "pairwise": false,
+          "waiting_note": null,
+          "profile": true,
+          "profile_details": null,
+          "studyday_col": null,
+          "normal_col_high": null,
+          "normal_col_low": null,
+          "title": "{measure} by {group}",
+          "subtitle": null,
+          "footnotes": null,
+          "downloads": true,
+          "png_scale": 2
+        },
+        "filters": [
+          {
+            "column": "SEX",
+            "operator": "in",
+            "values": [
+              "F"
+            ]
+          }
+        ]
+      },
+      "drew": {
+        "biomarker": "IL-6",
+        "panels": [
+          {
+            "title": "",
+            "visit": "Week 4",
+            "participants": 84,
+            "groups": [
+              "Placebo n = 42",
+              "Treatment n = 42"
+            ]
+          }
+        ],
+        "overview": null
+      },
+      "asked": [
+        {
+          "panel": "",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "wilcoxon",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "IL-6",
+            "value_type": "change",
+            "visit": "Week 4",
+            "baseline_visits": [
+              "Baseline"
+            ],
+            "baseline_stat": "mean",
+            "group_by": "ARM",
+            "groups": [
+              "Placebo",
+              "Treatment"
+            ],
+            "filters": {
+              "SEX": [
+                "F"
+              ]
+            }
+          },
+          "rows": 84
+        }
+      ]
+    },
+    {
+      "name": "one-biomarker-two-visits",
+      "what": "CRP, the result at Week 2 and Week 8, by response, coloured by sex, as violins: a panel per visit.",
+      "specification": {
+        "format": "bio.viz specification",
+        "format_version": 1,
+        "bio_viz_version": "0.2.0",
+        "chart": "group-comparison",
+        "settings": {
+          "id_col": "USUBJID",
+          "measure_col": "TEST",
+          "value_col": "STRESN",
+          "visit_col": "VISIT",
+          "visit_order_col": "VISITNUM",
+          "unit_col": "STRESU",
+          "participant_id_col": null,
+          "baseline_visits": null,
+          "baseline_stat": "mean",
+          "start_value": "CRP",
+          "visits": [
+            "Week 2",
+            "Week 8"
+          ],
+          "value_type": "raw",
+          "group_by": "RESPONSE",
+          "levels": null,
+          "color_by": "SEX",
+          "panel_by": null,
+          "mark": "violin",
+          "y_scale": "linear",
+          "measures": null,
+          "groups": null,
+          "max_levels": 12,
+          "filters": [
+            {
+              "value_col": "ARM",
+              "label": "ARM"
+            },
+            {
+              "value_col": "SEX",
+              "label": "SEX"
+            },
+            {
+              "value_col": "RESPONSE",
+              "label": "RESPONSE"
+            }
+          ],
+          "overview_limit": 12,
+          "page": 0,
+          "details": null,
+          "page_size": 10,
+          "statistic": "Analyze_GroupDifference",
+          "test": "t",
+          "pairwise": false,
+          "waiting_note": null,
+          "profile": true,
+          "profile_details": null,
+          "studyday_col": null,
+          "normal_col_high": null,
+          "normal_col_low": null,
+          "title": null,
+          "subtitle": null,
+          "footnotes": null,
+          "downloads": true,
+          "png_scale": 2
+        },
+        "filters": []
+      },
+      "drew": {
+        "biomarker": "CRP",
+        "panels": [
+          {
+            "title": "Week 2",
+            "visit": "Week 2",
+            "participants": 186,
+            "groups": [
+              "Non-responder n = 117 55 · 62",
+              "Responder n = 69 29 · 40"
+            ]
+          },
+          {
+            "title": "Week 8",
+            "visit": "Week 8",
+            "participants": 190,
+            "groups": [
+              "Non-responder n = 121 59 · 62",
+              "Responder n = 69 30 · 39"
+            ]
+          }
+        ],
+        "overview": null
+      },
+      "asked": [
+        {
+          "panel": "Week 2",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "CRP",
+            "value_type": "raw",
+            "visit": "Week 2",
+            "baseline_stat": "mean",
+            "group_by": "RESPONSE",
+            "groups": [
+              "Non-responder",
+              "Responder"
+            ],
+            "color_by": "SEX"
+          },
+          "rows": 186
+        },
+        {
+          "panel": "Week 8",
+          "name": "Analyze_GroupDifference",
+          "args": {
+            "strValueCol": "y",
+            "strGroupCol": "x",
+            "strMethod": "t",
+            "bPairwise": false
+          },
+          "dataId": {
+            "chart": "group-comparison",
+            "measure": "CRP",
+            "value_type": "raw",
+            "visit": "Week 8",
+            "baseline_stat": "mean",
+            "group_by": "RESPONSE",
+            "groups": [
+              "Non-responder",
+              "Responder"
+            ],
+            "color_by": "SEX"
+          },
+          "rows": 190
+        }
+      ]
+    },
+    {
+      "name": "every-biomarker",
+      "what": "No biomarker and no visit named: the overview v0.2.0 opened on, every biomarker at every visit.",
+      "specification": {
+        "format": "bio.viz specification",
+        "format_version": 1,
+        "bio_viz_version": "0.2.0",
+        "chart": "group-comparison",
+        "settings": {
+          "id_col": "USUBJID",
+          "measure_col": "TEST",
+          "value_col": "STRESN",
+          "visit_col": "VISIT",
+          "visit_order_col": "VISITNUM",
+          "unit_col": "STRESU",
+          "participant_id_col": null,
+          "baseline_visits": [
+            "Baseline"
+          ],
+          "baseline_stat": "mean",
+          "start_value": null,
+          "visits": [
+            "Baseline",
+            "Week 2",
+            "Week 4",
+            "Week 8",
+            "Week 12"
+          ],
+          "value_type": "raw",
+          "group_by": "ARM",
+          "levels": null,
+          "color_by": null,
+          "panel_by": null,
+          "mark": "box",
+          "y_scale": "linear",
+          "measures": null,
+          "groups": null,
+          "max_levels": 12,
+          "filters": [
+            {
+              "value_col": "ARM",
+              "label": "ARM"
+            },
+            {
+              "value_col": "SEX",
+              "label": "SEX"
+            },
+            {
+              "value_col": "RESPONSE",
+              "label": "RESPONSE"
+            }
+          ],
+          "overview_limit": 12,
+          "page": 0,
+          "details": null,
+          "page_size": 10,
+          "statistic": "Analyze_GroupDifference",
+          "test": "t",
+          "pairwise": false,
+          "waiting_note": null,
+          "profile": true,
+          "profile_details": null,
+          "studyday_col": null,
+          "normal_col_high": null,
+          "normal_col_low": null,
+          "title": null,
+          "subtitle": null,
+          "footnotes": null,
+          "downloads": true,
+          "png_scale": 2
+        },
+        "filters": []
+      },
+      "drew": {
+        "biomarker": null,
+        "panels": [],
+        "overview": {
+          "biomarkers": [
+            "CRP",
+            "D-dimer",
+            "Ferritin",
+            "IFN-gamma",
+            "IL-1beta",
+            "IL-2",
+            "IL-6",
+            "IL-8",
+            "IL-10",
+            "LDH",
+            "TNF-alpha",
+            "VEGF"
+          ],
+          "page": 0,
+          "pages": 1
+        }
+      },
+      "asked": []
+    },
+    {
+      "name": "every-biomarker-second-page",
+      "what": "The overview four biomarkers at a time, on its second page, by sex, on a logarithmic scale.",
+      "specification": {
+        "format": "bio.viz specification",
+        "format_version": 1,
+        "bio_viz_version": "0.2.0",
+        "chart": "group-comparison",
+        "settings": {
+          "id_col": "USUBJID",
+          "measure_col": "TEST",
+          "value_col": "STRESN",
+          "visit_col": "VISIT",
+          "visit_order_col": "VISITNUM",
+          "unit_col": "STRESU",
+          "participant_id_col": null,
+          "baseline_visits": null,
+          "baseline_stat": "mean",
+          "start_value": null,
+          "visits": [
+            "Baseline",
+            "Week 2",
+            "Week 4",
+            "Week 8",
+            "Week 12"
+          ],
+          "value_type": "raw",
+          "group_by": "SEX",
+          "levels": null,
+          "color_by": null,
+          "panel_by": null,
+          "mark": "box",
+          "y_scale": "log",
+          "measures": null,
+          "groups": null,
+          "max_levels": 12,
+          "filters": [
+            {
+              "value_col": "ARM",
+              "label": "ARM"
+            },
+            {
+              "value_col": "SEX",
+              "label": "SEX"
+            },
+            {
+              "value_col": "RESPONSE",
+              "label": "RESPONSE"
+            }
+          ],
+          "overview_limit": 4,
+          "page": 1,
+          "details": null,
+          "page_size": 10,
+          "statistic": "Analyze_GroupDifference",
+          "test": "t",
+          "pairwise": false,
+          "waiting_note": null,
+          "profile": true,
+          "profile_details": null,
+          "studyday_col": null,
+          "normal_col_high": null,
+          "normal_col_low": null,
+          "title": null,
+          "subtitle": null,
+          "footnotes": null,
+          "downloads": true,
+          "png_scale": 2
+        },
+        "filters": []
+      },
+      "drew": {
+        "biomarker": null,
+        "panels": [],
+        "overview": {
+          "biomarkers": [
+            "IL-1beta",
+            "IL-2",
+            "IL-6",
+            "IL-8"
+          ],
+          "page": 1,
+          "pages": 3
+        }
+      },
+      "asked": []
+    }
+  ]
+}

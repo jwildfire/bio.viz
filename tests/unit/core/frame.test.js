@@ -573,6 +573,7 @@ describe('core: what leaves the frame, and what the module is made of', () => {
       'CUTS',
       'DEFAULT_SETTINGS',
       'DROPPED',
+      'UNSCHEDULED_DEFAULTS',
       'UNUSED',
       'VALUE_TYPES',
       'cutGroup',
@@ -580,7 +581,9 @@ describe('core: what leaves the frame, and what the module is made of', () => {
       'cutPoints',
       'cutWords',
       'frame',
+      'isUnscheduledVisit',
       'label',
+      'scheduledResults',
       'variable',
       'visits'
     ];

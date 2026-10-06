@@ -657,7 +657,7 @@ test.describe('getting results out: placeholders follow the view', () => {
     });
   });
 
-  test('EXP-TXT-005: in the group comparison’s overview, {n} is the participants drawn anywhere on its page of biomarkers, not blank (#69 review)', async ({
+  test('EXP-TXT-005: on the group comparison’s trend tiles, {n} is the participants behind a point of any tile, not blank (#69 review, #84)', async ({
     page
   }) => {
     await blockR(page);
@@ -670,9 +670,8 @@ test.describe('getting results out: placeholders follow the view', () => {
     const said = await framed(page, chart);
     const drawn = await page.evaluate(() => {
       const ids = new Set();
-      for (const row of window.__gc.chart.overview.rows) {
-        for (const panel of row.model.panels)
-          for (const record of panel.records) ids.add(record.USUBJID);
+      for (const tile of window.__gc.chart.tiles.tiles) {
+        for (const record of tile.records) ids.add(record.USUBJID);
       }
       return ids.size;
     });
@@ -680,7 +679,7 @@ test.describe('getting results out: placeholders follow the view', () => {
     expect(said.subtitle).toBe(`${drawn} participants: every biomarker`);
   });
 
-  test('EXP-DL-010: in the group comparison’s overview, Table downloads every value drawn on its page of biomarkers, one row per participant, biomarker and visit, with each group, and every download is offered (#78)', async ({
+  test('EXP-DL-010: on the group comparison’s trend tiles, Table downloads the values every point is the median or the mean of, one row per participant, biomarker and visit, with each group, and the PNG and the table are offered (#78, #84)', async ({
     page
   }) => {
     await blockR(page);
@@ -690,19 +689,21 @@ test.describe('getting results out: placeholders follow the view', () => {
     await expect(buttons).toHaveText(['PNG', 'Table (CSV)']);
     await expect(page.locator('#chart .bv-downloads button[data-download="table"]')).toBeEnabled();
     const drawn = await page.evaluate(() =>
-      window.__gc.chart.overview.rows.flatMap((row) =>
-        row.model.panels.flatMap((panel) =>
-          panel.records.map((record) => [
-            record.USUBJID,
-            row.measure,
-            panel.visit,
-            record.x,
-            String(record.y)
-          ])
-        )
+      window.__gc.chart.tiles.tiles.flatMap((tile) =>
+        tile.records.map((record) => [
+          record.USUBJID,
+          tile.measure,
+          record.visit,
+          record.x,
+          String(record.y)
+        ])
       )
     );
-    expect(drawn.length).toBeGreaterThan(0);
+    // Every biomarker's values, at every visit: the baseline visit of the
+    // change among them, where each is nought.
+    expect(new Set(drawn.map((row) => row[1])).size).toBe(12);
+    expect(new Set(drawn.map((row) => row[2])).size).toBe(5);
+    expect(drawn.length).toBeGreaterThan(10000);
     const { group, valueType } = await page.evaluate(() => ({
       group: window.__gc.chart.labelOf(window.__gc.chart.state.groupBy),
       valueType: window.__gc.chart.state.valueType
@@ -1231,20 +1232,30 @@ test.describe('getting results out: what the #71 review found', () => {
     );
   });
 
-  test('EXP-SPEC-016: a specification opens on the same page of the group comparison’s overview and of the screen, in the screen’s order, and the survival chart’s Groups keep the cut it opened on after a moved line (#71 review)', async ({
+  test('EXP-SPEC-016: a specification opens the group comparison’s trend tiles as they were switched, on the same page of the screen in the screen’s order, and the survival chart’s Groups keep the cut it opened on after a moved line (#71 review, #84)', async ({
     page
   }) => {
     await blockR(page);
     const comparison = CHARTS.find((entry) => entry.module === 'group-comparison');
     await openChart(page, comparison, { start_value: null, visits: null, overview_limit: 4 });
     await page.evaluate(() => (window.__shown = window.__gc.chart));
-    await page.locator('#chart .bv-overview-pager button[data-go="next"]').first().click();
+    await page.evaluate(() => {
+      const select = window.__shown.root.querySelector('select[data-control="tile-summary"]');
+      select.value = 'mean';
+      select.dispatchEvent(new Event('change'));
+    });
     let trip = await remade(page, '__gc');
-    expect(trip.before.spec.settings.page).toBe(1);
+    // What the control reads is written, and the settings the tiles do not
+    // apply are kept as they were given.
+    expect(trip.before.spec.settings).toMatchObject({
+      tile_summary: 'mean',
+      overview_limit: 4,
+      page: 0
+    });
     expect(trip.after.spec).toEqual(trip.before.spec);
-    expect(await page.locator('#chart .bv-overview-count').first().textContent()).toMatch(
-      /^4 of 12 biomarkers shown: 5 to 8/
-    );
+    await expect(page.locator('#chart select[data-control="tile-summary"]')).toHaveValue('mean');
+    await expect(page.locator('#chart .bv-tile')).toHaveCount(12);
+    await expect(page.locator('#chart .bv-tile-key > span').first()).toHaveText(/^Mean /);
     const screen = CHARTS.find((entry) => entry.module === 'biomarker-screen');
     await openChart(page, screen, { limit: 5 });
     await page.evaluate(() => (window.__shown = window.__bs.chart));

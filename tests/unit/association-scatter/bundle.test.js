@@ -63,8 +63,8 @@ describe('bundle: the association scatter ships, safety.viz and Chart.js do not'
     // src/shared/variables.js (#27), is how a variable is written in settings
     // and in a request: this chart and the correlation matrix use it, and the
     // group comparison chart, which names no variable that way, does not.
-    // src/shared/paging.js (#36) is how a long list is paged: the group
-    // comparison chart's overview and the biomarker screen use it.
+    // src/shared/paging.js (#36) is how a long list is paged: the biomarker
+    // screen uses it, as the group comparison chart's overview did until #84.
     // src/shared/cut.js (#43) is how a cut variable makes groups: the group
     // comparison chart uses it, and this chart, whose axes are numbers, does not.
     // src/shared/outcomes.js (#62) is how an outcomes table is read: the

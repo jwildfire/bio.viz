@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { syncSettings } from '../../../src/group-comparison/configure.js';
-import { buildOverview, buildPanels } from '../../../src/group-comparison/structureData.js';
+import { buildPanels } from '../../../src/group-comparison/structureData.js';
+import { buildTiles } from '../../../src/group-comparison/tiles.js';
 import { frame } from '../../../src/core/index.js';
 import { NOBODY_PASSES, keepFiltered } from '../../../src/shared/tables.js';
 import { participants, results } from '../core/study.js';
@@ -27,7 +28,7 @@ const state = (overrides = {}) => ({
 const NOBODY = { AGE: '35', RESPONSE: 'Responder' };
 
 describe('group comparison: filters that let nobody through', () => {
-  it('GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel, one biomarker or the overview, and the core still refuses a results table with no rows (#29)', () => {
+  it('GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel and no tile, one biomarker or every biomarker, and the core still refuses a results table with no rows (#29)', () => {
     const tables = { results, participants };
     // The issue's case, and two filters with nobody in common.
     for (const filters of [{ SEX: 'Neither' }, NOBODY]) {
@@ -48,16 +49,20 @@ describe('group comparison: filters that let nobody through', () => {
         expect(other.filtered, JSON.stringify(view)).toBe(0);
         expect(other.panels, JSON.stringify(view)).toEqual([]);
       }
-      const rows = buildOverview(
+      const built = buildTiles(
         tables,
         settings,
         state({ filters, visits: ['Baseline', 'Week 4'] }),
         ['CRP', 'IL-6', 'TNF-alpha']
       );
-      expect(rows.map((row) => [row.measure, row.model.filtered, row.model.panels])).toEqual([
-        ['CRP', 0, []],
-        ['IL-6', 0, []],
-        ['TNF-alpha', 0, []]
+      expect(built.filtered).toBe(0);
+      expect(built.groups).toEqual([]);
+      expect(
+        built.tiles.map((tile) => [tile.measure, tile.axis, tile.lines, tile.records])
+      ).toEqual([
+        ['CRP', null, [], []],
+        ['IL-6', null, [], []],
+        ['TNF-alpha', null, [], []]
       ]);
     }
     // Loosened, the same chart draws again.

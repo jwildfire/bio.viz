@@ -99,7 +99,7 @@ export const CASES = [
     view: { valueType: 'baseline', groupBy: 'ARM_SEX' },
     test: 'anova'
   },
-  // IL-6 as the demo shows it when its row of the overview is opened: the
+  // IL-6 as the demo shows it when its tile is opened: the
   // result itself at every visit, one panel and one test per visit.
   ...['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'].map((visit) => ({
     case: `result-${visit.toLowerCase().replace(' ', '-')}`,

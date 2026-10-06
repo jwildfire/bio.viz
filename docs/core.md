@@ -266,6 +266,62 @@ BioViz.core.visits(results); // ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week
 
 `results` is the results table and `settings` the same settings `frame` takes; only the column names are read.
 
+## Unscheduled visits
+
+A results table often holds visits that were not planned: an unscheduled draw, an early termination. A chart that reads a table visit by visit leaves them out unless asked, and which visits those are is decided once, here, by safety.viz's rule under safety.viz's setting names, so one mapping means the same in both libraries:
+
+- A visit is unscheduled when `unscheduled_visit_values` names it. A list decides alone: when there is one, the pattern is not read, and an empty list means no visit is unscheduled.
+- With no list, a visit is unscheduled when its name matches `unscheduled_visit_pattern`, a regular expression written as text, either `/source/flags` or a plain source.
+- With neither, no visit is unscheduled.
+
+safety.viz's kit does not share its rule, so bio.viz carries a copy of the two functions in safety.viz's `src/unscheduled-visits.js`, and the copy's source says which safety.viz commit it was made from. A unit test reads safety.viz's own functions out of the bundle vendored at `site/vendor/safety.viz/`, runs them beside these, and holds the answers and the default pattern equal.
+
+The rule is in the core because it decides which rows a chart reads, and R code that prepares the same chart has to arrive at the same rows. A pattern is a JavaScript regular expression, and R's are not quite the same. So a caller in R that must agree with the page, as gsm.bio's widget must, works out the visits itself and names them in `unscheduled_visit_values`: a list is matched by name, and reads the same in both languages.
+
+The group comparison chart is the first to use the rule; [its reference](group-comparison.md#unscheduled-visits) says what it does with it. `frame()` and `visits()` do not apply it: they read the table they are given.
+
+## `UNSCHEDULED_DEFAULTS`
+
+The rule's three settings, with safety.viz's names and the defaults of safety.viz's results over time chart. A chart spreads them into its own settings.
+
+| Setting                     | Default                               | Meaning                                                                                                                            |
+| --------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `unscheduled_visits`        | `false`                               | Whether unscheduled visits are drawn. The switch is the chart's to read: the two functions below answer the same whatever it says. |
+| `unscheduled_visit_pattern` | `'/unscheduled\|early termination/i'` | The regular expression an unscheduled visit's name matches, as text. Null means none.                                              |
+| `unscheduled_visit_values`  | `null`                                | The unscheduled visits, by name. When given, it decides alone.                                                                     |
+
+As a value: `{ unscheduled_visits: false, unscheduled_visit_pattern: '/unscheduled|early termination/i', unscheduled_visit_values: null }`.
+
+## `isUnscheduledVisit(visit, settings)`
+
+Whether a visit is unscheduled, by the rule above. `visit` is the visit's name. `settings` holds the rule's `unscheduled_visit_pattern` and `unscheduled_visit_values`; a setting left out is not defaulted here, so with no settings at all no visit is unscheduled. A pattern that is not a regular expression throws a `SyntaxError`, as safety.viz's does; a chart checks its pattern when its settings are read.
+
+```js
+const { isUnscheduledVisit, UNSCHEDULED_DEFAULTS } = BioViz.core;
+isUnscheduledVisit('Unscheduled 1', UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit('Early Termination', UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit('Week 4', UNSCHEDULED_DEFAULTS); // false
+isUnscheduledVisit('Unscheduled 1', { unscheduled_visit_values: ['Retest'] }); // false: the list decides
+```
+
+## `scheduledResults(results, settings)`
+
+The results a chart reads when it draws only scheduled visits, and what was set aside. `results` is the results table. `settings` names the visit column, `visit_col`, and holds the rule's `unscheduled_visit_pattern` and `unscheduled_visit_values`.
+
+It answers `{ results, visits, rows }`: the rows at scheduled visits, in the table's order; the names of the unscheduled visits found, in the order first seen; and how many rows were set aside. A row with no visit is kept. A table with no unscheduled visit comes back as it is, the same array. Nothing given is changed.
+
+```js
+const {
+  results: scheduled,
+  visits,
+  rows
+} = BioViz.core.scheduledResults(results, {
+  visit_col: 'VISIT',
+  ...BioViz.core.UNSCHEDULED_DEFAULTS
+});
+// visits: ['Unscheduled 1', 'Early Termination'], rows: 31
+```
+
 ## `DEFAULT_SETTINGS`
 
 The settings and their defaults. The names are safety.viz's, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.

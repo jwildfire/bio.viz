@@ -7,7 +7,16 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 # bio.viz v0.2.0.9000 (Upcoming)
 
-_Nothing merged yet._
+## What's new
+
+- **The group comparison opens on trends over time.** With no biomarker chosen the chart now draws one small tile per biomarker: a line for each group through the group's median at every scheduled visit, in the groups' colours, with one key above the tiles and each biomarker's own value axis printed under its tile. A switch draws means instead of medians. A tile's axis is never narrower than 1.25 standard deviations of the results at the baseline visit, so lines that differ by less than that stay close to flat and a tile whose lines part is one to open; the multiple is the setting `tile_min_spread`. A tile is a button that opens its biomarker. The tiles print no statistic and ask R for nothing, and every biomarker is drawn, with no pages. [Live demo](https://jwildfire.github.io/bio.viz/dev/group-comparison/), [obot.roadmap#367](https://github.com/jwildfire/obot.roadmap/issues/367), [#84](https://github.com/jwildfire/bio.viz/issues/84)
+- **Unscheduled visits are left out unless asked for.** A visit named as unscheduled or as an early termination is no longer drawn at any level of the group comparison, and is not offered by its Visit control. A note above the chart says how many are left out and which, and an Unscheduled visits control switches them on. The three settings are the ones safety.viz's results over time chart has, with its default pattern: `unscheduled_visits`, `unscheduled_visit_pattern` and `unscheduled_visit_values`, where a list of names decides alone. [API reference](https://jwildfire.github.io/bio.viz/dev/group-comparison/api.html#unscheduled-visits), [obot.roadmap#367](https://github.com/jwildfire/obot.roadmap/issues/367), [#84](https://github.com/jwildfire/bio.viz/issues/84)
+
+## What changes for a page written for v0.2.0
+
+- **A page that opened on the overview now opens on the tiles.** A page that names no biomarker (`start_value` left out or null) drew a small panel for every visit of every biomarker, twelve biomarkers to a page. It now draws the trend tiles, every biomarker at once. `overview_limit` and `page` are still read, so such a page and a specification written by v0.2.0 are not refused, and neither is applied to the tiles.
+- **Colour by, Panel by and Draw as wait for a biomarker.** They applied to the overview's panels. The tiles draw a line per group, so the three are switched off there, say where they apply, and keep what they are set to.
+- **A study with unscheduled visits draws fewer visits.** With the default pattern, a visit whose name holds `unscheduled` or `early termination` is left out of one biomarker's panels too, and is no longer the baseline a change is measured from when no baseline visit is named. Set `unscheduled_visits: true` to draw them as v0.2.0 did. A view of one biomarker at visits that are all scheduled draws, and asks R, exactly what it did.
 
 # bio.viz v0.2.0
 

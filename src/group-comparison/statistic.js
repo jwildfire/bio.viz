@@ -97,9 +97,22 @@ export const groupsOf = (records) => sorted(records.map((record) => record.x));
  * @param {object} parts.state What the controls are set to.
  * @param {object} parts.panel The panel: its rows, its visit and its panel level, and,
  *   when the groups are a cut's, its cells, which hold them low to high.
+ * @param {boolean} [parts.unscheduled] Whether the rows were framed with
+ *   unscheduled visits among the results: they are switched on, and the results
+ *   have some. The identity then says so, because a baseline found among them
+ *   need not be the one found without them; otherwise it is as it was before
+ *   the chart knew of unscheduled visits.
  * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
  */
-export function statisticRequest({ name, test, pairwise, settings, state, panel }) {
+export function statisticRequest({
+  name,
+  test,
+  pairwise,
+  settings,
+  state,
+  panel,
+  unscheduled = false
+}) {
   const groups = groupsOf(panel.records);
   const filters = filtersInForce(state.filters);
   const dataId = {
@@ -114,7 +127,8 @@ export function statisticRequest({ name, test, pairwise, settings, state, panel 
     ...(state.colorBy ? { color_by: state.colorBy } : {}),
     ...(state.panelBy ? { panel_by: state.panelBy, panel: panel.panelLevel } : {}),
     ...(Object.keys(filters).length ? { filters } : {}),
-    ...(state.yScale === 'log' ? { positive_only: true } : {})
+    ...(state.yScale === 'log' ? { positive_only: true } : {}),
+    ...(unscheduled ? { unscheduled_visits: true } : {})
   };
   const args = {
     strValueCol: 'y',
