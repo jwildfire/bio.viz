@@ -802,6 +802,7 @@ var BioViz = (() => {
     CUTS: () => CUTS,
     DEFAULT_SETTINGS: () => DEFAULT_SETTINGS,
     DROPPED: () => DROPPED,
+    UNSCHEDULED_DEFAULTS: () => UNSCHEDULED_DEFAULTS,
     UNUSED: () => UNUSED,
     VALUE_TYPES: () => VALUE_TYPES,
     cutGroup: () => cutGroup,
@@ -809,7 +810,9 @@ var BioViz = (() => {
     cutPoints: () => cutPoints,
     cutWords: () => cutWords,
     frame: () => frame,
+    isUnscheduledVisit: () => isUnscheduledVisit,
     label: () => label,
+    scheduledResults: () => scheduledResults,
     variable: () => variable,
     visits: () => visits
   });
@@ -1199,7 +1202,7 @@ var BioViz = (() => {
     return visitsInOrder(rows, config);
   }
   var STATS = {
-    mean: (values) => values.reduce((sum2, value) => sum2 + value, 0) / values.length,
+    mean: (values) => values.reduce((sum3, value) => sum3 + value, 0) / values.length,
     min: (values) => Math.min(...values),
     max: (values) => Math.max(...values),
     first: (values) => values[0]
@@ -1419,6 +1422,46 @@ var BioViz = (() => {
       unused: unusedList,
       baseline_visits: baselineVisits
     };
+  }
+
+  // src/core/unscheduled.js
+  var UNSCHEDULED_DEFAULTS = Object.freeze({
+    unscheduled_visits: false,
+    unscheduled_visit_pattern: "/unscheduled|early termination/i",
+    unscheduled_visit_values: null
+  });
+  function parsePattern(pattern) {
+    const match = /^\/(.*)\/([a-z]*)$/i.exec(String(pattern));
+    return match ? new RegExp(match[1], match[2]) : new RegExp(String(pattern));
+  }
+  function isUnscheduledVisit(visit, settings = {}) {
+    if (Array.isArray(settings.unscheduled_visit_values)) {
+      return settings.unscheduled_visit_values.map(String).includes(String(visit));
+    }
+    if (settings.unscheduled_visit_pattern) {
+      return parsePattern(settings.unscheduled_visit_pattern).test(String(visit));
+    }
+    return false;
+  }
+  var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
+  function scheduledResults(results, settings) {
+    const verdicts = /* @__PURE__ */ new Map();
+    const visits2 = [];
+    const kept = [];
+    for (const row of results) {
+      const visit = row[settings.visit_col];
+      if (isBlank2(visit)) {
+        kept.push(row);
+        continue;
+      }
+      const name = String(visit);
+      if (!verdicts.has(name)) {
+        verdicts.set(name, isUnscheduledVisit(name, settings));
+        if (verdicts.get(name)) visits2.push(name);
+      }
+      if (!verdicts.get(name)) kept.push(row);
+    }
+    return visits2.length ? { results: kept, visits: visits2, rows: results.length - kept.length } : { results, visits: visits2, rows: 0 };
   }
 
   // src/output.js
@@ -1731,6 +1774,7 @@ var BioViz = (() => {
     DEFAULT_SETTINGS: () => DEFAULT_SETTINGS2,
     MARKS: () => MARKS,
     TESTS: () => TESTS,
+    TILE_SUMMARIES: () => TILE_SUMMARIES,
     Y_SCALES: () => Y_SCALES,
     coreSettings: () => coreSettings,
     fieldSpec: () => fieldSpec,
@@ -1910,6 +1954,7 @@ var BioViz = (() => {
   // src/group-comparison/configure.js
   var MARKS = Object.freeze(["box", "violin", "points"]);
   var Y_SCALES = Object.freeze(["linear", "log"]);
+  var TILE_SUMMARIES = Object.freeze(["median", "mean"]);
   var TESTS = Object.freeze(["t", "wilcoxon", "anova", "kruskal", "none"]);
   var DEFAULT_SETTINGS2 = Object.freeze({
     // Columns of the results table, and of the participant table.
@@ -1938,9 +1983,18 @@ var BioViz = (() => {
     groups: null,
     max_levels: 12,
     filters: null,
-    // The overview of every biomarker: the most drawn at a time.
+    // Unscheduled visits, under safety.viz's names and defaults: left out of the
+    // chart at every level until switched on (src/core/unscheduled.js).
+    ...UNSCHEDULED_DEFAULTS,
+    // The trend tiles, drawn when no biomarker is chosen: what a line goes
+    // through, and the least a tile's value axis spans, in standard deviations
+    // of the results at the baseline visit.
+    tile_summary: "median",
+    tile_min_spread: 1.25,
+    // Of the overview v0.2.0 drew, a page of biomarkers at a time. The tiles
+    // draw every biomarker, so neither applies to them; both are still read and
+    // checked, so settings and a specification written for v0.2.0 are not refused.
     overview_limit: 12,
-    // The page of the overview it opens on, from 0 (#71 review).
     page: 0,
     // The listing of participants.
     details: null,
@@ -1997,7 +2051,32 @@ var BioViz = (() => {
       }
     }
     if (!Number.isInteger(settings.page) || settings.page < 0) {
-      refuse6("`page` must be a whole number, from 0: the page of the overview it opens on.");
+      refuse6("`page` must be a whole number, from 0.");
+    }
+    if (!TILE_SUMMARIES.includes(settings.tile_summary)) {
+      refuse6(`\`tile_summary\` must be one of ${TILE_SUMMARIES.join(", ")}.`);
+    }
+    if (typeof settings.tile_min_spread !== "number" || !Number.isFinite(settings.tile_min_spread) || settings.tile_min_spread < 0) {
+      refuse6(
+        "`tile_min_spread` must be a number, zero or more: how many standard deviations of the results at the baseline visit a tile\u2019s value axis spans at the least."
+      );
+    }
+    if (typeof settings.unscheduled_visits !== "boolean") {
+      refuse6("`unscheduled_visits` must be true or false.");
+    }
+    if (settings.unscheduled_visit_pattern !== null) {
+      if (!isText4(settings.unscheduled_visit_pattern)) {
+        refuse6(
+          "`unscheduled_visit_pattern` must be a regular expression written as text, `/source/flags` or a plain source, or null for none."
+        );
+      }
+      try {
+        isUnscheduledVisit("", { unscheduled_visit_pattern: settings.unscheduled_visit_pattern });
+      } catch (error) {
+        refuse6(
+          `\`unscheduled_visit_pattern\` is not a regular expression a browser reads: ${error.message}.`
+        );
+      }
     }
     if (!TESTS.includes(settings.test)) refuse6(`\`test\` must be one of ${TESTS.join(", ")}.`);
     if (typeof settings.pairwise !== "boolean") refuse6("`pairwise` must be true or false.");
@@ -2007,6 +2086,11 @@ var BioViz = (() => {
     settings.baseline_visits = textList2(settings.baseline_visits, "baseline_visits");
     settings.visits = textList2(settings.visits, "visits", { empty: true });
     settings.levels = textList2(settings.levels, "levels", { empty: true });
+    settings.unscheduled_visit_values = textList2(
+      settings.unscheduled_visit_values,
+      "unscheduled_visit_values",
+      { empty: true }
+    );
     settings.measures = textList2(settings.measures, "measures");
     settings.groups = fieldList(settings.groups, "groups");
     settings.filters = fieldList(settings.filters, "filters");
@@ -2324,10 +2408,10 @@ var BioViz = (() => {
   }
 
   // src/shared/tables.js
-  var isBlank2 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
+  var isBlank3 = (value) => value === void 0 || value === null || typeof value === "number" && Number.isNaN(value) || typeof value === "string" && value.trim() === "";
   var naturally = (a, b) => String(a).localeCompare(String(b), void 0, { numeric: true });
   function levelsOf(values) {
-    return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(naturally);
+    return [...new Set(values.filter((value) => !isBlank3(value)).map(String))].sort(naturally);
   }
   var partsOf = (text2) => text2.match(/[0-9]+|[^0-9]+/g) || [];
   var lowerAscii = (text2) => text2.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
@@ -2354,13 +2438,13 @@ var BioViz = (() => {
     return -Math.sign(byCodePoint(first, second));
   }
   function categoriesOf(values) {
-    return [...new Set(values.filter((value) => !isBlank2(value)).map(String))].sort(categoryOrder);
+    return [...new Set(values.filter((value) => !isBlank3(value)).map(String))].sort(categoryOrder);
   }
   function listMeasures(results, settings) {
     const present4 = levelsOf(results.map((row) => row[settings.measure_col]));
     if (!settings.measures) return present4;
-    const listed3 = settings.measures.filter((measure) => present4.includes(measure));
-    return listed3.length ? listed3 : present4;
+    const listed4 = settings.measures.filter((measure) => present4.includes(measure));
+    return listed4.length ? listed4 : present4;
   }
   function unitOf(results, settings, measure) {
     if (!settings.unit_col) return null;
@@ -2382,7 +2466,7 @@ var BioViz = (() => {
     const fewEnough = (values) => {
       const levels = /* @__PURE__ */ new Set();
       for (const value of values) {
-        if (isBlank2(value)) continue;
+        if (isBlank3(value)) continue;
         levels.add(String(value));
         if (levels.size > settings.max_levels) return false;
       }
@@ -2413,7 +2497,7 @@ var BioViz = (() => {
       const byParticipant = /* @__PURE__ */ new Map();
       let constant = true;
       for (const row of results) {
-        if (isBlank2(row[name])) continue;
+        if (isBlank3(row[name])) continue;
         const id = String(row[settings.id_col]);
         const value = String(row[name]);
         if (!byParticipant.has(id)) byParticipant.set(id, value);
@@ -2457,7 +2541,7 @@ var BioViz = (() => {
     const kept = participants.filter(
       (row) => Object.entries(filters || {}).every(([column, selection]) => test(row[column], selection))
     );
-    const idOf = (row, column) => isBlank2(row[column]) ? null : String(row[column]);
+    const idOf = (row, column) => isBlank3(row[column]) ? null : String(row[column]);
     const keptIds = new Set(kept.map((row) => idOf(row, participantIdCol)));
     const filteredOut = new Set(
       participants.map((row) => idOf(row, participantIdCol)).filter((id) => id !== null && !keptIds.has(id))
@@ -2480,7 +2564,7 @@ var BioViz = (() => {
     const numbers = (values) => {
       const distinct = /* @__PURE__ */ new Set();
       for (const value of values) {
-        if (isBlank2(value)) continue;
+        if (isBlank3(value)) continue;
         if (!isNumeric(value)) return false;
         distinct.add(Number(value));
       }
@@ -2514,7 +2598,7 @@ var BioViz = (() => {
       const byParticipant = /* @__PURE__ */ new Map();
       let constant = true;
       for (const row of results) {
-        if (isBlank2(row[name])) continue;
+        if (isBlank3(row[name])) continue;
         const id = String(row[settings.id_col]);
         const value = String(row[name]);
         if (!byParticipant.has(id)) byParticipant.set(id, value);
@@ -2594,7 +2678,7 @@ var BioViz = (() => {
   function listEndpoints(outcomes, settings) {
     return levelsOf(outcomes.map((row) => row[settings.endpoint_col])).map((endpoint) => {
       const labelled = settings.endpoint_label_col ? outcomes.find(
-        (row) => String(row[settings.endpoint_col]) === endpoint && !isBlank2(row[settings.endpoint_label_col])
+        (row) => String(row[settings.endpoint_col]) === endpoint && !isBlank3(row[settings.endpoint_label_col])
       ) : null;
       return {
         endpoint,
@@ -2621,7 +2705,7 @@ var BioViz = (() => {
     let strangers = 0;
     for (const row of outcomes) {
       if (String(row[settings.endpoint_col]) !== endpoint) continue;
-      if (isBlank2(row[idCol]) || known && !known.has(String(row[idCol]))) {
+      if (isBlank3(row[idCol]) || known && !known.has(String(row[idCol]))) {
         strangers += 1;
         continue;
       }
@@ -3737,12 +3821,13 @@ ${root} .bv-download-error{flex-basis:100%;margin:.2rem 0 0;color:#9b1c1c;font-w
       const drawn = view[key];
       if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
       const name = SETTING_NAMES[key] || `\`${key}\``;
+      const own = typeof chart.noticeOf === "function" ? chart.noticeOf(key, asked, drawn) : null;
       notices.push({
         kind: "setting",
         name: key,
         asked,
         drawn,
-        said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === void 0 ? "none" : said(drawn)}.`
+        said: own || `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === void 0 ? "none" : said(drawn)}.`
       });
     }
     const id = settings.participant_id_col || settings.id_col;
@@ -4157,6 +4242,13 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     return cuts.length ? cuts : null;
   }
 
+  // src/group-comparison/level.js
+  var LEVELS = Object.freeze({ BIOMARKERS: "biomarkers", VISITS: "visits" });
+  function levelOf(state) {
+    const { measure } = state || {};
+    return measure === null || measure === void 0 ? LEVELS.BIOMARKERS : LEVELS.VISITS;
+  }
+
   // src/group-comparison/statistic.js
   var NO_TEST_CHOSEN = "Statistics: no test chosen.";
   var TEST_LABELS = Object.freeze({
@@ -4179,7 +4271,15 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     return offered.includes(test) ? test : COUNTERPART[test];
   }
   var groupsOf = (records) => sorted(records.map((record) => record.x));
-  function statisticRequest({ name, test, pairwise, settings, state, panel }) {
+  function statisticRequest({
+    name,
+    test,
+    pairwise,
+    settings,
+    state,
+    panel,
+    unscheduled = false
+  }) {
     const groups = groupsOf(panel.records);
     const filters = filtersInForce(state.filters);
     const dataId = {
@@ -4194,7 +4294,8 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       ...state.colorBy ? { color_by: state.colorBy } : {},
       ...state.panelBy ? { panel_by: state.panelBy, panel: panel.panelLevel } : {},
       ...Object.keys(filters).length ? { filters } : {},
-      ...state.yScale === "log" ? { positive_only: true } : {}
+      ...state.yScale === "log" ? { positive_only: true } : {},
+      ...unscheduled ? { unscheduled_visits: true } : {}
     };
     const args = {
       strValueCol: "y",
@@ -4285,35 +4386,6 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
       describe: describeAnswer,
       waiting: (said2) => plain("waiting", said2)
     });
-  }
-
-  // src/shared/paging.js
-  function pageOf(items, limit, page = 0) {
-    const total = items.length;
-    const pages = Math.max(1, Math.ceil(total / limit));
-    const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
-    const shown2 = items.slice(at * limit, (at + 1) * limit);
-    return {
-      items: shown2,
-      page: at,
-      pages,
-      from: total ? at * limit + 1 : 0,
-      to: at * limit + shown2.length,
-      total
-    };
-  }
-  var ordinal = (n) => {
-    const tens = n % 100;
-    const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
-    return `${n}${suffix}`;
-  };
-  function pageCount({ from, to, total, pages }, order2) {
-    if (!total) return "No biomarker to show.";
-    if (pages === 1) {
-      return total === 1 ? "The one biomarker is shown." : `All ${total} biomarkers are shown.`;
-    }
-    const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
-    return `${to - from + 1} of ${total} biomarkers shown: ${which}, ${order2}.`;
   }
 
   // src/group-comparison/structureData.js
@@ -4436,7 +4508,7 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     const baselineVisits = RELATIVE.has(state.valueType) ? config.baseline_visits || visits(rows, config).slice(0, 1) : [];
     const atMeasure = options.everyVisit ? state.visits : measureVisits(results, settings, state.measure);
     const asked = state.visits.filter((visit) => atMeasure.includes(visit));
-    const drawnVisits = visitsDrawn(asked, state.valueType, baselineVisits);
+    const drawnVisits = options.keepBaseline ? asked : visitsDrawn(asked, state.valueType, baselineVisits);
     const visitList = needsVisit ? drawnVisits : [null];
     const yOf = (visit) => needsVisit ? { measure: state.measure, visit, value: state.valueType } : { measure: state.measure, value: "baseline" };
     const cuts = {};
@@ -4570,20 +4642,168 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
     const unit = unitOf(results, settings, measure);
     return unit ? `${words} (${unit})` : words;
   }
-  function overviewPage(measures, limit, page = 0) {
-    const { items, ...rest } = pageOf(measures, limit, page);
-    return { measures: items, ...rest };
+
+  // src/group-comparison/tiles.js
+  var ROOM = 0.1;
+  var sum2 = (values) => values.reduce((total, value) => total + value, 0);
+  function standardDeviation(values) {
+    const n = values.length;
+    if (n < 2) return NaN;
+    const mean = sum2(values) / n;
+    return Math.sqrt(sum2(values.map((value) => (value - mean) ** 2)) / (n - 1));
   }
-  var overviewCount = (page) => pageCount(page, "in the Biomarker control\u2019s order");
-  function buildOverview(tables, settings, state, measures, options = {}) {
-    return measures.map((measure) => {
-      const row = { ...state, measure, panelBy: "" };
+  function yardstick(values, valueType, yScale) {
+    const n = values.length;
+    const sd = standardDeviation(values);
+    const mean = n ? sum2(values) / n : NaN;
+    let size = null;
+    if (yScale === "log") {
+      if (valueType !== "change" && valueType !== "percent_change") {
+        size = standardDeviation(values.filter((value) => value > 0).map(Math.log10));
+      }
+    } else if (valueType === "fold_change" || valueType === "percent_change") {
+      size = mean === 0 ? NaN : sd / Math.abs(mean) * (valueType === "percent_change" ? 100 : 1);
+    } else {
+      size = sd;
+    }
+    return { n, sd, mean, size: Number.isFinite(size) ? size : null };
+  }
+  function tileAxis(points, yScale, least, options = {}) {
+    const log = yScale === "log";
+    const values = points.filter((value) => Number.isFinite(value) && (!log || value > 0));
+    if (!values.length) return null;
+    const to = log ? Math.log10 : (value) => value;
+    const from = log ? (value) => 10 ** value : (value) => value;
+    let low = to(Math.min(...values));
+    let high = to(Math.max(...values));
+    const floored = least > 0 && high - low < least;
+    if (floored) {
+      const middle = (low + high) / 2;
+      low = middle - least / 2;
+      high = middle + least / 2;
+    }
+    const bounded = !log && Number.isFinite(options.lowest);
+    if (bounded && low < options.lowest) {
+      high += options.lowest - low;
+      low = options.lowest;
+    }
+    const room = (high - low) * ROOM || (log ? Math.log10(1.05) : Math.abs(high) * 0.05 || 1);
+    const min = bounded ? Math.max(options.lowest, low - room) : low - room;
+    return { min: from(min), max: from(high + room), floored };
+  }
+  function axisUnit(results, settings, measure, valueType) {
+    if (valueType === "fold_change") return null;
+    if (valueType === "percent_change") return "%";
+    return unitOf(results, settings, measure);
+  }
+  function rangeText({ min, max }, unit, yScale) {
+    const span = max - min;
+    const decimals = span > 0 ? Math.min(8, Math.max(0, 2 - Math.ceil(Math.log10(span)))) : 2;
+    const said2 = (value) => {
+      if (yScale === "log") return String(Number(value.toPrecision(3)));
+      const text2 = value.toFixed(decimals);
+      return Number(text2) === 0 ? 0 .toFixed(decimals) : text2;
+    };
+    return `${said2(min)} to ${said2(max)}${unit ? ` ${unit}` : ""}`;
+  }
+  var REFERENCE = { change: 0, percent_change: 0, fold_change: 1 };
+  function buildTiles(tables, settings, state, measures, options = {}) {
+    const config = coreSettings(settings);
+    const summary = state.tileSummary === "mean" ? "mean" : "median";
+    const { results: left, participants: kept } = keepFiltered(
+      tables,
+      settings,
+      state.filters,
+      options.filterMatches
+    );
+    const baselineVisits = config.baseline_visits || (left.length ? visits(left, config).slice(0, 1) : []);
+    const fixed = baselineVisits.length ? { ...settings, baseline_visits: baselineVisits } : settings;
+    const byMeasure = /* @__PURE__ */ new Map();
+    for (const row of tables.results) {
+      const name = String(row[config.measure_col]);
+      if (!byMeasure.has(name)) byMeasure.set(name, []);
+      byMeasure.get(name).push(row);
+    }
+    const cutMeasure = isCut(state.groupBy) && typeof state.groupBy.measure === "string" ? state.groupBy.measure : null;
+    const cutRows = cutMeasure === null ? [] : byMeasure.get(cutMeasure) || [];
+    const built = measures.map((measure) => {
+      const own = byMeasure.get(String(measure)) || [];
+      const framed = {
+        results: cutRows.length && cutMeasure !== String(measure) ? [...own, ...cutRows] : own,
+        participants: tables.participants
+      };
+      const drawn = { ...state, measure, colorBy: "", panelBy: "", mark: "box" };
+      const model = buildPanels(framed, fixed, drawn, {
+        ...options,
+        everyVisit: true,
+        keepBaseline: true
+      });
+      const atBaseline = buildPanels(
+        framed,
+        fixed,
+        { ...drawn, valueType: "baseline", yScale: "linear" },
+        options
+      );
+      const baselineValues = atBaseline.panels.flatMap(
+        (panel) => panel.records.map((record) => record.y)
+      );
+      return { measure, model, measured: yardstick(baselineValues, state.valueType, state.yScale) };
+    });
+    const cut = built.map((entry) => entry.model.cuts && entry.model.cuts.x).find(Boolean);
+    const present4 = (key) => new Set(built.flatMap((entry) => entry.model[key]));
+    const every = cut ? cut.labels.filter((label2) => present4("levels").has(label2)) : levelsOf([...present4("levels")]);
+    const shownLevels = present4("shownLevels");
+    const groups = every.map((level, index) => ({ level, index })).filter((group) => shownLevels.has(group.level));
+    const raw = state.valueType === "raw" || state.valueType === "baseline";
+    const tiles = built.map(({ measure, model, measured }) => {
+      const lines = groups.filter((group) => model.shownLevels.includes(group.level)).map((group) => ({
+        ...group,
+        points: model.panels.map((panel) => {
+          const cell = panel.cells.find((candidate) => candidate.level === group.level);
+          const n = cell ? cell.n : 0;
+          const median = n ? cell.stats.median : null;
+          const mean = n ? cell.stats.mean : null;
+          return { visit: panel.visit, n, median, mean, value: summary === "mean" ? mean : median };
+        })
+      }));
+      const records = model.panels.flatMap(
+        (panel) => panel.records.map((record) => ({ ...record, visit: panel.visit }))
+      );
+      const least = measured.size === null ? 0 : settings.tile_min_spread * measured.size;
+      const lowest = raw && records.length && records.every((record) => record.y >= 0) ? { lowest: 0 } : {};
+      const unit = axisUnit(tables.results, settings, measure, state.valueType);
+      const axis = tileAxis(
+        lines.flatMap((line) => line.points.map((point) => point.value)),
+        state.yScale,
+        least,
+        lowest
+      );
       return {
         measure,
-        title: yTitle(tables.results, settings, { ...row, visits: [] }),
-        model: buildPanels(tables, settings, row, { ...options, everyVisit: true })
+        unit,
+        visits: model.panels.map((panel) => panel.visit),
+        lines,
+        records,
+        baseline: {
+          visits: baselineVisits.length ? baselineVisits : null,
+          n: measured.n,
+          sd: measured.sd,
+          mean: measured.mean
+        },
+        least,
+        axis,
+        // The axis in words, printed under the tile.
+        range: axis ? rangeText(axis, unit, state.yScale) : null,
+        reference: state.valueType in REFERENCE ? REFERENCE[state.valueType] : null
       };
     });
+    return {
+      tiles,
+      groups,
+      filtered: kept ? kept.length : null,
+      baselineVisits: baselineVisits.length ? baselineVisits : null,
+      cuts: built.length ? built[0].model.cuts || {} : {}
+    };
   }
 
   // src/group-comparison.js
@@ -4591,33 +4811,50 @@ ${C5} .bv-toolbar button:focus-visible{outline:2px solid #0b62a4;outline-offset:
   var CUT_KEY = "bv-cut:";
   var OVERVIEW = "bv_overview";
   var MARK_LABELS = { box: "Box", violin: "Violin", points: "Points" };
+  var SUMMARY_LABELS = { median: "Medians", mean: "Means" };
+  var SUMMARY_WORDS = { median: "Median", mean: "Mean" };
+  var VALUE_WORDS2 = {
+    raw: "result",
+    baseline: "baseline value",
+    change: "change from baseline",
+    fold_change: "fold change from baseline",
+    percent_change: "percent change from baseline"
+  };
+  var NOT_ON_TILES = "Applies when one biomarker is open.";
   var STYLE_ID = "bio-viz-group-comparison-styles";
   var STYLES = `${lineStyles(".bv-group-comparison")}
 ${toolbarStyles(".bv-group-comparison")}
 .bv-group-comparison .sv-chart-wrap canvas,.bv-group-comparison .bv-panel-canvas canvas{cursor:pointer}
-.bv-group-comparison .sv-multiples.bv-overview{display:block}
-.bv-group-comparison .bv-overview-row{margin:0 0 .8rem}
-.bv-group-comparison .bv-overview-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--bv-panel-min,150px),1fr));gap:.4rem .6rem}
-.bv-group-comparison .bv-overview-panel{min-width:0;max-width:340px}
-.bv-group-comparison .bv-overview-panel h4{font-size:.78rem;font-weight:600;margin:0 0 .1rem;color:#52616f}
-.bv-group-comparison .bv-overview-canvas{height:150px;position:relative}
-.bv-group-comparison .bv-overview-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem;margin:0 0 .8rem;font-size:.85rem;color:#1f2933}
-.bv-group-comparison .bv-overview-pager button{font:inherit;padding:.3rem .7rem;border:1px solid #c5ccd3;border-radius:6px;background:#fff;color:#1f2933;cursor:pointer}
-.bv-group-comparison .bv-overview-pager button:disabled{color:#9aa5b1;cursor:default}
-.bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .6rem;font-size:.8rem;color:#1f2933}
+.bv-group-comparison .sv-multiples.bv-tiles{display:block}
+.bv-group-comparison .bv-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:.6rem}
+.bv-group-comparison .bv-tile{display:flex;flex-direction:column;align-items:stretch;gap:.15rem;min-width:0;margin:0;padding:.5rem .55rem .45rem;border:1px solid #d8dee4;border-radius:8px;background:#fff;color:#1f2933;font:inherit;text-align:left;cursor:pointer}
+.bv-group-comparison .bv-tile:hover{border-color:#0b62a4;box-shadow:0 1px 4px rgba(11,98,164,.18)}
+.bv-group-comparison .bv-tile:focus-visible{outline:2px solid #0b62a4;outline-offset:1px}
+.bv-group-comparison .bv-tile-name{display:block;font-size:.85rem;font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+.bv-group-comparison .bv-tile-canvas{display:block;position:relative;height:74px}
+.bv-group-comparison .bv-tile-visits{display:flex;justify-content:space-between;gap:.4rem;font-size:.66rem;line-height:1.2;color:#52616f}
+.bv-group-comparison .bv-tile-visits[data-single]{justify-content:center}
+.bv-group-comparison .bv-tile-range{display:block;margin-top:.1rem;font-size:.72rem;line-height:1.25;color:#3e4c59;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.bv-group-comparison .bv-tile-empty{display:block;font-size:.72rem;color:#52616f}
+.bv-group-comparison .bv-tile-caption{margin:0 0 .6rem;font-size:.8rem;color:#52616f}
+.bv-group-comparison .bv-legend{display:flex;flex-wrap:wrap;gap:.2rem 1rem;margin:0 0 .3rem;font-size:.8rem;color:#1f2933}
 .bv-group-comparison .bv-legend-swatch{display:inline-block;width:.75em;height:.75em;margin-right:.35em;border-radius:2px}
 .bv-group-comparison .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52616f}
 @media (max-width:600px){
-.bv-group-comparison .bv-overview-canvas{height:118px}
-.bv-group-comparison .bv-overview-row{padding:.55rem .6rem}
+.bv-group-comparison .bv-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .bv-group-comparison .sv-chart-wrap{height:380px;padding:.5rem}
 .bv-group-comparison.sv-collapsed .sv-sidebar-title{display:inline}
 .bv-group-comparison.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
 }`;
   var NOTHING_AFTER_BASELINE = "The only visit chosen is the baseline visit, where this value is the same for everyone. Choose a later visit to draw.";
-  function nothingDrawn(model, rows = [{ model }]) {
+  var NO_VALUE = "No participant has a value to draw for this choice.";
+  function nothingDrawn(model) {
     if (model.filtered === 0) return NOBODY_PASSES;
-    return model.noRows || rows.some((row) => row.model.panels.length) ? "No participant has a value to draw for this choice." : NOTHING_AFTER_BASELINE;
+    return model.noRows || model.panels.length ? NO_VALUE : NOTHING_AFTER_BASELINE;
+  }
+  function listed3(names) {
+    if (names.length <= 4) return names.join(", ");
+    return `${names.slice(0, 3).join(", ")} and ${names.length - 3} more`;
   }
   var GroupComparison = class {
     constructor(element, settings) {
@@ -4626,6 +4863,9 @@ ${toolbarStyles(".bv-group-comparison")}
       if (!this.element) throw new Error(`bio.viz: group comparison target not found: ${element}`);
       this.settings = syncSettings(settings);
       this.tables = { results: [], participants: null };
+      this.drawTables = this.tables;
+      this.unscheduled = { results: [], visits: [] };
+      this.hiddenVisits = [];
       this.charts = [];
       this.model = null;
       this.measures = [];
@@ -4634,7 +4874,7 @@ ${toolbarStyles(".bv-group-comparison")}
       this.filterSpecs = [];
       this.state = {};
       this.asked = [];
-      this.overview = null;
+      this.tiles = null;
       this.connect();
       this.renderShell();
     }
@@ -4684,6 +4924,7 @@ ${toolbarStyles(".bv-group-comparison")}
         this.setSettings(settings);
       }
       this.readTables();
+      this.readVisits(this.settings.unscheduled_visits);
       this.state = this.seedState();
       this.buildProfileFeed();
       this.buildControls();
@@ -4693,9 +4934,9 @@ ${toolbarStyles(".bv-group-comparison")}
     /**
      * Lay new settings over the current ones and draw again. A setting that says
      * what the chart opens on (`start_value`, `visits`, `value_type`, `group_by`,
-     * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `test`, `pairwise`)
-     * moves its control: `start_value: null` returns to the overview of every
-     * biomarker.
+     * `levels`, `color_by`, `panel_by`, `mark`, `y_scale`, `tile_summary`,
+     * `unscheduled_visits`, `test`, `pairwise`) moves its control:
+     * `start_value: null` returns to the tiles of every biomarker.
      * @param {object} settings The settings to change.
      * @returns {GroupComparison} The chart, for chaining.
      */
@@ -4707,7 +4948,11 @@ ${toolbarStyles(".bv-group-comparison")}
       syncHost(this);
       if ("back" in given2) mountToolbar(this);
       if ("connection" in given2 || "waiting_note" in given2) this.connect();
+      const offered = this.visits.all || [];
       this.readTables();
+      this.readVisits(
+        "unscheduled_visits" in given2 ? next.unscheduled_visits : this.state.unscheduledVisits
+      );
       const opening = this.seedState();
       const moved = {
         start_value: "measure",
@@ -4719,16 +4964,17 @@ ${toolbarStyles(".bv-group-comparison")}
         panel_by: "panelBy",
         mark: "mark",
         y_scale: "yScale",
+        tile_summary: "tileSummary",
+        unscheduled_visits: "unscheduledVisits",
         test: "test",
         pairwise: "pairwise",
-        filters: "filters",
-        // Another limit is other pages: the overview starts at its first.
-        overview_limit: "page"
+        filters: "filters"
       };
       for (const [setting, key] of Object.entries(moved)) {
         if (setting in given2) this.state[key] = opening[key];
       }
       this.repairState(opening);
+      if (!("visits" in given2)) this.chooseNewVisits(offered);
       this.buildProfileFeed();
       this.kit.syncProfileRail(this.host, () => this.railSettings());
       this.buildControls();
@@ -4739,7 +4985,13 @@ ${toolbarStyles(".bv-group-comparison")}
     readTables() {
       const { results } = this.tables;
       this.measures = results.length ? listMeasures(results, this.settings) : [];
-      this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
+      const found = scheduledResults(results, this.settings);
+      const named2 = new Set(found.visits);
+      this.unscheduled = {
+        results: found.results,
+        // Those with a result to draw, in visit order: what the switch brings back.
+        visits: results.length && named2.size ? visits(results, coreSettings(this.settings)).filter((visit) => named2.has(visit)) : []
+      };
       this.categories = results.length ? categoryColumns(this.tables, this.settings) : [];
       this.cutOptions = [];
       for (const by of [this.settings.group_by, this.settings.panel_by]) {
@@ -4755,19 +5007,35 @@ ${toolbarStyles(".bv-group-comparison")}
       this.filterSpecs = filterColumns(this.tables, this.settings, this.categories).map(
         (spec) => this.kit.normalizeFilterSpec(spec)
       );
-      const named2 = this.settings.start_value;
-      if (results.length && named2 !== null && !this.measures.includes(named2)) {
+      const start = this.settings.start_value;
+      if (results.length && start !== null && !this.measures.includes(start)) {
         console.warn(
-          `The initial biomarker [${named2}] does not exist. Defaulting to the all-biomarkers overview.`
+          `The initial biomarker [${start}] does not exist. Defaulting to the all-biomarkers overview.`
         );
       }
     }
-    // Whether the overview of every biomarker is what is drawn.
-    isOverview() {
-      return this.state.measure === null || this.state.measure === void 0;
+    // The tables the chart draws from and the visits it offers, with unscheduled
+    // visits drawn (`shown`) or left out. Left out, their rows are set aside
+    // before anything is listed or framed, so they are in no level of the chart:
+    // not in a tile, not in the Visit control, not a panel, and not the baseline
+    // a change is measured from. The participant profile is safety.viz's own
+    // chart of one participant, and is given every result.
+    readVisits(shown2) {
+      const results = shown2 ? this.tables.results : this.unscheduled.results;
+      this.drawTables = { results, participants: this.tables.participants };
+      this.visits = results.length ? listVisits(results, this.settings) : { all: [], start: [] };
+      this.hiddenVisits = shown2 ? [] : this.unscheduled.visits;
     }
-    // Opens one biomarker, or the overview (null), from the Biomarker control or
-    // from a row of the overview.
+    // Which level is drawn: every biomarker, or one biomarker's visits.
+    level() {
+      return levelOf(this.state);
+    }
+    // Whether the tiles of every biomarker are what is drawn.
+    atTiles() {
+      return this.level() === LEVELS.BIOMARKERS;
+    }
+    // Opens one biomarker, or every biomarker (null), from the Biomarker control
+    // or from a tile.
     selectMeasure(measure) {
       this.state.measure = measure;
       this.buildControls();
@@ -4809,9 +5077,8 @@ ${toolbarStyles(".bv-group-comparison")}
       if (isCut(settings.panel_by)) panelBy = this.cutKey(settings.panel_by);
       else if (has(settings.panel_by)) panelBy = settings.panel_by;
       return {
-        // No biomarker named, or one the table does not have: the overview.
+        // No biomarker named, or one the table does not have: every biomarker.
         measure: measures.includes(settings.start_value) ? settings.start_value : null,
-        page: settings.page,
         visits: [...this.visits.start],
         valueType: settings.value_type,
         groupBy,
@@ -4820,6 +5087,8 @@ ${toolbarStyles(".bv-group-comparison")}
         panelBy,
         mark: settings.mark,
         yScale: settings.y_scale,
+        tileSummary: settings.tile_summary,
+        unscheduledVisits: settings.unscheduled_visits,
         test: settings.test,
         pairwise: settings.pairwise,
         filters: startFilters(this)
@@ -4862,14 +5131,20 @@ ${toolbarStyles(".bv-group-comparison")}
         input.onchange = () => onChange(input.value);
         return addControl(labelText, input, parent);
       };
-      const overview = this.isOverview();
+      const tiles = this.atTiles();
+      const notOnTiles = (control) => {
+        if (!tiles) return;
+        const input = control.matches("select,input") ? control : control.querySelector("select");
+        input.disabled = true;
+        control.after(kit.createElement("small", "bv-control-note", NOT_ON_TILES));
+      };
       const value = addSection("Value");
       select(
         "measure",
         "Biomarker",
         [[OVERVIEW, "All Biomarkers"], ...this.measures.map((measure) => [measure, measure])],
-        overview ? OVERVIEW : state.measure,
-        // The controls differ between the overview and one biomarker.
+        tiles ? OVERVIEW : state.measure,
+        // The controls differ between the tiles and one biomarker.
         (next) => this.selectMeasure(next === OVERVIEW ? null : next),
         value
       );
@@ -4935,16 +5210,18 @@ ${toolbarStyles(".bv-group-comparison")}
           addControl("Levels", picker, group);
         }
         const optional = [[NONE, "None"], ...columns];
-        select(
-          "color-by",
-          "Colour by",
-          optional,
-          state.colorBy,
-          (next) => {
-            state.colorBy = next;
-            redraw(false);
-          },
-          group
+        notOnTiles(
+          select(
+            "color-by",
+            "Colour by",
+            optional,
+            state.colorBy,
+            (next) => {
+              state.colorBy = next;
+              redraw(false);
+            },
+            group
+          )
         );
         const panelBy = select(
           "panel-by",
@@ -4957,16 +5234,7 @@ ${toolbarStyles(".bv-group-comparison")}
           },
           group
         );
-        if (overview) {
-          panelBy.disabled = true;
-          panelBy.after(
-            kit.createElement(
-              "small",
-              "bv-control-note",
-              "Applies when one biomarker is open. In the overview each biomarker\u2019s panels are its visits."
-            )
-          );
-        }
+        notOnTiles(panelBy);
       } else {
         group.append(
           kit.createElement(
@@ -4977,16 +5245,31 @@ ${toolbarStyles(".bv-group-comparison")}
         );
       }
       const display = addSection("Display");
-      select(
-        "mark",
-        "Draw as",
-        MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
-        state.mark,
-        (next) => {
-          state.mark = next;
-          redraw(false);
-        },
-        display
+      if (tiles) {
+        select(
+          "tile-summary",
+          "Tiles draw",
+          TILE_SUMMARIES.map((summary) => [summary, SUMMARY_LABELS[summary]]),
+          state.tileSummary,
+          (next) => {
+            state.tileSummary = next;
+            redraw(false);
+          },
+          display
+        );
+      }
+      notOnTiles(
+        select(
+          "mark",
+          "Draw as",
+          MARKS.map((mark) => [mark, MARK_LABELS[mark]]),
+          state.mark,
+          (next) => {
+            state.mark = next;
+            redraw(false);
+          },
+          display
+        )
       );
       select(
         "y-scale",
@@ -4999,9 +5282,20 @@ ${toolbarStyles(".bv-group-comparison")}
         },
         display
       );
+      if (this.unscheduled.visits.length) {
+        const unscheduled = document.createElement("input");
+        unscheduled.type = "checkbox";
+        unscheduled.dataset.control = "unscheduled-visits";
+        unscheduled.checked = Boolean(state.unscheduledVisits);
+        unscheduled.setAttribute("aria-label", "Show unscheduled visits");
+        unscheduled.onchange = () => this.showUnscheduled(unscheduled.checked);
+        const inline = kit.createElement("div", "sv-control-inline");
+        inline.append(unscheduled, document.createTextNode("Show"));
+        addControl("Unscheduled visits", inline, display);
+      }
       this.testControl = null;
       this.pairwiseControl = null;
-      if (this.settings.statistic && !overview) {
+      if (this.settings.statistic && !tiles) {
         const statistics = addSection("Statistics");
         const test = document.createElement("select");
         test.dataset.control = "test";
@@ -5022,24 +5316,55 @@ ${toolbarStyles(".bv-group-comparison")}
       }
       addFilterControls(this, { addSection, addControl }, () => redraw(false));
       addReset(() => {
+        this.readVisits(this.settings.unscheduled_visits);
         this.state = this.seedState();
         this.buildControls();
         this.render();
       });
     }
+    // Switches unscheduled visits on or off, from the control. A visit that
+    // comes back is drawn: it joins the visits chosen, as every visit is chosen
+    // when the chart opens.
+    showUnscheduled(shown2) {
+      const offered = this.visits.all;
+      this.state.unscheduledVisits = shown2;
+      this.readVisits(shown2);
+      this.chooseNewVisits(offered);
+      this.buildControls();
+      this.render();
+    }
+    // Adds to the visits chosen the ones now offered that were not `offered`
+    // before, and drops any no longer offered.
+    chooseNewVisits(offered) {
+      const chosen = this.state.visits || [];
+      this.state.visits = this.visits.all.filter(
+        (visit) => chosen.includes(visit) || !offered.includes(visit)
+      );
+    }
+    // Why a specification's visits are not all drawn, when the reason is that
+    // some are unscheduled and left out: said in place of "not in the tables",
+    // which they are (src/shared/chartHost.js, noticesOf).
+    noticeOf(setting, asked, drawn) {
+      if (setting !== "visits" || !Array.isArray(asked)) return null;
+      const left = asked.filter((visit) => this.hiddenVisits.includes(visit));
+      if (!left.length) return null;
+      const kept = drawn || [];
+      const absent = asked.filter((visit) => !left.includes(visit) && !kept.includes(visit));
+      return `Visits: ${listed3(left)} ${left.length === 1 ? "is an unscheduled visit" : "are unscheduled visits"}, left out unless \`unscheduled_visits\` is true, so the chart draws ${kept.length ? kept.join(", ") : "none"}.` + (absent.length ? ` ${absent.join(", ")} ${absent.length === 1 ? "is" : "are"} not in the tables.` : "");
+    }
     // The visits the Visit control offers: the open biomarker's, or every visit
-    // in the overview.
+    // on the tiles.
     visitsOffered() {
-      if (this.isOverview()) return this.visits.all;
-      return measureVisits(this.tables.results, this.settings, this.state.measure);
+      if (this.atTiles()) return this.visits.all;
+      return measureVisits(this.drawTables.results, this.settings, this.state.measure);
     }
     // Every level of the group column in the tables, whatever the filters are set to.
     levelsOffered() {
       if (!this.state.groupBy) return [];
-      if (this.isOverview()) return columnLevels(this.tables, this.state.groupBy);
+      if (this.atTiles()) return columnLevels(this.drawTables, this.state.groupBy);
       try {
         const model = buildPanels(
-          this.tables,
+          this.drawTables,
           this.settings,
           {
             ...this.drawingState(),
@@ -5097,12 +5422,14 @@ ${toolbarStyles(".bv-group-comparison")}
       this.multiplesWrap.innerHTML = "";
       this.statLine.textContent = "";
       this.statLine.dataset.state = "empty";
-      this.multiplesWrap.classList.remove("bv-overview");
+      this.multiplesWrap.classList.remove("bv-tiles");
       this.chartWrap.classList.remove("sv-hidden");
       this.model = null;
-      this.overview = null;
+      this.tiles = null;
       this.syncTestControls(0);
-      const { results } = this.tables;
+      this.root.dataset.level = this.level();
+      this.noteHiddenVisits();
+      const { results } = this.drawTables;
       const needsVisit = this.state.valueType !== "baseline";
       if (!results.length || !this.measures.length) {
         this.footnote.textContent = "No results to draw.";
@@ -5113,11 +5440,11 @@ ${toolbarStyles(".bv-group-comparison")}
         this.footnote.textContent = "Choose a visit to draw.";
         return;
       }
-      if (this.isOverview()) {
-        this.drawOverview();
+      if (this.atTiles()) {
+        this.drawTiles();
         return;
       }
-      const model = buildPanels(this.tables, this.settings, this.drawingState(), {
+      const model = buildPanels(this.drawTables, this.settings, this.drawingState(), {
         filterMatches: this.kit.filterMatches
       });
       this.model = model;
@@ -5165,134 +5492,215 @@ ${toolbarStyles(".bv-group-comparison")}
         }
       });
     }
-    // ---- The overview -----------------------------------------------------------
-    // Every biomarker, a row each, in the Biomarker control's order; in a row one
-    // small panel per visit, all on that biomarker's own value axis. A row is a
-    // button: a click, or Enter or Space on it, opens its biomarker. Each panel
-    // is its own Chart.js chart, as safety.viz's small multiples are, so the
-    // number alive at once is the page's biomarkers times the visits, and
-    // `overview_limit` keeps that bounded.
-    drawOverview() {
+    // ---- The trend tiles ---------------------------------------------------------
+    // Every biomarker, a tile each, in the Biomarker control's order; in a tile
+    // one line per group through the group's median (or mean) at each visit
+    // chosen, on the biomarker's own value axis, whose range is printed under
+    // it. One key above them all. A tile is a button: a click, or Enter or Space
+    // on it, opens its biomarker. Each tile is one small Chart.js chart, and
+    // every biomarker is drawn: there are no pages.
+    drawTiles() {
       const { kit, state, settings } = this;
-      const page = overviewPage(this.measures, settings.overview_limit, state.page);
-      state.page = page.page;
-      const rows = buildOverview(this.tables, settings, this.drawingState(), page.measures, {
+      const built = buildTiles(this.drawTables, settings, this.drawingState(), this.measures, {
         filterMatches: kit.filterMatches
       });
-      this.overview = { ...page, rows };
+      this.tiles = built;
       this.chartWrap.classList.add("sv-hidden");
-      this.multiplesWrap.classList.add("bv-overview");
-      this.updateOverviewNotes(rows);
-      const pager = () => this.overviewPager(page);
-      this.multiplesWrap.append(pager());
-      const drawn = rows.filter((row) => row.model.panels.some((panel) => panel.records.length));
-      if (!drawn.length) {
-        this.footnote.textContent = rows.length ? nothingDrawn(rows[0].model, rows) : NOTHING_AFTER_BASELINE;
+      this.multiplesWrap.classList.add("bv-tiles");
+      this.updateTileNotes(built);
+      if (!built.tiles.some((tile) => tile.axis)) {
+        this.footnote.textContent = built.filtered === 0 ? NOBODY_PASSES : NO_VALUE;
         return;
       }
       this.footnote.textContent = [
         "Click a biomarker to view it alone, with a test under each visit.",
-        ...this.cutNotes(drawn[0].model)
+        ...this.cutNotes(built)
       ].join(" ");
-      const colors = drawn[0].model.colors;
-      if (colors.length > 1 || colors[0] !== null) {
-        const legend = kit.createElement("p", "bv-legend");
-        legend.append(kit.createElement("span", null, `${this.labelOf(state.colorBy)}:`));
-        colors.forEach((color, index) => {
-          const entry = kit.createElement("span");
-          const swatch = kit.createElement("span", "bv-legend-swatch");
-          swatch.style.background = this.colorOf(index);
-          entry.append(swatch, document.createTextNode(color));
-          legend.append(entry);
-        });
-        this.multiplesWrap.append(legend);
-      }
-      const groups = Math.max(...rows.map((row) => row.model.shownLevels.length), 1);
-      const narrow = this.root.clientWidth < 600;
-      const least = narrow ? 120 : 132;
-      this.multiplesWrap.style.setProperty(
-        "--bv-panel-min",
-        `${Math.min(300, Math.max(least, groups * (narrow ? 44 : 52) + 30))}px`
+      const key = kit.createElement("p", "bv-legend bv-tile-key");
+      const by = state.groupBy ? ` by ${this.labelOf(state.groupBy)}` : "";
+      key.append(
+        kit.createElement(
+          "span",
+          null,
+          `${SUMMARY_WORDS[state.tileSummary]} ${VALUE_WORDS2[state.valueType]}${by}:`
+        )
       );
-      rows.forEach(({ measure, title, model }) => {
-        const row = kit.createElement("div", "sv-multiple sv-overview-panel bv-overview-row");
-        row.dataset.measure = measure;
-        row.setAttribute("role", "button");
-        row.tabIndex = 0;
-        row.setAttribute("aria-label", `View ${measure}`);
-        const open = () => this.openFromOverview(measure);
-        row.onclick = open;
-        row.onkeydown = (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            open();
-          }
-        };
-        row.append(kit.createElement("h3", null, title));
-        const panels = kit.createElement("div", "bv-overview-panels");
-        row.append(panels);
-        this.multiplesWrap.append(row);
-        const shown2 = model.panels.filter((panel) => panel.records.length);
-        if (!shown2.length) {
-          row.append(kit.createElement("p", "bv-panel-note", "No participant has a value to draw."));
+      built.groups.forEach((group) => {
+        const entry = kit.createElement("span");
+        entry.dataset.group = group.level;
+        const swatch = kit.createElement("span", "bv-legend-swatch");
+        swatch.style.background = this.colorOf(group.index);
+        entry.append(swatch, document.createTextNode(group.level));
+        key.append(entry);
+      });
+      const spread = settings.tile_min_spread;
+      const caption = kit.createElement(
+        "p",
+        "bv-tile-caption",
+        "Each biomarker has its own value axis, printed under its tile." + (spread > 0 ? ` It is never narrower than ${shown(spread)} standard deviation${spread === 1 ? "" : "s"} of the results at the baseline visit, so lines that differ by less stay close to flat.` : "")
+      );
+      const grid = kit.createElement("div", "bv-tile-grid");
+      this.multiplesWrap.append(key, caption, grid);
+      this.tileSeries = (this.tileSeries || 0) + 1;
+      built.tiles.forEach((tile, index) => {
+        const button = kit.createElement("button", "bv-tile");
+        button.type = "button";
+        button.dataset.measure = tile.measure;
+        button.setAttribute("aria-label", `View ${tile.measure}`);
+        button.onclick = () => this.openFromTile(tile.measure);
+        button.append(kit.createElement("span", "bv-tile-name", tile.measure));
+        grid.append(button);
+        if (!tile.axis) {
+          button.append(
+            kit.createElement("span", "bv-tile-empty", "No participant has a value to draw.")
+          );
           return;
         }
-        const domain = this.domain({ extent: this.reach(model) });
-        model.panels.forEach((panel) => {
-          const cell = kit.createElement("div", "bv-overview-panel");
-          cell.dataset.visit = panel.visit ?? "";
-          cell.append(kit.createElement("h4", null, panel.title || panel.visit || "Baseline value"));
-          const wrap = kit.createElement("div", "bv-overview-canvas");
-          const canvas = document.createElement("canvas");
-          wrap.append(canvas);
-          cell.append(wrap);
-          panels.append(cell);
-          if (panel.records.length) {
-            const chart = this.drawPanel(canvas, panel, model, { title, domain, compact: true });
-            chart.$measure = measure;
+        const wrap = kit.createElement("span", "bv-tile-canvas");
+        const canvas = document.createElement("canvas");
+        wrap.append(canvas);
+        const visits2 = kit.createElement("span", "bv-tile-visits");
+        const named2 = tile.visits.map((visit) => visit ?? "Baseline value");
+        if (named2.length === 1) visits2.dataset.single = "true";
+        [.../* @__PURE__ */ new Set([named2[0], named2[named2.length - 1]])].forEach(
+          (visit) => visits2.append(kit.createElement("span", null, visit))
+        );
+        const range = kit.createElement("span", "bv-tile-range", tile.range);
+        range.id = `bv-tile-range-${this.tileSeries}-${index}`;
+        button.setAttribute("aria-describedby", range.id);
+        button.append(wrap, visits2, range);
+        const chart = this.drawTile(canvas, tile);
+        chart.$measure = tile.measure;
+        chart.$tile = tile;
+      });
+    }
+    // One tile's chart: a line per group through its points, in visit order
+    // along the tile, with nothing that answers the pointer, because the tile it
+    // is in is what is clicked. A group with no value at a visit has no point
+    // there, and its line runs on to its next value.
+    drawTile(canvas, tile) {
+      const { state } = this;
+      const last = tile.visits.length - 1;
+      const datasets = tile.lines.map((line) => {
+        const hex = this.colorOf(line.index);
+        return {
+          label: line.level,
+          data: line.points.map((point, at) => ({ x: at, y: point.value })).filter((point) => point.y !== null),
+          borderColor: hex,
+          backgroundColor: hex,
+          borderWidth: 2,
+          pointRadius: 2,
+          pointHoverRadius: 2,
+          tension: 0
+        };
+      });
+      const chart = new this.kit.Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: { datasets },
+        options: {
+          animation: false,
+          maintainAspectRatio: false,
+          responsive: true,
+          parsing: false,
+          events: [],
+          layout: { padding: { top: 2, right: 5, bottom: 2, left: 5 } },
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: {
+            x: {
+              type: "linear",
+              min: last ? -0.15 : -0.5,
+              max: last ? last + 0.15 : 0.5,
+              display: false
+            },
+            y: {
+              type: state.yScale === "log" ? "logarithmic" : "linear",
+              min: tile.axis.min,
+              max: tile.axis.max,
+              display: false
+            }
           }
-        });
+        },
+        plugins: [this.tileFrame(tile)]
       });
-      if (page.pages > 1) this.multiplesWrap.append(pager());
+      const said2 = tile.lines.map(
+        (line) => `${line.level} ${line.points.map((point) => point.value === null ? "none" : shown(point.value)).join(", ")}`
+      ).join("; ");
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute(
+        "aria-label",
+        `${tile.measure}, ${SUMMARY_WORDS[state.tileSummary].toLowerCase()} ${VALUE_WORDS2[state.valueType]} at ${tile.visits.map((visit) => visit ?? "baseline").join(", ")}: ${said2}`
+      );
+      this.charts.push(chart);
+      return chart;
     }
-    // How many biomarkers are shown of how many, and, when there are more than
-    // one page of them, the way to the rest.
-    overviewPager(page) {
-      return renderPager(this.kit, page, overviewCount(page), (to) => {
-        this.state.page = to;
-        this.render();
-        if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
-      });
+    // What a tile draws beside its lines: the line it stands on, and, for a
+    // value worked out against a baseline, a dashed line where no change is.
+    tileFrame(tile) {
+      return {
+        id: "gc-tile-frame",
+        beforeDatasetsDraw: (chart) => {
+          const { ctx, chartArea, scales } = chart;
+          ctx.save();
+          ctx.strokeStyle = "#c5ccd3";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, chartArea.bottom);
+          ctx.lineTo(chartArea.right, chartArea.bottom);
+          ctx.stroke();
+          const { reference } = tile;
+          if (reference !== null && reference > tile.axis.min && reference < tile.axis.max) {
+            const y = scales.y.getPixelForValue(reference);
+            ctx.setLineDash([2, 3]);
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, y);
+            ctx.lineTo(chartArea.right, y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      };
     }
-    // Opens a biomarker from its row. The single view replaces the overview, so
+    // Opens a biomarker from its tile. The single view replaces the tiles, so
     // the page is brought back to the chart's top, and the keyboard's place is
     // put on the Biomarker control when it is on screen.
-    openFromOverview(measure) {
+    openFromTile(measure) {
       this.selectMeasure(measure);
       if (this.root.getBoundingClientRect().top < 0) this.root.scrollIntoView();
       const control = this.controls.querySelector('select[data-control="measure"]');
       if (control && control.offsetParent !== null) control.focus();
     }
-    // Above the overview: what applies to every row. The counts of who was
+    // Above the tiles: what applies to every one of them. The counts of who was
     // drawn and left out are a biomarker's own, and are given when it is opened.
-    updateOverviewNotes(rows) {
+    updateTileNotes(built) {
       const { kit, state } = this;
       const add = (text2) => this.notes.append(kit.createElement("span", null, text2));
-      const [first] = rows;
-      if (!first) return;
-      const { model } = first;
-      if (model.filtered !== null && model.filtered < this.tables.participants.length) {
-        add(`${model.filtered} of ${this.tables.participants.length} participants pass the filters.`);
+      if (built.filtered !== null && built.filtered < this.tables.participants.length) {
+        add(`${built.filtered} of ${this.tables.participants.length} participants pass the filters.`);
       }
       if (state.levels) {
         const offered = this.levelsOffered();
-        const shown2 = offered.filter((level) => state.levels.includes(level));
-        if (shown2.length < offered.length) add(`${shown2.length} of ${offered.length} levels shown.`);
+        const kept = offered.filter((level) => state.levels.includes(level));
+        if (kept.length < offered.length) add(`${kept.length} of ${offered.length} levels shown.`);
       }
       if (state.valueType === "baseline") {
-        add("A baseline value has no visit: each biomarker has one panel.");
+        add("A baseline value has no visit: each group is one point.");
+      } else if (state.valueType !== "raw" && built.baselineVisits) {
+        add(`Baseline visit: ${built.baselineVisits.join(", ")}.`);
       }
-      this.addBaselineNote(model, add);
+    }
+    // Says how many unscheduled visits are left out, and which, whatever level
+    // is drawn; nothing when they are drawn or there are none.
+    noteHiddenVisits() {
+      const hidden = this.hiddenVisits;
+      if (!hidden.length) return;
+      const one = hidden.length === 1;
+      const note = this.kit.createElement(
+        "span",
+        "bv-hidden-visits",
+        `${hidden.length} unscheduled visit${one ? "" : "s"} not drawn: ${listed3(hidden)}. Switch on Unscheduled visits to draw ${one ? "it" : "them"}.`
+      );
+      note.dataset.hidden = String(hidden.length);
+      this.notes.append(note);
     }
     // The baseline visit of a value worked out against one, and that it is not
     // drawn when it was chosen: there the value is the same for everyone.
@@ -5300,17 +5708,6 @@ ${toolbarStyles(".bv-group-comparison")}
       if (!model.baselineVisits || this.state.valueType === "raw") return;
       const notDrawn = model.visitsNotDrawn.length ? ` It is not drawn: there the ${VALUE_LABELS[this.state.valueType].toLowerCase()} is the same for everyone.` : "";
       add(`Baseline visit: ${model.baselineVisits.join(", ")}.${notDrawn}`);
-    }
-    // How far a biomarker's marks reach across its panels. A box is drawn from
-    // its whiskers, the 5th and 95th percentiles; a violin and points reach the
-    // least and greatest value.
-    reach(model) {
-      if (this.state.mark !== "box") return model.extent;
-      const cells = model.panels.flatMap((panel) => panel.cells.filter((cell) => cell.n));
-      return [
-        Math.min(...cells.map((cell) => cell.stats.q5)),
-        Math.max(...cells.map((cell) => cell.stats.q95))
-      ];
     }
     // The value axis: the extent of what is drawn, with a little room. On a
     // logarithmic axis the room is a ratio, so the lower end stays above zero.
@@ -5326,10 +5723,7 @@ ${toolbarStyles(".bv-group-comparison")}
     colorOf(index) {
       return PALETTE[index % PALETTE.length];
     }
-    // `compact` is a panel of the overview: small, with no legend, no axis
-    // titles and nothing that answers the pointer, because the row it is in is
-    // what is clicked.
-    drawPanel(canvas, panel, model, { title, domain, compact = false }) {
+    drawPanel(canvas, panel, model, { title, domain }) {
       const { state } = this;
       const groupLabel2 = state.groupBy ? this.labelOf(state.groupBy) : "";
       const coloured = model.colors.length > 1 || model.colors[0] !== null;
@@ -5353,7 +5747,7 @@ ${toolbarStyles(".bv-group-comparison")}
           showLine: false,
           backgroundColor: hexToRgba(hex, 0.55),
           borderColor: hex,
-          pointRadius: state.mark === "points" ? compact ? 1.5 : 3 : 0,
+          pointRadius: state.mark === "points" ? 3 : 0,
           pointHoverRadius: state.mark === "points" ? 5 : 0,
           pointHitRadius: state.mark === "points" ? 4 : 14
         };
@@ -5366,15 +5760,14 @@ ${toolbarStyles(".bv-group-comparison")}
           maintainAspectRatio: false,
           responsive: true,
           interaction: { mode: "nearest", intersect: true },
-          ...compact ? { events: [], layout: { padding: { top: 4, right: 4 } } } : { onClick: (event) => this.onChartClick(chart, panel, event) },
+          onClick: (event) => this.onChartClick(chart, panel, event),
           plugins: {
             legend: {
-              display: coloured && !compact,
+              display: coloured,
               position: "top",
               title: { display: coloured, text: this.labelOf(state.colorBy) }
             },
             tooltip: {
-              enabled: !compact,
               callbacks: {
                 title: () => "",
                 label: (context) => this.tooltip(context.raw)
@@ -5387,14 +5780,13 @@ ${toolbarStyles(".bv-group-comparison")}
               min: -0.5,
               max: model.shownLevels.length - 0.5,
               grid: { display: false },
-              title: { display: Boolean(groupLabel2) && !compact, text: groupLabel2 },
+              title: { display: Boolean(groupLabel2), text: groupLabel2 },
               ticks: {
                 autoSkip: false,
                 // A panel turns its labels when they would run together, as a
                 // narrow visit panel's long group names would; labels that fit
                 // stay level.
-                maxRotation: compact ? 50 : 90,
-                ...compact ? { font: { size: 10 }, padding: 2 } : {},
+                maxRotation: 90,
                 callback: (value) => Number.isInteger(value) ? panel.ticks[value] ?? "" : ""
               },
               afterBuildTicks: (axis) => {
@@ -5406,11 +5798,8 @@ ${toolbarStyles(".bv-group-comparison")}
               min: domain[0],
               max: domain[1],
               // The ends of the axis are room about the data, not round numbers.
-              ticks: {
-                includeBounds: false,
-                ...compact ? { font: { size: 10 }, maxTicksLimit: 4 } : {}
-              },
-              title: { display: !compact, text: title }
+              ticks: { includeBounds: false },
+              title: { display: true, text: title }
             }
           }
         },
@@ -5567,7 +5956,10 @@ ${toolbarStyles(".bv-group-comparison")}
         pairwise: this.state.pairwise,
         settings: this.settings,
         state: this.drawingState(),
-        panel
+        panel,
+        // The rows framed hold unscheduled visits only when the results have
+        // some and they are switched on.
+        unscheduled: Boolean(this.state.unscheduledVisits) && this.unscheduled.visits.length > 0
       });
       const asked = {
         panel: panel.title,
@@ -5626,9 +6018,10 @@ ${toolbarStyles(".bv-group-comparison")}
         panel_by: state.panelBy ? this.groupingOf(state.panelBy) : null,
         mark: state.mark,
         y_scale: state.yScale,
+        tile_summary: state.tileSummary,
+        unscheduled_visits: Boolean(state.unscheduledVisits),
         test: state.test,
-        pairwise: state.pairwise,
-        page: state.page || 0
+        pairwise: state.pairwise
       };
     }
     /**
@@ -5643,13 +6036,13 @@ ${toolbarStyles(".bv-group-comparison")}
     /**
      * The table the chart drew from, one row per participant drawn, for the
      * table download (#67): which field of a row each column holds, and its
-     * heading. In the overview, one row per participant, biomarker and visit
-     * drawn on its page of biomarkers (#78).
+     * heading. On the trend tiles, one row per participant, biomarker and visit:
+     * the values each point is the median or the mean of (#78, #84).
      * @returns {{columns: Array<{value_col: string, label: string}>, rows: object[]}}
      */
     tableOf() {
-      const { model, state, settings, overview } = this;
-      if (!model && overview) return this.overviewTable();
+      const { model, state, settings, tiles } = this;
+      if (!model && tiles) return this.tilesTable();
       if (!model || !model.panels) return { columns: [], rows: [] };
       const visits2 = model.panels.some((panel) => panel.visit !== null && panel.visit !== void 0);
       const columns = [{ value_col: settings.id_col, label: "Participant" }];
@@ -5666,23 +6059,21 @@ ${toolbarStyles(".bv-group-comparison")}
       );
       return { columns, rows };
     }
-    // The overview's table: every value drawn on its page of biomarkers, each
-    // row naming its biomarker and its visit. The overview draws no panel
-    // column; its values are of the one value type the controls choose.
-    overviewTable() {
-      const { overview, state, settings } = this;
+    // The tiles' table: every value behind a point of any tile, each row naming
+    // its biomarker and its visit. The tiles draw no colour and no panel column;
+    // the values are of the one value type the controls choose.
+    tilesTable() {
+      const { tiles, state, settings } = this;
+      const visits2 = state.valueType !== "baseline";
       const columns = [
         { value_col: settings.id_col, label: "Participant" },
-        { value_col: "biomarker", label: "Biomarker" },
-        { value_col: "visit", label: "Visit" }
+        { value_col: "biomarker", label: "Biomarker" }
       ];
+      if (visits2) columns.push({ value_col: "visit", label: "Visit" });
       if (state.groupBy) columns.push({ value_col: "x", label: this.labelOf(state.groupBy) });
-      if (state.colorBy) columns.push({ value_col: "color", label: this.labelOf(state.colorBy) });
       columns.push({ value_col: "y", label: VALUE_LABELS[state.valueType] || state.valueType });
-      const rows = overview.rows.flatMap(
-        (row) => row.model.panels.flatMap(
-          (panel) => panel.records.map((record) => ({ ...record, biomarker: row.measure, visit: panel.visit }))
-        )
+      const rows = tiles.tiles.flatMap(
+        (tile) => tile.records.map((record) => ({ ...record, biomarker: tile.measure }))
       );
       return { columns, rows };
     }
@@ -5696,18 +6087,16 @@ ${toolbarStyles(".bv-group-comparison")}
      * @returns {object}
      */
     placeholders() {
-      const { state, model, overview } = this;
-      const panels = model ? model.panels : overview ? overview.rows.flatMap((row) => row.model.panels) : [];
+      const { state, model, tiles } = this;
+      const records = model ? model.panels.flatMap((panel) => panel.records) : tiles ? tiles.tiles.flatMap((tile) => tile.records) : [];
       const ids = /* @__PURE__ */ new Set();
-      for (const panel of panels) {
-        for (const record of panel.records) ids.add(record[this.settings.id_col] ?? record.id);
-      }
+      for (const record of records) ids.add(record[this.settings.id_col] ?? record.id);
       return {
         measure: state.measure ?? "every biomarker",
         visits: (state.visits || []).join(", "),
         value: VALUE_LABELS[state.valueType] || state.valueType,
         group: state.groupBy ? this.labelOf(state.groupBy) : "",
-        n: model || overview ? ids.size : ""
+        n: model || tiles ? ids.size : ""
       };
     }
     /**
@@ -7396,7 +7785,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
 
   // src/correlation-matrix/structureData.js
   var RELATIVE3 = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
-  var VALUE_WORDS2 = {
+  var VALUE_WORDS3 = {
     raw: "Result",
     baseline: "Baseline value",
     change: "Change from baseline",
@@ -7418,7 +7807,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
     });
     const named2 = (list) => list.map((entry, index) => ({ name: `v${index + 1}`, label: entry.label, axis: entry.axis }));
     if (state.mode === "visits") {
-      const heading2 = `${state.measure}: ${VALUE_WORDS2[value].toLowerCase()}, visit against visit`;
+      const heading2 = `${state.measure}: ${VALUE_WORDS3[value].toLowerCase()}, visit against visit`;
       if (value === "baseline") {
         return none(
           "visits",
@@ -7443,7 +7832,7 @@ ${toolbarStyles(`.${MODULE_CLASS}`)}
       };
     }
     const at = value === "baseline" ? "" : ` at ${state.visit}`;
-    const heading = `${VALUE_WORDS2[value]}${at}, biomarker against biomarker`;
+    const heading = `${VALUE_WORDS3[value]}${at}, biomarker against biomarker`;
     if (flat(state.visit)) {
       return none(
         "biomarkers",
@@ -8858,11 +9247,11 @@ ${C}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
     if (!rows.length || !state.groupBy || state.endpoint === null) return empty;
     const participantIdCol = settings.participant_id_col || idCol;
     const known = new Set(
-      (participants || results).map((row) => row[participants ? participantIdCol : idCol]).filter((id) => !isBlank2(id)).map(String)
+      (participants || results).map((row) => row[participants ? participantIdCol : idCol]).filter((id) => !isBlank3(id)).map(String)
     );
     const outcomeOf = outcomesOf(outcomes, settings, state.endpoint, known);
     const strangers = outcomeOf.strangers;
-    const hasOutcome = (id) => !isBlank2(id) && !outcomeOf(id).reason;
+    const hasOutcome = (id) => !isBlank3(id) && !outcomeOf(id).reason;
     const cut = isCut(state.groupBy) ? cutOf(
       kept ? {
         results: rows,
@@ -10117,7 +10506,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
 
   // src/biomarker-screen/structureData.js
   var RELATIVE4 = /* @__PURE__ */ new Set(["change", "fold_change", "percent_change"]);
-  var VALUE_WORDS3 = {
+  var VALUE_WORDS4 = {
     raw: "Result",
     baseline: "Baseline value",
     change: "Change from baseline",
@@ -10128,7 +10517,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     if (axis.kind === "column") return axis.col;
     if (axis.value === "baseline") return `${axis.measure}, baseline value`;
     if (axis.value === "raw") return `${axis.measure} at ${axis.visit}`;
-    return `${axis.measure}, ${VALUE_WORDS3[axis.value].toLowerCase()} at ${axis.visit}`;
+    return `${axis.measure}, ${VALUE_WORDS4[axis.value].toLowerCase()} at ${axis.visit}`;
   }
   function groupsOf2(tables, column, chosen) {
     const offered = column ? columnLevels(tables, column) : [];
@@ -10142,7 +10531,7 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     const config = coreSettings(settings);
     const baseline = RELATIVE4.has(value) ? config.baseline_visits || visits(results, config).slice(0, 1) : [];
     const at = value === "baseline" ? "" : ` at ${state.visit}`;
-    const words = `${VALUE_WORDS3[value]}${at}`;
+    const words = `${VALUE_WORDS4[value]}${at}`;
     const endpoint = (offered.endpoints || []).find((entry) => entry.endpoint === state.endpoint);
     const heading = state.comparison === "difference" ? `${words}: ${state.levels.length === 2 ? `${state.levels[0]} against ${state.levels[1]}` : "two groups"}, standardised difference` : state.comparison === "hazard" ? `${words}: hazard ratio, high against low, on ${endpoint ? endpoint.label : "an endpoint"}` : `${words}: correlation with ${state.with ? variableName(state.with) : "a variable"}`;
     const none = (message) => ({ rows: [], heading, left: null, message });
@@ -10311,6 +10700,35 @@ ${C2} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
     const at = log ? (Math.log2(value) - Math.log2(min)) / (Math.log2(max) - Math.log2(min)) : (value - min) / (max - min);
     return Math.min(100, Math.max(0, at * 100));
   };
+
+  // src/shared/paging.js
+  function pageOf(items, limit, page = 0) {
+    const total = items.length;
+    const pages = Math.max(1, Math.ceil(total / limit));
+    const at = Math.min(Math.max(0, Math.trunc(Number(page)) || 0), pages - 1);
+    const shown2 = items.slice(at * limit, (at + 1) * limit);
+    return {
+      items: shown2,
+      page: at,
+      pages,
+      from: total ? at * limit + 1 : 0,
+      to: at * limit + shown2.length,
+      total
+    };
+  }
+  var ordinal = (n) => {
+    const tens = n % 100;
+    const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+    return `${n}${suffix}`;
+  };
+  function pageCount({ from, to, total, pages }, order2) {
+    if (!total) return "No biomarker to show.";
+    if (pages === 1) {
+      return total === 1 ? "The one biomarker is shown." : `All ${total} biomarkers are shown.`;
+    }
+    const which = from === to ? `the ${ordinal(from)}` : `${from} to ${to}`;
+    return `${to - from + 1} of ${total} biomarkers shown: ${which}, ${order2}.`;
+  }
 
   // src/biomarker-screen.js
   var MODULE_CLASS4 = "bv-biomarker-screen";
@@ -11415,9 +11833,9 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
         (col) => records.filter((record) => record.row === row && record.col === col).length
       )
     );
-    const sum2 = (values) => values.reduce((total, value) => total + value, 0);
-    const rowTotals = counts.map(sum2);
-    const colTotals = colLevels.map((_, j) => sum2(counts.map((row) => row[j])));
+    const sum3 = (values) => values.reduce((total, value) => total + value, 0);
+    const rowTotals = counts.map(sum3);
+    const colTotals = colLevels.map((_, j) => sum3(counts.map((row) => row[j])));
     return {
       ...empty,
       records,
@@ -11427,7 +11845,7 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
       counts,
       rowTotals,
       colTotals,
-      total: sum2(rowTotals),
+      total: sum3(rowTotals),
       percents: {
         row: counts.map((row, i) => row.map((n) => 100 * n / rowTotals[i])),
         col: counts.map((row) => row.map((n, j) => 100 * n / colTotals[j]))

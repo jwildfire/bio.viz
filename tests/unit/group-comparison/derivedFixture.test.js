@@ -70,10 +70,11 @@ describe('the results-alone fixture', () => {
   });
 });
 
-// The many-biomarkers fixture (#17): more biomarkers than the overview draws at
-// a time, made from the vendored study by a recorded rule.
+// The many-biomarkers fixture (#17): more biomarkers than a screen holds, every
+// one of which has a trend tile (#84), made from the vendored study by a
+// recorded rule.
 describe('the many-biomarkers fixture', () => {
-  it('GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds three times the overview’s limit of biomarkers (#17)', () => {
+  it('GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds thirty-six biomarkers, three times the study’s (#17, #84)', () => {
     const { text, record } = deriveManyBiomarkers({
       results: read(MANY_BIOMARKERS.sources.results),
       participants: read(MANY_BIOMARKERS.sources.participants)

@@ -1,7 +1,7 @@
 // Writes the many-biomarkers fixture: a results table with thirty-six
-// biomarkers, three times the overview's limit, and a record of what it was
-// derived from. The browser tests load it with the vendored participant table
-// to see the overview draw a page at a time.
+// biomarkers, three times the study's, and a record of what it was derived
+// from. The browser tests load it with the vendored participant table to see
+// the group comparison chart draw a trend tile for every one of them.
 //
 //   node tools/derive-many-biomarkers.mjs
 //

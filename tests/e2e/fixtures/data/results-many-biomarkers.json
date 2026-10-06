@@ -1,7 +1,7 @@
 {
   "file": "tests/e2e/fixtures/data/results-many-biomarkers.csv",
   "derived_by": "tools/derive-many-biomarkers.mjs",
-  "rule": "The rows of site/data/synthetic-study/synthetic_results.csv at Baseline and Week 4 for the first 40 participants of site/data/synthetic-study/synthetic_participants.csv, in their order, written 3 times: as they are, and then with \" B\" and \" C\" added to the TEST of every row. It makes 36 biomarkers of the study's 12, so that there are more than the overview draws at a time. The copies are the same results under other names, and say nothing about any biomarker.",
+  "rule": "The rows of site/data/synthetic-study/synthetic_results.csv at Baseline and Week 4 for the first 40 participants of site/data/synthetic-study/synthetic_participants.csv, in their order, written 3 times: as they are, and then with \" B\" and \" C\" added to the TEST of every row. It makes 36 biomarkers of the study's 12, so that there are more than a screen holds. The copies are the same results under other names, and say nothing about any biomarker.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
