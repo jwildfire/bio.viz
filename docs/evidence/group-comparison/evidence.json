@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-06T07:45:59.210Z",
+  "generatedAt": "2026-10-06T08:52:39.590Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37431589196",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37431589196"
+    "id": "37439009707",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37439009707"
   },
   "records": [
     {
@@ -154,6 +154,14 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-021"],
       "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-022: a row of the evidence table is laid out by its own words: the two columns are three fifths and two fifths of the table on every module’s page, and a row keeps its columns when another row is given a test with a long name (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-022"],
+      "issueRefs": [85],
       "screenshots": []
     },
     {
@@ -899,6 +907,14 @@
       "requirementIds": ["GC-TIME-033"],
       "issueRefs": [85],
       "screenshots": []
+    },
+    {
+      "test": "GC-TIME-034: over time the notes above the chart are two lines for all the visits, the range drawn at a visit and what was left out added up over the visits by reason; each number is the sum of the notes the visits print for themselves, and a visit’s own note is unchanged (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-034"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-034-notes-for-all-the-visits.png"]
     },
     {
       "test": "GC-UNS-003: with rows for unscheduled visits added to the study, such a visit is in no tile, not in the Visit control, not a visit of a biomarker over time and not a panel of one, and a note says how many are left out and which; the Unscheduled visits control, or `unscheduled_visits`, brings them in at every level (#84, #85)",
