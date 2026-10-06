@@ -261,6 +261,16 @@ describe('the pages and the two stylesheets', () => {
     const faces = declarations.filter(([property]) => /^font(-family)?$/.test(property));
     expect(faces.length).toBeGreaterThan(5);
     expect(faces.filter(([, value]) => !/var\(--(sans|serif|mono)\)$/.test(value))).toEqual([]);
+    // No colour is given to an element by its tag alone. A demo page holds a
+    // chart, and a chart's own parts (a folded list's summary line, a button)
+    // are coloured by the chart: a rule here names a class or an id of the
+    // site's, so it cannot reach into one.
+    const tagAlone = [...rules.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /(^|[\s;])(color|background(-color)?)\s*:/.test(body))
+      .flatMap(([, selector]) => selector.split(','))
+      .map((selector) => selector.trim())
+      .filter((selector) => !/[.#]/.test(selector));
+    expect(tagAlone).toEqual([]);
     // Each token it reads is one the copy defines.
     const defined = new Set([...copied.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
     const used = new Set([...rules.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]));
