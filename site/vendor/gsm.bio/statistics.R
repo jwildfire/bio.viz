@@ -1135,11 +1135,35 @@ Analyze_Contingency <- function(dfData, strRowCol, strColCol, strMethod = "chisq
     }
     chrMargin <- c(paste0(strRowCol, " = ", chrRowLevels), paste0(strColCol, " = ", chrColLevels))
     nMargin <- c(nRowTotals, nColTotals)
-    if (any(nMargin < nMinGroup)) {
-      return(Stat_Result(
-        strTest = strMethod, strStatus = "too_small", xCounts = nUsed, dfDropped = dfDropped, dfRows = dfRows,
-        strReason = Stat_TooSmallReason(chrMargin, nMargin, nMinGroup)
-      ))
+    chrNotes <- character(0)
+    if (strMethod == "chisq") {
+      if (any(nMargin < nMinGroup)) {
+        return(Stat_Result(
+          strTest = strMethod, strStatus = "too_small", xCounts = nUsed, dfDropped = dfDropped, dfRows = dfRows,
+          strReason = Stat_TooSmallReason(chrMargin, nMargin, nMinGroup)
+        ))
+      }
+    } else {
+      # Fisher's exact test is exact at any count, so the minimum group size is
+      # not applied to it. It still needs a table: a category nobody is in is
+      # no row and no column, and fisher.test() would answer p = 1 for it.
+      if (sum(nRowTotals > 0) < 2L || sum(nColTotals > 0) < 2L) {
+        return(Stat_Result(
+          strTest = strMethod, strStatus = "too_small", xCounts = nUsed, dfDropped = dfDropped, dfRows = dfRows,
+          strReason = sprintf(
+            "Not computed: %s. Fisher's exact test needs two or more rows and two or more columns with at least one participant each.",
+            paste(sprintf("%s has 0", chrMargin[nMargin == 0]), collapse = "; ")
+          )
+        ))
+      }
+      bBelow <- nMargin < nMinGroup
+      if (any(bBelow)) {
+        chrNotes <- sprintf(
+          "Fisher's exact test is exact at any count, so the minimum group size of %s is not applied to it. Below it here: %s.",
+          format(nMinGroup),
+          paste(sprintf("%s has %d", chrMargin[bBelow], as.integer(nMargin[bBelow])), collapse = "; ")
+        )
+      }
     }
 
     lRun <- if (strMethod == "chisq") {
@@ -1155,7 +1179,6 @@ Analyze_Contingency <- function(dfData, strRowCol, strColCol, strMethod = "chisq
     }
     lParts <- Stat_FromTest(lRun$value)
     dfEstimates <- Stat_Estimates()
-    chrNotes <- character(0)
     if (strMethod == "chisq") {
       # The flag is read from the expected counts chisq.test() itself returns.
       dfRows$expected <- as.numeric(lRun$value$expected)

@@ -1,10 +1,22 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   formatComparison,
   formatEstimate,
+  formatLevel,
   formatMedian,
+  formatScreenRow,
   formatStatistic
 } from '../../../src/r/index.js';
+
+// Desktop R's answers for the cross-tabulation's tables, a Fisher p-value of
+// one among them (tests/fixtures/cross-tab-r.json): no number in it was typed.
+const fromR = (file) =>
+  JSON.parse(readFileSync(new URL(`../../fixtures/${file}`, import.meta.url), 'utf8'));
+const crossTab = fromR('cross-tab-r.json');
+// A screen's rows and a comparison's levels, as desktop R returned them.
+const screens = fromR('screen-statistics-r.json');
+const levels = fromR('group-statistics-r.json');
 
 // How a p-value is shown (#2): the design's rules, applied by one function
 // whichever chart prints the number. The function formats what R returned; it
@@ -123,6 +135,51 @@ describe('formatStatistic: the rules', () => {
     }
     expect(formatStatistic(undefined).status).toBe('refused');
     expect(formatStatistic('p = 0.03').status).toBe('refused');
+  });
+
+  it('PVAL-RULE-011: a p-value that exceeds 1 only by the rounding of a sum, as R’s fisher.test() returns when no table is less likely than the one observed, is read as 1 and printed p > 0.999; anything further above 1 is still refused (#104)', () => {
+    // R's own answer for a two-by-two table, from desktop R: 1.0000000000000002.
+    const fisher = crossTab.cases.find((entry) => entry.case === 'response-by-crp-10-fisher').value;
+    expect(fisher.p_value).toBeGreaterThan(1);
+    expect(fisher.p_value - 1).toBeLessThan(1e-12);
+    expect(formatStatistic(fisher)).toEqual({
+      status: 'shown',
+      text: "Fisher's Exact Test for Count Data: p > 0.999 (n = 200). Exploratory, unadjusted."
+    });
+    expect(formatStatistic({ method, p_value: 1 + Number.EPSILON, counts }).text).toContain(
+      'p > 0.999'
+    );
+    expect(formatStatistic({ method, p_value: 1 + 1e-10, counts }).status).toBe('shown');
+    // Further out is not rounding: it is not a p-value, and is not repaired.
+    for (const bad of [1 + 1e-8, 1.000001, 1.01, 2]) {
+      expect(formatStatistic({ method, p_value: bad, counts }), String(bad)).toEqual({
+        status: 'refused',
+        text: 'p-value not shown: the result has no p-value between 0 and 1.'
+      });
+    }
+    // Below nought there is no such allowance: no sum of probabilities is negative.
+    expect(formatStatistic({ method, p_value: -1e-16, counts }).status).toBe('refused');
+    // The same holds where a row's p-value is printed: a screen's row and a
+    // level's. The rows are R's own, with only the p-values moved.
+    const il6 = screens.results
+      .find((result) => result.case === 'difference-week-4-change')
+      .value.rows.find((row) => row.biomarker === 'IL-6');
+    const ARMS = ['Placebo', 'Treatment'];
+    const above = 1 + Number.EPSILON;
+    expect(formatScreenRow({ ...il6, p_unadjusted: above, p_value: above }, ARMS)).toMatchObject({
+      status: 'shown',
+      p: 'p > 0.999',
+      adjusted: 'p > 0.999'
+    });
+    expect(formatScreenRow({ ...il6, p_value: 1.01 }, ARMS).status).toBe('refused');
+    const baseline = levels.over_time
+      .find((result) => result.case === 'over-time-result')
+      .value.rows.find((row) => row.by === 'Baseline');
+    expect(formatLevel({ ...baseline, p_unadjusted: above, p_value: above })).toMatchObject({
+      status: 'shown',
+      p: 'p > 0.999'
+    });
+    expect(formatLevel({ ...baseline, p_unadjusted: 1.01, p_value: 1.01 }).status).toBe('refused');
   });
 
   it('PVAL-RULE-007: the same result always formats to the same text, and the result is not changed (#2)', () => {

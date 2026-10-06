@@ -454,6 +454,8 @@ var BioViz = (() => {
     if (groups.length === 0 || !groups.every(([, n]) => isCount(n))) return null;
     return groups.map(([group, n]) => group === "n" ? `n = ${n}` : `${group} n = ${n}`).join(", ");
   }
+  var P_ROUNDING = 1e-9;
+  var isP = (p) => typeof p === "number" && p >= 0 && p <= 1 + P_ROUNDING;
   function formatP(p) {
     const rounded = p.toFixed(3);
     if (p < 1e-3 || rounded === "0.000") return "p < 0.001";
@@ -498,7 +500,7 @@ var BioViz = (() => {
       return { status: "withheld", text: withCounts(lead, counts) };
     }
     const p = result.p_value;
-    if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
+    if (!isP(p)) {
       return refused("the result has no p-value between 0 and 1");
     }
     if (!method) return refused("the result does not name its method");
@@ -756,7 +758,7 @@ var BioViz = (() => {
       return refuse8("the row does not say how many rows its p-value was adjusted across");
     }
     const p = given2.p_value;
-    if (typeof p !== "number" || !(p >= 0 && p <= 1)) {
+    if (!isP(p)) {
       return refuse8("the adjusted p-value is not a number between 0 and 1");
     }
     if (!isNumber(given2.estimate)) return refuse8("the estimate is not a number");
@@ -829,7 +831,7 @@ var BioViz = (() => {
     });
     if (parts.status !== "shown") return whole(parts.status, parts.text);
     const raw = given2.p_unadjusted;
-    if (typeof raw !== "number" || !(raw >= 0 && raw <= 1)) {
+    if (!isP(raw)) {
       return whole("refused", refused("the row has no unadjusted p-value between 0 and 1").text);
     }
     const unadjusted = formatP(raw);
@@ -12792,13 +12794,24 @@ ${C3}.sv-collapsed .sv-sidebar{padding:.5rem .9rem}
   }
   var present3 = (value) => value !== void 0 && value !== null;
   function named(value, names) {
-    if (!names || typeof value.reason !== "string") return value;
-    const reason = value.reason.replace(
-      /(^Not computed: |; )(row|col) = /g,
+    if (!names) return value;
+    const rename = (said2, lead) => said2.replace(
+      new RegExp(`(${lead}|; )(row|col) = `, "g"),
       (_, before, field) => `${before}${names[field] || field} = `
     );
-    return { ...value, reason };
+    const out = { ...value };
+    if (typeof value.reason === "string") out.reason = rename(value.reason, "^Not computed: ");
+    if (Array.isArray(value.notes)) {
+      out.notes = value.notes.map(
+        (note) => (
+          // Only the list of categories is renamed, from where it starts.
+          typeof note === "string" && note.includes(BELOW_MINIMUM) ? note.slice(0, note.indexOf(BELOW_MINIMUM)) + rename(note.slice(note.indexOf(BELOW_MINIMUM)), BELOW_MINIMUM) : note
+        )
+      );
+    }
+    return out;
   }
+  var BELOW_MINIMUM = "Below it here: ";
   function oriented(row, groups) {
     const rows = groups && Array.isArray(groups.rows) ? groups.rows : [];
     const cols = groups && Array.isArray(groups.cols) ? groups.cols : [];
