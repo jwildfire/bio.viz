@@ -15,9 +15,20 @@
 # The branch root holds the released site, built from main: since v0.1.0
 # it serves the last release.
 #
-# Deploys are serialized by the shared concurrency group; the push loop below
-# additionally re-fetches and re-applies on rejection, so a racing writer can
-# never cause a lost update to the branch.
+# Each target has a concurrency group of its own: a branch's (main, dev), and
+# each pull request's. One group for everything let a pull request's run
+# cancel a branch's deploy: a group holds one run and one waiting, and a newer
+# run takes the waiting place. When #109 merged, the push to dev waited behind
+# the run that closed #109's preview; the run that closed #106's preview,
+# queued two seconds later, took the waiting place and cancelled it, and the
+# run that closed #107's did the same to that one. So /dev/ kept the build
+# before the merge, and #106's preview was never closed (#112). Within a group
+# the newest run still replaces one that is waiting, which is right: it is the
+# same target.
+#
+# Runs of different groups can write the branch at the same moment. The push
+# loop below re-fetches and re-applies on rejection, so a racing writer never
+# causes a lost update to the branch.
 
 name: Pages
 
@@ -41,7 +52,7 @@ permissions:
   pages: read
 
 concurrency:
-  group: pages
+  group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -119,7 +130,7 @@ jobs:
           MSG="Publish $DEST from ${SHA:0:7} (${{ github.event_name }}, run ${{ github.run_id }})"
           [ "$MODE" = "redirect" ] && MSG="Redirect $DEST to dev (PR closed, run ${{ github.run_id }})"
 
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5 6; do
             git worktree remove --force "$WT" 2>/dev/null || true
             git worktree prune
             if git fetch origin gh-pages 2>/dev/null; then
@@ -188,11 +199,13 @@ jobs:
               echo "Published on attempt $attempt"
               break
             fi
-            if [ "$attempt" = 3 ]; then
-              echo "::error::Failed to push gh-pages after 3 attempts"
+            if [ "$attempt" = 6 ]; then
+              echo "::error::Failed to push gh-pages after 6 attempts"
               exit 1
             fi
             echo "Push rejected (attempt $attempt) — re-fetching and re-applying"
+            # Another target's run wrote the branch first; let it finish.
+            sleep $((attempt * 3))
           done
 
       - name: Sticky preview comment
