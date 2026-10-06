@@ -141,8 +141,11 @@ th .sub {
   vertical-align: 0.05em;
 }
 
-/* A folded list of tests opens on its summary line. */
-summary {
+/* A folded list, of the tests that name no requirement or of every answer on
+   the R check page, opens on its summary line. Named, so the rule stays off a
+   list a chart folds inside a demo page. */
+#shared-tests summary,
+.comparison-block summary {
   color: var(--accent);
   cursor: pointer;
 }
