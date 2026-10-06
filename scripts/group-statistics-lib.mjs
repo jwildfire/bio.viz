@@ -196,6 +196,14 @@ export const OVER_TIME_CASES = [
     view: { valueType: 'raw', filters: { AGE: ['40', '41', '42', '43'] } },
     test: 't',
     adjustment: 'holm'
+  },
+  {
+    case: 'over-time-age-40-to-43-unadjusted',
+    says: 'The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones',
+    rows: 'over-time-age-40-to-43',
+    view: { valueType: 'raw', filters: { AGE: ['40', '41', '42', '43'] } },
+    test: 't',
+    adjustment: 'none'
   }
 ];
 

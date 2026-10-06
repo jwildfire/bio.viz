@@ -134,6 +134,10 @@
     {
       "case": "over-time-age-40-to-43",
       "says": "IL-6, the result itself, by arm among participants aged 40 to 43: two visits have an arm below the minimum group size, and the adjustment is across the other three"
+    },
+    {
+      "case": "over-time-age-40-to-43-unadjusted",
+      "says": "The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones"
     }
   ],
   "files": [
@@ -235,7 +239,7 @@
     },
     {
       "file": "over-time-cases.csv",
-      "sha256": "17d52b34e0cba7da0e62342dc59a5b653b76c1a7c2a9c7e9f67995e1e70f8f1d"
+      "sha256": "a049222e07914a37517319d9dbbfcc451c2aea3bbf53b74235d8bec267fa2149"
     }
   ]
 }
