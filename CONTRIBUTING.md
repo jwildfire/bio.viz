@@ -198,7 +198,8 @@ A module is one entry in `site/config.json`, and that entry is all the site, the
   "title": "Group comparison",
   "kind": "chart",
   "status": "available",
-  "blurb": "One sentence a statistician would recognise.",
+  "card": "The question the chart answers? What it draws, in one more sentence.",
+  "blurb": "The fuller description, printed at the head of the chart's live demo.",
   "matrix": "group-comparison.md",
   "demo": "group-comparison.js",
   "hero": "GC-DRAW-001-boxes-by-arm.png",
@@ -211,6 +212,7 @@ A module is one entry in `site/config.json`, and that entry is all the site, the
 }
 ```
 
+- `card` is what the module's card says on the gallery and the home page: one or two sentences, at most 200 characters, for a chart the question it answers and what it draws. The build refuses a longer one, so a screen of the gallery holds two rows of charts. `blurb` is the fuller description; a chart's is printed at the head of its live demo.
 - A chart also names `demo`, its demo script in `site/demo/`, and may name `hero`, one of its evidence screenshots, shown on its gallery card once that screenshot is committed. Its `api.settings` is the source file that exports its `DEFAULT_SETTINGS`: the build fails when the reference file has no table row for one of them.
 - `kind` is `chart` or `shared`. A chart whose `status` is `available` is listed in the gallery under Charts; a shared part (the core, the connection to R) under Shared parts. The build refuses an entry without it.
 - `matrix` is the module's requirement matrix in `requirements/`. Its unit tests go in `tests/unit/<module>/` and its browser tests in `tests/e2e/<module>.spec.js` (or `<group>-<module>.spec.js`); its evidence page then lists every row with the tests named for it.
