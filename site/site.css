@@ -11,7 +11,8 @@
    What is left is what safety.viz's site has no rule for:
 
      1. Holding at 390px: this site lets nothing run past the right edge, even
-        where the page would hide it, so code wraps and a table restacks.
+        where the page would hide it, so code wraps and a table restacks. And
+        holding still: the evidence table's columns are set, not fitted.
      2. Words this site's pages use that safety.viz's do not.
      3. The R check page, which safety.viz has no like of.
 
@@ -32,6 +33,19 @@ body {
 .doc-table th,
 .recorded th {
   overflow-wrap: normal;
+}
+
+/* The evidence table's two columns are set, three fifths and two fifths, not
+   fitted to what the table holds. Fitted, a row's columns moved whenever a test
+   was added to another requirement, on this page or by a pull request, and the
+   picture of one row (CORE-SITE-006) with them. On a narrow screen the table
+   is a list, below, and this does nothing. */
+table.evidence {
+  table-layout: fixed;
+}
+
+table.evidence th:first-child {
+  width: 60%;
 }
 
 /* That stops at a chart. A chart's own parts wrap as the chart has them, on a

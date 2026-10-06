@@ -266,14 +266,61 @@ test.describe('evidence pages', () => {
     await expect(page.locator('#PVAL-RULE-001 .tests li').first()).toContainText('PVAL-RULE-001:');
     expect(errors).toEqual([]);
 
-    await captureEvidence(
-      page.locator('#RCON-API-001'),
-      'CORE-SITE-006',
-      'a-requirement-and-its-tests',
-      {
-        module: 'core'
-      }
-    );
+    // The row's height is not a whole number of pixels, so how many pixels its
+    // picture is tall depends on where the row starts, and that moves by parts
+    // of a pixel with the facts above the table, which are the evidence set's.
+    // The picture is of the row: it is put on a whole pixel first, so the
+    // picture is the same whatever the page above it holds.
+    const row = page.locator('#RCON-API-001');
+    const top = await row.evaluate((element) => {
+      const table = element.closest('table');
+      const start = element.getBoundingClientRect().top + window.scrollY;
+      table.style.position = 'relative';
+      table.style.top = `${Math.ceil(start) - start}px`;
+      return element.getBoundingClientRect().top + window.scrollY;
+    });
+    expect(top).toBe(Math.round(top));
+    await captureEvidence(row, 'CORE-SITE-006', 'a-requirement-and-its-tests', {
+      module: 'core'
+    });
+  });
+
+  test('CORE-SITE-022: a row of the evidence table is laid out by its own words: the two columns are three fifths and two fifths of the table on every module’s page, and a row keeps its columns when another row is given a test with a long name (#85)', async ({
+    page
+  }) => {
+    const shares = {};
+    for (const module of modules) {
+      await page.goto(`/_site/${module}/evidence.html`);
+      shares[module] = await page.locator('table.evidence').evaluate((table) => {
+        const whole = table.getBoundingClientRect().width;
+        return [...table.tHead.rows[0].cells].map((cell) =>
+          Math.round((100 * cell.getBoundingClientRect().width) / whole)
+        );
+      });
+    }
+    expect(shares).toEqual(Object.fromEntries(modules.map((module) => [module, [60, 40]])));
+
+    await page.goto('/_site/r-connection/evidence.html');
+    const cells = () =>
+      page
+        .locator('#RCON-API-001')
+        .evaluate((row) => [...row.cells].map((cell) => cell.getBoundingClientRect().width));
+    const before = await cells();
+    // Another requirement gains a test with a long name, and one loses its tests:
+    // what a pull request does to the evidence set.
+    await page.locator('#PVAL-RULE-001 .tests').evaluate((list) => {
+      const item = list.querySelector('li').cloneNode(true);
+      item.append(` ${'a-test-with-a-long-name-and-no-space-to-break-at-'.repeat(4)}`);
+      list.append(item);
+    });
+    await page.locator('#RCON-API-002 .tests').evaluate((list) => list.replaceChildren());
+    expect(await cells()).toEqual(before);
+    expect(await layout(page)).toEqual({
+      ...HOLDS,
+      viewport: 1280,
+      scrollWidth: 1280,
+      bodyScrollWidth: 1280
+    });
   });
 
   test('CORE-SITE-006: every module has an evidence page that lists each requirement of its matrix (#7)', async ({
