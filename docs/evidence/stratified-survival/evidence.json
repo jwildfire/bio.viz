@@ -1,6 +1,6 @@
 {
   "module": "stratified-survival",
-  "generatedAt": "2026-10-06T08:52:39.590Z",
+  "generatedAt": "2026-10-06T11:04:21.658Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37439009707",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37439009707"
+    "id": "37453879773",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37453879773"
   },
   "records": [
     {
@@ -330,6 +330,14 @@
       "status": "pass",
       "requirementIds": ["SS-SITE-004"],
       "issueRefs": [78],
+      "screenshots": []
+    },
+    {
+      "test": "SS-SITE-005: on the demo page, whose stylesheet styles every table, heading and cell by its tag, the table of numbers at risk keeps the chart’s own look and size, the same as on a page with no stylesheet (#97)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["SS-SITE-005"],
+      "issueRefs": [97],
       "screenshots": []
     },
     {

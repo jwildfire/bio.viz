@@ -1,6 +1,6 @@
 {
   "module": "association-scatter",
-  "generatedAt": "2026-10-06T08:52:39.590Z",
+  "generatedAt": "2026-10-06T11:04:21.658Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37439009707",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37439009707"
+    "id": "37453879773",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37453879773"
   },
   "records": [
     {
@@ -339,6 +339,14 @@
       "requirementIds": ["AS-SITE-003"],
       "issueRefs": [26],
       "screenshots": ["AS-SITE-003-demo-on-a-phone.png"]
+    },
+    {
+      "test": "AS-SITE-005: on a page whose stylesheet styles every table, heading and cell by its tag, as the site’s and safety.viz’s demo app’s do, the table of each level’s coefficient and a panel’s heading keep the chart’s own look, the same as on a page with no stylesheet (#97)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["AS-SITE-005"],
+      "issueRefs": [97],
+      "screenshots": []
     },
     {
       "test": "AS-STAT-015: with no R attached the statistics line of every panel reads that statistics are unavailable, and nothing is fetched to say so (#26)",

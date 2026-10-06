@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-10-06T08:52:39.590Z",
+  "generatedAt": "2026-10-06T11:04:21.658Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37439009707",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37439009707"
+    "id": "37453879773",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37453879773"
   },
   "records": [
     {
@@ -421,6 +421,14 @@
       "status": "pass",
       "requirementIds": ["BS-SITE-005"],
       "issueRefs": [36],
+      "screenshots": []
+    },
+    {
+      "test": "BS-SITE-006: on a page whose stylesheet styles every heading by its tag, as the site’s and safety.viz’s demo app’s do, the screen’s title keeps the chart’s own look, the same as on a page with no stylesheet; the screen has no table for the page to restyle (#97)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["BS-SITE-006"],
+      "issueRefs": [97],
       "screenshots": []
     },
     {
