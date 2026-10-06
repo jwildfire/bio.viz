@@ -13671,7 +13671,7 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
   var portfolio_default = {
     $schema: "./schema/portfolio.json",
     version: 2,
-    description: "bio.viz's charts, listed in safety.viz's portfolio manifest format (version 2) so that safety.viz's demo app can list and draw them beside its own. Each chart takes two named tables: the results, from the labs and vitals file, and the participants, from the subject-level file, which is optional. Each setting is the key in the chart's own settings (src/<chart>/configure.js), with the standard column it defaults to and whether the chart cannot be made without it; the participant table's id column is read from the subject-level file, so the two files may name the participant differently. The standard domains are the app's. A test holds this list to the charts (tests/unit/core/portfolio.test.js).",
+    description: "bio.viz's charts, listed in safety.viz's portfolio manifest format (version 2) so that safety.viz's demo app can list and draw them beside its own. Each chart takes two named tables: the results, from the labs and vitals file, and the participants, from the subject-level file, which is optional. Each setting is the key in the chart's own settings (src/<chart>/configure.js), with the standard column it defaults to and whether the chart cannot be made without it; the participant table's id column is read from the subject-level file, so the two files may name the participant differently. A setting of a table this list cannot name, the biomarker screen's outcomes table, has no column and is not required: the app passes nothing for it and the chart keeps its own default. The standard domains are the app's, and every column named here is a column of its domain there. A test holds this list to the charts and to those domains (tests/unit/core/portfolio.test.js).",
     groups: {
       biomarkers: {
         label: "Biomarkers",
@@ -13938,23 +13938,23 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
           },
           endpoint_col: {
             domain: "bds",
-            column: "PARAMCD",
-            required: true
+            column: null,
+            required: false
           },
           endpoint_label_col: {
             domain: "bds",
-            column: "PARAM",
+            column: null,
             required: false
           },
           time_col: {
             domain: "bds",
-            column: "AVAL",
-            required: true
+            column: null,
+            required: false
           },
           censor_col: {
             domain: "bds",
-            column: "CNSR",
-            required: true
+            column: null,
+            required: false
           },
           event_col: {
             domain: "bds",
