@@ -127,10 +127,10 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
     }
     expect(codeOf(shared)).toContain('function pageOf');
     expect(codeOf(shared)).toContain("'bv-back'");
-    // The scatter uses the same parts. The group comparison paged its overview
-    // with them until its trend tiles, which have no pages (#84), and pages
-    // nothing of its own.
-    expect(reached(others['group-comparison']).has('src/shared/paging.js')).toBe(false);
+    // The scatter uses the same parts. The group comparison's trend tiles have
+    // no pages (#84); its difference grid pages its biomarkers with the shared
+    // pager (#86), and writes none of its own.
+    expect(reached(others['group-comparison']).has('src/shared/paging.js')).toBe(true);
     expect(codeOf(others['association-scatter'])).not.toContain("'bv-back'");
     expect(codeOf(others['group-comparison'])).not.toMatch(/function pageOf|function overviewPage/);
   });

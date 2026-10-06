@@ -26,8 +26,9 @@
 // `formatComparison` one row of its `rows` that compares two groups,
 // `formatGroup` one row of its `rows` that is one group's own result, and
 // `formatPair` one row that is one pair of variables in a correlation matrix,
-// `formatScreenRow` one row of a biomarker screen, and `formatLevel` one row
-// that is the group test at one level of a column, a visit say.
+// `formatScreenRow` one row of a biomarker screen, `formatLevel` one row that
+// is the group test at one level of a column, a visit say, and `formatCell`
+// one row that is one cell of a difference grid, which has no p-value.
 
 const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
 const isCount = (value) => Number.isInteger(value) && value >= 0;
@@ -666,5 +667,112 @@ export function formatLevel(row, of = 'level') {
     adjustment: parts.adjustment,
     over,
     label: parts.label
+  };
+}
+
+// A number to two decimals with a true minus sign, and nought never written as
+// minus nought: what a small cell of a grid has room for. The whole sentence
+// beside it gives the number to four figures.
+const twoDecimals = (value) => {
+  const fixed = value.toFixed(2);
+  return (fixed === '-0.00' ? '0.00' : fixed).replace('-', '−');
+};
+
+/**
+ * Formats one cell of a difference grid: one row of the `rows` of gsm.bio's
+ * `Analyze_DifferenceGrid`, the standardised difference between two groups for
+ * one biomarker on the rows of one level of a column, a visit say. A cell has
+ * an estimate with its interval and each group's count, and no p-value: the
+ * grid tests nothing, so nothing here is held to the p-value rules, and no
+ * verdict is given. Nothing is computed.
+ *
+ * @param {{biomarker?: string, by?: string, n_1?: number, n_2?: number,
+ *   estimate?: number, lower?: number, upper?: number, level?: number,
+ *   status?: string, reason?: string}} row One row of `rows`: one cell.
+ * @param {object} of What the row does not say for itself.
+ * @param {string[]} of.groups The two groups, first and second: the estimate
+ *   is the first minus the second.
+ * @param {string} [of.method] The estimate's name as R gave it for the whole
+ *   answer, `Standardised difference (Hedges' g)`. A cell with an estimate is
+ *   not shown without it.
+ * @returns {{status: 'shown'|'withheld'|'error'|'refused', text: string,
+ *   result: string, biomarker: ?string, by: ?string, groups: ?string[],
+ *   n: ?number[], estimate: ?string, short: ?string, interval: ?string,
+ *   bounds: ?string, level: ?string}} `text` is the whole sentence, led by the
+ *   biomarker and the level, and `result` the same without them. The parts are
+ *   for a grid: `groups` and `n` the two groups and their counts; and, only
+ *   when `status` is `shown`, `estimate` to four figures, `short` the same
+ *   number to two decimals for the cell, `interval` in words with its level,
+ *   `bounds` its two ends and `level` the level alone.
+ */
+export function formatCell(row, of = {}) {
+  const given = row && typeof row === 'object' ? row : {};
+  const biomarker = text(given.biomarker);
+  const by = text(given.by);
+  const groups = Array.isArray(of.groups) ? of.groups.map(text) : [];
+  const named = groups.length === 2 && groups.every(Boolean);
+  const counted = named && isCount(given.n_1) && isCount(given.n_2);
+  const n = counted ? [given.n_1, given.n_2] : null;
+  const counts = counted ? formatCounts({ [groups[0]]: given.n_1, [groups[1]]: given.n_2 }) : null;
+  const none = { estimate: null, short: null, interval: null, bounds: null, level: null };
+  const where = biomarker && by ? `${biomarker} at ${by}: ` : '';
+  const whole = (status, result) => ({
+    status,
+    text: `${where}${result}`,
+    result,
+    biomarker,
+    by,
+    groups: named ? groups : null,
+    n,
+    ...none
+  });
+  const refuse = (what) => whole('refused', `Cell not shown: ${what}.`);
+  if (!biomarker) return refuse('the row does not name its biomarker');
+  if (!by) return refuse('the row does not name its level');
+  if (!named) return refuse('the two groups compared are not named');
+  const reason = text(given.reason);
+  if (given.status === 'error') {
+    return whole('error', withCounts(`R reported an error: ${reason || 'no message'}`, counts));
+  }
+  // A group too small, or anything else R gave a reason for: R's words.
+  if (reason) {
+    return whole(
+      'withheld',
+      withCounts(SAYS_NOT_COMPUTED.test(reason) ? reason : `Not computed, ${reason}`, counts)
+    );
+  }
+  const method = text(of.method);
+  if (!method) return refuse('the answer does not name the estimate');
+  if (!counted) return refuse('the row does not give each group’s count');
+  if (!isNumber(given.estimate)) return refuse('the estimate is not a number');
+  const bounds = [given.lower, given.upper, given.level];
+  const absent = (value) => value === undefined || value === null;
+  let ends = null;
+  let level = null;
+  if (!bounds.every(absent)) {
+    if (!bounds.every(isNumber) || !(given.level > 0 && given.level < 1)) {
+      return refuse('the interval of the estimate is incomplete');
+    }
+    level = `${Number((given.level * 100).toPrecision(12))}%`;
+    ends = `${figure(given.lower)} to ${figure(given.upper)}`;
+  }
+  const interval = ends ? `${level} confidence interval ${ends}` : null;
+  const estimate = figure(given.estimate);
+  const result =
+    `${method}, ${groups[0]} minus ${groups[1]}: ${estimate}` +
+    `${interval ? `, ${interval}` : ''} (${counts}).`;
+  return {
+    status: 'shown',
+    text: `${where}${result}`,
+    result,
+    biomarker,
+    by,
+    groups,
+    n,
+    estimate,
+    short: twoDecimals(given.estimate),
+    interval,
+    bounds: ends,
+    level
   };
 }

@@ -13,15 +13,29 @@
 
 import vm from 'node:vm';
 import { syncSettings } from '../src/group-comparison/configure.js';
+import { buildGrid, pairOf } from '../src/group-comparison/grid.js';
 import { buildOverTime } from '../src/group-comparison/overTime.js';
-import { fitTest, overTimeRequest, statisticRequest } from '../src/group-comparison/statistic.js';
-import { buildPanels, measureVisits } from '../src/group-comparison/structureData.js';
+import {
+  fitTest,
+  gridRequest,
+  overTimeRequest,
+  statisticRequest
+} from '../src/group-comparison/statistic.js';
+import {
+  buildPanels,
+  listMeasures,
+  listVisits,
+  measureVisits
+} from '../src/group-comparison/structureData.js';
+import { buildTiles } from '../src/group-comparison/tiles.js';
+import { pageOf } from '../src/shared/paging.js';
 import { sha256 } from './vendor-lib.mjs';
 
 export const GROUP_STATISTICS = {
   directory: 'tests/fixtures/group-statistics',
   cases: 'tests/fixtures/group-statistics/cases.csv',
   overTimeCases: 'tests/fixtures/group-statistics/over-time-cases.csv',
+  gridCases: 'tests/fixtures/group-statistics/grid-cases.csv',
   record: 'tests/fixtures/group-statistics/SOURCE.json',
   expected: 'tests/fixtures/group-statistics-r.json',
   sources: {
@@ -214,6 +228,63 @@ export const OVER_TIME_CASES = [
   }
 ];
 
+// The difference grid in one view (#86): every biomarker at every visit chosen,
+// for two groups, is one request. `view` is laid over the view every case
+// starts from with no biomarker open and every visit chosen; `groups` is the
+// pair compared, first minus second, where it is not the first two groups
+// drawn; `rows` names the case whose rows this one shares.
+export const GRID_CASES = [
+  {
+    case: 'grid-result',
+    says: 'Every biomarker, the result itself, at the five visits: Placebo minus Treatment, sixty cells',
+    view: { valueType: 'raw' }
+  },
+  {
+    case: 'grid-result-reversed',
+    says: 'The same rows, the pair the other way round: Treatment minus Placebo',
+    rows: 'grid-result',
+    view: { valueType: 'raw' },
+    groups: ['Treatment', 'Placebo']
+  },
+  {
+    case: 'grid-change',
+    says: 'Every biomarker, change from Baseline: the baseline visit has a column and no cell, and is not sent',
+    view: {}
+  },
+  {
+    case: 'grid-change-two-visits',
+    says: 'Every biomarker, change from Baseline, with Week 4 and Week 12 chosen: two columns',
+    view: { visits: ['Week 4', 'Week 12'] }
+  },
+  {
+    case: 'grid-arm-sex',
+    says: 'Arm and sex make four groups, and the reader chose two of them: Treatment F minus Placebo F',
+    view: { valueType: 'raw', groupBy: 'ARM_SEX' },
+    groups: ['Treatment F', 'Placebo F']
+  },
+  {
+    case: 'grid-log',
+    says: 'The result itself on a logarithmic scale: values of zero or less are left out, of which the study has none, so the rows are the same, and the difference is of the values as they are',
+    rows: 'grid-result',
+    view: { valueType: 'raw', yScale: 'log' }
+  },
+  {
+    case: 'grid-age-57',
+    says: 'Among participants aged 57 an arm is below the minimum group size in every cell: no cell is computed',
+    view: { valueType: 'raw', filters: { AGE: '57' } }
+  },
+  {
+    case: 'grid-age-40-to-43',
+    says: 'Among participants aged 40 to 43 some cells have an arm below the minimum group size and some do not',
+    view: { valueType: 'raw', filters: { AGE: ['40', '41', '42', '43'] } }
+  },
+  {
+    case: 'grid-baseline-value',
+    says: 'The baseline value, which has no visit: one column',
+    view: { valueType: 'baseline' }
+  }
+];
+
 /**
  * The demo page's tables and settings, read from the demo's own scripts: they
  * are run with no page, where they only say what the page would use. The
@@ -335,6 +406,49 @@ export function overTimeRequestOf(demo, entry) {
     settings: config,
     state,
     built
+  });
+}
+
+/** What the controls are set to in a case of the difference grid. */
+export function gridStateOf(demo, entry) {
+  const config = syncSettings(demo.settings);
+  return {
+    ...VIEW,
+    // No biomarker open, and every visit chosen: the opening view.
+    measure: null,
+    visits: listVisits(demo.tables.results, config).all,
+    tileSummary: 'median',
+    ...(entry.view || {})
+  };
+}
+
+/**
+ * What the chart asks R in a case of the difference grid: the one request for
+ * every cell, made by the chart's own functions, for the first page of
+ * biomarkers in the Biomarker control's order.
+ * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
+ */
+export function gridRequestOf(demo, entry) {
+  const config = syncSettings(demo.settings);
+  const state = gridStateOf(demo, entry);
+  const measures = pageOf(
+    listMeasures(demo.tables.results, config),
+    config.overview_limit,
+    config.page
+  ).items;
+  const built = buildTiles(demo.tables, config, state, measures);
+  const pair = pairOf(
+    built.groups.map((group) => group.level),
+    entry.groups || null
+  );
+  if (!pair || (entry.groups && pair.join('|') !== entry.groups.join('|'))) {
+    throw new Error(`${entry.case}: the view does not draw the two groups the case names.`);
+  }
+  return gridRequest({
+    name: config.statistic_grid,
+    settings: config,
+    state,
+    grid: buildGrid(built, { pair, valueType: state.valueType })
   });
 }
 
@@ -484,6 +598,69 @@ export function deriveGroupStatistics(sources) {
       'over-time-cases.csv'
     )
   });
+  // The difference grid: the long rows of every cell, one file per set of
+  // rows, and the list of cases R reads.
+  const gridRows = new Map();
+  const grid = GRID_CASES.map((entry) => {
+    const state = gridStateOf(demo, entry);
+    const asked = gridRequestOf(demo, entry);
+    const file = `${entry.rows || entry.case}.csv`;
+    const written = JSON.stringify(asked.data);
+    if (entry.rows) {
+      // A case that shares another's rows must ask R about exactly those rows.
+      if (gridRows.get(entry.rows) !== written) {
+        throw new Error(`${entry.case}: its rows are not the rows of ${entry.rows}.`);
+      }
+    } else {
+      gridRows.set(entry.case, written);
+      const columns = Object.keys(asked.data[0]);
+      files.push({
+        file,
+        text: csv(
+          columns,
+          asked.data.map((record) => columns.map((column) => record[column])),
+          file
+        )
+      });
+    }
+    return [
+      entry.case,
+      file,
+      config.statistic_grid,
+      list(asked.dataId.measures),
+      state.valueType,
+      list(asked.dataId.visits),
+      list(config.baseline_visits),
+      config.baseline_stat,
+      state.groupBy,
+      list(asked.dataId.groups),
+      Object.entries(state.filters)
+        .map(([column, selection]) => `${column}=${list([].concat(selection))}`)
+        .join(';'),
+      state.yScale
+    ];
+  });
+  files.push({
+    file: 'grid-cases.csv',
+    text: csv(
+      [
+        'case',
+        'file',
+        'statistic_grid',
+        'measures',
+        'value_type',
+        'visits',
+        'baseline_visits',
+        'baseline_stat',
+        'group_by',
+        'grid_groups',
+        'filters',
+        'y_scale'
+      ],
+      grid,
+      'grid-cases.csv'
+    )
+  });
   return {
     files,
     record: {
@@ -494,10 +671,14 @@ export function deriveGroupStatistics(sources) {
         "the rows the chart hands R for that panel: one per participant, made by the core's " +
         'frame from the vendored synthetic study with the demo page’s own settings. A case named ' +
         'over-time is one biomarker across its visits: its rows are long, one per participant ' +
-        'and visit, the rows the chart hands R in one request for the whole row of visits.',
+        'and visit, the rows the chart hands R in one request for the whole row of visits. A ' +
+        'case named grid is the difference grid: its rows are long, one per participant, ' +
+        'biomarker and visit, for the two groups compared, the rows the chart hands R in one ' +
+        'request for every cell.',
       derived_from: Object.values(GROUP_STATISTICS.sources).map((file) => ({ file })),
       cases: CASES.map(({ case: name, says }) => ({ case: name, says })),
       over_time_cases: OVER_TIME_CASES.map(({ case: name, says }) => ({ case: name, says })),
+      grid_cases: GRID_CASES.map(({ case: name, says }) => ({ case: name, says })),
       files: files.map(({ file, text }) => ({ file, sha256: sha256(Buffer.from(text)) }))
     }
   };

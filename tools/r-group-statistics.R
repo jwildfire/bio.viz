@@ -33,8 +33,14 @@
 # visit asked about alone, followed by stats::p.adjust() across the visits that
 # have a p-value: the unit tests hold the one answer to those.
 #
-# Base R and the stats package only: Analyze_GroupDifference and
-# Analyze_GroupDifferenceBy need nothing else.
+# The cases named grid- are the difference grid: one file of long rows, a
+# participant, a value, a group, a visit and a biomarker to a row, for the one
+# request the chart makes of Analyze_DifferenceGrid (bio.viz#86), written by
+# `group_comparison_grid_key`. Beside each answer the file holds what R gives
+# for each cell asked about alone.
+#
+# Base R and the stats package only: Analyze_GroupDifference,
+# Analyze_GroupDifferenceBy and Analyze_DifferenceGrid need nothing else.
 # The JSON is written by hand (tools/r-json.R), following the rules by which
 # bio.viz's connection turns an R value into JavaScript (docs/r-connection.md),
 # so that the file holds each value in exactly the shape R in the browser
@@ -209,6 +215,60 @@ group_comparison_by_visit_key <- function(dfRows, lView) {
     lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
   }
   list(name = lView$statistic_by_visit, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
+}
+
+# ---- The recipe: the key of the stored result for the difference grid ---------
+#
+# The difference grid, the second form of the chart's opening view, asks R
+# once, for the standardised difference between two groups in every cell
+# (bio.viz#86).
+#
+# dfRows   the rows of every cell, one per participant, biomarker and visit:
+#          the id, `y`, `x`, `visit` and `biomarker`, each the row of that
+#          biomarker's own panel at that visit, for the two groups compared
+# lView    the view, by the chart's names: statistic_grid, measures (the
+#          biomarkers of the page drawn, in the Biomarker control's order),
+#          value_type, visits (the visits compared, in visit order: every visit
+#          chosen, without the baseline visit when the value is a change, a
+#          fold change or a percent change from one baseline visit; for a
+#          baseline value, which has no visit, the one name "Baseline value"),
+#          baseline_visits, baseline_stat, group_by, grid_groups (the two
+#          groups, first and second: the estimate is the first minus the
+#          second), filters, y_scale, unscheduled_visits
+#
+# The identity has `measures`, a list, where a panel's and a row of visits'
+# have `measure`. Its `groups` are the two compared, first then second, and are
+# not sorted: the order is which way round the difference is. The two groups,
+# the biomarkers and the visits are all named to R, in the grid's own order.
+group_comparison_grid_key <- function(dfRows, lView) {
+  chrGroups <- chart_text(lView$grid_groups)
+  chrMeasures <- chart_text(lView$measures)
+  chrVisits <- chart_text(lView$visits)
+  lDataId <- list(chart = "group-comparison")
+  lDataId$measures <- as.list(chrMeasures)
+  lDataId$value_type <- lView$value_type
+  lDataId$visits <- as.list(chrVisits)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
+  lDataId$baseline_stat <- lView$baseline_stat
+  if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
+  lDataId$groups <- as.list(chrGroups)
+  if (length(lView$filters) > 0) {
+    lDataId$filters <- lapply(lView$filters, function(xValues) {
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
+    })
+  }
+  if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
+  lArgs <- list(
+    strValueCol = "y",
+    strGroupCol = "x",
+    strBiomarkerCol = "biomarker",
+    strByCol = "visit",
+    chrGroups = as.list(chrGroups),
+    chrBiomarkers = as.list(chrMeasures),
+    chrBy = as.list(chrVisits)
+  )
+  list(name = lView$statistic_grid, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
 }
 
 # ---- Reading the cases ---------------------------------------------------------
@@ -389,6 +449,45 @@ recipes <- local({
   )
 })
 
+# The difference grid: one request for every cell. Beside what R answered,
+# `separately` holds what R gives when each cell is asked alone, through
+# Analyze_Screen() on that biomarker's rows at that visit: what each row of the
+# answer is held to.
+read_view_grid <- function(case) {
+  list(
+    statistic_grid = case$statistic_grid, measures = several(case$measures),
+    value_type = case$value_type, visits = several(case$visits),
+    baseline_visits = several(case$baseline_visits), baseline_stat = case$baseline_stat,
+    group_by = one(case$group_by), grid_groups = several(case$grid_groups),
+    filters = read_filters(case$filters), y_scale = case$y_scale
+  )
+}
+grid_cases <- read_text("grid-cases.csv")
+grid <- lapply(seq_len(nrow(grid_cases)), function(i) {
+  case <- as.list(grid_cases[i, ])
+  rows <- read_rows(case$file)
+  view <- read_view_grid(case)
+  key <- group_comparison_grid_key(rows, view)
+  cells <- expand.grid(by = view$visits, biomarker = view$measures, stringsAsFactors = FALSE)
+  alone <- vapply(seq_len(nrow(cells)), function(j) {
+    own <- rows[rows$biomarker == cells$biomarker[j] & rows$visit == cells$by[j], ]
+    if (nrow(own) == 0L) return(NA_real_)
+    answer <- Analyze_Screen(data.frame(Value = own$y, Group = own$x, stringsAsFactors = FALSE), "Value",
+                             strComparison = "difference", strGroupCol = "Group",
+                             chrGroups = view$grid_groups, strPAdjust = "none")
+    if (nrow(answer$rows) == 1L && identical(answer$rows$status, "ok")) answer$rows$estimate else NA_real_
+  }, numeric(1))
+  c(
+    list(case = case$case, file = case$file),
+    key,
+    list(
+      value = do.call(key$name, c(list(rows), lapply(key$args, unlist))),
+      separately = list(biomarker = as.list(cells$biomarker), by = as.list(cells$by),
+                        estimate = as.list(alone))
+    )
+  )
+})
+
 # Which statistics file answered: the commit and the checksum its record gives.
 record <- paste(readLines(file.path(vendored, "SOURCE.json"), warn = FALSE), collapse = "\n")
 recorded <- function(member) {
@@ -417,9 +516,12 @@ lines <- c(
   "  ],",
   "  \"over_time\": [",
   paste0("    ", vapply(over_time, to_json, character(1)), c(rep(",", length(over_time) - 1), "")),
+  "  ],",
+  "  \"grid\": [",
+  paste0("    ", vapply(grid, to_json, character(1)), c(rep(",", length(grid) - 1), "")),
   "  ]",
   "}"
 )
 writeLines(lines, out)
 cat(sprintf("Wrote %s with R %s: %d results from gsm.bio's statistics at %s\n", out,
-            made_by$r_version, length(results) + length(over_time), substr(made_by$statistics_commit, 1, 7)))
+            made_by$r_version, length(results) + length(over_time) + length(grid), substr(made_by$statistics_commit, 1, 7)))

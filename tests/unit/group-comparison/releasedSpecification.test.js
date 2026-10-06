@@ -33,7 +33,12 @@ describe('group comparison: a specification the released chart wrote', () => {
       'tile_min_spread',
       'time_mark',
       'statistic_by_visit',
-      'visit_adjustment'
+      'visit_adjustment',
+      // The difference grid (#86). The two settings the released overview paged
+      // by, `overview_limit` and `page`, now page the grid, and are read as written.
+      'opening_view',
+      'grid_groups',
+      'statistic_grid'
     ];
     // The visits of the study the released chart drew.
     const STUDY = ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'];

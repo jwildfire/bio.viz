@@ -1,0 +1,10 @@
+case,file,statistic_grid,measures,value_type,visits,baseline_visits,baseline_stat,group_by,grid_groups,filters,y_scale
+grid-result,grid-result.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Placebo|Treatment,,linear
+grid-result-reversed,grid-result.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Treatment|Placebo,,linear
+grid-change,grid-change.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,change,Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Placebo|Treatment,,linear
+grid-change-two-visits,grid-change-two-visits.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,change,Week 4|Week 12,Baseline,mean,ARM,Placebo|Treatment,,linear
+grid-arm-sex,grid-arm-sex.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM_SEX,Treatment F|Placebo F,,linear
+grid-log,grid-result.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Placebo|Treatment,,log
+grid-age-57,grid-age-57.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Placebo|Treatment,AGE=57,linear
+grid-age-40-to-43,grid-age-40-to-43.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,raw,Baseline|Week 2|Week 4|Week 8|Week 12,Baseline,mean,ARM,Placebo|Treatment,AGE=40|41|42|43,linear
+grid-baseline-value,grid-baseline-value.csv,Analyze_DifferenceGrid,CRP|D-dimer|Ferritin|IFN-gamma|IL-1beta|IL-2|IL-6|IL-8|IL-10|LDH|TNF-alpha|VEGF,baseline,Baseline value,Baseline,mean,ARM,Placebo|Treatment,,linear

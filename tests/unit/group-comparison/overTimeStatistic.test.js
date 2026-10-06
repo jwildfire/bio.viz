@@ -200,7 +200,8 @@ describe('one biomarker over time: the rows R is run on, and the key R wrote', (
   it('GC-TIME-012: deriving each case’s long rows again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#85)', () => {
     const { files, record } = deriveGroupStatistics(sources);
     const own = OVER_TIME_CASES.filter((entry) => !entry.rows).map((entry) => `${entry.case}.csv`);
-    expect(files.map((entry) => entry.file)).toEqual([
+    // After them come the difference grid's files (#86), held by GC-GRID-009.
+    expect(files.map((entry) => entry.file).slice(0, CASES.length + own.length + 2)).toEqual([
       ...CASES.map((entry) => `${entry.case}.csv`),
       'cases.csv',
       ...own,

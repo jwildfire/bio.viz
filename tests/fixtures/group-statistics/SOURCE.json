@@ -1,7 +1,7 @@
 {
   "fixture": "tests/fixtures/group-statistics",
   "derived_by": "tools/derive-group-statistics.mjs",
-  "rule": "Each case is one panel of the gallery's group comparison demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A case named over-time is one biomarker across its visits: its rows are long, one per participant and visit, the rows the chart hands R in one request for the whole row of visits.",
+  "rule": "Each case is one panel of the gallery's group comparison demo in one view. Its rows are the rows the chart hands R for that panel: one per participant, made by the core's frame from the vendored synthetic study with the demo page’s own settings. A case named over-time is one biomarker across its visits: its rows are long, one per participant and visit, the rows the chart hands R in one request for the whole row of visits. A case named grid is the difference grid: its rows are long, one per participant, biomarker and visit, for the two groups compared, the rows the chart hands R in one request for every cell.",
   "derived_from": [
     {
       "file": "site/data/synthetic-study/synthetic_results.csv",
@@ -144,6 +144,44 @@
       "says": "The same rows, unadjusted: each visit’s own p-value, to read beside the adjusted ones"
     }
   ],
+  "grid_cases": [
+    {
+      "case": "grid-result",
+      "says": "Every biomarker, the result itself, at the five visits: Placebo minus Treatment, sixty cells"
+    },
+    {
+      "case": "grid-result-reversed",
+      "says": "The same rows, the pair the other way round: Treatment minus Placebo"
+    },
+    {
+      "case": "grid-change",
+      "says": "Every biomarker, change from Baseline: the baseline visit has a column and no cell, and is not sent"
+    },
+    {
+      "case": "grid-change-two-visits",
+      "says": "Every biomarker, change from Baseline, with Week 4 and Week 12 chosen: two columns"
+    },
+    {
+      "case": "grid-arm-sex",
+      "says": "Arm and sex make four groups, and the reader chose two of them: Treatment F minus Placebo F"
+    },
+    {
+      "case": "grid-log",
+      "says": "The result itself on a logarithmic scale: values of zero or less are left out, of which the study has none, so the rows are the same, and the difference is of the values as they are"
+    },
+    {
+      "case": "grid-age-57",
+      "says": "Among participants aged 57 an arm is below the minimum group size in every cell: no cell is computed"
+    },
+    {
+      "case": "grid-age-40-to-43",
+      "says": "Among participants aged 40 to 43 some cells have an arm below the minimum group size and some do not"
+    },
+    {
+      "case": "grid-baseline-value",
+      "says": "The baseline value, which has no visit: one column"
+    }
+  ],
   "files": [
     {
       "file": "welch.csv",
@@ -248,6 +286,38 @@
     {
       "file": "over-time-cases.csv",
       "sha256": "4fcf0117871ccff1a7a4087f0d7a2dfbf7c3b6763ecc6852441793b722d3b861"
+    },
+    {
+      "file": "grid-result.csv",
+      "sha256": "ed85cd895936c63f0e127d14b9287512d6f4c74a93e3c508ae6cff09d64f1daf"
+    },
+    {
+      "file": "grid-change.csv",
+      "sha256": "c9ce2e785f65c323c7c989f4c2feeb4b9ded6a744ceae24733c353d1435f1364"
+    },
+    {
+      "file": "grid-change-two-visits.csv",
+      "sha256": "151ce7f8f00a5150211c2b781e20f82b37b27832611a4c97e37630c2104f84aa"
+    },
+    {
+      "file": "grid-arm-sex.csv",
+      "sha256": "7262dab4f76cd25f53865b74bb1d8f87eff4e8a3d7570ae436ef839ff17c2024"
+    },
+    {
+      "file": "grid-age-57.csv",
+      "sha256": "bf60d34c3bf65925a8dd579f3891acaf641174837ce48f5f3b5ae2883be2f54e"
+    },
+    {
+      "file": "grid-age-40-to-43.csv",
+      "sha256": "1b6eeee098b5377ad79df1563bb24977ccc5920bb08b0b8a1d33bf6c7396c655"
+    },
+    {
+      "file": "grid-baseline-value.csv",
+      "sha256": "8b48eb618c6f067de953a4cd944b1f64953253d1452e0fa051bdab94a6a409f2"
+    },
+    {
+      "file": "grid-cases.csv",
+      "sha256": "10be68281b3cb87656939270c6b4c12f3feef8d8dc9572f3b688f2d63a2bdf23"
     }
   ]
 }

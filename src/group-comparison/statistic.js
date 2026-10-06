@@ -18,6 +18,7 @@
 // by R, as a stored result.
 
 import {
+  formatCell,
   formatComparison,
   formatEstimate,
   formatLevel,
@@ -224,6 +225,61 @@ export function overTimeRequest({
   return { name, data, args, dataId, rows: data.length };
 }
 
+/**
+ * What the chart asks R for the difference grid: the standardised difference
+ * between two groups for every biomarker at every visit, in one request. The
+ * rows are long, one per participant, biomarker and visit, each the row the
+ * single-visit view of that biomarker at that visit hands R, for the two
+ * groups compared, with the biomarker named in `biomarker` and the visit in
+ * `visit`; R answers a row per cell. The baseline visit of a change is not
+ * sent: its column has no cell to compute.
+ *
+ * The two groups are always named to R, first and second, because the
+ * estimate is the first minus the second: which way round is the reader's
+ * choice, not an order R could find. The identity's `groups` are the same two
+ * in the same order. The biomarkers and the visits are named too, in the order
+ * the grid draws them, so R answers them in that order.
+ *
+ * A member of the identity that is not set is left out, never written as null.
+ * It has `measures`, a list, where a panel's and a row of visits' have
+ * `measure`, one name.
+ *
+ * @param {object} parts
+ * @param {string} parts.name The R function (the setting `statistic_grid`).
+ * @param {object} parts.settings The chart's settings.
+ * @param {object} parts.state What the controls are set to.
+ * @param {object} parts.grid The grid, as `buildGrid` gives it, with a pair.
+ * @param {boolean} [parts.unscheduled] Whether the rows were framed with
+ *   unscheduled visits among the results, as `statisticRequest` takes it.
+ * @returns {{name: string, data: object[], args: object, dataId: object, rows: number}}
+ */
+export function gridRequest({ name, settings, state, grid, unscheduled = false }) {
+  const filters = filtersInForce(state.filters);
+  const dataId = {
+    chart: 'group-comparison',
+    measures: [...grid.biomarkers],
+    value_type: state.valueType,
+    visits: [...grid.visits],
+    ...(settings.baseline_visits ? { baseline_visits: [...settings.baseline_visits] } : {}),
+    baseline_stat: settings.baseline_stat,
+    ...(state.groupBy ? { group_by: state.groupBy } : {}),
+    groups: [...grid.pair],
+    ...(Object.keys(filters).length ? { filters } : {}),
+    ...(state.yScale === 'log' ? { positive_only: true } : {}),
+    ...(unscheduled ? { unscheduled_visits: true } : {})
+  };
+  const args = {
+    strValueCol: 'y',
+    strGroupCol: 'x',
+    strBiomarkerCol: 'biomarker',
+    strByCol: 'visit',
+    chrGroups: [...grid.pair],
+    chrBiomarkers: [...grid.biomarkers],
+    chrBy: [...grid.visits]
+  };
+  return { name, data: grid.data, args, dataId, rows: grid.data.length };
+}
+
 // ---- What the line says ---------------------------------------------------------
 
 const present = (value) => value !== undefined && value !== null;
@@ -401,6 +457,115 @@ export function levelsScope({ group, untested = [], value = 'value', filters = [
 }
 
 /**
+ * What the answer for a difference grid reads as: each cell's result in
+ * parts, for the grid, and the sentence, R's remarks and the scope for the
+ * line beneath.
+ *
+ * Every part is R's, through `formatCell`: a cell's estimate, its interval and
+ * its two counts are the ones R returned for that biomarker at that visit, or
+ * R's reason where it computed none. The grid has no p-value, and nothing is
+ * worked out here.
+ *
+ * @param {object} result What `connection.run` resolved to.
+ * @param {object} context
+ * @param {string[]} context.groups The two groups compared, first and second.
+ * @param {string} [context.scope] What the cells cover, in a sentence.
+ * @returns {{state: string, text: string, estimates: string[], pairs: null,
+ *   details: string[], remarks: Array<{kind: string, text: string}>,
+ *   scope: ?string, cells: ?object[]}} `cells` is one entry per cell R
+ *   answered, as `formatCell` gives it, or null when R answered no row;
+ *   `details` are the sentences of the cells that have no estimate, each led
+ *   by its biomarker and its visit.
+ */
+export function describeGrid(result, context = {}) {
+  if (!(result && result.status === 'ok')) {
+    const failure = failureOf(result);
+    return { ...plain(failure.state, failure.text), details: [], cells: null };
+  }
+  const value = result.value && typeof result.value === 'object' ? result.value : {};
+  const rows = Array.isArray(value.rows)
+    ? value.rows.filter((row) => row && typeof row === 'object' && 'biomarker' in row)
+    : [];
+  const reason = typeof value.reason === 'string' && value.reason.trim() ? value.reason : null;
+  if (!rows.length) {
+    // R answered no cell: its error, its reason, or a refusal.
+    const said =
+      value.status === 'error'
+        ? plain('error', `R reported an error: ${reason || 'no message'}`)
+        : reason
+          ? plain('withheld', reason)
+          : plain('refused', 'Differences not shown: the result has no row for any cell.');
+    return { ...said, details: [], remarks: remarksOf(value), cells: null };
+  }
+  const groups = context.groups || [];
+  // Each cell as printed, with the number R returned beside it: the grid reads
+  // the cell's colour off that number.
+  const cells = rows.map((row) => {
+    const cell = formatCell(row, { groups, method: value.method });
+    return { ...cell, number: cell.status === 'shown' ? row.estimate : null };
+  });
+  const shown = cells.filter((cell) => cell.status === 'shown');
+  const count = (n) => (n === 1 ? '1 cell' : `${n} cells`);
+  let state = 'shown';
+  let text;
+  if (!shown.length) {
+    state = value.status === 'error' ? 'error' : 'withheld';
+    text = reason || 'No cell has an estimate.';
+  } else {
+    const without = cells.length - shown.length;
+    text =
+      `${value.method}, ${groups[0]} minus ${groups[1]}, in each cell: ${count(shown.length)} computed` +
+      `${without ? `, ${count(without)} not` : ''}. ` +
+      'A description of each difference with its interval and its counts: no cell is a test, and the grid has no p-value.';
+  }
+  return {
+    ...plain(state, text),
+    details: cells.filter((cell) => cell.status !== 'shown').map((cell) => cell.text),
+    remarks: remarksOf(value),
+    scope: context.scope || null,
+    cells
+  };
+}
+
+/**
+ * What the cells of the difference grid cover, in plain words.
+ * @param {object} parts
+ * @param {string[]} parts.pair The two groups compared, first and second.
+ * @param {string} parts.group The label of the column the groups come from.
+ * @param {string[]} [parts.untested] The baseline visit of a change, whose
+ *   column has no cell to compute.
+ * @param {string} [parts.value] The value type in words, for that sentence.
+ * @param {boolean} [parts.positive] Whether the value axis is logarithmic, so
+ *   only values above zero are compared.
+ * @param {Array<{label: string, values: string[]}>} [parts.filters] The filters in force.
+ * @returns {string} One or more sentences.
+ */
+export function gridScope({
+  pair,
+  group,
+  untested = [],
+  value = 'value',
+  positive = false,
+  filters = []
+}) {
+  const said = [
+    `Each cell compares ${pair[0]} with ${pair[1]}, two levels of ${group}, on the participants with a ${value} of that biomarker at that visit.`
+  ];
+  if (untested.length) {
+    said.push(
+      `${untested.join(', ')} has no cell: it is the baseline visit, where the ${value} is the same for everyone.`
+    );
+  }
+  if (positive) {
+    said.push(
+      'The scale is logarithmic: values of zero or less are left out, as they are from the tiles, and the difference is of the values as they are, not of their logarithms.'
+    );
+  }
+  if (filters.length) said.push(filtersSaid(filters));
+  return said.join(' ');
+}
+
+/**
  * Why a panel has no test: a test compares two or more groups.
  * @param {?string[]} groups The groups the panel's rows hold, or null when no
  *   column makes a group.
@@ -460,8 +625,13 @@ export function createStatisticDesk({ connection, note = null }) {
     connection,
     note,
     // An answer for a row of visits reads as a row of results, one per visit.
-    describe: (result, context) =>
-      context && context.levels ? describeLevels(result, context) : describeAnswer(result, context),
+    // and an answer for the difference grid as a grid of results, one per cell.
+    describe: (result, context) => {
+      if (context && context.grid) return describeGrid(result, context);
+      return context && context.levels
+        ? describeLevels(result, context)
+        : describeAnswer(result, context);
+    },
     waiting: (said) => plain('waiting', said)
   });
 }

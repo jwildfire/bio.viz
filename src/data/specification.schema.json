@@ -114,6 +114,8 @@
                 "unscheduled_visit_values",
                 "tile_summary",
                 "tile_min_spread",
+                "opening_view",
+                "grid_groups",
                 "overview_limit",
                 "page",
                 "details",
@@ -123,6 +125,7 @@
                 "pairwise",
                 "statistic_by_visit",
                 "visit_adjustment",
+                "statistic_grid",
                 "waiting_note",
                 "profile",
                 "profile_details",
@@ -221,6 +224,12 @@
               "tile_min_spread": {
                 "default": 1.25
               },
+              "opening_view": {
+                "default": "tiles"
+              },
+              "grid_groups": {
+                "default": null
+              },
               "overview_limit": {
                 "default": 12
               },
@@ -247,6 +256,9 @@
               },
               "visit_adjustment": {
                 "default": "none"
+              },
+              "statistic_grid": {
+                "default": "Analyze_DifferenceGrid"
               },
               "waiting_note": {
                 "default": null

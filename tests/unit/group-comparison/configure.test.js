@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_SETTINGS,
   MARKS,
+  OPENING_VIEWS,
   TESTS,
   Y_SCALES,
   coreSettings,
@@ -128,6 +129,53 @@ describe('group comparison: settings', () => {
     );
     expect(syncSettings({ waiting_note: 'About 13 MB the first time.' }).waiting_note).toBe(
       'About 13 MB the first time.'
+    );
+  });
+  it('GC-GRID-014: the opening view, the two groups the difference grid compares and the R function that answers it each have a setting with a stated default; a view that is not one of the two, a pair that is not two different groups, or a function that is not a name is refused with a message naming it (#86)', () => {
+    expect(OPENING_VIEWS).toEqual(['tiles', 'grid']);
+    expect(Object.isFrozen(OPENING_VIEWS)).toBe(true);
+    expect(DEFAULT_SETTINGS.opening_view).toBe('tiles');
+    expect(DEFAULT_SETTINGS.grid_groups).toBe(null);
+    expect(DEFAULT_SETTINGS.statistic_grid).toBe('Analyze_DifferenceGrid');
+    for (const view of OPENING_VIEWS)
+      expect(syncSettings({ opening_view: view }).opening_view).toBe(view);
+    expect(refused({ opening_view: 'heatmap' })).toBe(
+      'bio.viz: `opening_view` must be one of tiles, grid.'
+    );
+    expect(refused({ opening_view: null })).toMatch(/`opening_view` must be one of/);
+    // The pair, in the order given: the difference is the first minus the second.
+    expect(syncSettings({ grid_groups: ['Treatment', 'Placebo'] }).grid_groups).toEqual([
+      'Treatment',
+      'Placebo'
+    ]);
+    // Levels that are numbers are named as the text they are drawn as.
+    expect(syncSettings({ grid_groups: [2, 1] }).grid_groups).toEqual(['2', '1']);
+    const pairSaid =
+      'bio.viz: `grid_groups` must name two different groups, first and second, as the difference ' +
+      'grid compares them (the first minus the second), or be null for the first two drawn.';
+    for (const bad of [
+      'Treatment',
+      ['Treatment'],
+      ['Treatment', 'Placebo', 'Other'],
+      ['Treatment', 'Treatment'],
+      ['1', 1],
+      ['Treatment', null],
+      ['Treatment', {}],
+      ['Treatment', ''],
+      {}
+    ]) {
+      expect(refused({ grid_groups: bad }), JSON.stringify(bad)).toBe(pairSaid);
+    }
+    expect(syncSettings({ statistic_grid: null }).statistic_grid).toBe(null);
+    expect(syncSettings({ statistic_grid: 'My_Grid' }).statistic_grid).toBe('My_Grid');
+    expect(refused({ statistic_grid: 5 })).toBe(
+      'bio.viz: `statistic_grid` must be the name of an R function, or null for no difference grid.'
+    );
+    expect(refused({ statistic_grid: '' })).toMatch(/`statistic_grid` must be the name/);
+    // The grid has no setting for a confidence level, a minimum group size or
+    // the ends of its colour scale: the first two are R's, the last is fixed.
+    expect(Object.keys(DEFAULT_SETTINGS).join(' ')).not.toMatch(
+      /conf|min_group|shade|colou?r_scale|limits/i
     );
   });
 });

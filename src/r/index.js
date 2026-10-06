@@ -11,6 +11,7 @@ export {
   formatGroup,
   formatPair,
   formatScreenRow,
-  formatLevel
+  formatLevel,
+  formatCell
 } from './formatStatistic.js';
 export { WEBR_VERSION, WEBR_BASE_URL } from './webREngine.js';
