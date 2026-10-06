@@ -27,8 +27,10 @@ body {
   overflow-wrap: anywhere;
 }
 
-/* A column heading wraps between words, never inside one. */
-th {
+/* A column heading of the site's own tables wraps between words, never inside
+   one. Named, as every rule here that could reach a chart's parts is. */
+.doc-table th,
+.recorded th {
   overflow-wrap: normal;
 }
 
