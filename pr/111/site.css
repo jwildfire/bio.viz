@@ -55,8 +55,13 @@ table.evidence th:first-child {
   overflow-wrap: normal;
 }
 
-/* Code wraps rather than scrolls: a phone reader sees the whole snippet. */
-pre {
+/* Code wraps rather than scrolls: a phone reader sees the whole snippet. Named
+   by where the site writes a snippet (the home page's loading section, an
+   evidence page's checking section, a reference's body), so the rule cannot
+   reach a `pre` a chart makes. */
+#loading pre,
+.reproduce pre,
+.api-body pre {
   white-space: pre-wrap;
 }
 
