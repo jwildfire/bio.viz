@@ -1910,6 +1910,17 @@ test.describe('correlation matrix: a cell opens the association scatter', () => 
       await expect(root(page)).toBeVisible();
       // The keyboard's place is the cell that was opened.
       await expect(cellAt(page, row, column)).toBeFocused();
+      // The pointer is still where the Back button was, and the grid is under
+      // that place now. A cell there prints its sentence in the footnote, as a
+      // cell pointed at should, when the browser next works out what the
+      // pointer is on, and that can come after the blur below as well as
+      // before it. So the pointer is taken off the chart first, into the
+      // page's margin: the grid is then read with nothing pointed at and
+      // nothing focused, as it was read before the pair was opened.
+      await page.mouse.move(1, 1);
+      expect(await page.evaluate(() => document.elementFromPoint(1, 1).closest('#chart'))).toBe(
+        null
+      );
       await cellAt(page, row, column).blur();
       // The grid is as it was, to the last cell, and its tab stop apart.
       const after = await everything(page);
