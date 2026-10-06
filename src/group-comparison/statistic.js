@@ -321,7 +321,10 @@ export function describeAnswer(result, context = {}) {
  * @returns {{state: string, text: string, estimates: string[], pairs: null,
  *   details: string[], remarks: Array<{kind: string, text: string}>,
  *   scope: ?string, levels: ?object[]}} `levels` is one entry per visit R
- *   answered, as `formatLevel` gives it, or null when R answered no row;
+ *   answered, as `formatLevel` gives it, with `visit`, R's own `by` for the
+ *   row, untouched: the visit's name as the chart sent it, which is what a
+ *   visit drawn is matched to (`by` is the same read for printing, without
+ *   the space about it). `levels` is null when R answered no row;
  *   `details` are the sentences for the visits that have no p-value, each led
  *   by its visit, and, where the visits' tests differ in name, every visit's.
  */
@@ -343,7 +346,7 @@ export function describeLevels(result, context = {}) {
         : plain(whole.status, whole.text);
     return { ...said, details: [], remarks: remarksOf(value), levels: null };
   }
-  const levels = rows.map((row) => formatLevel(row, 'visit'));
+  const levels = rows.map((row) => ({ ...formatLevel(row, 'visit'), visit: row.by }));
   const shown = levels.filter((level) => level.status === 'shown');
   const methods = [...new Set(shown.map((level) => level.method))];
   const count = (visits) => (visits === 1 ? '1 visit' : `${visits} visits`);
