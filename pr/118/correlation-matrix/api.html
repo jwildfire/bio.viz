@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="The interface of the bio.viz Correlation matrix module: what it exports, what each call takes and what it answers." />
+    <title>Correlation matrix: API reference · bio.viz</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23271810'/%3E%3Ccircle cx='4.5' cy='10.5' r='1.6' fill='%23f97316'/%3E%3Ccircle cx='8' cy='6.5' r='1.6' fill='%23fb923c'/%3E%3Ccircle cx='11.5' cy='4' r='1.6' fill='%23f97316'/%3E%3C/svg%3E"
+    />
+    <!-- safety.viz's site stylesheet, as copied (site/vendor/safety.viz-site/),
+         then the few rules that are this site's own. -->
+    <link rel="stylesheet" href="../vendor/safety.viz-site/site.css" />
+    <link rel="stylesheet" href="../site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-name" href="../index.html">
+        bio.viz
+        <span class="site-version">v0.3.0</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <div class="nav-group"><a href="../gallery/index.html">Gallery</a><button type="button" class="nav-disclosure" aria-expanded="false" aria-controls="gallery-menu" aria-label="Show charts"><span class="nav-caret" aria-hidden="true"></span></button><ul id="gallery-menu" class="nav-menu"><li><a href="../group-comparison/index.html">Group comparison</a></li><li><a href="../association-scatter/index.html">Association scatter</a></li><li><a href="../correlation-matrix/index.html">Correlation matrix</a></li><li><a href="../biomarker-screen/index.html">Biomarker screen</a></li><li><a href="../cross-tab/index.html">Cross-tabulation</a></li><li><a href="../stratified-survival/index.html">Stratified survival</a></li></ul></div>
+        <a href="../r-check/index.html">R check</a>
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a>
+        <a
+          href="https://github.com/jwildfire/bio.viz"
+          aria-label="GitHub"
+          title="GitHub"
+          style="display: inline-flex; align-items: center"
+          ><svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <title>GitHub</title>
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            /></svg
+        ></a>
+        <a
+          href="https://jwildfire.github.io/obot.roadmap/"
+          aria-label="obot roadmap"
+          title="obot roadmap"
+          style="font-size: 1.05rem; line-height: 1; display: inline-flex; align-items: center"
+          ><span aria-hidden="true">🍊😺</span></a
+        >
+      </nav>
+    </header>
+    <main class="site-main">
+<h1>The correlation matrix</h1>
+<p class="tagline" id="api-source">
+  This page is the file <a href="https://github.com/jwildfire/bio.viz/blob/HEAD/docs/correlation-matrix.md"><code>docs/correlation-matrix.md</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+<nav class="page-tabs" aria-label="Pages for this module"><a href="index.html">Live demo</a><a href="evidence.html">Test evidence</a><a class="current" aria-current="page" href="api.html">API reference</a></nav>
+
+<div class="api-layout">
+<nav class="api-toc" aria-label="On this page">
+  <h2>On this page</h2>
+  <ul><li><a href="#at-a-glance">At a glance</a></li><li><a href="#what-the-page-loads">What the page loads</a></li><li><a href="#correlationmatrixelement-settings"><code>correlationMatrix(<wbr>element, settings)</code></a></li><li><a href="#the-tables">The tables</a></li><li><a href="#the-grids-variables">The grid&#39;s variables</a></li><li><a href="#what-is-drawn">What is drawn</a></li><li><a href="#the-frame">The frame</a></li><li><a href="#the-charts-methods">The chart&#39;s methods</a></li><li><a href="#settings">Settings</a></li><li><a href="#titles-and-footnotes">Titles and footnotes</a></li><li><a href="#downloads">Downloads</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#the-statistics">The statistics</a></li><li><a href="#a-cell-opens-the-scatter">A cell opens the scatter</a></li><li><a href="#what-r-is-asked">What R is asked</a></li><li><a href="#on-a-phone">On a phone</a></li><li><a href="#what-is-not-here">What is not here</a></li></ul>
+</nav>
+
+<article class="api-body">
+<p>Which of these biomarkers, or which visits of one biomarker, are related? The chart draws a grid over a set of variables: below the diagonal each pair is a mark, sized and coloured by its correlation coefficient, and above it the coefficient is a number. Every cell has its own pair count. A click on a cell opens that pair in the <a href="../association-scatter/api.html">association scatter</a>, in place, with a way back.</p>
+<p>It draws; it does not estimate. Every coefficient, its interval and its pair count are computed by R: the chart hands R one table through the <a href="../r-connection/api.html">connection to R</a> and draws what comes back. It computes no coefficient itself, not for a number, not for a mark&#39;s size or colour, and not for an order. With no R attached the grid&#39;s frame is drawn with empty cells, and the chart says that statistics are unavailable.</p>
+<p>The grid prints no p-value, by design. A grid of twelve variables is sixty-six pairs, and sixty-six unadjusted p-values side by side answer no question. To test one pair, open it: the association scatter prints that pair&#39;s coefficient with its interval and p-value.</p>
+<p>It is the overview for the pair of charts: it opens on every biomarker the limit allows, and each cell is the way into the scatter. It is built as the other two charts are, from the same parts, and takes the same tables and the same column settings.</p>
+<h2 id="at-a-glance">At a glance</h2>
+<pre><code class="language-html">&lt;div id=&quot;chart&quot;&gt;&lt;/div&gt;
+&lt;script src=&quot;vendor/safety.viz/safety.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;dist/bio.viz-0.3.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  const chart = BioViz.correlationMatrix(&#39;#chart&#39;, {
+    baseline_visits: &#39;Baseline&#39;,
+    // R, started in the browser the first time the grid asks. Leave it out and
+    // the cells stay empty and the chart says that statistics are unavailable.
+    connection: BioViz.r.createConnection({
+      browser: { sourceUrl: &#39;vendor/gsm.bio/statistics.R&#39;, packages: [] }
+    })
+  }).init({ results, participants });
+&lt;/script&gt;</code></pre>
+<p>That names neither a mode, a visit nor a biomarker, so the chart opens on every biomarker at the first visit.</p>
+<h2 id="what-the-page-loads">What the page loads</h2>
+<p>Two script tags, safety.viz&#39;s first. The chart is built from safety.viz&#39;s kit (<code>SafetyViz.kit</code>): its control sidebar, its filters and, for the small scatters, its Chart.js. bio.viz bundles none of it; it finds the kit on the page when a chart is made, and says so plainly if it is not there.</p>
+<h2 id="correlationmatrixelement-settings"><code>correlationMatrix(element, settings)</code></h2>
+<p>Makes a chart in an element and returns it. <code>element</code> is the element, or a CSS selector for it. <code>settings</code> is laid over the <a href="#settings">defaults</a> and may be left out. The controls are drawn at once; nothing else is drawn until the chart is given its tables.</p>
+<p>A setting that is not known, or a value a setting cannot take, is refused: <code>correlationMatrix</code> throws a <code>TypeError</code> whose message begins <code>bio.viz:</code> and names the setting.</p>
+<h2 id="the-tables">The tables</h2>
+<p><code>init</code> and <code>setData</code> take <code>{ results, participants }</code>, each an array of records, one object per row: the tables the <a href="../core/api.html">core</a> reads, as the other charts take them. Only the results table is required. With a participant table the chart shows a filter for each of its category columns; a filter chooses participants, and the ones filtered out are not in the frame. When the filters together let nobody through, the chart draws nothing, asks R for nothing and reads <code>No participant passes the filters.</code>, the words every chart uses; loosen a filter and it draws again.</p>
+<p>A participant table is matched to the results by the participant&#39;s id, in the column <code>participant_id_col</code> names, or <code>id_col</code>&#39;s when that is not set. A participant table without that column is refused, with a message that names the column. A participant the results have and the participant table does not is left out and counted (<code>Not in the participant table</code>), and so is a row of results with no participant id (<code>Row has no participant id</code>). If drawing fails for any other reason, the footnote says <code>This chart could not be drawn:</code> and why, nothing half drawn is left, and the controls stay.</p>
+<h2 id="the-grids-variables">The grid&#39;s variables</h2>
+<table class="api doc-table"><thead><tr><th scope="col">Mode</th><th scope="col">The variables</th><th scope="col">Set by</th></tr></thead>
+<tbody><tr><td data-label="Mode"><code>&#39;biomarkers&#39;</code></td><td data-label="The variables">Several biomarkers, each at one visit.</td><td data-label="Set by"><code>visit</code>, and <code>biomarkers</code> for which are in the grid.</td></tr>
+<tr><td data-label="Mode"><code>&#39;visits&#39;</code></td><td data-label="The variables">One biomarker, at each of several visits.</td><td data-label="Set by"><code>measure</code>, and <code>visits</code> for which are in the grid.</td></tr></tbody></table>
+<p>Every variable has the same value type, <code>value_type</code>: the result, the baseline value, or the change, fold change or percent change from baseline, as the <a href="../core/api.html#value_types">core defines them</a>. A baseline value has no visit, so across biomarkers it is read with no visit, and across visits there is nothing to relate: the chart says so. For a change, a fold change or a percent change the one baseline visit holds the same value for everyone: across visits it is left out of the grid, and across biomarkers the chart asks for a later visit.</p>
+<h3 id="how-many-it-draws">How many it draws</h3>
+<p>The grid draws at most <code>limit</code> variables at a time, twelve by default: the first twelve of those chosen, in the control&#39;s order. The note above it says how many it is showing of how many, and how to bring others in: <code>12 of 36 biomarkers shown: the first 12 of those chosen, in the Biomarkers control’s order. The grid draws at most 12 at a time: untick biomarkers under Biomarkers to bring others in.</code> With no more chosen than the limit it reads <code>All 12 biomarkers chosen are shown.</code></p>
+<p>A grid&#39;s cells grow as the square of its variables: twelve are 66 pairs, twenty-four are 276 and thirty-six are 630. Measured in headless Chromium on a laptop (Apple M3 Pro), on a fixture of thirty-six biomarkers with 40 participants in the frame:</p>
+<table class="api doc-table"><thead><tr><th scope="col">Variables</th><th scope="col">Pairs</th><th scope="col">Drawing</th><th scope="col">R in the browser, once started</th><th scope="col">A cell at a desk (1280 pixels)</th><th scope="col">On a phone (390 pixels)</th></tr></thead>
+<tbody><tr><td data-label="Variables">12</td><td data-label="Pairs">66</td><td data-label="Drawing">3 ms</td><td data-label="R in the browser, once started">0.1 s</td><td data-label="A cell at a desk (1280 pixels)">67 pixels, numbers shown</td><td data-label="On a phone (390 pixels)">cells of 20 pixels, marks only</td></tr>
+<tr><td data-label="Variables">24</td><td data-label="Pairs">276</td><td data-label="Drawing">9 ms</td><td data-label="R in the browser, once started">0.3 s</td><td data-label="A cell at a desk (1280 pixels)">33 pixels, marks only</td><td data-label="On a phone (390 pixels)">the grid scrolls inside its own box</td></tr>
+<tr><td data-label="Variables">36</td><td data-label="Pairs">630</td><td data-label="Drawing">14 ms</td><td data-label="R in the browser, once started">0.7 s</td><td data-label="A cell at a desk (1280 pixels)">22 pixels, marks only</td><td data-label="On a phone (390 pixels)">the grid scrolls inside its own box</td></tr></tbody></table>
+<p>The cell widths are on the browser tests&#39; fixture page, whose chart has the width of the window less a 16-pixel margin on each side; a page that gives the chart less room has narrower cells.</p>
+<p>Drawing is the median of five draws of the grid from its tables; R&#39;s time is from the moment the line reads that it is waiting to the moment the grid is filled. The browser tests named <code>CM-LIMIT-002</code> and <code>CM-LIVE-006</code> measure both again on every run and print them in the run&#39;s log.</p>
+<p>Neither the drawing nor R is what a grid runs out of at these sizes: it is room. On a phone, cells reach their narrowest, 18 pixels, at about a dozen variables: on the fixture page thirteen still fit and fourteen scroll sideways inside the grid&#39;s box, and on the gallery&#39;s demo page, which gives the chart less room, twelve fit with 11 pixels to spare. Twelve is the default because it fits a phone whole on either page. At a desk it leaves each cell 67 pixels, its number easy to read; the cells hold their numbers up to twenty-two or twenty-three variables, by how wide the names are in the fonts at hand, and are marks alone from there. Twelve is also the number of biomarkers in the synthetic study, and the group comparison chart&#39;s limit for its overview. A page with more room, or a reader content with marks and the list, sets <code>limit</code> higher.</p>
+<h2 id="what-is-drawn">What is drawn</h2>
+<p>A grid, with the variables along the top and down the side. The heading says what they are: <code>Result at Baseline, biomarker against biomarker</code>.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Where</th><th scope="col">What</th></tr></thead>
+<tbody><tr><td data-label="Where">Below the diagonal</td><td data-label="What">A mark for the pair. Its width and its darkness are the size of the coefficient; a filled blue disc is positive and an orange ring negative.</td></tr>
+<tr><td data-label="Where">Above the diagonal</td><td data-label="What">The coefficient, to two decimals.</td></tr>
+<tr><td data-label="Where">On the diagonal</td><td data-label="What">Nothing: a variable with itself. Its title says how many participants have a value for it, as R counted them.</td></tr></tbody></table>
+<p>A mark reads without its colour: it is wider and darker the stronger the coefficient, on either side of nought, and the sign is the shape as well as the hue. The key under the grid shows the marks for −1, −0.5, 0, 0.5 and 1 and says this in words. The mark is read off R&#39;s coefficient: its width is 14% of the cell at nought and 92% at one, and its lightness runs from 86% to 32%.</p>
+<p>A cell narrower than 34 pixels cannot hold a number. The grid then draws marks on both sides of the diagonal, and the numbers are in the list beneath. That is the grid a phone gets for twelve variables.</p>
+<p>A cell is a button. Pointing at it, or moving to it with the arrow keys, writes what it holds under the grid: <code>TNF-alpha and IL-10: Pearson’s r 0.6384, 95% confidence interval 0.5482 to 0.7139 (n = 200). Open the scatter.</code> The same sentence is the cell&#39;s name for a screen reader. The count, <code>n = 200</code>, is the number of participants who have both values: each cell has its own.</p>
+<p>A cell with fewer complete pairs than the minimum is hatched and holds a dash: it says R&#39;s reason, <code>Not computed: 178 complete pairs. The minimum is 183. Counts: n = 178.</code>, and no number.</p>
+<h3 id="the-list-of-pairs">The list of pairs</h3>
+<p>Under the grid is every pair R returned, in the order R returned them, with its count and its coefficient with the interval R gave: <code>IL-10 and TNF-alpha</code>, <code>200</code>, <code>0.6384 (0.5482 to 0.7139)</code>. A pair&#39;s name is a button that opens it. Where R warned of a pair, as it does of ties under Spearman, the pair is marked and the warning is said once beneath the table, as R worded it. Download: CSV saves the list, with a column for R&#39;s warning when there is one. It is where a narrow screen reads the numbers, and where a touch screen, which has no pointer to hover with, reads the counts. The list&#39;s type, its rules and the space round it are the chart&#39;s own, stated on the table and on every heading and cell, and the grid&#39;s title is in the chart&#39;s face: a page whose stylesheet styles every table and heading by its tag, as the site&#39;s and safety.viz&#39;s demo app&#39;s do, changes neither.</p>
+<h3 id="small-scatters">Small scatters</h3>
+<p>For six variables or fewer the Draw as control offers Small scatters: below the diagonal each pair is drawn as its points, one for each participant who has both values, the column&#39;s variable along the bottom and the row&#39;s up the side, each pair on its own axes. Above the diagonal are R&#39;s coefficients, as in the grid. The points are positions and nothing else, and the view asks R for nothing more than the grid does. <code>SCATTER_LIMIT</code> is 6.</p>
+<h2 id="the-frame">The frame</h2>
+<p>The grid&#39;s variables are resolved by the <a href="../core/api.html#frametables-variables-settings">core&#39;s frame</a>, one variable per column, with none of them required: a participant who has some of the values is kept, with a gap where they have none. A coefficient is computed on the participants who have both of its pair&#39;s values, and which they are is counted by R, pair by pair. A participant with none of the grid&#39;s values is left out of the frame, and counted.</p>
+<p>The note above the grid says how many participants are in the frame of how many, and the line under it says what that means: <code>200 participants are in the frame. A cell is of the ones who have both of its values, so each cell has its own count, and the cells are not adjusted for one another.</code></p>
+<h2 id="the-charts-methods">The chart&#39;s methods</h2>
+<p>The lifecycle is safety.viz&#39;s, so a page drives the libraries the same way. <code>init</code>, <code>setData</code>, <code>setSettings</code> and <code>close</code> return the chart, so calls can be chained.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Method</th><th scope="col">What it does</th></tr></thead>
+<tbody><tr><td data-label="Method"><code>chart.init(data)</code></td><td data-label="What it does">Loads the tables and draws. The same as <code>setData</code>.</td></tr>
+<tr><td data-label="Method"><code>chart.setData(data, settings)</code></td><td data-label="What it does">Replaces the tables and draws again. The controls are rebuilt and return to what the settings open on. A bare array is taken as the results table. <code>settings</code>, when given, are laid over the chart&#39;s with the tables, for tables that need them: a participant table whose id column has another name comes with <code>{ participant_id_col }</code>. The tables are checked against those settings, so the two change together.</td></tr>
+<tr><td data-label="Method"><code>chart.setSettings(settings)</code></td><td data-label="What it does">Lays settings over the current ones and draws again. A setting that says what the chart opens on moves its control.</td></tr>
+<tr><td data-label="Method"><code>chart.render()</code></td><td data-label="What it does">Draws everything again from the tables, the settings and the controls, and asks R again.</td></tr>
+<tr><td data-label="Method"><code>chart.resize()</code></td><td data-label="What it does">Fits the grid to its container, for a page that changes the container&#39;s size without resizing the window.</td></tr>
+<tr><td data-label="Method"><code>chart.specification()</code></td><td data-label="What it does">The chart as JSON data: every setting as its controls now read, and every filter in force. <code>BioViz.fromSpecification</code> makes the same chart from it (<a href="../output/api.html#specifications">specifications</a>).</td></tr>
+<tr><td data-label="Method"><code>chart.fileOf(kind)</code></td><td data-label="What it does">One of the <a href="#downloads">downloads</a> as a file, without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>.</td></tr>
+<tr><td data-label="Method"><code>chart.destroy()</code></td><td data-label="What it does">Takes the chart down, with a scatter a cell had opened, and empties its element. A destroyed chart cannot be used again.</td></tr>
+<tr><td data-label="Method"><code>chart.statistics()</code></td><td data-label="What it does">What the chart has asked R for the grid now drawn, and what R answered: see <a href="#what-r-is-asked">what R is asked</a>. It draws nothing.</td></tr>
+<tr><td data-label="Method"><code>chart.open(x, y)</code></td><td data-label="What it does">Opens the association scatter for a pair, as a click on its cell does. <code>x</code> and <code>y</code> are two of the grid&#39;s variables, each by its label. Returns the scatter.</td></tr>
+<tr><td data-label="Method"><code>chart.close()</code></td><td data-label="What it does">Closes that scatter and shows the grid again, as it was.</td></tr>
+<tr><td data-label="Method"><code>chart.scatter()</code></td><td data-label="What it does">The association scatter a cell has opened, or null while the grid is shown.</td></tr></tbody></table>
+<p>Tables the chart cannot read are refused: <code>setData</code> throws a <code>TypeError</code>, and the message is shown in the chart&#39;s element.</p>
+<h2 id="settings">Settings</h2>
+<p>Every setting, with its default. The column settings and the baseline settings are the <a href="../core/api.html#default_settings">core&#39;s</a>, under the same names, and a setting another chart also has is named as it is there.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody><tr><td data-label="Setting"><code>id_col</code></td><td data-label="Default"><code>&#39;USUBJID&#39;</code></td><td data-label="Meaning">The participant&#39;s id, in the results table.</td></tr>
+<tr><td data-label="Setting"><code>measure_col</code></td><td data-label="Default"><code>&#39;TEST&#39;</code></td><td data-label="Meaning">The biomarker&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>value_col</code></td><td data-label="Default"><code>&#39;STRESN&#39;</code></td><td data-label="Meaning">The result.</td></tr>
+<tr><td data-label="Setting"><code>visit_col</code></td><td data-label="Default"><code>&#39;VISIT&#39;</code></td><td data-label="Meaning">The visit&#39;s name.</td></tr>
+<tr><td data-label="Setting"><code>visit_order_col</code></td><td data-label="Default"><code>&#39;VISITNUM&#39;</code></td><td data-label="Meaning">A number that orders the visits. May be null.</td></tr>
+<tr><td data-label="Setting"><code>unit_col</code></td><td data-label="Default"><code>&#39;STRESU&#39;</code></td><td data-label="Meaning">The unit of the result, printed in the grid&#39;s heading when every variable has the same one. May be null.</td></tr>
+<tr><td data-label="Setting"><code>participant_id_col</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The participant&#39;s id in the participant table, when it is not named as <code>id_col</code> is.</td></tr>
+<tr><td data-label="Setting"><code>baseline_visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The baseline visit, or a list of them. Null means the first visit in visit order.</td></tr>
+<tr><td data-label="Setting"><code>baseline_stat</code></td><td data-label="Default"><code>&#39;mean&#39;</code></td><td data-label="Meaning">How several baseline visits are brought to one value: <code>mean</code>, <code>min</code>, <code>max</code> or <code>first</code>.</td></tr>
+<tr><td data-label="Setting"><code>mode</code></td><td data-label="Default"><code>&#39;biomarkers&#39;</code></td><td data-label="Meaning">What the grid&#39;s variables are: <code>biomarkers</code>, several at one visit, or <code>visits</code>, one biomarker at several.</td></tr>
+<tr><td data-label="Setting"><code>visit</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Across biomarkers, the visit they are read at. Null means the first visit, as does a visit the table lacks.</td></tr>
+<tr><td data-label="Setting"><code>biomarkers</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Across biomarkers, the ones the grid opens on. Null means every biomarker the Biomarkers control offers.</td></tr>
+<tr><td data-label="Setting"><code>measure</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Across visits, the biomarker. Null means the first the control offers.</td></tr>
+<tr><td data-label="Setting"><code>visits</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Across visits, the visits the grid opens on. Null means every visit.</td></tr>
+<tr><td data-label="Setting"><code>value_type</code></td><td data-label="Default"><code>&#39;raw&#39;</code></td><td data-label="Meaning">The value type of every variable: <code>raw</code>, <code>baseline</code>, <code>change</code>, <code>fold_change</code> or <code>percent_change</code>.</td></tr>
+<tr><td data-label="Setting"><code>view</code></td><td data-label="Default"><code>&#39;grid&#39;</code></td><td data-label="Meaning">How the pairs are drawn: <code>grid</code>, or <code>scatters</code>, the <a href="#small-scatters">small scatters</a>, drawn for six variables or fewer.</td></tr>
+<tr><td data-label="Setting"><code>limit</code></td><td data-label="Default"><code>12</code></td><td data-label="Meaning">The most variables drawn at a time, a whole number of two or more. See <a href="#how-many-it-draws">how many it draws</a>.</td></tr>
+<tr><td data-label="Setting"><code>measures</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The biomarkers the controls offer, in this order. Null means every biomarker in the table, by name.</td></tr>
+<tr><td data-label="Setting"><code>max_levels</code></td><td data-label="Default"><code>12</code></td><td data-label="Meaning">The most different values a column may hold and still be offered as a filter.</td></tr>
+<tr><td data-label="Setting"><code>filters</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The filters, as names or <code>{ value_col, label }</code>, with safety.viz&#39;s <code>start</code>, <code>all</code> and <code>multiple</code>. Null means every category column of the participant table.</td></tr>
+<tr><td data-label="Setting"><code>connection</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The connection to R the grid asks. Null means one with no R attached.</td></tr>
+<tr><td data-label="Setting"><code>statistic</code></td><td data-label="Default"><code>&#39;Analyze_CorrelationMatrix&#39;</code></td><td data-label="Meaning">The R function the grid asks for: gsm.bio&#39;s, or one that takes the same arguments. Null means no coefficients and no Statistics controls.</td></tr>
+<tr><td data-label="Setting"><code>method</code></td><td data-label="Default"><code>&#39;pearson&#39;</code></td><td data-label="Meaning">The coefficient the chart opens on: <code>pearson</code> or <code>spearman</code>.</td></tr>
+<tr><td data-label="Setting"><code>min_pairs</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The fewest complete pairs a cell needs to show a coefficient, a number above nought. Null leaves the minimum to R: nothing is sent, and R&#39;s own default applies.</td></tr>
+<tr><td data-label="Setting"><code>waiting_note</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">A sentence added to the waiting text until R has answered once: what starting R costs on this page. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>scatter</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Settings for the association scatter a cell opens, laid under what the grid carries across: see <a href="#a-cell-opens-the-scatter">a cell opens the scatter</a>.</td></tr>
+<tr><td data-label="Setting"><code>title</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The title above the chart: text with placeholders such as <code>{n}</code>, filled from the view drawn (<a href="#titles-and-footnotes">titles and footnotes</a>). Null means none.</td></tr>
+<tr><td data-label="Setting"><code>subtitle</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">The line under the title, written the same way. Null means none.</td></tr>
+<tr><td data-label="Setting"><code>footnotes</code></td><td data-label="Default"><code>null</code></td><td data-label="Meaning">Footnotes under the chart: text, or a list of texts, with placeholders. The chart&#39;s own footnote is always last. Null means none but that one.</td></tr>
+<tr><td data-label="Setting"><code>downloads</code></td><td data-label="Default"><code>true</code></td><td data-label="Meaning">Whether the downloads are offered under the chart: the PNG, the statistics and the table (<a href="#downloads">downloads</a>).</td></tr>
+<tr><td data-label="Setting"><code>png_scale</code></td><td data-label="Default"><code>2</code></td><td data-label="Meaning">The PNG&#39;s resolution: image pixels per CSS pixel, from 1 to 4. At 2 the picture is twice the size it is drawn on the page, 192 pixels to the inch.</td></tr></tbody></table>
+<p>There is no setting that chooses a confidence level or an adjustment: those are R&#39;s. The minimum number of pairs is R&#39;s as well: the chart has a control for it because the design asks for one, and what the control holds is handed to R, which applies it. The chart never withholds a cell itself.</p>
+<h2 id="titles-and-footnotes">Titles and footnotes</h2>
+<p>The settings <code>title</code>, <code>subtitle</code> and <code>footnotes</code> are text with named placeholders, filled from the view drawn each time the chart draws. A placeholder is a name in braces, and it is replaced by text: nothing in a setting or a value is evaluated, and a name the chart does not have is left as written. The title and the subtitle are drawn above the chart, and the footnotes under it; the chart&#39;s own footnote, always last, says when and by what it was drawn and what stands behind each statistic printed. The rules are in <a href="../output/api.html">Getting results out</a>.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Placeholder</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Placeholder"><code>{heading}</code></td><td data-label="What it holds">What the grid is of, as its heading reads.</td></tr>
+<tr><td data-label="Placeholder"><code>{variables}</code></td><td data-label="What it holds">How many variables the grid has.</td></tr>
+<tr><td data-label="Placeholder"><code>{visit}</code></td><td data-label="What it holds">The visit of a grid of biomarkers.</td></tr>
+<tr><td data-label="Placeholder"><code>{value}</code></td><td data-label="What it holds">What is drawn of the value: <code>Result</code>, <code>Change from baseline</code> and so on.</td></tr>
+<tr><td data-label="Placeholder"><code>{n}</code></td><td data-label="What it holds">How many participants the frame holds.</td></tr>
+<tr><td data-label="Placeholder"><code>{filters}</code></td><td data-label="What it holds">The filters in force, in words, or <code>none</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{date}</code></td><td data-label="What it holds">The date drawn, in UTC: <code>2026-10-04</code>.</td></tr>
+<tr><td data-label="Placeholder"><code>{version}</code></td><td data-label="What it holds">The bio.viz version.</td></tr></tbody></table>
+<h2 id="downloads">Downloads</h2>
+<p>Under the footnotes a bar offers three downloads, each saved as a file named for the chart and the view, such as <code>bio.viz-correlation-matrix-….png</code>:</p>
+<table class="api doc-table"><thead><tr><th scope="col">Download</th><th scope="col">What it holds</th></tr></thead>
+<tbody><tr><td data-label="Download">PNG</td><td data-label="What it holds">The chart&#39;s frame as a picture: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes, the chart&#39;s own last, at <code>png_scale</code> image pixels per CSS pixel. The file carries its resolution, and as text its title, its footnotes and the bio.viz version that made it, and nothing else (<a href="../output/api.html#the-png">the PNG</a>). What a reader works the chart with (the controls, the hint, the listing, the bar) is left out, and what scrolls sideways is drawn whole.</td></tr>
+<tr><td data-label="Download">Statistics (CSV)</td><td data-label="What it holds">The statistics R returned for the view, as shown: a row for each answer&#39;s result and one for each of its parts, every member R returned a column and every number as R returned it. Offered once R has answered.</td></tr>
+<tr><td data-label="Download">Table (CSV)</td><td data-label="What it holds">The table the chart drew from: the frame the grid is drawn from and R is handed: one row per participant, a column for each variable of the grid.</td></tr></tbody></table>
+<p>A CSV file is written by RFC 4180: a field, or a heading, that holds a comma, a double quote or a line break is quoted. <code>chart.fileOf(kind)</code> gives the same file without saving it: a promise of <code>{ name, blob }</code>, for <code>kind</code> <code>&#39;png&#39;</code>, <code>&#39;statistics&#39;</code> or <code>&#39;table&#39;</code>. The format of each file is in <a href="../output/api.html#downloads">Getting results out</a>.</p>
+<h2 id="the-controls">The controls</h2>
+<p>In safety.viz&#39;s sidebar.</p>
+<table class="api doc-table"><thead><tr><th scope="col">Section</th><th scope="col">Control</th><th scope="col">What it sets</th></tr></thead>
+<tbody><tr><td data-label="Section">Variables</td><td data-label="Control">Relate</td><td data-label="What it sets">Biomarkers at one visit, or the visits of one biomarker.</td></tr>
+<tr><td data-label="Section">Variables</td><td data-label="Control">Value</td><td data-label="What it sets">The value type of every variable.</td></tr>
+<tr><td data-label="Section">Variables</td><td data-label="Control">Visit, Biomarkers</td><td data-label="What it sets">Across biomarkers: the visit, and which biomarkers are in the grid. No Visit control for a baseline value.</td></tr>
+<tr><td data-label="Section">Variables</td><td data-label="Control">Biomarker, Visits</td><td data-label="What it sets">Across visits: the biomarker, and which visits are in the grid.</td></tr>
+<tr><td data-label="Section">Display</td><td data-label="Control">Draw as</td><td data-label="What it sets">Grid, or Small scatters, which is offered for six variables or fewer.</td></tr>
+<tr><td data-label="Section">Statistics</td><td data-label="Control">Method</td><td data-label="What it sets">Pearson or Spearman.</td></tr>
+<tr><td data-label="Section">Statistics</td><td data-label="Control">Minimum pairs for a cell</td><td data-label="What it sets">The fewest complete pairs a cell needs. Empty, which is how it opens, leaves the minimum to R.</td></tr>
+<tr><td data-label="Section">Filters</td><td data-label="Control">one per filter</td><td data-label="What it sets">The participants in the frame. Only with a participant table.</td></tr>
+<tr><td data-label="Section"></td><td data-label="Control">Reset chart</td><td data-label="What it sets">Returns every control to what the chart opened on.</td></tr></tbody></table>
+<h2 id="the-statistics">The statistics</h2>
+<p>The function is gsm.bio&#39;s <code>Analyze_CorrelationMatrix</code>, which runs R&#39;s own <code>cor.test</code> on each pair&#39;s complete rows. The grid asks once, whatever the number of cells.</p>
+<p>Under the grid the chart prints the method as R names it and how many pairs it returned, <code>Pearson&#39;s product-moment correlation, pair by pair: 66 pairs of 12 variables, each on the participants who have both of its values.</code>; then what R said about its answer, as R worded it; then what the grid covers. R&#39;s notes say that a matrix reports no p-values and, for Spearman, that <code>cor.test</code> gives no interval, so none is reported: none is made up.</p>
+<p>A coefficient is printed through the shared formatter, <a href="../r-connection/api.html#formatpairrow"><code>formatPair</code></a>: to four significant figures in the sentence under the grid and in the list, with the interval R gave, and to two decimals in a cell. The coefficient is called <code>Pearson’s r</code> or <code>Spearman’s rho</code>, by the method that was asked for.</p>
+<p>Where no pair has enough complete pairs R answers with its reason, <code>Not computed: no pair of columns has 5 complete pairs.</code>, and the chart prints it in place of the line: every cell is hatched, and none holds a number.</p>
+<h3 id="waiting-and-never-a-stale-answer">Waiting, and never a stale answer</h3>
+<p>The two rules every chart keeps. From the moment the grid is asked for until R answers, the line reads <code>Statistics: waiting for R…</code>, with the setting <code>waiting_note</code> until R has answered once, and the cells are empty. Every time the chart is drawn the cells, the list and the line are cleared and asked for again, and an answer that was asked for before the chart was last drawn is dropped when it arrives. A change to the mode, the value, a visit, the biomarkers, the method, the minimum or a filter draws the chart again. A cell never shows a coefficient for a frame other than the one on screen.</p>
+<h2 id="a-cell-opens-the-scatter">A cell opens the scatter</h2>
+<p>A click on a cell, Enter or Space on it, or a click on a pair in the list, opens the <a href="../association-scatter/api.html">association scatter</a> for that pair in place of the grid: the column&#39;s variable on its x axis and the row&#39;s on its y axis. The scatter is the chart of that name, whole, with its own controls. The grid hands it:</p>
+<table class="api doc-table"><thead><tr><th scope="col">Carried across</th><th scope="col">How</th></tr></thead>
+<tbody><tr><td data-label="Carried across">The pair</td><td data-label="How">The scatter&#39;s <code>x</code> and <code>y</code>.</td></tr>
+<tr><td data-label="Carried across">The method</td><td data-label="How">Its <code>method</code>: Pearson in the grid is Pearson in the scatter.</td></tr>
+<tr><td data-label="Carried across">The filters</td><td data-label="How">Its <code>filters</code>, each opening on what the grid&#39;s is set to.</td></tr>
+<tr><td data-label="Carried across">The connection</td><td data-label="How">Its <code>connection</code>: the same one, so R is started once for both and stored results serve both.</td></tr>
+<tr><td data-label="Carried across">The columns</td><td data-label="How">The column and baseline settings, <code>measures</code> and <code>max_levels</code>.</td></tr>
+<tr><td data-label="Carried across">The way back</td><td data-label="How">Its <code>back</code>: a button above the scatter, <code>Back to the correlation matrix</code>, which takes the keyboard&#39;s place when the scatter opens.</td></tr></tbody></table>
+<p>Anything else the scatter should have, its <code>groups</code>, its <code>numbers</code>, a <code>color_by</code>, a <code>fit</code>, its participant profile&#39;s settings, is given in the setting <code>scatter</code> and laid under those.</p>
+<p>The scatter asks R for its own statistics, as it always does: that pair&#39;s coefficient with its interval and its p-value, and a fitted line if one is chosen. On the same rows it is the coefficient the cell holds.</p>
+<p>Back to the correlation matrix, by a click or by Enter or Space, takes the scatter down and shows the grid again exactly as it was: the same cells, the same list, the keyboard&#39;s place on the cell that was opened. Nothing is drawn again and R is not asked again, because nothing the grid holds has changed. What was changed in the scatter, its filters among them, stays in the scatter and is gone with it.</p>
+<p><code>chart.open(x, y)</code> does the same from code, and <code>chart.close()</code> the way back. Drawing the grid again, by <code>render</code>, <code>setSettings</code> or <code>setData</code>, closes a scatter that is open.</p>
+<h2 id="what-r-is-asked">What R is asked</h2>
+<p>For the grid, one call:</p>
+<pre><code class="language-js">connection.run(&#39;Analyze_CorrelationMatrix&#39;, {
+  data, // the frame: the participant&#39;s id, and `v1`, `v2`, … one per variable of the grid
+  args: { chrCols: [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;], strMethod: &#39;pearson&#39; },
+  dataId // what the frame is: see below
+});</code></pre>
+<table class="api doc-table"><thead><tr><th scope="col">Argument</th><th scope="col">Value</th></tr></thead>
+<tbody><tr><td data-label="Argument"><code>chrCols</code></td><td data-label="Value">The names of the frame&#39;s columns, in the grid&#39;s order: <code>v1</code> for its first variable, <code>v2</code> for its second.</td></tr>
+<tr><td data-label="Argument"><code>strMethod</code></td><td data-label="Value"><code>&#39;pearson&#39;</code> or <code>&#39;spearman&#39;</code>.</td></tr>
+<tr><td data-label="Argument"><code>nMinPairs</code></td><td data-label="Value">The number in the Minimum pairs control, when the reader set one; otherwise the argument is left out.</td></tr></tbody></table>
+<p>Nothing else is sent: the confidence level is gsm.bio&#39;s default. In <code>data</code> a value a participant does not have is null, which R reads as missing.</p>
+<p>R&#39;s <code>rows</code> name each pair by those column names, <code>x: &#39;v9&#39;, y: &#39;v11&#39;</code>, and the chart finds the pair&#39;s two variables by them.</p>
+<p><code>dataId</code> states what the frame is. A <a href="../r-connection/api.html#stored-results">stored result</a> is found by the function&#39;s name, these arguments and this identity together:</p>
+<table class="api doc-table"><thead><tr><th scope="col">Member</th><th scope="col">Value</th><th scope="col">Left out when</th></tr></thead>
+<tbody><tr><td data-label="Member"><code>chart</code></td><td data-label="Value"><code>&#39;correlation-matrix&#39;</code>.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>variables</code></td><td data-label="Value">The grid&#39;s variables in order, each written as the association scatter writes a variable: <code>{ measure, value, visit }</code>, without <code>visit</code> for a baseline value.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>baseline_visits</code></td><td data-label="Value">The setting, as a list.</td><td data-label="Left out when">the setting is null</td></tr>
+<tr><td data-label="Member"><code>baseline_stat</code></td><td data-label="Value">The setting.</td><td data-label="Left out when">never</td></tr>
+<tr><td data-label="Member"><code>filters</code></td><td data-label="Value">An object: each filter in force, by its column, as the list of values it lets through, as text, sorted by code point.</td><td data-label="Left out when">no filter is in force</td></tr></tbody></table>
+<p>A member that is not set is left out, never written as null. The mode is not a member: the variables say it. The method and the minimum are arguments.</p>
+<p><code>chart.statistics()</code> returns what the chart has asked for the grid now drawn: one entry, <code>{ name, args, dataId, rows, answer }</code>, where <code>rows</code> is the number of rows in the frame and <code>answer</code> is what the connection resolved to, or null while R has not answered. It is the key a stored result must carry, read from the chart itself.</p>
+<h3 id="stored-results-from-r">Stored results, from R</h3>
+<p>A page that ships R&#39;s answers gives the chart a connection with <code>results</code>: one stored result for each grid it computed, and, for a pair a cell opens, the association scatter&#39;s own <a href="../association-scatter/api.html#stored-results-from-r">stored results</a> for that pair, since the scatter asks through the same connection. A view with no stored result reads <code>Statistics are unavailable for this view: the page holds no stored result for it, and no R is attached to compute one.</code>, and its cells stay empty: it is never answered with another view&#39;s numbers.</p>
+<p>In R, the key of one grid&#39;s stored result, from the frame and what the view is set to:</p>
+<pre><code class="language-r"># dfFrame: the frame, one row per participant: the id, and one numeric column per
+#          variable of the grid, named v1, v2, … in the grid&#39;s order, NA where the
+#          participant has no value.
+# lView:   the view, by the chart&#39;s names; a member that is not set is NULL.
+#          variables is an unnamed list, one per column of the grid in order, each a
+#          variable as the settings write one: list(measure =, value =, visit =),
+#          without visit for a baseline value.
+
+# A value as the chart writes it into the identity: as text, the way
+# JavaScript&#39;s String() writes it. TRUE and FALSE are &quot;true&quot; and &quot;false&quot;. A
+# number is written in the fewest digits that read back as the same number,
+# whole up to 1e21 and in full down to 1e-6, and with an exponent outside that
+# (1e-7, 1e+21), as JavaScript does. So a panel column holding the number 2 is
+# written &quot;2&quot;, and NaN &quot;NaN&quot;. The text is JavaScript&#39;s for every number that
+# needs 13 significant digits or fewer. Beyond that R&#39;s reading of a number,
+# which the search for the fewest digits relies on, is not always exact, and
+# the text can take more digits than JavaScript&#39;s.
+chart_text &lt;- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.logical(x)) return(ifelse(x, &quot;true&quot;, &quot;false&quot;))
+  if (is.numeric(x)) return(vapply(x, chart_number, character(1)))
+  as.character(x)
+}
+
+chart_number &lt;- function(value) {
+  if (is.nan(value)) return(&quot;NaN&quot;)
+  if (is.na(value)) return(NA_character_)
+  if (value == 0) return(&quot;0&quot;)
+  if (is.infinite(value)) return(if (value &gt; 0) &quot;Infinity&quot; else &quot;-Infinity&quot;)
+  # The fewest significant digits that read back as the same number.
+  for (precision in 1:17) {
+    written &lt;- sprintf(&quot;%.*e&quot;, precision - 1L, abs(value))
+    if (as.numeric(written) == abs(value)) break
+  }
+  digits &lt;- sub(&quot;0+{{content}}quot;, &quot;&quot;, gsub(&quot;.&quot;, &quot;&quot;, sub(&quot;e.*{{content}}quot;, &quot;&quot;, written), fixed = TRUE))
+  k &lt;- nchar(digits)
+  n &lt;- as.integer(sub(&quot;^.*e&quot;, &quot;&quot;, written)) + 1L
+  text &lt;- if (k &lt;= n &amp;&amp; n &lt;= 21) {
+    paste0(digits, strrep(&quot;0&quot;, n - k))
+  } else if (n &gt; 0 &amp;&amp; n &lt;= 21) {
+    paste0(substr(digits, 1, n), &quot;.&quot;, substr(digits, n + 1, k))
+  } else if (n &gt; -6 &amp;&amp; n &lt;= 0) {
+    paste0(&quot;0.&quot;, strrep(&quot;0&quot;, -n), digits)
+  } else {
+    paste0(substr(digits, 1, 1), if (k &gt; 1) paste0(&quot;.&quot;, substr(digits, 2, k)) else &quot;&quot;,
+           &quot;e&quot;, if (n - 1 &gt;= 0) &quot;+&quot; else &quot;-&quot;, abs(n - 1))
+  }
+  if (value &lt; 0) paste0(&quot;-&quot;, text) else text
+}
+
+# A member of the identity that is not set is left out, never written as null.
+# A member that is a list of values is an unnamed list, so it is written as a
+# JSON array whatever its length. Text is sorted by code point
+# (`method = &quot;radix&quot;`), which is the order the chart sorts in.
+correlation_matrix_key &lt;- function(dfFrame, lView) {
+  lDataId &lt;- list(chart = &quot;correlation-matrix&quot;, variables = lapply(unname(lView$variables), function(variable) lapply(variable, chart_text)))
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits &lt;- as.list(chart_text(lView$baseline_visits))
+  lDataId$baseline_stat &lt;- lView$baseline_stat
+  if (length(lView$filters) &gt; 0) {
+    lDataId$filters &lt;- lapply(lView$filters, function(xValues) {
+      as.list(sort(unique(chart_text(xValues)), method = &quot;radix&quot;))
+    })
+  }
+  lArgs &lt;- list(
+    chrCols = as.list(paste0(&quot;v&quot;, seq_along(lView$variables))),
+    strMethod = lView$method
+  )
+  # The minimum is sent only when the reader set one; otherwise it is R&#39;s own.
+  if (!is.null(lView$min_pairs)) lArgs$nMinPairs &lt;- lView$min_pairs
+  list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfFrame))
+}
+
+lKey &lt;- correlation_matrix_key(dfFrame, lView)
+lStored &lt;- c(lKey, list(value = do.call(lKey$name, c(list(dfFrame), lKey$args))))</code></pre>
+<p>The frame holds the participants who have at least one of the grid&#39;s values, after the filters; <code>rows</code> is how many they are. Written to JSON, a single value is a single value and an unnamed list is an array (<code>jsonlite::toJSON(auto_unbox = TRUE)</code>), and the value is in <a href="../r-connection/api.html#stored-results">the shape the browser form gives</a>.</p>
+<p>This is the function <code>tools/r-matrix-statistics.R</code> writes the chart&#39;s expected results with. The unit tests named <code>CM-STAT-009</code> hold the key it writes, for ten views of the gallery&#39;s demo, to the key the chart asks with, and hand its results to a connection as stored results to see each one found.</p>
+<h3 id="in-the-browser">In the browser</h3>
+<p>R in the browser is given one file, gsm.bio&#39;s <code>inst/statistics/statistics.R</code>, as the connection&#39;s <code>browser.sourceUrl</code>; the file is sourced with base R alone, so a page that draws only this chart installs no package. Nothing is fetched until the grid first asks, which is the first time it is drawn with the setting <code>statistic</code> naming a function.</p>
+<p>The answers are checked against desktop R. <code>tools/r-matrix-statistics.R</code> sources the same vendored file in desktop R, runs it on frames the chart&#39;s own code wrote, and writes <code>tests/fixtures/matrix-statistics-r.json</code> with the R version that made it. The browser tests named <code>CM-LIVE-*</code> run the gallery&#39;s chart against real R in the browser and hold every cell&#39;s coefficient, interval and pair count to that file within 1 part in 10^8, across biomarkers and across visits. Where R&#39;s own answer differs between the desktop&#39;s version and the browser&#39;s, both are recorded and the tolerance is not widened.</p>
+<h2 id="on-a-phone">On a phone</h2>
+<p>Below 900 pixels of width safety.viz&#39;s shell stacks, and below 600 the controls start folded away, one tap from open. The grid is as wide as the page allows and no wider: the page never scrolls sideways.</p>
+<p>Twelve variables on a phone are cells of 18 to 20 pixels, by the room the page gives the chart: too small for a number, so both sides of the diagonal are marks and the grid is read as a picture. The numbers, the intervals and the counts are in the list beneath, in the order R returned them, and each pair in it is a button as well as its cell, which is the easier target for a finger. With six variables or fewer the cells are wide enough for their numbers, and for the small scatters.</p>
+<p>Where the cells would be narrower than 18 pixels, from about thirteen variables, the grid scrolls sideways inside its own box, and the page does not. Between cells that hold marks the gaps close from 2 pixels to 1, and the labels down the side take what their longest needs, up to 84 pixels on a phone and 150 at a desk.</p>
+<h2 id="what-is-not-here">What is not here</h2>
+<p>No correlation coefficient, interval or p-value is computed here, and no p-value is printed. The chart works out which cell a pair is in, how wide and what colour a mark is for the coefficient R returned, and where a participant&#39;s point sits in a small scatter.</p>
+</article>
+</div>
+</main>
+    <footer class="site-footer">
+      <p>
+        bio.viz v0.3.0 — biomarker charts on the
+        <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/24de4cc089cc17dcf8b1cc0d31e057f8bf8ade52"><code>24de4cc</code></a>.
+      </p>
+      <p>
+        Built in the open — follow the
+        <a href="https://jwildfire.github.io/obot.roadmap/">obot roadmap</a> ·
+        <a href="https://github.com/jwildfire/bio.viz">source on GitHub</a> ·
+        <a href="https://github.com/jwildfire/bio.viz/releases">releases</a>.
+      </p>
+    </footer>
+    <!-- The header's script is safety.viz's, as it is in the copied shell
+         (site/vendor/safety.viz-site/shell.html); the issue it names is
+         safety.viz's. tests/unit/site/siteStyles.test.js holds the two equal. -->
+    <script>
+      // Mark the nav link whose resolved URL is this page; works at any mount
+      // depth (site root, /dev/, /pr/N/). Renderer sub-pages match a chart link
+      // inside the Gallery dropdown, highlighting the current chart.
+      (function () {
+        var here = location.pathname.replace(/\/$/, '/index.html');
+        var links = document.querySelectorAll('.site-nav a');
+        for (var i = 0; i < links.length; i += 1) {
+          var href = links[i].getAttribute('href');
+          if (!href || href.indexOf('http') === 0) continue;
+          if (new URL(href, location.href).pathname === here) {
+            links[i].classList.add('current');
+            links[i].setAttribute('aria-current', 'page');
+            break;
+          }
+        }
+      })();
+
+      // Gallery dropdown (#71): progressive enhancement over the hover/focus CSS.
+      // The disclosure button toggles aria-expanded (which drives the menu open
+      // via CSS), supports keyboard access (Enter/Space toggle, Arrow keys to
+      // enter and move through items, Escape to close), and closes on outside
+      // click or when focus leaves the group. With JS off, hover/focus still
+      // reveal the menu and the Gallery link still works.
+      (function () {
+        var group = document.querySelector('.site-nav .nav-group');
+        if (!group) return;
+        var button = group.querySelector('.nav-disclosure');
+        var menu = group.querySelector('.nav-menu');
+        if (!button || !menu) return;
+        var items = Array.prototype.slice.call(menu.querySelectorAll('a'));
+
+        var isOpen = function () {
+          return button.getAttribute('aria-expanded') === 'true';
+        };
+        var setOpen = function (open) {
+          button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+        var focusItem = function (index) {
+          if (!items.length) return;
+          setOpen(true);
+          items[(index + items.length) % items.length].focus();
+        };
+
+        button.addEventListener('click', function () {
+          setOpen(!isOpen());
+        });
+        button.addEventListener('keydown', function (event) {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            focusItem(0);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            focusItem(items.length - 1);
+          } else if (event.key === 'Escape') {
+            setOpen(false);
+          }
+        });
+        menu.addEventListener('keydown', function (event) {
+          var index = items.indexOf(document.activeElement);
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            focusItem(index + 1);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            focusItem(index - 1);
+          } else if (event.key === 'Home') {
+            event.preventDefault();
+            focusItem(0);
+          } else if (event.key === 'End') {
+            event.preventDefault();
+            focusItem(items.length - 1);
+          } else if (event.key === 'Escape') {
+            event.preventDefault();
+            setOpen(false);
+            button.focus();
+          }
+        });
+
+        // Close when focus leaves the group or on an outside pointer press.
+        group.addEventListener('focusout', function (event) {
+          if (!group.contains(event.relatedTarget)) setOpen(false);
+        });
+        document.addEventListener('click', function (event) {
+          if (!group.contains(event.target)) setOpen(false);
+        });
+      })();
+    </script>
+  </body>
+</html>
