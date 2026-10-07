@@ -1,8 +1,10 @@
 // The group comparison chart's demo: the chart, on the synthetic study, opening
-// on every biomarker at every visit, by arm, with R attached, in this browser.
-// A row of that overview opens one biomarker, and R is started then, the first
-// time a panel that prints a test is drawn. IL-6 is the biomarker the study was
-// planted with: its change from Baseline to Week 4 differs between the arms.
+// on a tile for every biomarker, a line per arm across the visits, with R
+// attached, in this browser. A tile opens its biomarker across the visits, with
+// a row of tests under them, and R is started then, the first time a test is
+// asked for. A visit's name opens that visit alone. IL-6 is the biomarker the
+// study was planted with: its change from Baseline to Week 4 differs between
+// the arms.
 //
 // What the page sets is kept on `BioVizDemo.groupComparison`, where a script can
 // read it without a page: tools/derive-group-statistics.mjs reads the settings
@@ -23,10 +25,10 @@
         'Synthetic study from gsm.bio: no real participant is shown.',
         'Filters: {filters}.'
       ],
-      // No biomarker and no visit named: the overview, at every visit.
+      // No biomarker and no visit named: the tiles, at every visit.
       start_value: null,
       visits: null,
-      // The result itself, so that the baseline visit is a panel like the rest;
+      // The result itself, so that the baseline visit is tested like the rest;
       // a change from baseline is one choice away in the Value control.
       value_type: 'raw',
       baseline_visits: 'Baseline',
@@ -38,9 +40,9 @@
       profile_details: labelled.concat([{ value_col: 'AGE', label: 'Age' }]),
       // The participant profile's time axis; see synthetic-study.js.
       studyday_col: 'DAY',
-      // What the first test costs on this page, said while R starts: by the
-      // first panel that waits, the first time a biomarker is opened. The
-      // megabytes are the ones the browser tests measure (GC-STAT-041).
+      // What the first test costs on this page, said while R starts: under the
+      // row of tests, the first time a biomarker is opened. The megabytes are
+      // the ones the browser tests measure (GC-STAT-041).
       waiting_note:
         'The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
     },
@@ -65,9 +67,8 @@
   window.BioVizDemo.ready = window.BioVizDemo.loadStudy('../data/synthetic-study/').then(
     function (study) {
       // Making the connection fetches nothing. R is started the first time the
-      // chart asks for a test, which is the first time it draws a panel that
-      // prints one: the overview this page opens on prints none, so R starts
-      // when a biomarker is opened.
+      // chart asks for a test: the tiles this page opens on print none, so R
+      // starts when a biomarker is opened.
       var connection = window.BioViz.r.createConnection({ browser: demo.browser });
       var chart = window.BioViz.groupComparison(
         '#chart',

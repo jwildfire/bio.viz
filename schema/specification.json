@@ -104,10 +104,16 @@
                 "panel_by",
                 "mark",
                 "y_scale",
+                "time_mark",
                 "measures",
                 "groups",
                 "max_levels",
                 "filters",
+                "unscheduled_visits",
+                "unscheduled_visit_pattern",
+                "unscheduled_visit_values",
+                "tile_summary",
+                "tile_min_spread",
                 "overview_limit",
                 "page",
                 "details",
@@ -115,6 +121,8 @@
                 "statistic",
                 "test",
                 "pairwise",
+                "statistic_by_visit",
+                "visit_adjustment",
                 "waiting_note",
                 "profile",
                 "profile_details",
@@ -183,6 +191,9 @@
               "y_scale": {
                 "default": "linear"
               },
+              "time_mark": {
+                "default": "box"
+              },
               "measures": {
                 "default": null
               },
@@ -194,6 +205,21 @@
               },
               "filters": {
                 "default": null
+              },
+              "unscheduled_visits": {
+                "default": false
+              },
+              "unscheduled_visit_pattern": {
+                "default": "/unscheduled|early termination/i"
+              },
+              "unscheduled_visit_values": {
+                "default": null
+              },
+              "tile_summary": {
+                "default": "median"
+              },
+              "tile_min_spread": {
+                "default": 1.25
               },
               "overview_limit": {
                 "default": 12
@@ -215,6 +241,12 @@
               },
               "pairwise": {
                 "default": false
+              },
+              "statistic_by_visit": {
+                "default": "Analyze_GroupDifferenceBy"
+              },
+              "visit_adjustment": {
+                "default": "none"
               },
               "waiting_note": {
                 "default": null
