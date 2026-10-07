@@ -13,7 +13,7 @@ It is the way in to the single charts: find the biomarker here, then open its ch
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.biomarkerScreen('#chart', {
     baseline_visits: 'Baseline',
@@ -81,7 +81,7 @@ With more rows than `limit`, twenty by default, the rows are paged: the note abo
 
 ## What is drawn
 
-A heading says what the rows are: `Change from baseline at Week 4: Placebo against Treatment, standardised difference`. A caption says what each row's estimate is, at what level its interval is, which test the p-values are and by what they were adjusted across how many biomarkers: `Each row: Standardised difference (Hedges’ g), Placebo less Treatment, with its 95% confidence interval on one axis without units. p: Welch Two Sample t-test, unadjusted, and adjusted by Benjamini-Hochberg across the 12 biomarkers with a p-value. Exploratory, adjusted (Benjamini-Hochberg).`
+A heading says what the rows are: `Change from baseline at Week 4: Placebo against Treatment, standardised difference`. A caption says what each row's estimate is, at what level its interval is, which test the p-values are and by what they were adjusted across how many biomarkers: `Each row: Standardised difference (Hedges’ g), Placebo less Treatment, with its 95% confidence interval on one axis without units. p: Welch Two Sample t-test, unadjusted, and adjusted by Benjamini-Hochberg across the 12 biomarkers with a p-value. Exploratory, adjusted (Benjamini-Hochberg).` The heading is in the chart's face and weight on any page: one whose stylesheet styles every heading by its tag, as the site's and safety.viz's demo app's do, does not change it.
 
 Then one row per biomarker:
 

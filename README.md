@@ -1,6 +1,6 @@
 # bio.viz
 
-Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz), and needs safety.viz v1.9.0 or later (until that is released, safety.viz `dev`): the charts are built from safety.viz's kit, which first ships in v1.9.0.
+Chart.js charts for comparing groups and relating variables in biomarker data; every test computed by R. Runs beside [safety.viz](https://github.com/jwildfire/safety.viz), and needs safety.viz v1.9.0 or later: the charts are built from safety.viz's kit, which first shipped in v1.9.0.
 
 - Site: <https://jwildfire.github.io/bio.viz/> (released) and <https://jwildfire.github.io/bio.viz/dev/> (the `dev` branch)
 - Gallery: <https://jwildfire.github.io/bio.viz/dev/gallery/> — each chart and shared part with its evidence page (requirements, the tests that prove each, screenshots) and its API reference
@@ -10,7 +10,7 @@ Chart.js charts for comparing groups and relating variables in biomarker data; e
 
 ## Status
 
-Version 0.2.0 ([release notes](NEWS.md), [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/)) is the second release; its site is the released one, <https://jwildfire.github.io/bio.viz/>. It has six charts, each holding every test to R: [group comparison](https://jwildfire.github.io/bio.viz/dev/group-comparison/), which draws the groups and prints R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/dev/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/), a grid of R's coefficients whose cells open the scatter, [biomarker screen](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, a hazard ratio among its comparisons, [cross-tabulation](https://jwildfire.github.io/bio.viz/dev/cross-tab/), a two-way table with R's chi-square or Fisher's exact test, and the [stratified survival chart](https://jwildfire.github.io/bio.viz/dev/stratified-survival/), Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag. Every chart takes a title, a subtitle and footnotes, adds its own footnote naming R's method and counts, downloads as a PNG and as CSV, and writes a specification it can be made again from. Version 0.1.0, the first release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/).
+Version 0.3.0 ([release notes](NEWS.md)) is the third release; its site is the released one, <https://jwildfire.github.io/bio.viz/>. It has six charts, each holding every test to R: [group comparison](https://jwildfire.github.io/bio.viz/group-comparison/), which opens on a tile for every biomarker with a line per group across the visits, opens one biomarker across the visits with R's test under each, and opens one visit with the groups drawn and R's test of them, [association scatter](https://jwildfire.github.io/bio.viz/association-scatter/), which draws two variables against one another and prints R's correlation coefficient, [correlation matrix](https://jwildfire.github.io/bio.viz/correlation-matrix/), a grid of R's coefficients whose cells open the scatter, [biomarker screen](https://jwildfire.github.io/bio.viz/biomarker-screen/), one row per biomarker with R's estimate and its p-values adjusted across the rows, a hazard ratio among its comparisons, [cross-tabulation](https://jwildfire.github.io/bio.viz/cross-tab/), a two-way table with R's chi-square or Fisher's exact test, and the [stratified survival chart](https://jwildfire.github.io/bio.viz/stratified-survival/), Kaplan–Meier curves by a cut biomarker or a column, with a cut line to drag. Every chart takes a title, a subtitle and footnotes, adds its own footnote naming R's method and counts, downloads as a PNG and as CSV, and writes a specification it can be made again from. Version 0.2.0, the second release, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.2.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.2-demo/), and version 0.1.0, the first, is [on GitHub](https://github.com/jwildfire/bio.viz/releases/tag/v0.1.0) with its [annotated demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.1-demo/).
 
 ## How it fits together
 
@@ -23,16 +23,16 @@ Version 0.2.0 ([release notes](NEWS.md), [annotated demo](https://jwildfire.gith
 Vendor the committed bundle — no build step, no npm install:
 
 ```html
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
-  console.log(BioViz.version); // "0.2.0"
+  console.log(BioViz.version); // "0.3.0"
 </script>
 ```
 
 An ES module build is committed alongside:
 
 ```js
-import { version, core, r } from './dist/bio.viz-0.2.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.3.0/bio.viz.esm.js';
 ```
 
 ## Asking R for a statistic
@@ -59,12 +59,12 @@ R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched 
 
 ## The group comparison chart
 
-One value across the levels of a category, as boxes, violins or points, with the number in each group beneath, and under it R's test of the groups: a Welch t-test or a Wilcoxon rank-sum test between two, a one-way ANOVA or a Kruskal-Wallis test across more, with pairwise comparisons on request. safety.viz is loaded first: the chart is built from its kit. The test is asked of the connection the chart is given; with none, the line says that statistics are unavailable. With no biomarker named the chart opens on an overview of every biomarker at every visit, and a row of it opens one.
+One value across the levels of a category, as boxes, violins or points, with the number in each group beneath, and under it R's test of the groups: a Welch t-test or a Wilcoxon rank-sum test between two, a one-way ANOVA or a Kruskal-Wallis test across more, with pairwise comparisons on request. safety.viz is loaded first: the chart is built from its kit. The test is asked of the connection the chart is given; with none, the line says that statistics are unavailable. With no biomarker named the chart opens on a tile for every biomarker, a line per group through the group's median at each scheduled visit. A tile opens its biomarker across the visits in one picture, with the number in each group and R's test of the groups under each visit, adjusted across the visits on request, and a visit's name opens that visit alone. Unscheduled visits are left out until they are switched on.
 
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
   BioViz.groupComparison('#chart', {
     start_value: 'IL-6',
@@ -80,7 +80,7 @@ One value across the levels of a category, as boxes, violins or points, with the
 </script>
 ```
 
-Only the results table is required. The settings, the controls and what the statistics line prints are in [docs/group-comparison.md](docs/group-comparison.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/group-comparison/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/group-comparison/) runs on the synthetic study.
+Only the results table is required. The settings, the controls and what the statistics line prints are in [docs/group-comparison.md](docs/group-comparison.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/group-comparison/api.html); its [live demo](https://jwildfire.github.io/bio.viz/group-comparison/) runs on the synthetic study.
 
 ## The association scatter
 
@@ -100,7 +100,7 @@ Two variables against one another, one point per participant, and under it R's P
 </script>
 ```
 
-The settings, what R is asked and how a logarithmic axis is handled are in [docs/association-scatter.md](docs/association-scatter.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/association-scatter/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/association-scatter/) opens on the pair the synthetic study was planted with.
+The settings, what R is asked and how a logarithmic axis is handled are in [docs/association-scatter.md](docs/association-scatter.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/association-scatter/api.html); its [live demo](https://jwildfire.github.io/bio.viz/association-scatter/) opens on the pair the synthetic study was planted with.
 
 ## The correlation matrix
 
@@ -117,7 +117,7 @@ Which of these biomarkers, or which visits of one biomarker, are related? A grid
 </script>
 ```
 
-With nothing else named it opens on every biomarker at the first visit, twelve at a time. The settings, the limit and what was measured for it, what R is asked and what a phone shows are in [docs/correlation-matrix.md](docs/correlation-matrix.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/correlation-matrix/) runs on the synthetic study, where one pair of the twelve biomarkers was planted with a correlation.
+With nothing else named it opens on every biomarker at the first visit, twelve at a time. The settings, the limit and what was measured for it, what R is asked and what a phone shows are in [docs/correlation-matrix.md](docs/correlation-matrix.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/correlation-matrix/api.html); its [live demo](https://jwildfire.github.io/bio.viz/correlation-matrix/) runs on the synthetic study, where one pair of the twelve biomarkers was planted with a correlation.
 
 ## The biomarker screen
 
@@ -137,7 +137,7 @@ Across every biomarker, where is the signal? One row per biomarker for a compari
 </script>
 ```
 
-The settings, the order of the rows, what R is asked and what a row opens are in [docs/biomarker-screen.md](docs/biomarker-screen.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/biomarker-screen/) opens on the difference the synthetic study was planted with.
+The settings, the order of the rows, what R is asked and what a row opens are in [docs/biomarker-screen.md](docs/biomarker-screen.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/biomarker-screen/api.html); its [live demo](https://jwildfire.github.io/bio.viz/biomarker-screen/) opens on the difference the synthetic study was planted with.
 
 ## The cross-tabulation
 
@@ -156,7 +156,7 @@ Is this category associated with that one? A two-way table of counts with its to
 </script>
 ```
 
-The settings, what R is asked and the key a stored result is found by are in [docs/cross-tab.md](docs/cross-tab.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/cross-tab/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/cross-tab/) opens on arm by response.
+The settings, what R is asked and the key a stored result is found by are in [docs/cross-tab.md](docs/cross-tab.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/cross-tab/api.html); its [live demo](https://jwildfire.github.io/bio.viz/cross-tab/) opens on arm by response.
 
 ## The stratified survival chart
 
@@ -173,7 +173,7 @@ Do participants with high and low levels of this biomarker have different outcom
 </script>
 ```
 
-The settings, the outcomes table, moving the cut line and what R is asked are in [docs/stratified-survival.md](docs/stratified-survival.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/dev/stratified-survival/api.html); its [live demo](https://jwildfire.github.io/bio.viz/dev/stratified-survival/) opens on event-free survival by CRP at Baseline cut at its median, where the synthetic study was planted with a survival effect.
+The settings, the outcomes table, moving the cut line and what R is asked are in [docs/stratified-survival.md](docs/stratified-survival.md), published as the chart's [API reference](https://jwildfire.github.io/bio.viz/stratified-survival/api.html); its [live demo](https://jwildfire.github.io/bio.viz/stratified-survival/) opens on event-free survival by CRP at Baseline cut at its median, where the synthetic study was planted with a survival effect.
 
 ## Titles and footnotes
 

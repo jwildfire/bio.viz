@@ -14,6 +14,7 @@ import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
+import { STYLED_BY_TAG, byTag, lookOf, wearSiteStyles } from './ownLook.js';
 
 // The association scatter in a real page (#26): safety.viz's vendored bundle and
 // bio.viz's committed bundle, loaded as two script tags, drawing the vendored
@@ -1823,9 +1824,8 @@ test.describe('association scatter: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -1833,8 +1833,8 @@ test.describe('association scatter: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^associationScatter\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/association-scatter\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Association scatter');
     expect(
@@ -1965,6 +1965,59 @@ test.describe('association scatter: on the site', () => {
     expect(await measure()).toEqual(holds);
     await captureEvidence(page.locator('#demo'), 'AS-SITE-003', 'demo-on-a-phone');
     await context.close();
+  });
+  test('AS-SITE-005: on a page whose stylesheet styles every table, heading and cell by its tag, as the site’s and safety.viz’s demo app’s do, the table of each level’s coefficient and a panel’s heading keep the chart’s own look, the same as on a page with no stylesheet (#97)', async ({
+    page
+  }) => {
+    const TABLE = {
+      table: '#chart .bv-stat-pairs',
+      caption: '#chart .bv-stat-pairs caption',
+      heading: '#chart .bv-stat-pairs thead th',
+      level: '#chart .bv-stat-pairs tbody th',
+      cell: '#chart .bv-stat-pairs tbody td'
+    };
+    const PANEL = { heading: '#chart .bv-panel h3' };
+    await open(page, { settings: { groups: [{ value_col: 'ARM', label: 'Arm' }, 'SEX'] } });
+    await page.evaluate(
+      (results) =>
+        window.__as.chart.setSettings({
+          color_by: 'ARM',
+          connection: window.BioViz.r.createConnection({ results })
+        }),
+      stored('pearson', 'pearson-by-arm')
+    );
+    await expect(page.locator(`${TABLE.table} tbody tr`)).toHaveCount(2);
+    const face = await page
+      .locator('#chart > .bv-association-scatter')
+      .evaluate((element) => getComputedStyle(element).fontFamily);
+    // With no stylesheet on the page: the table, then a panel's heading.
+    const bareTable = await lookOf(page, TABLE);
+    await choose(page, 'panel-by', 'SEX');
+    await expect(page.locator(PANEL.heading)).toHaveText(['F', 'M']);
+    const barePanel = await lookOf(page, PANEL);
+
+    // The same page in the site's stylesheet, which styles them by tag.
+    await wearSiteStyles(page);
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    const panel = await lookOf(page, PANEL);
+    expect(panel).toEqual(barePanel);
+    expect(panel.heading).toMatchObject({ fontFamily: face, fontWeight: '700' });
+    await choose(page, 'panel-by', '');
+    await expect(page.locator(`${TABLE.table} tbody tr`)).toHaveCount(2);
+    const table = await lookOf(page, TABLE);
+    expect(table).toEqual(bareTable);
+    for (const part of ['heading', 'level', 'cell']) {
+      expect(table[part], part).toMatchObject({
+        fontFamily: face,
+        textTransform: 'none',
+        letterSpacing: 'normal',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderLeftWidth: '0px',
+        borderRightWidth: '0px'
+      });
+    }
+    expect(table.heading.fontSize).toBe(table.cell.fontSize);
+    expect(table.table.backgroundColor).toBe('rgba(0, 0, 0, 0)');
   });
 });
 

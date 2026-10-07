@@ -5,6 +5,7 @@
 
 import { VALUE_TYPES } from '../core/variable.js';
 import { BASELINE_STATS } from '../core/settings.js';
+import { UNSCHEDULED_DEFAULTS, isUnscheduledVisit } from '../core/unscheduled.js';
 import {
   checkBack,
   checkShared,
@@ -27,6 +28,23 @@ export const MARKS = Object.freeze(['box', 'violin', 'points']);
 
 /** The scales of the value axis. */
 export const Y_SCALES = Object.freeze(['linear', 'log']);
+
+/** What a line of a trend tile is drawn through: each group's median, or its mean. */
+export const TILE_SUMMARIES = Object.freeze(['median', 'mean']);
+
+/**
+ * What one biomarker over time is drawn as: a box per group at each visit, each
+ * group's mean with one standard error either side, or its median with the
+ * quartiles either side, the last two joined across the visits by a line.
+ */
+export const TIME_MARKS = Object.freeze(['box', 'mean_se', 'median_iqr']);
+
+/**
+ * The adjustments of the p-values across the visits of one biomarker over
+ * time, by the names R's `p.adjust()` gives them: none, Holm's, or Benjamini
+ * and Hochberg's. R makes the adjustment; the chart only names it.
+ */
+export const VISIT_ADJUSTMENTS = Object.freeze(['none', 'holm', 'BH']);
 
 /**
  * The tests the statistics line can ask R for, by the names gsm.bio's
@@ -59,14 +77,26 @@ export const DEFAULT_SETTINGS = Object.freeze({
   panel_by: null,
   mark: 'box',
   y_scale: 'linear',
+  // One biomarker over time, drawn when a biomarker is chosen with every visit
+  // it has: what the picture is drawn as.
+  time_mark: 'box',
   // What the controls offer.
   measures: null,
   groups: null,
   max_levels: 12,
   filters: null,
-  // The overview of every biomarker: the most drawn at a time.
+  // Unscheduled visits, under safety.viz's names and defaults: left out of the
+  // chart at every level until switched on (src/core/unscheduled.js).
+  ...UNSCHEDULED_DEFAULTS,
+  // The trend tiles, drawn when no biomarker is chosen: what a line goes
+  // through, and the least a tile's value axis spans, in standard deviations
+  // of the results at the baseline visit.
+  tile_summary: 'median',
+  tile_min_spread: 1.25,
+  // Of the overview v0.2.0 drew, a page of biomarkers at a time. The tiles
+  // draw every biomarker, so neither applies to them; both are still read and
+  // checked, so settings and a specification written for v0.2.0 are not refused.
   overview_limit: 12,
-  // The page of the overview it opens on, from 0 (#71 review).
   page: 0,
   // The listing of participants.
   details: null,
@@ -76,6 +106,10 @@ export const DEFAULT_SETTINGS = Object.freeze({
   statistic: 'Analyze_GroupDifference',
   test: 't',
   pairwise: false,
+  // Under one biomarker over time: the R function that answers the test at
+  // every visit in one request, and how R adjusts the p-values across them.
+  statistic_by_visit: 'Analyze_GroupDifferenceBy',
+  visit_adjustment: 'none',
   waiting_note: null,
   // A way back, when another chart opened this one in its place.
   back: null,
@@ -125,6 +159,9 @@ export function syncSettings(overrides) {
     refuse(`\`value_type\` must be one of ${VALUE_TYPES.join(', ')}.`);
   }
   if (!MARKS.includes(settings.mark)) refuse(`\`mark\` must be one of ${MARKS.join(', ')}.`);
+  if (!TIME_MARKS.includes(settings.time_mark)) {
+    refuse(`\`time_mark\` must be one of ${TIME_MARKS.join(', ')}.`);
+  }
   if (!Y_SCALES.includes(settings.y_scale)) {
     refuse(`\`y_scale\` must be one of ${Y_SCALES.join(', ')}.`);
   }
@@ -134,17 +171,65 @@ export function syncSettings(overrides) {
     }
   }
   if (!Number.isInteger(settings.page) || settings.page < 0) {
-    refuse('`page` must be a whole number, from 0: the page of the overview it opens on.');
+    refuse('`page` must be a whole number, from 0.');
+  }
+  if (!TILE_SUMMARIES.includes(settings.tile_summary)) {
+    refuse(`\`tile_summary\` must be one of ${TILE_SUMMARIES.join(', ')}.`);
+  }
+  if (
+    typeof settings.tile_min_spread !== 'number' ||
+    !Number.isFinite(settings.tile_min_spread) ||
+    settings.tile_min_spread < 0
+  ) {
+    refuse(
+      '`tile_min_spread` must be a number, zero or more: how many standard deviations of the ' +
+        'results at the baseline visit a tile’s value axis spans at the least.'
+    );
+  }
+  if (typeof settings.unscheduled_visits !== 'boolean') {
+    refuse('`unscheduled_visits` must be true or false.');
+  }
+  if (settings.unscheduled_visit_pattern !== null) {
+    if (!isText(settings.unscheduled_visit_pattern)) {
+      refuse(
+        '`unscheduled_visit_pattern` must be a regular expression written as text, ' +
+          '`/source/flags` or a plain source, or null for none.'
+      );
+    }
+    try {
+      isUnscheduledVisit('', { unscheduled_visit_pattern: settings.unscheduled_visit_pattern });
+    } catch (error) {
+      refuse(
+        `\`unscheduled_visit_pattern\` is not a regular expression a browser reads: ${error.message}.`
+      );
+    }
   }
   if (!TESTS.includes(settings.test)) refuse(`\`test\` must be one of ${TESTS.join(', ')}.`);
   if (typeof settings.pairwise !== 'boolean') refuse('`pairwise` must be true or false.');
   if (settings.statistic !== null && !isText(settings.statistic)) {
     refuse('`statistic` must be the name of an R function, or null for no statistics line.');
   }
+  if (settings.statistic_by_visit !== null && !isText(settings.statistic_by_visit)) {
+    refuse(
+      '`statistic_by_visit` must be the name of an R function, or null for no test under the visits.'
+    );
+  }
+  if (!VISIT_ADJUSTMENTS.includes(settings.visit_adjustment)) {
+    refuse(
+      `\`visit_adjustment\` must be one of ${VISIT_ADJUSTMENTS.join(', ')}: the name R’s ` +
+        'p.adjust() gives the adjustment of the p-values across the visits.'
+    );
+  }
 
   settings.baseline_visits = textList(settings.baseline_visits, 'baseline_visits');
   settings.visits = textList(settings.visits, 'visits', { empty: true });
   settings.levels = textList(settings.levels, 'levels', { empty: true });
+  // A list of none is a list: it names no visit, and the pattern is not read.
+  settings.unscheduled_visit_values = textList(
+    settings.unscheduled_visit_values,
+    'unscheduled_visit_values',
+    { empty: true }
+  );
   settings.measures = textList(settings.measures, 'measures');
   settings.groups = fieldList(settings.groups, 'groups');
   settings.filters = fieldList(settings.filters, 'filters');

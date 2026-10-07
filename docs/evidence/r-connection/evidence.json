@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-04T23:12:12.593Z",
+  "generatedAt": "2026-10-06T22:34:04.200Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37242858671",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
+    "id": "37541330383",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37541330383"
   },
   "records": [
     {
@@ -114,6 +114,62 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: every page is styled by safety.viz’s stylesheet as it was copied, published with its record, and then by the site’s own (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: the gallery’s cards, a module’s tabs, the fact panel, the evidence table and the reference’s sidebar are drawn by safety.viz’s rules (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: every page carries the header and the footer: the name and version, a Gallery list of every published chart, and links that all lead somewhere (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: the Gallery list opens from its button and from the keyboard, leads to a chart’s live demo, and the header marks the page a reader is on (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-021: the header holds at a 390px-wide viewport on every kind of page, and the Gallery list opens under it, on the screen (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-021"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-022: a row of the evidence table is laid out by its own words: the two columns are three fifths and two fifths of the table on every module’s page, and a row keeps its columns when another row is given a test with a long name (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-022"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-024: on the gallery and the home page every card says what its module is in the registry’s card text, at most two sentences and five lines at 1280px; with the first row of charts at the top of a 1280 by 800 window the second row’s pictures are in it; and a chart’s fuller text is at the head of its live demo (#96)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-024"],
+      "issueRefs": [96],
       "screenshots": []
     },
     {
@@ -757,6 +813,22 @@
       "screenshots": []
     },
     {
+      "test": "formatLevel: one level of a by-level answer PVAL-LEVEL-001: a level’s p-value comes with its method, each group’s count and its label, in parts for a table; an adjusted one names the adjustment and how many levels it covered, beside the unadjusted one (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-LEVEL-001"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "formatLevel: one level of a by-level answer PVAL-LEVEL-002: a level R could not compute shows R’s words with each group’s count and no number; a row with no level, fewer than two groups named, no method, no counts, no unadjusted p-value or no number of levels adjusted across is refused (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-LEVEL-002"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
       "test": "formatMedian: a median survival time PVAL-MED-001: a median is printed with what it is a median of and its interval, to four significant figures, and a median or bound R did not reach reads not reached (#61)",
       "suite": "unit",
       "status": "pass",
@@ -893,6 +965,14 @@
       "screenshots": []
     },
     {
+      "test": "formatStatistic: the rules PVAL-RULE-011: a p-value that exceeds 1 only by the rounding of a sum, as R’s fisher.test() returns when no table is less likely than the one observed, is read as 1 and printed p > 0.999; anything further above 1 is still refused (#104)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["PVAL-RULE-011"],
+      "issueRefs": [104],
+      "screenshots": []
+    },
+    {
       "test": "formatStatistic: what R declined, and what R could not do PVAL-RULE-008: a reason that already says the result was not computed is printed as it is, and \"not computed\" is said once (#16)",
       "suite": "unit",
       "status": "pass",
@@ -981,7 +1061,23 @@
       "screenshots": []
     },
     {
-      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "test": "gallery CORE-SITE-023: a card says what its module is in the registry’s card text, at most two sentences and 200 characters, on the gallery and on the home page, and not in the fuller text, which stays at the head of a chart’s live demo; the registry as committed holds every module to it, and the group comparison’s card names its tiles, its picture over time and its single visit (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-023: the registry refuses an entry with no card text, with more than two sentences, or with more than 200 characters (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its word about the charts for one chart and for several (#26)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": [],
@@ -1317,11 +1413,67 @@
       "screenshots": []
     },
     {
+      "test": "the copied site styles CORE-SITE-018: a copied file that is changed, missing, or beside one the record does not name fails the check, and the second check holds each file to safety.viz at the recorded commit (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the copied site styles CORE-SITE-018: safety.viz’s site stylesheet and page shell are in site/vendor/safety.viz-site/ with a record naming the repository, its dev branch, the commit and each file, and the copy matches its record (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
       "test": "the formatter in the README PVAL-FMT-005: the README’s example prints what formatStatistic prints for desktop R’s own Wilcoxon answer, R’s method name as R wrote it (#49)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["PVAL-FMT-005"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the header’s Gallery entry lists each published chart, leading to its live demo, and is a plain link while none is published (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the shell’s header, navigation and footer are the copied shell’s, and its header script is the copied shell’s, character for character (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every class a page writes is styled by one of the two stylesheets, and the site’s own styles no class the pages do not write (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every page loads the copied stylesheet and then the site’s own, by paths that hold at any depth (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, writes every colour and typeface as one of them, and names no element by its tag alone but the page’s body (#91, #112)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

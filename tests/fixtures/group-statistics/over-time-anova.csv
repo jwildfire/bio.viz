@@ -1,0 +1,944 @@
+USUBJID,y,x,visit
+BIO-001,6.927,Placebo F,Baseline
+BIO-002,5.36,Treatment F,Baseline
+BIO-003,9.778,Placebo M,Baseline
+BIO-004,9.151,Treatment M,Baseline
+BIO-005,10.242,Treatment M,Baseline
+BIO-006,6.872,Placebo M,Baseline
+BIO-007,7.909,Treatment M,Baseline
+BIO-008,5.968,Placebo M,Baseline
+BIO-009,9.614,Treatment F,Baseline
+BIO-010,6.822,Placebo F,Baseline
+BIO-011,7.194,Treatment F,Baseline
+BIO-012,6.297,Placebo M,Baseline
+BIO-013,8.547,Placebo M,Baseline
+BIO-014,9.481,Treatment M,Baseline
+BIO-015,7.35,Placebo M,Baseline
+BIO-016,8.548,Placebo M,Baseline
+BIO-017,8.45,Placebo F,Baseline
+BIO-018,9.838,Treatment M,Baseline
+BIO-019,8.98,Treatment M,Baseline
+BIO-020,5.859,Treatment F,Baseline
+BIO-021,12.004,Placebo F,Baseline
+BIO-022,6.406,Treatment M,Baseline
+BIO-023,5.595,Placebo F,Baseline
+BIO-024,7.906,Treatment F,Baseline
+BIO-025,7.664,Placebo F,Baseline
+BIO-026,8.268,Placebo M,Baseline
+BIO-027,6.341,Placebo M,Baseline
+BIO-028,8.506,Treatment M,Baseline
+BIO-029,5.744,Treatment M,Baseline
+BIO-030,8.893,Treatment M,Baseline
+BIO-031,9.182,Treatment M,Baseline
+BIO-032,7.333,Treatment M,Baseline
+BIO-033,8.772,Treatment F,Baseline
+BIO-034,8.145,Placebo M,Baseline
+BIO-035,6.347,Placebo F,Baseline
+BIO-036,7.62,Treatment M,Baseline
+BIO-037,7.261,Placebo M,Baseline
+BIO-038,10.515,Treatment M,Baseline
+BIO-039,7.674,Placebo F,Baseline
+BIO-040,6.239,Treatment F,Baseline
+BIO-041,5.774,Treatment M,Baseline
+BIO-042,9.268,Treatment F,Baseline
+BIO-043,8.291,Placebo F,Baseline
+BIO-044,10.028,Placebo M,Baseline
+BIO-045,8.511,Placebo F,Baseline
+BIO-046,6.951,Treatment F,Baseline
+BIO-047,7.464,Treatment F,Baseline
+BIO-048,8.356,Placebo F,Baseline
+BIO-049,10.445,Treatment F,Baseline
+BIO-050,8.358,Treatment M,Baseline
+BIO-051,8.273,Treatment M,Baseline
+BIO-052,6.806,Treatment F,Baseline
+BIO-053,5.946,Treatment F,Baseline
+BIO-054,9.088,Placebo M,Baseline
+BIO-055,8.908,Placebo M,Baseline
+BIO-056,8.499,Treatment M,Baseline
+BIO-057,6.546,Placebo M,Baseline
+BIO-058,8.743,Placebo F,Baseline
+BIO-059,5.154,Placebo F,Baseline
+BIO-060,7.507,Placebo M,Baseline
+BIO-061,9.436,Placebo M,Baseline
+BIO-062,6.534,Placebo M,Baseline
+BIO-063,8.45,Treatment M,Baseline
+BIO-064,4.871,Treatment M,Baseline
+BIO-065,6.11,Treatment M,Baseline
+BIO-066,7.63,Treatment M,Baseline
+BIO-067,8.171,Placebo F,Baseline
+BIO-068,6.135,Placebo M,Baseline
+BIO-069,8.126,Treatment M,Baseline
+BIO-070,7.577,Placebo M,Baseline
+BIO-071,5.454,Placebo M,Baseline
+BIO-072,6.753,Treatment F,Baseline
+BIO-073,7.519,Treatment M,Baseline
+BIO-074,7.916,Treatment M,Baseline
+BIO-075,9.736,Placebo F,Baseline
+BIO-076,10.464,Placebo M,Baseline
+BIO-077,6.801,Treatment F,Baseline
+BIO-078,10.421,Treatment M,Baseline
+BIO-079,7.012,Placebo F,Baseline
+BIO-080,8.399,Placebo F,Baseline
+BIO-081,7.673,Placebo F,Baseline
+BIO-082,7.229,Treatment F,Baseline
+BIO-083,9.928,Placebo F,Baseline
+BIO-084,8.042,Placebo M,Baseline
+BIO-085,7.36,Placebo F,Baseline
+BIO-086,9.427,Placebo F,Baseline
+BIO-087,7.486,Treatment F,Baseline
+BIO-088,9.554,Treatment F,Baseline
+BIO-089,8.302,Placebo M,Baseline
+BIO-090,8.277,Placebo F,Baseline
+BIO-091,8.137,Placebo M,Baseline
+BIO-092,7.473,Placebo M,Baseline
+BIO-093,9.152,Placebo M,Baseline
+BIO-094,8.598,Placebo M,Baseline
+BIO-095,8.626,Placebo F,Baseline
+BIO-096,7.425,Treatment F,Baseline
+BIO-097,9.655,Placebo M,Baseline
+BIO-098,9.21,Placebo F,Baseline
+BIO-099,7.79,Placebo M,Baseline
+BIO-100,10.208,Placebo M,Baseline
+BIO-101,6.804,Placebo M,Baseline
+BIO-102,5.011,Treatment F,Baseline
+BIO-103,8.067,Treatment F,Baseline
+BIO-104,6.034,Treatment M,Baseline
+BIO-105,8.069,Placebo M,Baseline
+BIO-106,8.93,Placebo F,Baseline
+BIO-107,5.591,Placebo F,Baseline
+BIO-108,9.773,Treatment F,Baseline
+BIO-109,8.437,Placebo F,Baseline
+BIO-110,7.637,Treatment F,Baseline
+BIO-111,5.791,Treatment M,Baseline
+BIO-112,10.472,Placebo F,Baseline
+BIO-113,8.857,Treatment M,Baseline
+BIO-114,8.594,Treatment F,Baseline
+BIO-115,7.86,Placebo M,Baseline
+BIO-116,9.095,Placebo M,Baseline
+BIO-117,8.375,Placebo F,Baseline
+BIO-118,8.643,Placebo F,Baseline
+BIO-119,6.892,Treatment M,Baseline
+BIO-120,7.128,Treatment M,Baseline
+BIO-121,6.369,Treatment M,Baseline
+BIO-122,8.902,Placebo M,Baseline
+BIO-123,5.723,Treatment F,Baseline
+BIO-124,7.107,Placebo M,Baseline
+BIO-125,8.733,Treatment M,Baseline
+BIO-126,4.939,Treatment F,Baseline
+BIO-127,8.413,Treatment F,Baseline
+BIO-128,8.376,Placebo F,Baseline
+BIO-129,7.623,Treatment M,Baseline
+BIO-130,7.181,Placebo M,Baseline
+BIO-131,9.171,Placebo F,Baseline
+BIO-132,7.687,Placebo F,Baseline
+BIO-133,8.874,Treatment F,Baseline
+BIO-134,7.743,Treatment F,Baseline
+BIO-135,5.113,Treatment F,Baseline
+BIO-136,8.011,Treatment M,Baseline
+BIO-137,10.86,Treatment M,Baseline
+BIO-138,8.389,Placebo M,Baseline
+BIO-139,7.273,Treatment M,Baseline
+BIO-140,9.018,Treatment M,Baseline
+BIO-141,8.102,Treatment F,Baseline
+BIO-142,10.301,Treatment F,Baseline
+BIO-143,5.102,Treatment F,Baseline
+BIO-144,6.059,Placebo M,Baseline
+BIO-145,8.038,Placebo M,Baseline
+BIO-146,8.909,Treatment M,Baseline
+BIO-147,8.241,Placebo M,Baseline
+BIO-148,7.07,Placebo F,Baseline
+BIO-149,8.802,Placebo M,Baseline
+BIO-150,7.186,Placebo M,Baseline
+BIO-151,8.979,Treatment M,Baseline
+BIO-152,7.994,Placebo M,Baseline
+BIO-153,6.03,Placebo F,Baseline
+BIO-154,7.24,Treatment M,Baseline
+BIO-155,8.629,Treatment F,Baseline
+BIO-156,5.95,Placebo M,Baseline
+BIO-157,7.893,Treatment M,Baseline
+BIO-158,7.21,Treatment M,Baseline
+BIO-159,8.68,Treatment F,Baseline
+BIO-160,8.26,Treatment F,Baseline
+BIO-161,7.284,Placebo F,Baseline
+BIO-162,5.823,Treatment M,Baseline
+BIO-163,6.913,Placebo M,Baseline
+BIO-164,6.543,Treatment F,Baseline
+BIO-165,9.063,Treatment F,Baseline
+BIO-166,5.225,Treatment F,Baseline
+BIO-167,5.059,Treatment M,Baseline
+BIO-168,4.994,Placebo F,Baseline
+BIO-169,8.542,Treatment F,Baseline
+BIO-170,6.635,Placebo M,Baseline
+BIO-171,6.67,Treatment M,Baseline
+BIO-172,6.656,Treatment M,Baseline
+BIO-173,5.851,Placebo M,Baseline
+BIO-174,7.685,Placebo F,Baseline
+BIO-175,8.421,Placebo M,Baseline
+BIO-176,9.083,Placebo M,Baseline
+BIO-177,7.18,Treatment F,Baseline
+BIO-178,9.434,Placebo F,Baseline
+BIO-179,6.886,Treatment F,Baseline
+BIO-180,9.229,Placebo M,Baseline
+BIO-181,5.574,Treatment M,Baseline
+BIO-182,8.313,Placebo F,Baseline
+BIO-183,8.09,Treatment M,Baseline
+BIO-184,6.771,Placebo M,Baseline
+BIO-185,6.561,Placebo F,Baseline
+BIO-186,8.353,Treatment F,Baseline
+BIO-187,7.718,Placebo F,Baseline
+BIO-188,5.2,Treatment F,Baseline
+BIO-189,4.333,Placebo F,Baseline
+BIO-190,11.239,Placebo M,Baseline
+BIO-191,9.536,Treatment M,Baseline
+BIO-192,7.952,Treatment M,Baseline
+BIO-193,10.039,Treatment M,Baseline
+BIO-194,7.9,Placebo M,Baseline
+BIO-195,10.128,Treatment F,Baseline
+BIO-196,6.179,Treatment F,Baseline
+BIO-197,5.623,Treatment M,Baseline
+BIO-198,7.951,Treatment F,Baseline
+BIO-199,8.907,Placebo M,Baseline
+BIO-200,9.599,Placebo F,Baseline
+BIO-001,5.473,Placebo F,Week 2
+BIO-002,2.747,Treatment F,Week 2
+BIO-004,5.495,Treatment M,Week 2
+BIO-005,8.526,Treatment M,Week 2
+BIO-006,6.149,Placebo M,Week 2
+BIO-007,5.158,Treatment M,Week 2
+BIO-008,5.645,Placebo M,Week 2
+BIO-009,7.597,Treatment F,Week 2
+BIO-011,6.761,Treatment F,Week 2
+BIO-012,5.886,Placebo M,Week 2
+BIO-013,9.016,Placebo M,Week 2
+BIO-014,5.647,Treatment M,Week 2
+BIO-015,8.94,Placebo M,Week 2
+BIO-016,7.745,Placebo M,Week 2
+BIO-017,9.507,Placebo F,Week 2
+BIO-018,7.265,Treatment M,Week 2
+BIO-019,6.311,Treatment M,Week 2
+BIO-020,6.899,Treatment F,Week 2
+BIO-021,11.43,Placebo F,Week 2
+BIO-022,4.562,Treatment M,Week 2
+BIO-023,6.944,Placebo F,Week 2
+BIO-024,7.705,Treatment F,Week 2
+BIO-025,8.524,Placebo F,Week 2
+BIO-026,9.523,Placebo M,Week 2
+BIO-027,9.377,Placebo M,Week 2
+BIO-028,7.107,Treatment M,Week 2
+BIO-029,6.355,Treatment M,Week 2
+BIO-030,7.769,Treatment M,Week 2
+BIO-031,6.896,Treatment M,Week 2
+BIO-032,5.632,Treatment M,Week 2
+BIO-033,7.535,Treatment F,Week 2
+BIO-034,6.271,Placebo M,Week 2
+BIO-036,7.609,Treatment M,Week 2
+BIO-037,7.671,Placebo M,Week 2
+BIO-038,7.789,Treatment M,Week 2
+BIO-039,5.063,Placebo F,Week 2
+BIO-040,6.075,Treatment F,Week 2
+BIO-041,5.817,Treatment M,Week 2
+BIO-042,6.731,Treatment F,Week 2
+BIO-043,8.496,Placebo F,Week 2
+BIO-045,8.186,Placebo F,Week 2
+BIO-046,6.151,Treatment F,Week 2
+BIO-047,5.719,Treatment F,Week 2
+BIO-048,6.41,Placebo F,Week 2
+BIO-049,9.869,Treatment F,Week 2
+BIO-050,7.155,Treatment M,Week 2
+BIO-052,4.914,Treatment F,Week 2
+BIO-053,5.646,Treatment F,Week 2
+BIO-054,9.965,Placebo M,Week 2
+BIO-055,11.179,Placebo M,Week 2
+BIO-056,8.258,Treatment M,Week 2
+BIO-057,6.303,Placebo M,Week 2
+BIO-058,7.267,Placebo F,Week 2
+BIO-059,3.829,Placebo F,Week 2
+BIO-061,5.709,Placebo M,Week 2
+BIO-062,5.189,Placebo M,Week 2
+BIO-063,4.916,Treatment M,Week 2
+BIO-064,4.771,Treatment M,Week 2
+BIO-065,4.134,Treatment M,Week 2
+BIO-066,6.706,Treatment M,Week 2
+BIO-067,9.44,Placebo F,Week 2
+BIO-068,6.094,Placebo M,Week 2
+BIO-069,7.09,Treatment M,Week 2
+BIO-070,8.732,Placebo M,Week 2
+BIO-071,7.451,Placebo M,Week 2
+BIO-073,8.192,Treatment M,Week 2
+BIO-074,6.461,Treatment M,Week 2
+BIO-075,9.998,Placebo F,Week 2
+BIO-076,10.627,Placebo M,Week 2
+BIO-077,7.131,Treatment F,Week 2
+BIO-078,5.149,Treatment M,Week 2
+BIO-079,6.96,Placebo F,Week 2
+BIO-080,9.007,Placebo F,Week 2
+BIO-081,8.749,Placebo F,Week 2
+BIO-082,5.456,Treatment F,Week 2
+BIO-083,7.673,Placebo F,Week 2
+BIO-085,7.861,Placebo F,Week 2
+BIO-086,9.463,Placebo F,Week 2
+BIO-087,7.888,Treatment F,Week 2
+BIO-088,6.455,Treatment F,Week 2
+BIO-089,9.842,Placebo M,Week 2
+BIO-090,8.409,Placebo F,Week 2
+BIO-091,9.89,Placebo M,Week 2
+BIO-092,6.824,Placebo M,Week 2
+BIO-093,10.483,Placebo M,Week 2
+BIO-094,8.112,Placebo M,Week 2
+BIO-095,10.59,Placebo F,Week 2
+BIO-096,8.741,Treatment F,Week 2
+BIO-097,9.402,Placebo M,Week 2
+BIO-098,8.61,Placebo F,Week 2
+BIO-099,5.415,Placebo M,Week 2
+BIO-100,7.678,Placebo M,Week 2
+BIO-101,5.859,Placebo M,Week 2
+BIO-102,6.566,Treatment F,Week 2
+BIO-103,7.438,Treatment F,Week 2
+BIO-104,7.632,Treatment M,Week 2
+BIO-105,8.329,Placebo M,Week 2
+BIO-106,8.33,Placebo F,Week 2
+BIO-107,7.168,Placebo F,Week 2
+BIO-108,7.873,Treatment F,Week 2
+BIO-109,8.299,Placebo F,Week 2
+BIO-110,7.609,Treatment F,Week 2
+BIO-112,11.539,Placebo F,Week 2
+BIO-113,7.48,Treatment M,Week 2
+BIO-114,6.18,Treatment F,Week 2
+BIO-115,10.995,Placebo M,Week 2
+BIO-116,6.528,Placebo M,Week 2
+BIO-117,10.11,Placebo F,Week 2
+BIO-118,8.99,Placebo F,Week 2
+BIO-119,6.551,Treatment M,Week 2
+BIO-120,4.994,Treatment M,Week 2
+BIO-121,4.602,Treatment M,Week 2
+BIO-122,8.203,Placebo M,Week 2
+BIO-123,3.705,Treatment F,Week 2
+BIO-125,7.367,Treatment M,Week 2
+BIO-126,5.715,Treatment F,Week 2
+BIO-127,6.528,Treatment F,Week 2
+BIO-128,7.323,Placebo F,Week 2
+BIO-129,8.175,Treatment M,Week 2
+BIO-130,6.159,Placebo M,Week 2
+BIO-131,8.844,Placebo F,Week 2
+BIO-132,7.81,Placebo F,Week 2
+BIO-134,4.565,Treatment F,Week 2
+BIO-135,5.011,Treatment F,Week 2
+BIO-136,4.633,Treatment M,Week 2
+BIO-137,6.981,Treatment M,Week 2
+BIO-138,7.71,Placebo M,Week 2
+BIO-139,6.362,Treatment M,Week 2
+BIO-140,7.591,Treatment M,Week 2
+BIO-141,6.801,Treatment F,Week 2
+BIO-142,8.137,Treatment F,Week 2
+BIO-143,4.629,Treatment F,Week 2
+BIO-144,6.014,Placebo M,Week 2
+BIO-145,6.064,Placebo M,Week 2
+BIO-146,7.715,Treatment M,Week 2
+BIO-147,7.384,Placebo M,Week 2
+BIO-148,6.81,Placebo F,Week 2
+BIO-149,7.778,Placebo M,Week 2
+BIO-150,7.016,Placebo M,Week 2
+BIO-152,6.101,Placebo M,Week 2
+BIO-153,7.172,Placebo F,Week 2
+BIO-154,8.083,Treatment M,Week 2
+BIO-156,6.318,Placebo M,Week 2
+BIO-157,4.074,Treatment M,Week 2
+BIO-158,7.524,Treatment M,Week 2
+BIO-159,7.207,Treatment F,Week 2
+BIO-160,5.961,Treatment F,Week 2
+BIO-161,7.248,Placebo F,Week 2
+BIO-162,6.394,Treatment M,Week 2
+BIO-163,6.26,Placebo M,Week 2
+BIO-164,5.544,Treatment F,Week 2
+BIO-165,7.513,Treatment F,Week 2
+BIO-166,4.846,Treatment F,Week 2
+BIO-167,3.675,Treatment M,Week 2
+BIO-168,4.781,Placebo F,Week 2
+BIO-169,5.491,Treatment F,Week 2
+BIO-170,5.917,Placebo M,Week 2
+BIO-171,4.384,Treatment M,Week 2
+BIO-172,5.337,Treatment M,Week 2
+BIO-173,6.012,Placebo M,Week 2
+BIO-174,8.742,Placebo F,Week 2
+BIO-175,9.22,Placebo M,Week 2
+BIO-176,7.953,Placebo M,Week 2
+BIO-177,6.372,Treatment F,Week 2
+BIO-178,10.532,Placebo F,Week 2
+BIO-179,3.075,Treatment F,Week 2
+BIO-180,8.051,Placebo M,Week 2
+BIO-182,7.819,Placebo F,Week 2
+BIO-183,7.265,Treatment M,Week 2
+BIO-184,7.591,Placebo M,Week 2
+BIO-185,7.459,Placebo F,Week 2
+BIO-186,6.394,Treatment F,Week 2
+BIO-187,6.977,Placebo F,Week 2
+BIO-188,2.065,Treatment F,Week 2
+BIO-190,10.465,Placebo M,Week 2
+BIO-191,7.535,Treatment M,Week 2
+BIO-192,5.082,Treatment M,Week 2
+BIO-193,8.644,Treatment M,Week 2
+BIO-194,6.884,Placebo M,Week 2
+BIO-195,9.152,Treatment F,Week 2
+BIO-196,4.508,Treatment F,Week 2
+BIO-197,5.704,Treatment M,Week 2
+BIO-198,6.875,Treatment F,Week 2
+BIO-199,8.569,Placebo M,Week 2
+BIO-200,8.06,Placebo F,Week 2
+BIO-001,5.9,Placebo F,Week 4
+BIO-002,3.252,Treatment F,Week 4
+BIO-003,8.038,Placebo M,Week 4
+BIO-004,6.017,Treatment M,Week 4
+BIO-005,10.764,Treatment M,Week 4
+BIO-006,6.366,Placebo M,Week 4
+BIO-007,6.59,Treatment M,Week 4
+BIO-008,6.269,Placebo M,Week 4
+BIO-009,5.961,Treatment F,Week 4
+BIO-011,7.6,Treatment F,Week 4
+BIO-012,5.337,Placebo M,Week 4
+BIO-013,9.157,Placebo M,Week 4
+BIO-014,5.938,Treatment M,Week 4
+BIO-015,8.194,Placebo M,Week 4
+BIO-016,8.12,Placebo M,Week 4
+BIO-017,8.373,Placebo F,Week 4
+BIO-018,7.784,Treatment M,Week 4
+BIO-019,5.657,Treatment M,Week 4
+BIO-020,6.771,Treatment F,Week 4
+BIO-021,11.164,Placebo F,Week 4
+BIO-022,6.121,Treatment M,Week 4
+BIO-023,7.927,Placebo F,Week 4
+BIO-024,8.784,Treatment F,Week 4
+BIO-025,7.485,Placebo F,Week 4
+BIO-026,7.6,Placebo M,Week 4
+BIO-028,6.188,Treatment M,Week 4
+BIO-029,5.316,Treatment M,Week 4
+BIO-030,9.368,Treatment M,Week 4
+BIO-031,6.824,Treatment M,Week 4
+BIO-032,5.84,Treatment M,Week 4
+BIO-033,9.236,Treatment F,Week 4
+BIO-034,6.981,Placebo M,Week 4
+BIO-035,6.201,Placebo F,Week 4
+BIO-036,5.2,Treatment M,Week 4
+BIO-037,8.726,Placebo M,Week 4
+BIO-038,8.496,Treatment M,Week 4
+BIO-039,6.254,Placebo F,Week 4
+BIO-040,4.375,Treatment F,Week 4
+BIO-041,6.784,Treatment M,Week 4
+BIO-042,7.297,Treatment F,Week 4
+BIO-043,9.854,Placebo F,Week 4
+BIO-044,11.429,Placebo M,Week 4
+BIO-045,9.045,Placebo F,Week 4
+BIO-046,6.743,Treatment F,Week 4
+BIO-047,6.408,Treatment F,Week 4
+BIO-048,7.951,Placebo F,Week 4
+BIO-049,9.01,Treatment F,Week 4
+BIO-050,6.113,Treatment M,Week 4
+BIO-051,7.578,Treatment M,Week 4
+BIO-052,4.894,Treatment F,Week 4
+BIO-053,6.454,Treatment F,Week 4
+BIO-054,11.017,Placebo M,Week 4
+BIO-055,7.996,Placebo M,Week 4
+BIO-056,8.307,Treatment M,Week 4
+BIO-058,8.284,Placebo F,Week 4
+BIO-059,4.122,Placebo F,Week 4
+BIO-060,6.547,Placebo M,Week 4
+BIO-061,8.063,Placebo M,Week 4
+BIO-062,7.075,Placebo M,Week 4
+BIO-063,5.637,Treatment M,Week 4
+BIO-064,5.139,Treatment M,Week 4
+BIO-065,5.14,Treatment M,Week 4
+BIO-067,8.115,Placebo F,Week 4
+BIO-068,4.735,Placebo M,Week 4
+BIO-069,7.088,Treatment M,Week 4
+BIO-070,7.322,Placebo M,Week 4
+BIO-071,7.032,Placebo M,Week 4
+BIO-075,9.113,Placebo F,Week 4
+BIO-076,11.285,Placebo M,Week 4
+BIO-077,6.396,Treatment F,Week 4
+BIO-078,7.307,Treatment M,Week 4
+BIO-079,5.85,Placebo F,Week 4
+BIO-080,7.451,Placebo F,Week 4
+BIO-081,7.721,Placebo F,Week 4
+BIO-083,7.935,Placebo F,Week 4
+BIO-084,5.637,Placebo M,Week 4
+BIO-085,7.26,Placebo F,Week 4
+BIO-086,11.34,Placebo F,Week 4
+BIO-087,5.783,Treatment F,Week 4
+BIO-088,6.083,Treatment F,Week 4
+BIO-089,11.926,Placebo M,Week 4
+BIO-090,7.991,Placebo F,Week 4
+BIO-091,7.389,Placebo M,Week 4
+BIO-092,8.358,Placebo M,Week 4
+BIO-093,9.692,Placebo M,Week 4
+BIO-094,7.821,Placebo M,Week 4
+BIO-095,9.432,Placebo F,Week 4
+BIO-096,8.437,Treatment F,Week 4
+BIO-097,8.062,Placebo M,Week 4
+BIO-098,8.411,Placebo F,Week 4
+BIO-100,9.489,Placebo M,Week 4
+BIO-101,5.842,Placebo M,Week 4
+BIO-102,3.919,Treatment F,Week 4
+BIO-103,4.862,Treatment F,Week 4
+BIO-104,6.652,Treatment M,Week 4
+BIO-105,9.075,Placebo M,Week 4
+BIO-106,9.89,Placebo F,Week 4
+BIO-107,6.91,Placebo F,Week 4
+BIO-109,8.852,Placebo F,Week 4
+BIO-110,8.256,Treatment F,Week 4
+BIO-111,6.841,Treatment M,Week 4
+BIO-112,10.046,Placebo F,Week 4
+BIO-113,6.482,Treatment M,Week 4
+BIO-114,8.438,Treatment F,Week 4
+BIO-115,10.13,Placebo M,Week 4
+BIO-116,7.539,Placebo M,Week 4
+BIO-117,8.852,Placebo F,Week 4
+BIO-118,8.111,Placebo F,Week 4
+BIO-119,6.851,Treatment M,Week 4
+BIO-120,5.57,Treatment M,Week 4
+BIO-121,6.294,Treatment M,Week 4
+BIO-122,10.919,Placebo M,Week 4
+BIO-123,4.797,Treatment F,Week 4
+BIO-124,9.033,Placebo M,Week 4
+BIO-125,6.365,Treatment M,Week 4
+BIO-126,3.121,Treatment F,Week 4
+BIO-129,7.501,Treatment M,Week 4
+BIO-130,6.048,Placebo M,Week 4
+BIO-131,9.373,Placebo F,Week 4
+BIO-132,7.326,Placebo F,Week 4
+BIO-133,7.874,Treatment F,Week 4
+BIO-134,4.328,Treatment F,Week 4
+BIO-135,5.039,Treatment F,Week 4
+BIO-136,4.895,Treatment M,Week 4
+BIO-137,8.738,Treatment M,Week 4
+BIO-138,8.518,Placebo M,Week 4
+BIO-139,8.264,Treatment M,Week 4
+BIO-140,7.456,Treatment M,Week 4
+BIO-141,5.112,Treatment F,Week 4
+BIO-142,9.331,Treatment F,Week 4
+BIO-143,5.632,Treatment F,Week 4
+BIO-144,7.446,Placebo M,Week 4
+BIO-145,8.586,Placebo M,Week 4
+BIO-146,6.066,Treatment M,Week 4
+BIO-147,7.433,Placebo M,Week 4
+BIO-148,7.265,Placebo F,Week 4
+BIO-149,8.322,Placebo M,Week 4
+BIO-150,7.125,Placebo M,Week 4
+BIO-151,5.828,Treatment M,Week 4
+BIO-152,8.966,Placebo M,Week 4
+BIO-153,8.225,Placebo F,Week 4
+BIO-155,6.134,Treatment F,Week 4
+BIO-156,6.466,Placebo M,Week 4
+BIO-157,6.918,Treatment M,Week 4
+BIO-158,5.567,Treatment M,Week 4
+BIO-159,7.895,Treatment F,Week 4
+BIO-161,6.276,Placebo F,Week 4
+BIO-162,6.261,Treatment M,Week 4
+BIO-163,8.804,Placebo M,Week 4
+BIO-164,6.746,Treatment F,Week 4
+BIO-165,6.333,Treatment F,Week 4
+BIO-166,5.143,Treatment F,Week 4
+BIO-167,4.592,Treatment M,Week 4
+BIO-168,3.265,Placebo F,Week 4
+BIO-169,8.26,Treatment F,Week 4
+BIO-170,6.023,Placebo M,Week 4
+BIO-171,6.951,Treatment M,Week 4
+BIO-172,5.698,Treatment M,Week 4
+BIO-173,4.876,Placebo M,Week 4
+BIO-174,7.175,Placebo F,Week 4
+BIO-175,8.918,Placebo M,Week 4
+BIO-176,8.732,Placebo M,Week 4
+BIO-177,7.83,Treatment F,Week 4
+BIO-178,9.85,Placebo F,Week 4
+BIO-179,3.864,Treatment F,Week 4
+BIO-180,7.031,Placebo M,Week 4
+BIO-181,7.273,Treatment M,Week 4
+BIO-182,9.621,Placebo F,Week 4
+BIO-183,4.309,Treatment M,Week 4
+BIO-184,10.221,Placebo M,Week 4
+BIO-185,6.248,Placebo F,Week 4
+BIO-186,5.681,Treatment F,Week 4
+BIO-187,8.179,Placebo F,Week 4
+BIO-188,6.377,Treatment F,Week 4
+BIO-189,6.024,Placebo F,Week 4
+BIO-190,8.588,Placebo M,Week 4
+BIO-191,7.915,Treatment M,Week 4
+BIO-192,4.746,Treatment M,Week 4
+BIO-193,7.712,Treatment M,Week 4
+BIO-194,8.233,Placebo M,Week 4
+BIO-195,7.531,Treatment F,Week 4
+BIO-196,4.146,Treatment F,Week 4
+BIO-197,5.6,Treatment M,Week 4
+BIO-198,5.326,Treatment F,Week 4
+BIO-199,9.443,Placebo M,Week 4
+BIO-200,7.922,Placebo F,Week 4
+BIO-001,6.379,Placebo F,Week 8
+BIO-002,2.919,Treatment F,Week 8
+BIO-004,6.771,Treatment M,Week 8
+BIO-005,7.858,Treatment M,Week 8
+BIO-006,5.161,Placebo M,Week 8
+BIO-007,6.936,Treatment M,Week 8
+BIO-008,7.285,Placebo M,Week 8
+BIO-009,6.711,Treatment F,Week 8
+BIO-010,6.805,Placebo F,Week 8
+BIO-011,6.873,Treatment F,Week 8
+BIO-012,5.242,Placebo M,Week 8
+BIO-013,9.926,Placebo M,Week 8
+BIO-014,8.095,Treatment M,Week 8
+BIO-016,7.788,Placebo M,Week 8
+BIO-017,9.089,Placebo F,Week 8
+BIO-018,5.297,Treatment M,Week 8
+BIO-019,7.006,Treatment M,Week 8
+BIO-020,6.088,Treatment F,Week 8
+BIO-021,10.381,Placebo F,Week 8
+BIO-022,5.831,Treatment M,Week 8
+BIO-023,9.812,Placebo F,Week 8
+BIO-024,7.285,Treatment F,Week 8
+BIO-025,8.67,Placebo F,Week 8
+BIO-026,7.232,Placebo M,Week 8
+BIO-027,7.599,Placebo M,Week 8
+BIO-028,5.992,Treatment M,Week 8
+BIO-029,5.738,Treatment M,Week 8
+BIO-030,7.174,Treatment M,Week 8
+BIO-031,7.348,Treatment M,Week 8
+BIO-032,5.234,Treatment M,Week 8
+BIO-033,7.333,Treatment F,Week 8
+BIO-034,7.674,Placebo M,Week 8
+BIO-035,5.575,Placebo F,Week 8
+BIO-036,5.756,Treatment M,Week 8
+BIO-037,6.631,Placebo M,Week 8
+BIO-038,8.273,Treatment M,Week 8
+BIO-039,8.176,Placebo F,Week 8
+BIO-040,5.938,Treatment F,Week 8
+BIO-041,4.093,Treatment M,Week 8
+BIO-042,7.655,Treatment F,Week 8
+BIO-043,8.104,Placebo F,Week 8
+BIO-044,10.155,Placebo M,Week 8
+BIO-045,9.645,Placebo F,Week 8
+BIO-046,7.273,Treatment F,Week 8
+BIO-047,5.638,Treatment F,Week 8
+BIO-048,6.029,Placebo F,Week 8
+BIO-049,9.558,Treatment F,Week 8
+BIO-050,5.307,Treatment M,Week 8
+BIO-052,5.028,Treatment F,Week 8
+BIO-053,4.676,Treatment F,Week 8
+BIO-055,8.787,Placebo M,Week 8
+BIO-056,7.072,Treatment M,Week 8
+BIO-057,5.719,Placebo M,Week 8
+BIO-058,7.836,Placebo F,Week 8
+BIO-059,5.376,Placebo F,Week 8
+BIO-060,6.135,Placebo M,Week 8
+BIO-061,6.491,Placebo M,Week 8
+BIO-062,6.119,Placebo M,Week 8
+BIO-063,8.58,Treatment M,Week 8
+BIO-064,6.01,Treatment M,Week 8
+BIO-065,5.637,Treatment M,Week 8
+BIO-066,5.428,Treatment M,Week 8
+BIO-067,9.787,Placebo F,Week 8
+BIO-068,5.802,Placebo M,Week 8
+BIO-069,7.049,Treatment M,Week 8
+BIO-070,8.527,Placebo M,Week 8
+BIO-071,5.412,Placebo M,Week 8
+BIO-072,5.517,Treatment F,Week 8
+BIO-073,5.62,Treatment M,Week 8
+BIO-074,5.566,Treatment M,Week 8
+BIO-075,11.86,Placebo F,Week 8
+BIO-076,10.629,Placebo M,Week 8
+BIO-077,6.197,Treatment F,Week 8
+BIO-078,7.71,Treatment M,Week 8
+BIO-079,7.721,Placebo F,Week 8
+BIO-080,9.559,Placebo F,Week 8
+BIO-081,8.588,Placebo F,Week 8
+BIO-082,7.287,Treatment F,Week 8
+BIO-083,7.986,Placebo F,Week 8
+BIO-084,7.116,Placebo M,Week 8
+BIO-085,7.048,Placebo F,Week 8
+BIO-086,11.381,Placebo F,Week 8
+BIO-087,6.223,Treatment F,Week 8
+BIO-088,7.843,Treatment F,Week 8
+BIO-089,7.627,Placebo M,Week 8
+BIO-090,10.869,Placebo F,Week 8
+BIO-091,7.646,Placebo M,Week 8
+BIO-092,8.594,Placebo M,Week 8
+BIO-093,9.561,Placebo M,Week 8
+BIO-094,7.039,Placebo M,Week 8
+BIO-095,6.788,Placebo F,Week 8
+BIO-096,6.72,Treatment F,Week 8
+BIO-097,8.269,Placebo M,Week 8
+BIO-098,8.732,Placebo F,Week 8
+BIO-099,9.37,Placebo M,Week 8
+BIO-100,9.839,Placebo M,Week 8
+BIO-101,7.386,Placebo M,Week 8
+BIO-102,6.238,Treatment F,Week 8
+BIO-103,6.26,Treatment F,Week 8
+BIO-105,7.967,Placebo M,Week 8
+BIO-106,8.795,Placebo F,Week 8
+BIO-107,6.822,Placebo F,Week 8
+BIO-108,8.498,Treatment F,Week 8
+BIO-109,9.633,Placebo F,Week 8
+BIO-110,9.116,Treatment F,Week 8
+BIO-111,5.694,Treatment M,Week 8
+BIO-112,8.769,Placebo F,Week 8
+BIO-113,8.296,Treatment M,Week 8
+BIO-114,6.923,Treatment F,Week 8
+BIO-115,8.334,Placebo M,Week 8
+BIO-117,8.705,Placebo F,Week 8
+BIO-118,8.905,Placebo F,Week 8
+BIO-119,7.251,Treatment M,Week 8
+BIO-120,6.368,Treatment M,Week 8
+BIO-121,4.102,Treatment M,Week 8
+BIO-122,8.671,Placebo M,Week 8
+BIO-123,3.879,Treatment F,Week 8
+BIO-124,9.164,Placebo M,Week 8
+BIO-125,5.35,Treatment M,Week 8
+BIO-126,3.569,Treatment F,Week 8
+BIO-127,9.052,Treatment F,Week 8
+BIO-128,6.97,Placebo F,Week 8
+BIO-129,6.339,Treatment M,Week 8
+BIO-130,7.045,Placebo M,Week 8
+BIO-131,7.305,Placebo F,Week 8
+BIO-133,6.773,Treatment F,Week 8
+BIO-135,5.935,Treatment F,Week 8
+BIO-136,6.53,Treatment M,Week 8
+BIO-137,7.557,Treatment M,Week 8
+BIO-138,8.136,Placebo M,Week 8
+BIO-139,6.332,Treatment M,Week 8
+BIO-140,9.183,Treatment M,Week 8
+BIO-141,6.801,Treatment F,Week 8
+BIO-142,7.779,Treatment F,Week 8
+BIO-143,4.022,Treatment F,Week 8
+BIO-144,6.335,Placebo M,Week 8
+BIO-145,9.051,Placebo M,Week 8
+BIO-147,7.785,Placebo M,Week 8
+BIO-148,6.768,Placebo F,Week 8
+BIO-149,7.204,Placebo M,Week 8
+BIO-150,9.089,Placebo M,Week 8
+BIO-151,8.049,Treatment M,Week 8
+BIO-152,8.224,Placebo M,Week 8
+BIO-153,9.776,Placebo F,Week 8
+BIO-154,6.395,Treatment M,Week 8
+BIO-155,6.722,Treatment F,Week 8
+BIO-156,7.631,Placebo M,Week 8
+BIO-157,6.007,Treatment M,Week 8
+BIO-158,7.346,Treatment M,Week 8
+BIO-159,9.996,Treatment F,Week 8
+BIO-160,7.871,Treatment F,Week 8
+BIO-161,8.688,Placebo F,Week 8
+BIO-162,6.429,Treatment M,Week 8
+BIO-163,7.72,Placebo M,Week 8
+BIO-164,5.521,Treatment F,Week 8
+BIO-165,6.3,Treatment F,Week 8
+BIO-166,2.945,Treatment F,Week 8
+BIO-167,3.655,Treatment M,Week 8
+BIO-168,6.845,Placebo F,Week 8
+BIO-169,6.647,Treatment F,Week 8
+BIO-170,7.406,Placebo M,Week 8
+BIO-171,4.829,Treatment M,Week 8
+BIO-172,8.359,Treatment M,Week 8
+BIO-173,5.265,Placebo M,Week 8
+BIO-174,8.357,Placebo F,Week 8
+BIO-176,9.306,Placebo M,Week 8
+BIO-177,6.419,Treatment F,Week 8
+BIO-178,7.35,Placebo F,Week 8
+BIO-179,4.47,Treatment F,Week 8
+BIO-180,7.315,Placebo M,Week 8
+BIO-181,6.157,Treatment M,Week 8
+BIO-182,9.313,Placebo F,Week 8
+BIO-183,5.788,Treatment M,Week 8
+BIO-184,8.942,Placebo M,Week 8
+BIO-185,7.917,Placebo F,Week 8
+BIO-186,4.42,Treatment F,Week 8
+BIO-188,3.743,Treatment F,Week 8
+BIO-189,4.911,Placebo F,Week 8
+BIO-190,9.309,Placebo M,Week 8
+BIO-191,7.34,Treatment M,Week 8
+BIO-193,6.143,Treatment M,Week 8
+BIO-194,7.483,Placebo M,Week 8
+BIO-195,8.627,Treatment F,Week 8
+BIO-196,5.023,Treatment F,Week 8
+BIO-197,5.048,Treatment M,Week 8
+BIO-198,6.833,Treatment F,Week 8
+BIO-199,9.629,Placebo M,Week 8
+BIO-200,7.152,Placebo F,Week 8
+BIO-001,5.879,Placebo F,Week 12
+BIO-002,2.799,Treatment F,Week 12
+BIO-003,9.41,Placebo M,Week 12
+BIO-004,5.208,Treatment M,Week 12
+BIO-005,8.12,Treatment M,Week 12
+BIO-007,6.226,Treatment M,Week 12
+BIO-008,5.636,Placebo M,Week 12
+BIO-009,6.719,Treatment F,Week 12
+BIO-010,7.917,Placebo F,Week 12
+BIO-012,6.214,Placebo M,Week 12
+BIO-013,8.998,Placebo M,Week 12
+BIO-014,5.084,Treatment M,Week 12
+BIO-015,6.13,Placebo M,Week 12
+BIO-016,9.927,Placebo M,Week 12
+BIO-017,9.008,Placebo F,Week 12
+BIO-018,6.579,Treatment M,Week 12
+BIO-019,7.25,Treatment M,Week 12
+BIO-020,6.657,Treatment F,Week 12
+BIO-021,11.653,Placebo F,Week 12
+BIO-022,5.385,Treatment M,Week 12
+BIO-023,7.468,Placebo F,Week 12
+BIO-024,8.434,Treatment F,Week 12
+BIO-025,8.154,Placebo F,Week 12
+BIO-026,7.245,Placebo M,Week 12
+BIO-027,10.2,Placebo M,Week 12
+BIO-028,6.252,Treatment M,Week 12
+BIO-029,5.868,Treatment M,Week 12
+BIO-030,7.061,Treatment M,Week 12
+BIO-031,7.538,Treatment M,Week 12
+BIO-032,6.565,Treatment M,Week 12
+BIO-033,9.244,Treatment F,Week 12
+BIO-034,8.412,Placebo M,Week 12
+BIO-035,6.582,Placebo F,Week 12
+BIO-036,7.871,Treatment M,Week 12
+BIO-037,6.84,Placebo M,Week 12
+BIO-038,7.627,Treatment M,Week 12
+BIO-039,10.459,Placebo F,Week 12
+BIO-041,5.756,Treatment M,Week 12
+BIO-042,6.525,Treatment F,Week 12
+BIO-043,6.651,Placebo F,Week 12
+BIO-044,9.241,Placebo M,Week 12
+BIO-045,8.552,Placebo F,Week 12
+BIO-046,5.394,Treatment F,Week 12
+BIO-047,4.55,Treatment F,Week 12
+BIO-048,8.332,Placebo F,Week 12
+BIO-049,8.896,Treatment F,Week 12
+BIO-050,7.238,Treatment M,Week 12
+BIO-051,7.376,Treatment M,Week 12
+BIO-052,4.96,Treatment F,Week 12
+BIO-054,11.386,Placebo M,Week 12
+BIO-055,8.919,Placebo M,Week 12
+BIO-056,7.641,Treatment M,Week 12
+BIO-057,8.044,Placebo M,Week 12
+BIO-058,9.177,Placebo F,Week 12
+BIO-059,6.189,Placebo F,Week 12
+BIO-060,6.101,Placebo M,Week 12
+BIO-061,7.241,Placebo M,Week 12
+BIO-064,6.063,Treatment M,Week 12
+BIO-065,4.531,Treatment M,Week 12
+BIO-066,5.153,Treatment M,Week 12
+BIO-068,6.865,Placebo M,Week 12
+BIO-069,7.604,Treatment M,Week 12
+BIO-070,7.954,Placebo M,Week 12
+BIO-071,5.737,Placebo M,Week 12
+BIO-072,6.108,Treatment F,Week 12
+BIO-073,6.479,Treatment M,Week 12
+BIO-074,4.002,Treatment M,Week 12
+BIO-075,9.456,Placebo F,Week 12
+BIO-076,11.75,Placebo M,Week 12
+BIO-077,4.509,Treatment F,Week 12
+BIO-078,5.763,Treatment M,Week 12
+BIO-079,6.733,Placebo F,Week 12
+BIO-080,9.389,Placebo F,Week 12
+BIO-081,8.52,Placebo F,Week 12
+BIO-082,5.601,Treatment F,Week 12
+BIO-083,7.005,Placebo F,Week 12
+BIO-084,7.638,Placebo M,Week 12
+BIO-085,7.198,Placebo F,Week 12
+BIO-086,10.488,Placebo F,Week 12
+BIO-087,7.28,Treatment F,Week 12
+BIO-088,6.175,Treatment F,Week 12
+BIO-089,10.818,Placebo M,Week 12
+BIO-090,7.691,Placebo F,Week 12
+BIO-091,7.205,Placebo M,Week 12
+BIO-092,8.443,Placebo M,Week 12
+BIO-093,11.412,Placebo M,Week 12
+BIO-094,9.396,Placebo M,Week 12
+BIO-095,8.872,Placebo F,Week 12
+BIO-096,7.089,Treatment F,Week 12
+BIO-097,9.062,Placebo M,Week 12
+BIO-098,7.895,Placebo F,Week 12
+BIO-099,8.653,Placebo M,Week 12
+BIO-101,5.224,Placebo M,Week 12
+BIO-102,5.089,Treatment F,Week 12
+BIO-103,4.733,Treatment F,Week 12
+BIO-104,7.243,Treatment M,Week 12
+BIO-105,8.721,Placebo M,Week 12
+BIO-106,9.514,Placebo F,Week 12
+BIO-107,6.783,Placebo F,Week 12
+BIO-108,8.026,Treatment F,Week 12
+BIO-109,6.56,Placebo F,Week 12
+BIO-110,7.146,Treatment F,Week 12
+BIO-111,7.152,Treatment M,Week 12
+BIO-112,7.244,Placebo F,Week 12
+BIO-113,7.426,Treatment M,Week 12
+BIO-114,6.578,Treatment F,Week 12
+BIO-115,9.374,Placebo M,Week 12
+BIO-117,10.773,Placebo F,Week 12
+BIO-119,8.505,Treatment M,Week 12
+BIO-120,6.878,Treatment M,Week 12
+BIO-121,5.127,Treatment M,Week 12
+BIO-122,8.367,Placebo M,Week 12
+BIO-123,5.107,Treatment F,Week 12
+BIO-124,8.725,Placebo M,Week 12
+BIO-125,5.844,Treatment M,Week 12
+BIO-127,8.119,Treatment F,Week 12
+BIO-128,7.932,Placebo F,Week 12
+BIO-129,7.37,Treatment M,Week 12
+BIO-130,6.383,Placebo M,Week 12
+BIO-131,6.904,Placebo F,Week 12
+BIO-132,6.666,Placebo F,Week 12
+BIO-133,5.695,Treatment F,Week 12
+BIO-135,4.291,Treatment F,Week 12
+BIO-136,7.163,Treatment M,Week 12
+BIO-137,7.79,Treatment M,Week 12
+BIO-138,7.28,Placebo M,Week 12
+BIO-139,6.928,Treatment M,Week 12
+BIO-140,8.755,Treatment M,Week 12
+BIO-141,6.331,Treatment F,Week 12
+BIO-142,6.811,Treatment F,Week 12
+BIO-143,5.913,Treatment F,Week 12
+BIO-144,8.274,Placebo M,Week 12
+BIO-145,7.445,Placebo M,Week 12
+BIO-146,7.702,Treatment M,Week 12
+BIO-147,7.743,Placebo M,Week 12
+BIO-148,8.392,Placebo F,Week 12
+BIO-149,7.227,Placebo M,Week 12
+BIO-150,8.589,Placebo M,Week 12
+BIO-151,6.576,Treatment M,Week 12
+BIO-152,8.138,Placebo M,Week 12
+BIO-153,8.419,Placebo F,Week 12
+BIO-154,6.865,Treatment M,Week 12
+BIO-155,6.527,Treatment F,Week 12
+BIO-156,6.004,Placebo M,Week 12
+BIO-157,5.981,Treatment M,Week 12
+BIO-158,5.219,Treatment M,Week 12
+BIO-159,9.447,Treatment F,Week 12
+BIO-160,7.264,Treatment F,Week 12
+BIO-161,7.066,Placebo F,Week 12
+BIO-162,7.128,Treatment M,Week 12
+BIO-163,7.305,Placebo M,Week 12
+BIO-164,5.021,Treatment F,Week 12
+BIO-165,8.329,Treatment F,Week 12
+BIO-166,2.411,Treatment F,Week 12
+BIO-167,5.628,Treatment M,Week 12
+BIO-168,7.49,Placebo F,Week 12
+BIO-169,7.135,Treatment F,Week 12
+BIO-170,6.874,Placebo M,Week 12
+BIO-171,7.099,Treatment M,Week 12
+BIO-173,4.229,Placebo M,Week 12
+BIO-174,7.902,Placebo F,Week 12
+BIO-175,7.694,Placebo M,Week 12
+BIO-176,9.445,Placebo M,Week 12
+BIO-177,7.258,Treatment F,Week 12
+BIO-178,10.307,Placebo F,Week 12
+BIO-179,5.118,Treatment F,Week 12
+BIO-180,7.318,Placebo M,Week 12
+BIO-181,5.901,Treatment M,Week 12
+BIO-182,7.767,Placebo F,Week 12
+BIO-183,7.094,Treatment M,Week 12
+BIO-184,8.281,Placebo M,Week 12
+BIO-186,5.355,Treatment F,Week 12
+BIO-187,7.863,Placebo F,Week 12
+BIO-188,3.638,Treatment F,Week 12
+BIO-189,5.645,Placebo F,Week 12
+BIO-190,10.291,Placebo M,Week 12
+BIO-191,7.071,Treatment M,Week 12
+BIO-193,7.306,Treatment M,Week 12
+BIO-195,9.346,Treatment F,Week 12
+BIO-196,5.792,Treatment F,Week 12
+BIO-197,6.745,Treatment M,Week 12
+BIO-198,5.65,Treatment F,Week 12
+BIO-199,9.652,Placebo M,Week 12
+BIO-200,6.75,Placebo F,Week 12

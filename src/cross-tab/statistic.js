@@ -92,15 +92,33 @@ const present = (value) => value !== undefined && value !== null;
 
 // R names a category in its reason by the column the chart handed it, `row`
 // or `col`: "Not computed: col = > 10 has 2." The table's own names for its
-// variables are put in their place, and nothing else of R's words changes.
+// variables are put in their place, and nothing else of R's words changes. So
+// too in the note R adds when Fisher's exact test ran on a table with a
+// category below the minimum group size, which lists them the same way:
+// "Below it here: col = > 10 has 2."
 function named(value, names) {
-  if (!names || typeof value.reason !== 'string') return value;
-  const reason = value.reason.replace(
-    /(^Not computed: |; )(row|col) = /g,
-    (_, before, field) => `${before}${names[field] || field} = `
-  );
-  return { ...value, reason };
+  if (!names) return value;
+  const rename = (said, lead) =>
+    said.replace(
+      new RegExp(`(${lead}|; )(row|col) = `, 'g'),
+      (_, before, field) => `${before}${names[field] || field} = `
+    );
+  const out = { ...value };
+  if (typeof value.reason === 'string') out.reason = rename(value.reason, '^Not computed: ');
+  if (Array.isArray(value.notes)) {
+    out.notes = value.notes.map((note) =>
+      // Only the list of categories is renamed, from where it starts.
+      typeof note === 'string' && note.includes(BELOW_MINIMUM)
+        ? note.slice(0, note.indexOf(BELOW_MINIMUM)) +
+          rename(note.slice(note.indexOf(BELOW_MINIMUM)), BELOW_MINIMUM)
+        : note
+    );
+  }
+  return out;
 }
+
+// Where R's note lists the categories below the minimum group size.
+const BELOW_MINIMUM = 'Below it here: ';
 
 // Which way round Fisher's odds ratio is. R's fisher.test(), which gsm.bio's
 // Analyze_Contingency runs, estimates the odds ratio of the two-by-two table

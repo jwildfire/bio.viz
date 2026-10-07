@@ -1,0 +1,20 @@
+USUBJID,y,x,visit
+BIO-053,5.946,Treatment,Baseline
+BIO-092,7.473,Placebo,Baseline
+BIO-105,8.069,Placebo,Baseline
+BIO-130,7.181,Placebo,Baseline
+BIO-053,5.646,Treatment,Week 2
+BIO-092,6.824,Placebo,Week 2
+BIO-105,8.329,Placebo,Week 2
+BIO-130,6.159,Placebo,Week 2
+BIO-053,6.454,Treatment,Week 4
+BIO-092,8.358,Placebo,Week 4
+BIO-105,9.075,Placebo,Week 4
+BIO-130,6.048,Placebo,Week 4
+BIO-053,4.676,Treatment,Week 8
+BIO-092,8.594,Placebo,Week 8
+BIO-105,7.967,Placebo,Week 8
+BIO-130,7.045,Placebo,Week 8
+BIO-092,8.443,Placebo,Week 12
+BIO-105,8.721,Placebo,Week 12
+BIO-130,6.383,Placebo,Week 12

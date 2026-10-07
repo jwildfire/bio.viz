@@ -15,6 +15,7 @@ import { markOf, numberOf } from '../../src/correlation-matrix/structureData.js'
 import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
+import { STYLED_BY_TAG, byTag, lookOf, wearSiteStyles } from './ownLook.js';
 
 // The correlation matrix in a real page (#27): safety.viz's vendored bundle and
 // bio.viz's committed bundle, loaded as two script tags, drawing the vendored
@@ -1909,6 +1910,17 @@ test.describe('correlation matrix: a cell opens the association scatter', () => 
       await expect(root(page)).toBeVisible();
       // The keyboard's place is the cell that was opened.
       await expect(cellAt(page, row, column)).toBeFocused();
+      // The pointer is still where the Back button was, and the grid is under
+      // that place now. A cell there prints its sentence in the footnote, as a
+      // cell pointed at should, when the browser next works out what the
+      // pointer is on, and that can come after the blur below as well as
+      // before it. So the pointer is taken off the chart first, into the
+      // page's margin: the grid is then read with nothing pointed at and
+      // nothing focused, as it was read before the pair was opened.
+      await page.mouse.move(1, 1);
+      expect(await page.evaluate(() => document.elementFromPoint(1, 1).closest('#chart'))).toBe(
+        null
+      );
       await cellAt(page, row, column).blur();
       // The grid is as it was, to the last cell, and its tab stop apart.
       const after = await everything(page);
@@ -2389,7 +2401,9 @@ test.describe('correlation matrix: on the site', () => {
     await expect(card).toContainText(
       'Which of these biomarkers, or which visits of one biomarker, are related?'
     );
-    await expect(card).toContainText('It prints no p-value.');
+    // The card is two sentences (#96), and still says the grid has no p-value;
+    // the fuller text, at the head of the demo, says so in a sentence of its own.
+    await expect(card).toContainText('with no p-value');
     // Every chart is listed, in the order they were built.
     await expect(page.locator('#charts [data-module]')).toHaveCount(6);
     expect(
@@ -2408,9 +2422,8 @@ test.describe('correlation matrix: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -2418,8 +2431,8 @@ test.describe('correlation matrix: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^correlationMatrix\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Correlation matrix');
     expect(
@@ -2603,6 +2616,43 @@ test.describe('correlation matrix: on the site', () => {
     await toMatrix.click();
     await expect(page).toHaveURL(/\/_site\/correlation-matrix\/index\.html$/);
     await expect(page.locator('h1')).toHaveText('Correlation matrix');
+  });
+  test('CM-SITE-006: on a page whose stylesheet styles every table, heading and cell by its tag, as the site’s and safety.viz’s demo app’s do, the list of pairs and the grid’s title keep the chart’s own look, the same as on a page with no stylesheet (#97)', async ({
+    page
+  }) => {
+    const PARTS = {
+      title: '#chart .bv-matrix-title',
+      table: '#chart .bv-pairs table',
+      heading: '#chart .bv-pairs thead th',
+      pair: '#chart .bv-pairs tbody th',
+      cell: '#chart .bv-pairs tbody td'
+    };
+    await open(page);
+    await withStored(page, stored('biomarkers-baseline'));
+    await expect(pairs(page).locator('tbody tr')).toHaveCount(66);
+    const face = await root(page).evaluate((element) => getComputedStyle(element).fontFamily);
+    const bare = await lookOf(page, PARTS);
+
+    await wearSiteStyles(page);
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    const worn = await lookOf(page, PARTS);
+    expect(worn).toEqual(bare);
+    // In so many words: the chart's face and its own small capitals, not the
+    // page's wider-spaced ones; no tinted ground under a heading, a rule
+    // beneath a row and none beside it, no margin round the table; and the
+    // title in the chart's face, not the page's serif.
+    expect(worn.heading).toMatchObject({ textTransform: 'uppercase', letterSpacing: '0.384px' });
+    for (const part of ['heading', 'pair', 'cell']) {
+      expect(worn[part], part).toMatchObject({
+        fontFamily: face,
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderLeftWidth: '0px',
+        borderRightWidth: '0px',
+        borderTopWidth: '0px'
+      });
+    }
+    expect(worn.table).toMatchObject({ marginTop: '0px', marginBottom: '0px' });
+    expect(worn.title).toMatchObject({ fontFamily: face, fontWeight: '600', lineHeight: 'normal' });
   });
 });
 

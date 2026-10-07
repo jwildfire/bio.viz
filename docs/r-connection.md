@@ -175,7 +175,7 @@ It reads these members of a statistics result, the names gsm.bio's functions ret
 | ------------ | ---------------- | ---------------------------------------------------------------------------------- |
 | `status`     | string           | `"ok"`, `"too_small"` or `"error"`. Absent is read as `"ok"`.                      |
 | `method`     | string           | The name of the test.                                                              |
-| `p_value`    | number, 0 to 1   | The p-value.                                                                       |
+| `p_value`    | number, 0 to 1   | The p-value. One within 0.000000001 above 1 is read as 1 (see the rules).          |
 | `counts`     | number or object | The counts used: one whole number, or an object of group name to whole number.     |
 | `adjustment` | string           | The multiplicity adjustment applied, if any. Absent, empty or `"none"` means none. |
 | `reason`     | string           | Why no number was computed, if none was.                                           |
@@ -193,6 +193,7 @@ The rules, from the design:
 
 - Never a p-value alone: without the method's name or the counts, the number is not printed.
 - Three decimals. Below 0.001 it prints `p < 0.001`; where it would round to 1.000 it prints `p > 0.999`.
+- A p-value is a number from 0 to 1, and one that is not is refused, not repaired. One allowance: R can return a p-value of 1 a rounding above it, because it is a sum of probabilities (`fisher.test()` gives 1.0000000000000002 for a table no other table is less likely than). A value within 0.000000001 above 1 is read as 1 and printed `p > 0.999`. Anything further above 1, and anything below 0, is refused. The same holds for a row's adjusted and unadjusted p-values.
 - Labelled `Exploratory, unadjusted.` unless the result names an adjustment, and then `Exploratory, adjusted (Holm).` An adjustment R names by its `p.adjust` method is printed by its usual name: `holm` as Holm, `hochberg` as Hochberg, `hommel` as Hommel, `bonferroni` as Bonferroni, `BH` and `fdr` as Benjamini-Hochberg, `BY` as Benjamini-Yekutieli. Any other name is printed as given.
 - No stars, and never the word significant.
 - A reason in place of a number when R declined to compute one, said once. A reason that already begins "Not computed", as gsm.bio's do, is printed as it is, with the counts after it as a sentence of their own. Any other reason is led in by the method's name and the words `not computed`: `Wilcoxon rank-sum test: not computed, fewer than 5 participants in Placebo (Placebo n = 3, Active n = 84).`
@@ -315,6 +316,29 @@ It returns the sentence, and its parts for a table:
 | `label`      | `Exploratory, adjusted (Benjamini-Hochberg).` Null unless `status` is `shown`.                                                                                                                                                                                  |
 
 A row R could not compute gives R's reason and its counts and no number: `CRP: Not computed: Placebo has 2; Treatment has 2. The minimum group size is 5. Counts: Placebo n = 2, Treatment n = 2.`
+
+## `formatLevel(row, of)`
+
+Formats one level's result from a by-level answer's `rows`: the test of the groups R ran on the rows of one level of a column, a visit say, as gsm.bio's `Analyze_GroupDifferenceBy` returns it, one row per level. The p-value printed is R's `p_value`, which R adjusted across the levels that have one when it names an adjustment, and it is held to the rules a whole result is held to: never without the method and each group's count, labelled exploratory, the adjustment named, no star and no verdict. It reads `by`, the groups in `group_1`, `group_2` and so on with each one's count in `n_1`, `n_2` and so on, however many there are, and `method`, `p_unadjusted`, `p_value`, `adjustment`, `adjusted_over`, `status` and `reason`. `of` is what a level is called in the sentence, in the singular: `'level'` unless given, `'visit'` for the [group comparison chart](group-comparison.md#the-test-under-each-visit).
+
+It returns the sentence, and its parts for a table:
+
+| Member       | Meaning                                                                                                                                                                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`     | `shown`, `withheld`, `error` or `refused`, as `formatStatistic` gives them. A row with no level, fewer than two groups named, no method, no counts, no unadjusted p-value, or an adjustment and no number of levels it covered is `refused`. |
+| `text`       | The whole sentence: `Baseline: Welch Two Sample t-test: p = 0.221 (Placebo n = 100, Treatment n = 100). Exploratory, unadjusted.`                                                                                                            |
+| `result`     | The same without the level's name.                                                                                                                                                                                                           |
+| `by`         | The level, or null.                                                                                                                                                                                                                          |
+| `groups`     | The groups, in the order R names them, or null.                                                                                                                                                                                              |
+| `n`          | Each group's count, in that order, or null.                                                                                                                                                                                                  |
+| `method`     | The method's name. Null unless `status` is `shown`.                                                                                                                                                                                          |
+| `p`          | The p-value to print, R's `p_value`: `p = 0.579`. Null unless `status` is `shown`.                                                                                                                                                           |
+| `unadjusted` | The p-value R computed before any adjustment, R's `p_unadjusted`, as printed. Null unless `status` is `shown`.                                                                                                                               |
+| `adjustment` | The adjustment by its usual name, `Holm` or `Benjamini-Hochberg`, or null when the p-value is unadjusted.                                                                                                                                    |
+| `over`       | How many levels R adjusted across, or null when the p-value is unadjusted.                                                                                                                                                                   |
+| `label`      | `Exploratory, unadjusted.` or `Exploratory, adjusted (Holm).` Null unless `status` is `shown`.                                                                                                                                               |
+
+An adjusted p-value is given beside the unadjusted one: `Week 12: Welch Two Sample t-test: p = 0.193 unadjusted, p = 0.579 adjusted across 3 visits (Placebo n = 5, Treatment n = 5). Exploratory, adjusted (Holm).` A level R could not compute gives R's reason and each group's count and no number: `Week 2: Not computed: Treatment has 1. The minimum group size is 5. Counts: Placebo n = 6, Treatment n = 1.`
 
 ## Checked against real R
 

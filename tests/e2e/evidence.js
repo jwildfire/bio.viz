@@ -25,7 +25,7 @@ const MODULES = JSON.parse(
 
 export const CANONICAL = process.platform === 'linux';
 
-// The three families site/site.css asks for. A capture taken before they
+// The three families the site's stylesheet asks for (safety.viz's, as copied). A capture taken before they
 // arrive, or when they never do, would show the fallback fonts: not the page a
 // reader sees, and a baseline nothing would match again.
 const FAMILIES = ['Instrument Sans', 'Instrument Serif', 'IBM Plex Mono'];
@@ -171,11 +171,16 @@ export const fixClock = (page) => page.clock.setFixedTime(FIXED_DATE);
  * The gallery's picture of a chart (#66): its frame, `root`, captured as the
  * reader of a figure sees it, with its title and its own footnote, which says
  * what stands behind its statistics, inside the capture. Waits for R's answer,
- * and fails, rather than capture, when the frame lacks either.
+ * and fails, rather than capture, when the frame lacks either. A view that
+ * prints no statistic, as the group comparison's opening view does, is
+ * captured with `statistics: false`: its footnote must then say that R was
+ * asked for none (#108).
  * @param {import('@playwright/test').Locator} root The chart's frame, `.sv-main`.
  * @param {string} requirementId The chart's DRAW-001 requirement.
+ * @param {object} [options]
+ * @param {boolean} [options.statistics=true] Whether the view prints R's statistics.
  */
-export async function captureGallery(root, requirementId) {
+export async function captureGallery(root, requirementId, { statistics = true } = {}) {
   const page = root.page();
   // What a reader works the chart with is left out, as the chart's own PNG
   // leaves it out: the controls under it, the listing, the bar of downloads.
@@ -184,10 +189,16 @@ export async function captureGallery(root, requirementId) {
   const automatic = root.locator('.bv-foot-line[data-automatic="true"]');
   await expect(title).toBeVisible();
   await expect(automatic).toBeVisible();
-  // The footnote names R's method and counts: R has answered.
-  await expect(automatic).toContainText('Statistics: ');
-  await expect(automatic).not.toContainText('waiting for R');
-  await expect(automatic).not.toContainText('unavailable');
+  if (statistics) {
+    // The footnote names R's method and counts: R has answered.
+    await expect(automatic).toContainText('Statistics: ');
+    await expect(automatic).not.toContainText('waiting for R');
+    await expect(automatic).not.toContainText('unavailable');
+  } else {
+    // The view asks R for nothing, and its footnote says so in those words.
+    await expect(automatic).toContainText('No statistic was asked of R.');
+    await expect(automatic).not.toContainText('Statistics: ');
+  }
   const [frame, foot, heading] = await Promise.all([
     root.boundingBox(),
     automatic.boundingBox(),

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { describeAnswer } from '../../src/stratified-survival/statistic.js';
 import { captureEvidence, captureGallery } from './evidence.js';
+import { STYLED_BY_TAG, boxOf, byTag, lookOf } from './ownLook.js';
 import { expectFailureSaid, expectReplacedConnectionDead } from './review.js';
 
 // The stratified survival chart in a real page (#61): safety.viz's vendored
@@ -776,19 +777,19 @@ test.describe('stratified survival: on a phone and on the site', () => {
     await blockR(page);
     await page.goto('/_site/gallery/index.html');
     const card = page.locator('#charts [data-module="stratified-survival"]');
-    await expect(card.locator('h3')).toHaveText('Stratified survival');
+    await expect(card.locator('h3 a')).toHaveText('Stratified survival');
     await expect(card).toContainText('Do participants with high and low levels');
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/stratified-survival\/evidence\.html$/);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
-    await expect(page.locator('h1')).toHaveText('The stratified survival chart');
+    await expect(page.locator('h1')).toContainText('The stratified survival chart');
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^stratifiedSurvival\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/stratified-survival\/index\.html$/);
-    await expect(page.locator('h1')).toHaveText('Stratified survival');
+    await expect(page.locator('h1')).toContainText('Stratified survival');
     await page.waitForFunction(() => Boolean(window.BioVizDemo && window.BioVizDemo.ready));
     await page.evaluate(() => window.BioVizDemo.ready);
     const levels = await page.evaluate(() => window.BioVizDemo.chart.model.levels);
@@ -805,16 +806,20 @@ test.describe('stratified survival: on a phone and on the site', () => {
     await blockR(page);
     await page.goto('/_site/gallery/index.html');
     const card = page.locator('#charts [data-module="stratified-survival"]');
-    await expect(card.locator('.module-status .status-experimental')).toHaveText('Experimental');
-    await expect(card.locator('.module-status')).toContainText('awaits its clinical review');
-    await card.getByRole('link', { name: 'Live demo' }).click();
-    await expect(page.locator('.hero .module-status .status-experimental')).toHaveText(
-      'Experimental'
+    // The badge is after the chart's title, as safety.viz marks an experimental
+    // chart, with the reason written out under it.
+    await expect(card.locator('h3 .site-badge')).toHaveText('Experimental');
+    await expect(card.locator('.kit-status')).toContainText('awaits its clinical review');
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
+    await expect(page.locator('h1 .site-badge')).toHaveText('Experimental');
+    await expect(page.locator('.demo-page > .kit-status')).toContainText(
+      'awaits its clinical review'
     );
     await expect(page.locator('#chart .sv-experimental')).toHaveCount(1);
     // The other charts are not marked.
     await page.goto('/_site/gallery/index.html');
-    await expect(page.locator('#charts .module-status')).toHaveCount(1);
+    await expect(page.locator('#charts .site-badge')).toHaveCount(1);
+    await expect(page.locator('#charts .kit-status')).toHaveCount(1);
   });
 
   test('SS-SITE-001: the live demo holds at a 390px-wide viewport with no horizontal scroll, with the controls open (#61)', async ({
@@ -863,6 +868,60 @@ test.describe('stratified survival: on a phone and on the site', () => {
     expect(strip.overflow).toBe('auto');
     await captureEvidence(page.locator('#demo'), 'SS-SITE-001', 'demo-on-a-phone');
     await context.close();
+  });
+
+  test('SS-SITE-005: on the demo page, whose stylesheet styles every table, heading and cell by its tag, the table of numbers at risk keeps the chart’s own look and size, the same as on a page with no stylesheet (#97)', async ({
+    page
+  }) => {
+    const PARTS = {
+      table: '#chart .bv-risk',
+      caption: '#chart .bv-risk caption',
+      corner: '#chart .bv-risk thead th:first-child',
+      time: '#chart .bv-risk thead th:nth-child(2)',
+      group: '#chart .bv-risk tbody th',
+      groupButton: '#chart .bv-risk tbody th button',
+      cell: '#chart .bv-risk tbody td',
+      count: '#chart .bv-risk tbody td button'
+    };
+    // On the test page, which has no stylesheet: the view the demo opens on.
+    await open(page, {
+      settings: {
+        endpoint: 'EFS',
+        group_by: { measure: 'CRP', visit: 'Baseline', cut: 'median' },
+        baseline_visits: 'Baseline'
+      }
+    });
+    const bare = await lookOf(page, PARTS);
+    const bareBox = await boxOf(page, PARTS.table);
+    const face = await root(page).evaluate((element) => getComputedStyle(element).fontFamily);
+
+    await blockR(page);
+    await page.goto('/_site/stratified-survival/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+    await expect(root(page).locator('.bv-risk tbody tr')).toHaveCount(2);
+    // The page does style a table by its tag.
+    expect(await byTag(page)).toEqual(STYLED_BY_TAG);
+    // The chart's table is as it was, part for part, and the same size.
+    const onSite = await lookOf(page, PARTS);
+    expect(onSite).toEqual(bare);
+    expect(await boxOf(page, PARTS.table)).toEqual(bareBox);
+    for (const part of ['corner', 'time', 'group', 'cell']) {
+      expect(onSite[part], part).toMatchObject({
+        fontFamily: face,
+        textTransform: 'none',
+        letterSpacing: 'normal',
+        lineHeight: 'normal',
+        verticalAlign: 'middle'
+      });
+    }
+    // A group's name is as heavy as the browser draws a heading, where the
+    // page's rule would have lightened it.
+    expect(onSite.group.fontWeight).toBe('700');
+    expect(onSite.table).toMatchObject({
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+      marginTop: '0px',
+      marginBottom: '0px'
+    });
   });
 });
 

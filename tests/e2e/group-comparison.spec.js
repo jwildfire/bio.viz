@@ -14,6 +14,9 @@ import { compareValues, TOLERANCE } from '../../site/r-check/check.mjs';
 import { captureEvidence, captureGallery } from './evidence.js';
 import { RULED_FILTERS, expectFilterRules, warningsOf } from './filterRules.js';
 import { NOBODY_PASSES, asked, expectNobody, letNobodyThrough, openDemo } from './nobody.js';
+import { parseCsv } from '../../src/shared/csv.js';
+import { readPng } from '../../src/shared/png.js';
+import { pixelsOf } from './pngPixels.js';
 
 // The group comparison chart in a real page (#9, #16): safety.viz's vendored
 // bundle and bio.viz's committed bundle, loaded as two script tags, drawing the
@@ -225,25 +228,30 @@ test.describe('group comparison: what is drawn', () => {
     );
     expect(errors).toEqual([]);
     await captureEvidence(page.locator('.sv-main'), 'GC-DRAW-001', 'boxes-by-arm');
-    // The gallery's picture: the chart's frame titled as its demo is, with its
-    // footnotes and its own last (#66).
-    await page.evaluate(
-      ({ results, ...titles }) =>
-        window.__gc.chart.setSettings({
-          ...titles,
-          connection: window.BioViz.r.createConnection({ results })
-        }),
-      {
-        results: stored('welch'),
-        title: '{value}: {measure} by {group}',
-        subtitle: 'At {visits}',
-        footnotes: [
-          'Synthetic study from gsm.bio: no real participant is shown.',
-          'Filters: {filters}.'
-        ]
-      }
-    );
-    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001');
+    // The gallery's picture: the view the chart opens on, as its demo opens:
+    // the trend tiles on the synthetic study, a tile per biomarker by arm at
+    // every visit, titled as the demo is, with its footnotes and its own last
+    // (#66, #108). The tiles print no statistic and ask R for nothing, and
+    // their own footnote says so.
+    await page.evaluate((opening) => window.__gc.chart.setSettings(opening), {
+      start_value: null,
+      visits: null,
+      value_type: 'raw',
+      baseline_visits: 'Baseline',
+      group_by: 'ARM',
+      groups: [
+        { value_col: 'ARM', label: 'Arm' },
+        { value_col: 'SEX', label: 'Sex' }
+      ],
+      title: '{value}: {measure} by {group}',
+      subtitle: 'At {visits}',
+      footnotes: [
+        'Synthetic study from gsm.bio: no real participant is shown.',
+        'Filters: {filters}.'
+      ]
+    });
+    expect((await tilesOf(page)).tiles.map((tile) => tile.measure)).toEqual(BIOMARKERS);
+    await captureGallery(page.locator('#chart .sv-main'), 'GC-DRAW-001', { statistics: false });
   });
 
   test('GC-DRAW-002: a violin per group, drawn by a plugin on the kit’s Chart.js (#9)', async ({
@@ -706,12 +714,21 @@ const stubR = () => {
         request.data.forEach((row) => {
           counts[row.x] = (counts[row.x] || 0) + 1;
         });
+        // For a row of visits: the counts of each group at each visit.
+        const byVisit = {};
+        if (request.args.strByCol) {
+          request.data.forEach((row) => {
+            const at = (byVisit[row.visit] = byVisit[row.visit] || {});
+            at[row.x] = (at[row.x] || 0) + 1;
+          });
+        }
         window.__r.calls.push({
           name,
           rows: request.data.length,
           args: request.args,
           fields: Object.keys(request.data[0]),
           counts,
+          byVisit,
           resolve
         });
       })
@@ -736,6 +753,49 @@ const stubR = () => {
       warnings: [],
       notes: [],
       rows: []
+    });
+  };
+  // An answer for a row of visits, in the shape gsm.bio's
+  // Analyze_GroupDifferenceBy returns: a row per visit asked about, each with
+  // the p-value the test gives it, unadjusted, and the adjustment it was asked
+  // for by name. The stand-in adjusts nothing.
+  window.__r.answerVisits = (index, ps) => {
+    const call = window.__r.calls[index];
+    const groups = Object.keys(call.counts).sort();
+    const visits = call.args.chrBy;
+    call.resolve({
+      status: 'ok',
+      reason: null,
+      test: call.args.strMethod,
+      method: METHODS[call.args.strMethod],
+      estimates: [],
+      statistic: [],
+      p_value: null,
+      adjustment: 'none',
+      counts: Object.fromEntries(
+        visits.map((visit) => [
+          visit,
+          Object.values(call.byVisit[visit] || {}).reduce((total, n) => total + n, 0)
+        ])
+      ),
+      dropped: [],
+      warnings: [],
+      notes: [],
+      rows: visits.map((visit, at) => ({
+        by: visit,
+        ...Object.fromEntries(groups.map((group, k) => [`group_${k + 1}`, group])),
+        ...Object.fromEntries(
+          groups.map((group, k) => [`n_${k + 1}`, (call.byVisit[visit] || {})[group] || 0])
+        ),
+        method: METHODS[call.args.strMethod],
+        p_unadjusted: ps[at],
+        p_value: ps[at],
+        adjustment: call.args.strPAdjust,
+        adjusted_over: visits.length,
+        status: 'ok',
+        reason: null,
+        warning: null
+      }))
     });
   };
 };
@@ -1361,9 +1421,9 @@ test.describe('group comparison: nothing is fetched until a test is asked for', 
   });
 });
 
-// The overview (#17): what the chart opens on when no biomarker is named. The
-// fixture page names IL-6 at Week 4, so these tests set both to null, which is
-// what the settings default to.
+// The trend tiles (#84): what the chart opens on when no biomarker is named.
+// The fixture page names IL-6 at Week 4, so these tests set both to null, which
+// is what the settings default to.
 const OVERVIEW = { start_value: null, visits: null, value_type: 'raw' };
 const VISITS = ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12'];
 const BIOMARKERS = [
@@ -1380,249 +1440,533 @@ const BIOMARKERS = [
   'TNF-alpha',
   'VEGF'
 ];
-const openOverview = (page, { data = 'both', settings = {}, before = null } = {}) =>
+// safety.viz's palette: the first two groups' colours.
+const COLOURS = ['#2563eb', '#059669'];
+const openTiles = (page, { data = 'both', settings = {}, before = null } = {}) =>
   open(page, { data, before, settings: { ...OVERVIEW, ...settings } });
 
-// The overview as the page has it: its rows, and every chart drawn in them.
-const overviewOf = (page) =>
-  page.evaluate(() => ({
-    rows: [...document.querySelectorAll('.bv-overview-row')].map((row) => ({
-      measure: row.dataset.measure,
-      heading: row.querySelector('h3').textContent,
-      visits: [...row.querySelectorAll('.bv-overview-panel h4')].map((title) => title.textContent),
-      role: row.getAttribute('role'),
-      tabIndex: row.tabIndex,
-      label: row.getAttribute('aria-label')
-    })),
-    charts: window.__gc.chart.charts.map((chart) => ({
-      measure: chart.$measure,
-      visit: chart.$panel.visit,
-      ticks: chart.scales.x.ticks.map((tick) => tick.label),
-      y: [chart.scales.y.min, chart.scales.y.max],
-      yType: chart.scales.y.type,
-      n: chart.$panel.records.length,
-      cells: chart.$panel.cells.map((cell) => cell.n),
-      plugins: chart.config.plugins.map((plugin) => plugin.id.replace(/-[a-z0-9]+$/, '')),
-      points: chart.data.datasets.reduce((total, dataset) => total + dataset.data.length, 0),
-      withKit: chart instanceof window.SafetyViz.kit.Chart
-    })),
-    statistics: window.__gc.chart.statistics(),
-    lines: [...document.querySelectorAll('.bv-statistic')].map((line) => line.textContent)
-  }));
-const chartsOf = (overview, measure) =>
-  overview.charts.filter((chart) => chart.measure === measure);
+// The tiles as the page has them, and the chart drawn in each. `chart` names
+// where the chart is: the fixture's, or the demo's.
+const tilesOf = (page, chart = '__gc') =>
+  page.evaluate((name) => {
+    const text = (element) => (element ? element.textContent : null);
+    const made = window[name].chart;
+    return {
+      level: made.root.dataset.level,
+      tiles: [...made.root.querySelectorAll('.bv-tile')].map((tile) => ({
+        measure: tile.dataset.measure,
+        tag: tile.tagName,
+        type: tile.type,
+        label: tile.getAttribute('aria-label'),
+        described: text(document.getElementById(tile.getAttribute('aria-describedby'))),
+        name: text(tile.querySelector('.bv-tile-name')),
+        range: text(tile.querySelector('.bv-tile-range')),
+        visits: [...tile.querySelectorAll('.bv-tile-visits span')].map(text),
+        canvases: tile.querySelectorAll('canvas').length,
+        empty: text(tile.querySelector('.bv-tile-empty'))
+      })),
+      charts: made.charts.map((drawn) => ({
+        measure: drawn.$measure,
+        type: drawn.config.type,
+        lines: drawn.data.datasets.map((dataset) => ({
+          level: dataset.label,
+          colour: dataset.borderColor,
+          points: dataset.data.map((point) => [point.x, point.y])
+        })),
+        y: [drawn.scales.y.min, drawn.scales.y.max],
+        yType: drawn.scales.y.type,
+        visits: drawn.$tile.visits,
+        events: drawn.options.events,
+        withKit: drawn instanceof window.SafetyViz.kit.Chart
+      })),
+      key: [...made.root.querySelectorAll('.bv-tile-key > span')].map(text),
+      caption: text(made.root.querySelector('.bv-tile-caption')),
+      statistics: made.statistics(),
+      lines: [...made.root.querySelectorAll('.bv-statistic')].map(text)
+    };
+  }, chart);
+const tileChart = (found, measure) => found.charts.find((chart) => chart.measure === measure);
 
-test.describe('group comparison: the overview of every biomarker', () => {
-  test('GC-OVW-011: with no biomarker named the chart opens on every biomarker at every visit: a row each, a panel per visit, the number in each group, and no statistics line (#17)', async ({
+// One biomarker over time, as the page has it: the one chart, the table under
+// it and the statistics line under that. `chart` names where the chart is.
+const overTimeOf = (page, chart = '__gc') =>
+  page.evaluate((name) => {
+    const text = (element) => (element ? element.textContent : null);
+    const made = window[name].chart;
+    const { root } = made;
+    const [drawn] = made.charts;
+    const built = drawn && drawn.$overTime;
+    const test = root.querySelector('.bv-time-table tr[data-row="test"]');
+    const line = root.querySelector('.bv-time-line');
+    return {
+      level: root.dataset.level,
+      charts: made.charts.length,
+      withKit: Boolean(drawn) && drawn instanceof window.SafetyViz.kit.Chart,
+      plugins: drawn
+        ? drawn.config.plugins.map((plugin) => plugin.id.replace(/-[a-z0-9]{6,}$/, ''))
+        : [],
+      visits: built ? built.visits : null,
+      tested: built ? built.tested : null,
+      groups: drawn
+        ? drawn.data.datasets.map((dataset) => ({
+            level: dataset.label,
+            colour: dataset.borderColor,
+            joined: dataset.showLine,
+            radius: dataset.pointRadius,
+            points: dataset.data.map((point) => ({
+              visit: point.column.visit,
+              x: point.x,
+              y: point.y,
+              lower: point.made.lower,
+              upper: point.made.upper
+            }))
+          }))
+        : [],
+      cells: built
+        ? built.columns.map((column) => ({
+            visit: column.visit,
+            at: column.at,
+            cells: column.cells.map((cell) => ({
+              level: cell.level,
+              x: cell.x,
+              n: cell.n,
+              se: cell.se,
+              ...cell.stats
+            }))
+          }))
+        : [],
+      y: drawn ? [drawn.scales.y.min, drawn.scales.y.max] : null,
+      yType: drawn ? drawn.scales.y.type : null,
+      yTitle: drawn ? drawn.options.scales.y.title.text : null,
+      label: drawn ? drawn.canvas.getAttribute('aria-label') : null,
+      key: [...root.querySelectorAll('.bv-time-key > span')].map(text),
+      caption: text(root.querySelector('.bv-time-caption')),
+      heads: [...root.querySelectorAll('.bv-time-table thead th[data-visit]')].map((cell) => ({
+        visit: cell.dataset.visit,
+        button: Boolean(cell.querySelector('button')),
+        label: cell.querySelector('button')
+          ? cell.querySelector('button').getAttribute('aria-label')
+          : null,
+        text: cell.textContent
+      })),
+      counts: Object.fromEntries(
+        [...root.querySelectorAll('.bv-time-table tr[data-row="n"]')].map((row) => [
+          row.dataset.group,
+          [...row.querySelectorAll('td[data-visit]')].map(text)
+        ])
+      ),
+      test: test && {
+        state: test.dataset.state,
+        head: test.querySelector('.bv-time-head').firstChild.textContent,
+        sub: text(test.querySelector('.bv-time-sub')),
+        cells: [...test.querySelectorAll('td')]
+          .filter((cell) => cell.dataset.visit || cell.colSpan > 1)
+          .map((cell) => ({
+            visit: cell.dataset.visit || null,
+            status: cell.dataset.status || null,
+            text: cell.textContent,
+            title: cell.title || null,
+            span: cell.colSpan
+          }))
+      },
+      line: line && {
+        state: line.dataset.state,
+        result: text(line.querySelector('.bv-stat-result')),
+        levels: [...line.querySelectorAll('.bv-stat-level')].map(text),
+        remarks: [...line.querySelectorAll('.bv-stat-remark')].map(text),
+        scope: text(line.querySelector('.bv-stat-scope'))
+      },
+      trail: [...root.querySelectorAll('.bv-trail li')].map((item) => ({
+        text: item.textContent,
+        button: Boolean(item.querySelector('button'))
+      })),
+      footnote: text(root.querySelector('.sv-footnote')),
+      statistics: made.statistics()
+    };
+  }, chart);
+// What desktop R gives for one biomarker over time: by arm at every visit.
+const rOverTime = (measure, valueType) =>
+  fromR.over_time.find((entry) => entry.measure === measure)[valueType];
+// R's answers for one biomarker over time, as stored results.
+const overTimeResult = (name) => statistics.over_time.find((result) => result.case === name);
+const storedOverTime = (...names) =>
+  names.map(overTimeResult).map(({ name, args, dataId, rows, value }) => ({
+    name,
+    args,
+    dataId,
+    rows,
+    value
+  }));
+// A p-value as the shared rule prints it.
+const printedP = (p) =>
+  p < 0.001 ? 'p < 0.001' : p.toFixed(3) === '1.000' ? 'p > 0.999' : `p = ${p.toFixed(3)}`;
+// What desktop R gives for a biomarker's tile: per arm, the value at each visit.
+const rLines = (measure, valueType, summary) => {
+  const rows = fromR.tiles.find((tile) => tile.measure === measure)[valueType];
+  return ['Placebo', 'Treatment'].map((level) =>
+    VISITS.map((visit) => rows.find((row) => row.level === level && row.visit === visit)[summary])
+  );
+};
+const near = (actual, expected, label) => {
+  if (expected === 0) expect(actual, label).toBe(0);
+  else expect(Math.abs(actual - expected) / Math.abs(expected), label).toBeLessThanOrEqual(1e-12);
+};
+
+test.describe('group comparison: the trend tiles of every biomarker', () => {
+  test('GC-OVW-011: with no biomarker named the chart opens on a tile per biomarker: in each a line per group in the groups’ colours across every visit, its own value axis with the range and unit printed beneath, one key above them all, and no statistics line (#17, #84)', async ({
     page
   }) => {
     const errors = watch(page);
-    await openOverview(page);
+    await openTiles(page);
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('bv_overview');
     await expect(page.locator('select[data-control="measure"] option').first()).toHaveText(
       'All Biomarkers'
     );
     await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
 
-    const overview = await overviewOf(page);
-    // A row per biomarker, in the Biomarker control's order.
-    expect(overview.rows.map((row) => row.measure)).toEqual(BIOMARKERS);
+    const found = await tilesOf(page);
+    expect(found.level).toBe('biomarkers');
+    // A tile per biomarker, in the Biomarker control's order, named for it.
+    expect(found.tiles.map((tile) => tile.measure)).toEqual(BIOMARKERS);
+    expect(found.tiles.map((tile) => tile.name)).toEqual(BIOMARKERS);
     expect(await page.locator('select[data-control="measure"] option').allTextContents()).toEqual([
       'All Biomarkers',
       ...BIOMARKERS
     ]);
-    for (const row of overview.rows) expect(row.visits, row.measure).toEqual(VISITS);
-    expect(overview.rows.find((row) => row.measure === 'IL-6').heading).toBe('IL-6 (pg/mL)');
-
-    // Sixty panels, each a chart of its own, drawn with the kit's Chart.js.
-    expect(overview.charts).toHaveLength(60);
-    expect(overview.charts.every((chart) => chart.withKit)).toBe(true);
-    for (const measure of BIOMARKERS) {
-      const charts = chartsOf(overview, measure);
+    // Twelve tiles, one chart each, drawn with the kit's Chart.js: not the
+    // sixty panels of a panel per visit.
+    expect(found.charts).toHaveLength(12);
+    expect(found.charts.map((chart) => chart.measure)).toEqual(BIOMARKERS);
+    expect(found.charts.every((chart) => chart.withKit && chart.type === 'line')).toBe(true);
+    for (const chart of found.charts) {
+      // A line per arm, in the arms' colours, with a point at each visit in order.
       expect(
-        charts.map((chart) => chart.visit),
-        measure
-      ).toEqual(VISITS);
-      // The groups, with the number in each beneath.
-      for (const chart of charts) {
-        expect(chart.ticks.map((tick) => tick[0])).toEqual(['Placebo', 'Treatment']);
-        expect(chart.ticks.map((tick) => tick[1])).toEqual(chart.cells.map((n) => `n = ${n}`));
-        expect(chart.plugins).toContain('gc-boxwhisker');
+        chart.lines.map((line) => [line.level, line.colour]),
+        chart.measure
+      ).toEqual([
+        ['Placebo', COLOURS[0]],
+        ['Treatment', COLOURS[1]]
+      ]);
+      for (const line of chart.lines) {
+        expect(line.points.map((point) => point[0])).toEqual([0, 1, 2, 3, 4]);
       }
-      // One value axis for the biomarker, across its visits.
-      expect(new Set(charts.map((chart) => chart.y.join())).size, measure).toBe(1);
+      expect(chart.visits).toEqual(VISITS);
+      expect(chart.yType).toBe('linear');
     }
-    // And its own: biomarkers on different scales have different axes.
-    expect(new Set(overview.charts.map((chart) => chart.y.join())).size).toBe(12);
-    // IL-6 at each visit: every participant with a result, one record each.
-    expect(chartsOf(overview, 'IL-6').map((chart) => chart.n)).toEqual([200, 185, 186, 188, 184]);
-    expect(chartsOf(overview, 'IL-6')[0].ticks).toEqual([
-      ['Placebo', 'n = 100'],
-      ['Treatment', 'n = 100']
-    ]);
-
-    await expect(page.locator('.bv-overview-count')).toHaveText('All 12 biomarkers are shown.');
+    // Each biomarker on its own axis: biomarkers on different scales differ.
+    expect(new Set(found.charts.map((chart) => chart.y.join())).size).toBe(12);
+    // Under each tile the first and last visit, then the axis's range and unit.
+    for (const tile of found.tiles) {
+      expect(tile.visits, tile.measure).toEqual(['Baseline', 'Week 12']);
+      expect(tile.canvases).toBe(1);
+    }
+    const il6 = found.tiles.find((tile) => tile.measure === 'IL-6');
+    expect(il6.range).toMatch(/^\d\.\d to \d\.\d pg\/mL$/);
+    expect(found.tiles.find((tile) => tile.measure === 'LDH').range).toMatch(/^\d+ to \d+ U\/L$/);
+    // One key above all the tiles: what a line goes through, and the groups.
+    expect(found.key).toEqual(['Median result by ARM:', 'Placebo', 'Treatment']);
+    await expect(page.locator('.bv-tile-key')).toHaveCount(1);
+    expect(
+      await page
+        .locator('.bv-tile-key .bv-legend-swatch')
+        .evaluateAll((all) => all.map((swatch) => swatch.style.background))
+    ).toEqual(['rgb(37, 99, 235)', 'rgb(5, 150, 105)']);
+    expect(found.caption).toBe(
+      'Each biomarker has its own value axis, printed under its tile. It is never narrower than ' +
+        '1.25 standard deviations of the results at the baseline visit, so lines that differ by ' +
+        'less stay close to flat.'
+    );
     await expect(page.locator('.sv-footnote')).toHaveText(
-      'Click a biomarker to view it alone, with a test under each visit.'
+      'Click a biomarker to view it across the visits, with a test under each.'
     );
-    // The single chart gives way to the rows, and no test is printed or asked for.
+    // The single chart gives way to the tiles, and no test is printed or asked for.
     await expect(page.locator('.sv-chart-wrap')).toBeHidden();
-    expect(overview.lines).toEqual(['']);
+    expect(found.lines).toEqual(['']);
     await expect(page.locator('.sv-main > .bv-statistic')).toBeHidden();
-    expect(overview.statistics).toEqual([]);
+    expect(found.statistics).toEqual([]);
+    await expect(page.locator('.sv-main')).not.toContainText('p =');
+    // No pages: nothing counts the biomarkers shown or leads to more.
+    await expect(page.locator('.bv-overview-pager')).toHaveCount(0);
     expect(errors).toEqual([]);
-    await captureEvidence(
-      page.locator('.bv-overview-row[data-measure="IL-6"]'),
-      'GC-OVW-011',
-      'a-biomarker-row'
-    );
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-OVW-011', 'trend-tiles');
   });
 
-  test('GC-OVW-012: a biomarker’s row is a button that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the overview (#17)', async ({
+  test('GC-TILE-008: on the page each tile’s line goes through the medians desktop R gives for that arm at each visit, the result and the change from baseline alike, and through R’s means when the tiles are switched to means (#84)', async ({
     page
   }) => {
-    await openOverview(page);
-    const { rows } = await overviewOf(page);
-    for (const row of rows) {
-      expect(row.role).toBe('button');
-      expect(row.tabIndex).toBe(0);
-      expect(row.label).toBe(`View ${row.measure}`);
+    await openTiles(page);
+    let compared = 0;
+    const hold = async (valueType, summary) => {
+      const found = await tilesOf(page);
+      expect(found.charts).toHaveLength(12);
+      for (const chart of found.charts) {
+        const expected = rLines(chart.measure, valueType, summary);
+        chart.lines.forEach((line, arm) => {
+          expect(line.points).toHaveLength(5);
+          line.points.forEach(([at, value]) => {
+            near(
+              value,
+              expected[arm][at],
+              `${chart.measure} ${valueType} ${summary} ${line.level}`
+            );
+            compared += 1;
+          });
+        });
+      }
+      return found;
+    };
+    await hold('raw', 'median');
+    // The switch, in the Display section: means, and back.
+    await expect(page.locator('select[data-control="tile-summary"]')).toHaveValue('median');
+    await expect(page.locator('select[data-control="tile-summary"] option')).toHaveText([
+      'Medians',
+      'Means'
+    ]);
+    await choose(page, 'tile-summary', 'mean');
+    let found = await hold('raw', 'mean');
+    expect(found.key[0]).toBe('Mean result by ARM:');
+    await choose(page, 'value-type', 'change');
+    found = await hold('change', 'mean');
+    expect(found.key[0]).toBe('Mean change from baseline by ARM:');
+    await choose(page, 'tile-summary', 'median');
+    found = await hold('change', 'median');
+    expect(found.key[0]).toBe('Median change from baseline by ARM:');
+    // Every line of a change starts at no change, at the baseline visit.
+    for (const chart of found.charts) {
+      for (const line of chart.lines) expect(line.points[0]).toEqual([0, 0]);
     }
+    // Four views, twelve biomarkers, two arms, five visits.
+    expect(compared).toBe(480);
+    // The setting opens on means.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ tile_summary: 'mean', value_type: 'raw' })
+    );
+    await expect(page.locator('select[data-control="tile-summary"]')).toHaveValue('mean');
+    await hold('raw', 'mean');
+    // The switch is the tiles': with a biomarker open it is not offered.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    await expect(page.locator('select[data-control="tile-summary"]')).toHaveCount(0);
+  });
+
+  test('GC-TILE-009: on the page a tile’s value axis never spans less than the set multiple of desktop R’s standard deviation of the results at the baseline visit, the range printed under the tile is the axis’s own two ends, and the multiple is a setting (#84)', async ({
+    page
+  }) => {
+    await openTiles(page);
+    const sd = (measure) => fromR.tiles.find((tile) => tile.measure === measure).baseline.sd;
+    const printed = (found, measure) => {
+      const tile = found.tiles.find((entry) => entry.measure === measure);
+      const [low, high] = tile.range.split(' to ').map((part) => parseFloat(part));
+      return { low, high, text: tile.range };
+    };
+    let found = await tilesOf(page);
+    for (const chart of found.charts) {
+      const drawn = chart.lines.flatMap((line) => line.points.map((point) => point[1]));
+      const spread = Math.max(...drawn) - Math.min(...drawn);
+      // The axis: 1.25 standard deviations at the least, and the points inside it.
+      expect(chart.y[1] - chart.y[0], chart.measure).toBeGreaterThanOrEqual(
+        1.25 * sd(chart.measure)
+      );
+      expect(chart.y[1] - chart.y[0]).toBeGreaterThan(spread);
+      expect(Math.min(...drawn)).toBeGreaterThan(chart.y[0]);
+      expect(Math.max(...drawn)).toBeLessThan(chart.y[1]);
+      // What is printed is the axis, to the figures printed.
+      const range = printed(found, chart.measure);
+      const step = range.text.includes('.')
+        ? 10 ** -range.text.split(' ')[0].split('.')[1].length
+        : 1;
+      expect(Math.abs(range.low - chart.y[0]), range.text).toBeLessThanOrEqual(step / 2 + 1e-9);
+      expect(Math.abs(range.high - chart.y[1]), range.text).toBeLessThanOrEqual(step / 2 + 1e-9);
+    }
+    // The planted biomarker's arms part by nearly the whole of that, so its
+    // lines fill its tile; CRP's part by a fifth of it, and stay near flat.
+    const filled = (chart) => {
+      const drawn = chart.lines.flatMap((line) => line.points.map((point) => point[1]));
+      return (Math.max(...drawn) - Math.min(...drawn)) / (chart.y[1] - chart.y[0]);
+    };
+    expect(filled(tileChart(found, 'IL-6'))).toBeGreaterThan(0.75);
+    expect(filled(tileChart(found, 'CRP'))).toBeLessThan(0.25);
+
+    // No least at all: every axis is its points and their room, and the caption
+    // no longer speaks of one.
+    await page.evaluate(() => window.__gc.chart.setSettings({ tile_min_spread: 0 }));
+    found = await tilesOf(page);
+    for (const chart of found.charts) expect(filled(chart), chart.measure).toBeCloseTo(1 / 1.2, 9);
+    expect(found.caption).toBe('Each biomarker has its own value axis, printed under its tile.');
+    // A wider one: three standard deviations.
+    await page.evaluate(() => window.__gc.chart.setSettings({ tile_min_spread: 3 }));
+    found = await tilesOf(page);
+    for (const chart of found.charts) {
+      expect(chart.y[1] - chart.y[0], chart.measure).toBeGreaterThanOrEqual(3 * sd(chart.measure));
+      expect(chart.y[0]).toBeGreaterThanOrEqual(0);
+    }
+    expect(found.caption).toContain('never narrower than 3 standard deviations');
+    // On a logarithmic scale the axis is logarithmic, and its ends are a ratio apart.
+    await page.evaluate(() => window.__gc.chart.setSettings({ tile_min_spread: 1.25 }));
+    await choose(page, 'y-scale', 'log');
+    found = await tilesOf(page);
+    for (const chart of found.charts) {
+      expect(chart.yType).toBe('logarithmic');
+      const least = fromR.tiles.find((tile) => tile.measure === chart.measure).baseline.sd_log10;
+      expect(Math.log10(chart.y[1] / chart.y[0]), chart.measure).toBeGreaterThanOrEqual(
+        1.25 * least * (1 - 1e-9)
+      );
+    }
+  });
+
+  test('GC-OVW-012: a tile is a button named for its biomarker that opens it over time, by a click or by Enter or Space, across its visits with a row of tests under them; All Biomarkers returns to the tiles (#17, #84, #85)', async ({
+    page
+  }) => {
+    await openTiles(page);
+    const { tiles } = await tilesOf(page);
+    for (const tile of tiles) {
+      expect(tile.tag).toBe('BUTTON');
+      expect(tile.type).toBe('button');
+      expect(tile.label).toBe(`View ${tile.measure}`);
+      // Its range is read out with it.
+      expect(tile.described).toBe(tile.range);
+    }
+    await expect(page.getByRole('button', { name: 'View IL-6', exact: true })).toHaveCount(1);
+    // Nothing in a tile answers the pointer but the tile.
+    expect((await tilesOf(page)).charts.every((chart) => chart.events.length === 0)).toBe(true);
 
     // A click.
-    await page.locator('.bv-overview-row[data-measure="IL-6"]').click();
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('IL-6');
-    await expect(page.locator('.bv-overview-row')).toHaveCount(0);
-    await expect(page.locator('.bv-panel h3')).toHaveText(VISITS);
-    let panels = await drawn(page);
-    expect(panels.map((panel) => panel.title)).toEqual(VISITS);
-    expect(panels[0].yTitle).toBe('IL-6 (pg/mL)');
-    // One statistics line per panel: with no R attached each says so.
-    await expect(page.locator('.bv-panel .bv-statistic')).toHaveText(
-      VISITS.map(() => 'Statistics are unavailable: no R is attached to this chart.')
-    );
-    // The single view is the chart as it was: a box lists its participants.
-    await clickCell(page, 'Treatment', null, 2);
-    await expect(page.locator('.sv-listing-actions strong')).toHaveText('91 of 91 records');
+    await expect(page.locator('.bv-tile')).toHaveCount(0);
+    expect(await page.locator('.sv-root').getAttribute('data-level')).toBe('over-time');
+    // The biomarker over time: one picture across the five visits, not a panel each.
+    await expect(page.locator('.bv-panel')).toHaveCount(0);
+    let opened = await overTimeOf(page);
+    expect(opened.charts).toBe(1);
+    expect(opened.visits).toEqual(VISITS);
+    expect(opened.yTitle).toBe('IL-6 (pg/mL)');
+    // One row of tests, and one line under it: with no R attached both say so.
+    expect(opened.test.cells).toHaveLength(1);
+    expect(opened.test.cells[0].text).toBe('Statistics unavailable');
+    expect(opened.line.result).toBe('Statistics are unavailable: no R is attached to this chart.');
 
     // Back, from the Biomarker control.
     await choose(page, 'measure', 'bv_overview');
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
-    await expect(page.locator('.sv-listing table')).toHaveCount(0);
-    await expect(page.locator('.bv-panel')).toHaveCount(0);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    await expect(page.locator('.bv-time-table')).toHaveCount(0);
+    await expect(page.locator('.bv-trail')).toHaveCount(0);
 
-    // Enter, on the row the keyboard is on.
-    await page.locator('.bv-overview-row[data-measure="CRP"]').focus();
+    // Enter, on the tile the keyboard is on.
+    await page.locator('.bv-tile[data-measure="CRP"]').focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('CRP');
-    panels = await drawn(page);
-    expect(panels).toHaveLength(5);
-    expect(panels[0].yTitle).toBe('CRP (mg/L)');
+    opened = await overTimeOf(page);
+    expect(opened.level).toBe('over-time');
+    expect(opened.visits).toHaveLength(5);
+    expect(opened.yTitle).toBe('CRP (mg/L)');
     // The keyboard's place is on the Biomarker control, which leads back.
     await expect(page.locator('select[data-control="measure"]')).toBeFocused();
 
     // Space.
     await choose(page, 'measure', 'bv_overview');
-    await page.locator('.bv-overview-row[data-measure="VEGF"]').focus();
+    await page.locator('.bv-tile[data-measure="VEGF"]').focus();
     await page.keyboard.press('Space');
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('VEGF');
-    // Any other key leaves the overview as it is.
+    // Any other key leaves the tiles as they are.
     await choose(page, 'measure', 'bv_overview');
-    await page.locator('.bv-overview-row[data-measure="VEGF"]').focus();
+    await page.locator('.bv-tile[data-measure="VEGF"]').focus();
     await page.keyboard.press('a');
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    // The tiles are reached in order by Tab.
+    await page.locator('.bv-tile[data-measure="CRP"]').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.bv-tile[data-measure="D-dimer"]')).toBeFocused();
 
-    // Reset returns to what the chart opened on: the overview.
-    await page.locator('.bv-overview-row[data-measure="LDH"]').click();
-    await expect(page.locator('.bv-panel')).toHaveCount(5);
+    // Reset returns to what the chart opened on: the tiles.
+    await page.locator('.bv-tile[data-measure="LDH"]').click();
+    await expect(page.locator('.bv-time-table')).toHaveCount(1);
     await page.locator('.sv-reset').click();
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
     // And a setting that names a biomarker opens that biomarker.
     await page.evaluate(() => window.__gc.chart.setSettings({ start_value: 'IL-8' }));
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('IL-8');
     await page.evaluate(() => window.__gc.chart.setSettings({ start_value: null }));
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
   });
 
-  test('GC-OVW-013: the overview asks R for nothing: no call, no request to R’s hosts and no waiting text; opening a biomarker asks once per visit panel, and each waits and is answered for itself (#17)', async ({
+  test('GC-OVW-013: the tiles ask R for nothing: no call, no request to R’s hosts and no waiting text, however they are drawn again; opening a biomarker asks once, for the row of visits, and an answer that arrives after the tiles are back is dropped (#17, #84, #85)', async ({
     page
   }) => {
     // R's hosts are not blocked here: every request the page makes is recorded.
     const requests = [];
     page.on('request', (request) => requests.push(request.url()));
     const note = 'The first test starts R here.';
-    await openOverview(page, { before: stubR, settings: { waiting_note: note } });
+    await openTiles(page, { before: stubR, settings: { waiting_note: note } });
     await attachStub(page);
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
 
     // Drawn, and drawn again by every kind of control: nothing is asked.
     await page.locator('select[data-filter="SEX"]').selectOption('F');
-    await choose(page, 'mark', 'violin');
+    await choose(page, 'tile-summary', 'mean');
     await choose(page, 'group-by', 'RESPONSE');
     await choose(page, 'value-type', 'change');
+    await choose(page, 'y-scale', 'log');
     await page.locator('.sv-reset').click();
     await page.evaluate(() => window.__gc.chart.render());
+    await page.evaluate(() => window.__gc.chart.setSettings({ tile_min_spread: 2 }));
     await page.waitForTimeout(200);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
     expect(await page.evaluate(() => window.__r.calls.length)).toBe(0);
     expect(await page.evaluate(() => window.__gc.chart.statistics())).toEqual([]);
     await expect(page.locator('.sv-main')).not.toContainText('waiting for R');
     await expect(page.locator('.sv-main')).not.toContainText('Statistics');
-    expect((await overviewOf(page)).lines).toEqual(['']);
+    expect((await tilesOf(page)).lines).toEqual(['']);
+    // The requests the page made were recorded, and none is for R.
+    expect(requests.length).toBeGreaterThan(3);
     expect(requests.filter(isRHost)).toEqual([]);
 
-    // One biomarker: five panels, five questions, each for its own rows.
-    await page.locator('.bv-overview-row[data-measure="IL-6"]').click();
-    const lines = page.locator('.bv-panel .bv-statistic');
-    // The first panel that waits says what the first start costs; the rest wait.
-    await expect(lines).toHaveText([`${WAITING} ${note}`, WAITING, WAITING, WAITING, WAITING]);
-    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(5);
-    expect((await calls(page)).map((call) => [call.rows, call.args.strMethod])).toEqual([
-      [200, 't'],
-      [185, 't'],
-      [186, 't'],
-      [188, 't'],
-      [184, 't']
-    ]);
+    // One biomarker over time: one question, for the row of five visits.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    // The row waits, and the line under it says what the first start costs.
+    await expect(page.locator('.bv-time-table tr[data-row="test"] td[colspan]')).toHaveText(
+      'Waiting for R…'
+    );
+    await expect(page.locator('.bv-time-line')).toHaveText(`${WAITING} ${note}`);
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
+    expect(
+      (await calls(page)).map((call) => [call.name, call.rows, call.args.strMethod, call.fields])
+    ).toEqual([['Analyze_GroupDifferenceBy', 943, 't', ['USUBJID', 'y', 'x', 'visit']]]);
     const asked = await page.evaluate(() => window.__gc.chart.statistics());
-    expect(asked.map((entry) => [entry.panel, entry.dataId.visit, entry.rows])).toEqual(
-      VISITS.map((visit, index) => [visit, visit, [200, 185, 186, 188, 184][index]])
-    );
-    // They are the keys desktop R wrote for the same five panels.
-    expect(asked.map((entry) => entry.dataId)).toEqual(
-      ['baseline', 'week-2', 'week-4', 'week-8', 'week-12'].map(
-        (visit) => resultOf(`result-${visit}`).dataId
-      )
-    );
-    // Answered out of order: each line prints its own answer when it comes.
-    await page.evaluate(() => window.__r.answer(3, 0.04));
-    await expect(lines.nth(3).locator('.bv-stat-result')).toContainText(
-      'p = 0.040 (Placebo n = 93, Treatment n = 95)'
-    );
-    await expect(lines.nth(0)).toHaveText(`${WAITING} ${note}`);
-    await expect(lines.nth(4)).toHaveText(WAITING);
-    await page.evaluate(() => window.__r.answer(0, 0.3));
-    await expect(lines.nth(0).locator('.bv-stat-result')).toContainText(
-      'p = 0.300 (Placebo n = 100, Treatment n = 100)'
-    );
-    // While the others are still on their way the page answers: a box lists.
-    await clickCell(page, 'Placebo', null, 1);
-    await expect(page.locator('.sv-listing-actions strong')).toHaveText('92 of 92 records');
-
-    // Back to the overview with three answers outstanding: they are dropped
-    // when they come, and the overview prints none.
-    await choose(page, 'measure', 'bv_overview');
-    await page.evaluate(() => [1, 2, 4].forEach((index) => window.__r.answer(index, 0.5)));
+    expect(asked.map((entry) => [entry.panel, entry.rows, entry.answer])).toEqual([
+      ['', 943, null]
+    ]);
+    // It is the key desktop R wrote for the same view.
+    expect(asked[0].dataId).toEqual(overTimeResult('over-time-result').dataId);
+    expect(asked[0].args).toEqual(overTimeResult('over-time-result').args);
+    // While the answer is on its way the page answers: a visit opens, with a
+    // question of its own, and the answer for the row of visits is dropped.
+    await page.locator('button.bv-time-visit[data-visit="Week 2"]').click();
+    await expect(page.locator('.sv-main > .bv-statistic')).toHaveText(`${WAITING} ${note}`);
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(2);
+    await page.evaluate(() => window.__r.answerVisits(0, [0.5, 0.5, 0.5, 0.5, 0.5]));
     await page.waitForTimeout(100);
     await expect(page.locator('.sv-main')).not.toContainText('p =');
-    expect((await overviewOf(page)).lines).toEqual(['']);
-    expect(await page.evaluate(() => window.__r.calls.length)).toBe(5);
+    await page.evaluate(() => window.__r.answer(1, 0.04));
+    await expect(page.locator('.sv-main > .bv-statistic .bv-stat-result')).toContainText(
+      'p = 0.040 (Placebo n = 92, Treatment n = 93)'
+    );
+
+    // Back to the tiles: they print none, and an answer that comes late is dropped.
+    await page.evaluate(() => window.__gc.chart.setSettings({ visits: null }));
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(3);
+    await choose(page, 'measure', 'bv_overview');
+    await page.evaluate(() => window.__r.answerVisits(2, [0.5, 0.5, 0.5, 0.5, 0.5]));
+    await page.waitForTimeout(100);
+    await expect(page.locator('.sv-main')).not.toContainText('p =');
+    expect((await tilesOf(page)).lines).toEqual(['']);
+    expect(await page.evaluate(() => window.__r.calls.length)).toBe(3);
     expect(requests.filter(isRHost)).toEqual([]);
   });
 
-  test('GC-OVW-014: the group, the levels, the colour, the mark, the scale, the value and the filters apply to the overview; Panel by waits for one biomarker and says so, and there is no Statistics section (#17)', async ({
+  test('GC-OVW-014: Group by, Levels, Value, Scale, Visit and the filters apply to every tile; Colour by, Panel by and Draw as are switched off there and say where they apply, and there is no Statistics section (#17, #84, #85)', async ({
     page
   }) => {
-    await openOverview(page);
+    await openTiles(page);
     // No test is offered where none is printed.
     await expect(page.locator('.sv-section-title')).toHaveText([
       'Value',
@@ -1631,157 +1975,160 @@ test.describe('group comparison: the overview of every biomarker', () => {
       'Filters'
     ]);
     await expect(page.locator('select[data-control="test"]')).toHaveCount(0);
-    // Panel by: there, switched off, and saying why.
-    await expect(page.locator('select[data-control="panel-by"]')).toBeDisabled();
-    await expect(page.locator('.bv-control-note')).toHaveText(
-      'Applies when one biomarker is open. In the overview each biomarker’s panels are its visits.'
-    );
+    // Colour by, Panel by and Draw as: there, switched off, each saying why.
+    for (const [control, words] of [
+      ['color-by', 'Applies once a biomarker and a visit are open.'],
+      ['panel-by', 'Applies once a biomarker and a visit are open.'],
+      ['mark', 'Applies when one biomarker is open.']
+    ]) {
+      const select = page.locator(`select[data-control="${control}"]`);
+      await expect(select).toBeDisabled();
+      expect(
+        await select.evaluate((element) => element.nextElementSibling.textContent),
+        control
+      ).toBe(words);
+    }
+    await expect(page.locator('.bv-control-note')).toHaveCount(3);
+    for (const control of ['measure', 'value-type', 'group-by', 'tile-summary', 'y-scale']) {
+      await expect(page.locator(`select[data-control="${control}"]`)).toBeEnabled();
+    }
 
     await choose(page, 'group-by', 'SEX');
-    let overview = await overviewOf(page);
-    expect(overview.charts).toHaveLength(60);
+    let found = await tilesOf(page);
+    expect(found.charts).toHaveLength(12);
+    expect(found.key).toEqual(['Median result by SEX:', 'F', 'M']);
     expect(
-      overview.charts.every((chart) => chart.ticks.map((tick) => tick[0]).join() === 'F,M')
+      found.charts.every((chart) => chart.lines.map((line) => line.level).join() === 'F,M')
     ).toBe(true);
 
+    // A level left out is not drawn, and the one left keeps its colour.
     await page.locator('[data-control="levels"] summary').click();
-    await page.locator('[data-control="levels"] input[value="M"]').uncheck();
-    overview = await overviewOf(page);
-    expect(overview.charts.every((chart) => chart.ticks.length === 1)).toBe(true);
+    await page.locator('[data-control="levels"] input[value="F"]').uncheck();
+    found = await tilesOf(page);
+    expect(found.key).toEqual(['Median result by SEX:', 'M']);
+    expect(
+      found.charts.every(
+        (chart) => chart.lines.length === 1 && chart.lines[0].colour === COLOURS[1]
+      )
+    ).toBe(true);
     await expect(page.locator('.sv-notes')).toContainText('1 of 2 levels shown.');
-    await page.locator('[data-control="levels"] input[value="M"]').check();
+    await page.locator('[data-control="levels"] input[value="F"]').check();
+    await choose(page, 'group-by', 'ARM');
 
-    // A second grouping by colour: one key for the whole overview.
-    await choose(page, 'color-by', 'ARM');
-    overview = await overviewOf(page);
-    expect(overview.charts[0].cells).toHaveLength(4);
-    expect(overview.charts[0].ticks[0]).toHaveLength(3);
-    await expect(page.locator('.bv-legend')).toHaveText('ARM:PlaceboTreatment');
-    await choose(page, 'color-by', '');
-    await expect(page.locator('.bv-legend')).toHaveCount(0);
-
-    await choose(page, 'mark', 'violin');
-    overview = await overviewOf(page);
-    expect(overview.charts.every((chart) => chart.plugins.includes('gc-violin'))).toBe(true);
-    await choose(page, 'mark', 'points');
-    overview = await overviewOf(page);
-    expect(chartsOf(overview, 'IL-6').map((chart) => chart.points)).toEqual([
-      200, 185, 186, 188, 184
-    ]);
     await choose(page, 'y-scale', 'log');
-    overview = await overviewOf(page);
-    expect(overview.charts.every((chart) => chart.yType === 'logarithmic')).toBe(true);
+    found = await tilesOf(page);
+    expect(found.charts.every((chart) => chart.yType === 'logarithmic')).toBe(true);
     await choose(page, 'y-scale', 'linear');
-    await choose(page, 'mark', 'box');
 
-    await page.locator('select[data-filter="ARM"]').selectOption('Treatment');
-    overview = await overviewOf(page);
-    expect(chartsOf(overview, 'IL-6').map((chart) => chart.n)).toEqual([100, 93, 91, 95, 92]);
+    // A filter: the medians are of the participants it keeps.
+    const before = tileChart(await tilesOf(page), 'IL-6');
+    await page.locator('select[data-filter="SEX"]').selectOption('F');
+    found = await tilesOf(page);
+    expect(tileChart(found, 'IL-6').lines[0].points).not.toEqual(before.lines[0].points);
     await expect(page.locator('.sv-notes')).toContainText(
-      '100 of 200 participants pass the filters.'
+      '91 of 200 participants pass the filters.'
     );
-    await page.locator('select[data-filter="ARM"]').selectOption('__all__');
+    await page.locator('select[data-filter="SEX"]').selectOption('__all__');
+    expect(tileChart(await tilesOf(page), 'IL-6').lines).toEqual(before.lines);
 
-    // The visits chosen are the panels of every row.
+    // The visits chosen are the points of every line.
     await page.locator('[data-control="visits"] summary').click();
     await page.locator('[data-control="visits"] input[value="Week 2"]').uncheck();
-    await page.locator('[data-control="visits"] input[value="Week 8"]').uncheck();
-    overview = await overviewOf(page);
-    expect(overview.charts).toHaveLength(36);
-    expect(overview.rows.every((row) => row.visits.join() === 'Baseline,Week 4,Week 12')).toBe(
+    await page.locator('[data-control="visits"] input[value="Week 12"]').uncheck();
+    found = await tilesOf(page);
+    expect(found.charts).toHaveLength(12);
+    expect(found.charts.every((chart) => chart.visits.join() === 'Baseline,Week 4,Week 8')).toBe(
       true
     );
+    expect(found.tiles.every((tile) => tile.visits.join() === 'Baseline,Week 8')).toBe(true);
     await page.locator('.sv-reset').click();
 
-    // A change from baseline: the baseline visit is not drawn, and the note says why.
+    // A change from baseline: the baseline visit stays, where no change is.
     await choose(page, 'value-type', 'change');
-    overview = await overviewOf(page);
-    expect(overview.charts).toHaveLength(48);
-    expect(overview.rows.every((row) => row.visits.join() === VISITS.slice(1).join())).toBe(true);
-    expect(overview.rows.find((row) => row.measure === 'IL-6').heading).toBe(
-      'IL-6, change from baseline (pg/mL)'
-    );
-    await expect(page.locator('.sv-notes')).toHaveText(
-      'Baseline visit: Baseline. It is not drawn: there the change from baseline is the same for everyone.'
-    );
-    // A baseline value has no visit: one panel a biomarker, and no Visit control.
+    found = await tilesOf(page);
+    expect(found.charts.every((chart) => chart.visits.join() === VISITS.join())).toBe(true);
+    expect(found.charts.every((chart) => chart.y[0] < 0 && chart.y[1] > 0)).toBe(true);
+    await expect(page.locator('.sv-notes')).toHaveText('Baseline visit: Baseline.');
+    // A percent change is in percent, and a fold change has no unit.
+    await choose(page, 'value-type', 'percent_change');
+    expect((await tilesOf(page)).tiles[0].range).toMatch(/ %$/);
+    await choose(page, 'value-type', 'fold_change');
+    expect((await tilesOf(page)).tiles[0].range).toMatch(/^[\d.]+ to [\d.]+$/);
+    // A baseline value has no visit: a point for each group, and no Visit control.
     await choose(page, 'value-type', 'baseline');
-    overview = await overviewOf(page);
-    expect(overview.charts).toHaveLength(12);
-    expect(overview.rows.every((row) => row.visits.join() === 'Baseline value')).toBe(true);
-    expect(overview.charts.every((chart) => chart.n === 200)).toBe(true);
+    found = await tilesOf(page);
+    expect(found.charts).toHaveLength(12);
+    expect(
+      found.charts.every((chart) => chart.lines.every((line) => line.points.length === 1))
+    ).toBe(true);
+    expect(found.tiles.every((tile) => tile.visits.join() === 'Baseline value')).toBe(true);
     await expect(page.locator('[data-control="visits"]')).toHaveCount(0);
     await expect(page.locator('.sv-notes')).toContainText(
-      'A baseline value has no visit: each biomarker has one panel.'
+      'A baseline value has no visit: each group is one point.'
     );
 
-    // One biomarker open: Panel by is a control again, and the test is offered.
-    await page.locator('.bv-overview-row[data-measure="IL-6"]').click();
-    await expect(page.locator('select[data-control="panel-by"]')).toBeEnabled();
+    // What the three controls were set to is kept, and applies once a
+    // biomarker and a visit are open: they are controls again there.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ value_type: 'raw', color_by: 'SEX', mark: 'violin' })
+    );
+    await expect(page.locator('select[data-control="color-by"]')).toBeDisabled();
+    await expect(page.locator('select[data-control="color-by"]')).toHaveValue('SEX');
+    expect((await tilesOf(page)).key).toEqual(['Median result by ARM:', 'Placebo', 'Treatment']);
+    // The biomarker over time offers the test, and still takes no colour.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    await expect(page.locator('select[data-control="test"]')).toHaveValue('t');
+    await expect(page.locator('select[data-control="color-by"]')).toBeDisabled();
+    await expect(page.locator('select[data-control="color-by"]')).toHaveValue('SEX');
+    // One of its visits: the colour, the panels and the mark apply.
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
+    for (const control of ['color-by', 'panel-by', 'mark']) {
+      await expect(page.locator(`select[data-control="${control}"]`)).toBeEnabled();
+    }
     await expect(page.locator('.bv-control-note')).toHaveCount(0);
     await expect(page.locator('select[data-control="test"]')).toHaveValue('t');
+    const panels = await drawn(page);
+    expect(panels[0].legend).toEqual(['F', 'M']);
+    expect(panels[0].plugins).toContain('gc-violin');
   });
 
-  test('GC-OVW-015: with more biomarkers than the limit the overview draws a page of them, says how many of how many, and reaches the rest by pages (#17)', async ({
+  test('GC-OVW-015: with thirty-six biomarkers every one has a tile: there are no pages and no count of how many are shown, and `overview_limit` and `page`, still read, change nothing (#17, #84)', async ({
     page
   }) => {
-    await openOverview(page, { data: 'many-biomarkers' });
-    // Thirty-six biomarkers, three times the default limit of twelve.
+    const errors = watch(page);
+    await openTiles(page, { data: 'many-biomarkers' });
     const names = (
       await page.locator('select[data-control="measure"] option').allTextContents()
     ).slice(1);
     expect(names).toHaveLength(36);
-    const shown = async () => (await overviewOf(page)).rows.map((row) => row.measure);
-    expect(await shown()).toEqual(names.slice(0, 12));
-    // Two visits in the fixture: twenty-four charts alive, not seventy-two.
-    expect(await page.evaluate(() => window.__gc.chart.charts.length)).toBe(24);
-    const count = page.locator('.bv-overview-count');
-    await expect(count).toHaveText([
-      '12 of 36 biomarkers shown: 1 to 12, in the Biomarker control’s order.',
-      '12 of 36 biomarkers shown: 1 to 12, in the Biomarker control’s order.'
-    ]);
-    // The way to the rest is above the rows and below them.
-    const pagers = page.locator('.bv-overview-pager');
-    await expect(pagers).toHaveCount(2);
-    await expect(pagers.first().locator('.bv-overview-page')).toHaveText('Page 1 of 3');
-    await expect(pagers.first().locator('button[data-go="previous"]')).toBeDisabled();
+    const shown = async () => (await tilesOf(page)).tiles.map((tile) => tile.measure);
+    expect(await shown()).toEqual(names);
+    // A chart a tile: thirty-six alive, whatever the visits.
+    expect(await page.evaluate(() => window.__gc.chart.charts.length)).toBe(36);
+    await expect(page.locator('.bv-overview-pager')).toHaveCount(0);
+    await expect(page.locator('.bv-overview-count')).toHaveCount(0);
+    await expect(page.locator('.sv-main button[data-go]')).toHaveCount(0);
 
-    await pagers.first().locator('button[data-go="next"]').click();
-    expect(await shown()).toEqual(names.slice(12, 24));
-    await expect(count.first()).toHaveText(
-      '12 of 36 biomarkers shown: 13 to 24, in the Biomarker control’s order.'
-    );
-    expect(await page.evaluate(() => window.__gc.chart.charts.length)).toBe(24);
-    // A biomarker opened from a page, and the overview returned to: the same page.
-    await page.locator('.bv-overview-row').nth(2).click();
-    await expect(page.locator('select[data-control="measure"]')).toHaveValue(names[14]);
+    // The two settings of the overview v0.2.0 paged: read, kept, and applied to
+    // nothing.
+    await page.evaluate(() => window.__gc.chart.setSettings({ overview_limit: 5, page: 2 }));
+    expect(await shown()).toEqual(names);
+    expect(
+      await page.evaluate(() => {
+        const { settings } = window.__gc.chart.specification();
+        return [settings.overview_limit, settings.page];
+      })
+    ).toEqual([5, 2]);
+    // A tile far down the list opens its biomarker, and All Biomarkers returns
+    // to all thirty-six.
+    await page.locator('.bv-tile').nth(30).click();
+    await expect(page.locator('select[data-control="measure"]')).toHaveValue(names[30]);
     await choose(page, 'measure', 'bv_overview');
-    expect(await shown()).toEqual(names.slice(12, 24));
-
-    await pagers.last().locator('button[data-go="next"]').click();
-    expect(await shown()).toEqual(names.slice(24));
-    await expect(pagers.first().locator('.bv-overview-page')).toHaveText('Page 3 of 3');
-    await expect(pagers.first().locator('button[data-go="next"]')).toBeDisabled();
-    await pagers.first().locator('button[data-go="previous"]').click();
-    expect(await shown()).toEqual(names.slice(12, 24));
-    // Every biomarker was on exactly one page.
-
-    // The limit is a setting.
-    await page.evaluate(() => window.__gc.chart.setSettings({ overview_limit: 5 }));
-    await expect(page.locator('.bv-overview-row')).toHaveCount(5);
-    // Another limit is other pages, so the overview starts again at its first.
-    await expect(pagers.first().locator('.bv-overview-page')).toHaveText('Page 1 of 8');
-    expect(await shown()).toEqual(names.slice(0, 5));
-    await expect(count.first()).toHaveText(
-      '5 of 36 biomarkers shown: 1 to 5, in the Biomarker control’s order.'
-    );
-    await page.evaluate(() => window.__gc.chart.setSettings({ overview_limit: 40 }));
-    await expect(page.locator('.bv-overview-row')).toHaveCount(36);
-    await expect(count).toHaveText(['All 36 biomarkers are shown.']);
-    await expect(page.locator('.bv-overview-pager button')).toHaveCount(0);
+    expect(await shown()).toEqual(names);
+    expect(errors).toEqual([]);
   });
 
-  test('GC-OVW-017: the first draw of twelve biomarkers at five visits is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17)', async ({
+  test('GC-OVW-017: the first draw of thirty-six tiles is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17, #84)', async ({
     page,
     browser
   }, testInfo) => {
@@ -1791,7 +2138,7 @@ test.describe('group comparison: the overview of every biomarker', () => {
       ['phone', { width: 390, height: 844 }]
     ]) {
       await page.setViewportSize(viewport);
-      await openOverview(page);
+      await openTiles(page, { data: 'many-biomarkers' });
       timings[name] = await page.evaluate(async () => {
         const { chart, data } = window.__gc;
         const painted = () =>
@@ -1803,22 +2150,24 @@ test.describe('group comparison: the overview of every biomarker', () => {
           await painted();
           return { drawn, painted: performance.now() - from };
         };
-        // The whole first draw: the tables read, the controls built, the rows
-        // worked out and sixty charts made. Then the drawing alone, five times.
+        // The whole first draw: the tables read, the controls built, every
+        // tile worked out and thirty-six charts made. Then the drawing alone,
+        // five times.
         const first = await time(() => chart.setData(data));
         const again = [];
         for (let run = 0; run < 5; run += 1) again.push((await time(() => chart.render())).drawn);
         return {
           charts: chart.charts.length,
-          rows: document.querySelectorAll('.bv-overview-row').length,
+          tiles: document.querySelectorAll('.bv-tile').length,
+          rows: data.results.length,
           firstDrawMs: Math.round(first.drawn),
           firstPaintMs: Math.round(first.painted),
           redrawMs: again.map(Math.round).sort((a, b) => a - b)[2]
         };
       });
-      expect(timings[name].charts).toBe(60);
-      expect(timings[name].rows).toBe(12);
-      // Generous: a guard against the overview becoming slow, not a benchmark.
+      expect(timings[name].charts).toBe(36);
+      expect(timings[name].tiles).toBe(36);
+      // Generous: a guard against the tiles becoming slow, not a benchmark.
       expect(timings[name].firstPaintMs).toBeLessThan(3000);
     }
     const record = {
@@ -1827,26 +2176,1996 @@ test.describe('group comparison: the overview of every biomarker', () => {
       machine:
         process.env.R_CHECK_MACHINE ||
         (process.env.CI ? 'a GitHub Actions runner (ubuntu-latest)' : 'not named'),
-      what: 'twelve biomarkers at five visits, sixty Chart.js charts, one per panel',
+      what: 'thirty-six biomarkers at two visits, thirty-six Chart.js charts, one per tile',
       timings
     };
     const text = JSON.stringify(record, null, 2) + '\n';
-    await testInfo.attach('group-comparison-overview-timing.json', {
+    await testInfo.attach('group-comparison-tiles-timing.json', {
       body: text,
       contentType: 'application/json'
     });
     mkdirSync(new URL('../../test-results/', import.meta.url), { recursive: true });
     writeFileSync(
-      new URL('../../test-results/group-comparison-overview-timing.json', import.meta.url),
+      new URL('../../test-results/group-comparison-tiles-timing.json', import.meta.url),
       text
     );
-    console.log(`\nOverview, first draw — ${record.browser}, ${record.machine}`);
+    console.log(`\nTrend tiles, first draw — ${record.browser}, ${record.machine}`);
     for (const [name, timing] of Object.entries(timings)) {
       console.log(
-        `  ${name.padEnd(5)} ${timing.charts} charts: ${timing.firstDrawMs} ms to draw, ` +
+        `  ${name.padEnd(5)} ${timing.charts} charts from ${timing.rows} rows: ${timing.firstDrawMs} ms to draw, ` +
           `${timing.firstPaintMs} ms to the next paint, ${timing.redrawMs} ms to draw again`
       );
     }
+  });
+});
+
+// Specifications the released chart wrote, with what it drew and asked R for
+// each (tools/write-released-specifications.mjs). Nothing in the file was typed.
+const released = readJson('../fixtures/group-comparison-specifications-0.2.0.json');
+
+test.describe('group comparison: a specification the released chart wrote', () => {
+  test('GC-TILE-010: a specification written by bio.viz v0.2.0 is still read and rebuilds its view: one visit, and a panel per visit, with the panels, the groups and the questions for R the released chart had; and the overview it paged, as a tile for every biomarker (#84)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await open(page);
+    expect(released.made_by).toMatchObject({
+      tool: 'tools/write-released-specifications.mjs',
+      tag: 'v0.2.0',
+      bio_viz_version: '0.2.0'
+    });
+    expect(released.cases.map((entry) => entry.name)).toEqual([
+      'one-visit',
+      'one-biomarker-two-visits',
+      'every-biomarker',
+      'every-biomarker-second-page',
+      'one-biomarker-every-visit'
+    ]);
+    // The last, a biomarker at every visit, no longer draws a panel a visit:
+    // GC-TIME-032 holds what it opens on now.
+    for (const entry of released.cases.slice(0, 4)) {
+      const rebuilt = await page.evaluate((specification) => {
+        window.__gc.chart.destroy();
+        const chart = window.BioViz.fromSpecification('#chart', specification).init(
+          window.__gc.data
+        );
+        window.__gc.chart = chart;
+        const panels = chart.model ? chart.model.panels : [];
+        return {
+          notices: chart.notices,
+          level: chart.root.dataset.level,
+          biomarker: chart.state.measure,
+          panels: panels.map((panel) => ({
+            title: panel.title,
+            visit: panel.visit,
+            participants: panel.records.length,
+            groups: panel.ticks.map((lines) => lines.join(' '))
+          })),
+          tiles: chart.tiles ? chart.tiles.tiles.map((tile) => tile.measure) : null,
+          groups: chart.tiles ? chart.tiles.groups.map((group) => group.level) : null,
+          scale: chart.charts.map((drawn) => drawn.scales.y.type),
+          filters: [...chart.root.querySelectorAll('select[data-filter]')].map((select) => [
+            select.dataset.filter,
+            select.value
+          ]),
+          asked: chart.statistics().map(({ panel, name, args, dataId, rows }) => ({
+            panel,
+            name,
+            args,
+            dataId,
+            rows
+          })),
+          again: chart.specification()
+        };
+      }, entry.specification);
+      // Read whole: nothing it asks for is refused or drawn otherwise.
+      expect(rebuilt.notices, entry.name).toEqual([]);
+      expect(rebuilt.biomarker, entry.name).toBe(entry.drew.biomarker);
+      // The view it had: the same panels, with the same participants and groups.
+      expect(rebuilt.panels, entry.name).toEqual(entry.drew.panels);
+      // And R is asked what the released chart asked it, key for key.
+      expect(rebuilt.asked, entry.name).toEqual(entry.asked);
+      if (entry.drew.overview) {
+        // What was a page of the overview is a tile for every biomarker.
+        expect(rebuilt.level, entry.name).toBe('biomarkers');
+        expect(rebuilt.tiles, entry.name).toEqual(BIOMARKERS);
+        for (const measure of entry.drew.overview.biomarkers) {
+          expect(rebuilt.tiles).toContain(measure);
+        }
+        expect(rebuilt.asked).toEqual([]);
+      } else {
+        expect(rebuilt.level, entry.name).toBe('visits');
+        expect(rebuilt.asked.length, entry.name).toBe(entry.drew.panels.length);
+      }
+      // Written again, it holds every setting the released one held, as it was,
+      // and the same filters.
+      for (const [key, value] of Object.entries(entry.specification.settings)) {
+        expect(rebuilt.again.settings[key], `${entry.name} ${key}`).toEqual(value);
+      }
+      expect(rebuilt.again.filters, entry.name).toEqual(entry.specification.filters);
+      if (entry.name === 'one-visit') {
+        expect(rebuilt.panels).toHaveLength(1);
+        expect(rebuilt.filters).toContainEqual(['SEX', 'F']);
+        expect(rebuilt.asked[0].args.strMethod).toBe('wilcoxon');
+        expect(rebuilt.asked[0].dataId).not.toHaveProperty('unscheduled_visits');
+        await expect(page.locator('#chart .bv-title')).toHaveText('IL-6 by ARM');
+      }
+      if (entry.name === 'every-biomarker-second-page') {
+        // Its grouping and its scale are the tiles'; its page and limit are kept
+        // and apply to nothing.
+        expect(rebuilt.groups).toEqual(['F', 'M']);
+        expect(new Set(rebuilt.scale)).toEqual(new Set(['logarithmic']));
+        expect(rebuilt.again.settings).toMatchObject({ overview_limit: 4, page: 1 });
+      }
+    }
+    // A specification this version writes holds the tiles' settings and the
+    // rule for unscheduled visits, and makes the same tiles again.
+    const trip = await page.evaluate(() => {
+      window.__gc.chart.destroy();
+      const first = window.BioViz.groupComparison('#chart', {
+        tile_summary: 'mean',
+        tile_min_spread: 2,
+        unscheduled_visit_values: ['Week 8'],
+        group_by: 'ARM'
+      }).init(window.__gc.data);
+      const written = first.specification();
+      const points = first.charts.map((drawn) => drawn.data.datasets.map((set) => set.data));
+      first.destroy();
+      const second = window.BioViz.fromSpecification('#chart', JSON.stringify(written)).init(
+        window.__gc.data
+      );
+      window.__gc.chart = second;
+      return {
+        written: written.settings,
+        again: second.specification(),
+        same:
+          JSON.stringify(
+            second.charts.map((drawn) => drawn.data.datasets.map((set) => set.data))
+          ) === JSON.stringify(points),
+        visits: second.tiles.tiles[0].visits,
+        notices: second.notices
+      };
+    });
+    expect(trip.written).toMatchObject({
+      start_value: null,
+      tile_summary: 'mean',
+      tile_min_spread: 2,
+      unscheduled_visits: false,
+      unscheduled_visit_pattern: '/unscheduled|early termination/i',
+      unscheduled_visit_values: ['Week 8']
+    });
+    expect(trip.again.settings).toEqual(trip.written);
+    expect(trip.same).toBe(true);
+    expect(trip.visits).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 12']);
+    expect(trip.notices).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+});
+
+// Unscheduled visits (#84). The synthetic study has none, so these tests add
+// rows of their own to a copy of it in the page: for the first forty
+// participants a visit named Unscheduled 1, numbered between Week 2 and Week 4,
+// holding twice their Week 2 result, and for the first ten of them a visit
+// named Early Termination, numbered last.
+const UNSCHEDULED = ['Unscheduled 1', 'Early Termination'];
+const WITH_UNSCHEDULED = [
+  'Baseline',
+  'Week 2',
+  'Unscheduled 1',
+  'Week 4',
+  'Week 8',
+  'Week 12',
+  'Early Termination'
+];
+const addUnscheduled = (page, settings = null) =>
+  page.evaluate((given) => {
+    const { chart, data } = window.__gc;
+    const ids = [...new Set(data.results.map((row) => row.USUBJID))].slice(0, 40);
+    const copy = (visit, from, order, some, times) =>
+      data.results
+        .filter((row) => row.VISIT === from && some.includes(row.USUBJID))
+        .map((row) => ({
+          ...row,
+          VISIT: visit,
+          VISITNUM: order,
+          STRESN: String(Number(row.STRESN) * times)
+        }));
+    const added = [
+      ...copy('Unscheduled 1', 'Week 2', '3', ids, 2),
+      ...copy('Early Termination', 'Week 8', '99', ids.slice(0, 10), 1)
+    ];
+    const tables = { results: [...data.results, ...added], participants: data.participants };
+    if (given) chart.setData(tables, given);
+    else chart.setData(tables);
+    const arm = new Map(data.participants.map((row) => [row.USUBJID, row.ARM]));
+    // The added IL-6 values at Unscheduled 1, by arm, for the test to summarise itself.
+    return added
+      .filter((row) => row.VISIT === 'Unscheduled 1' && row.TEST === 'IL-6')
+      .map((row) => ({ arm: arm.get(row.USUBJID), value: Number(row.STRESN) }));
+  }, settings);
+const visitsOffered = (page) =>
+  page
+    .locator('[data-control="visits"] input[type="checkbox"]')
+    .evaluateAll((boxes) =>
+      boxes.filter((box) => box.hasAttribute('value')).map((box) => box.value)
+    );
+const HIDDEN_NOTE =
+  '2 unscheduled visits not drawn: Unscheduled 1, Early Termination. ' +
+  'Switch on Unscheduled visits to draw them.';
+
+test.describe('group comparison: unscheduled visits', () => {
+  test('GC-UNS-003: with rows for unscheduled visits added to the study, such a visit is in no tile, not in the Visit control, not a visit of a biomarker over time and not a panel of one, and a note says how many are left out and which; the Unscheduled visits control, or `unscheduled_visits`, brings them in at every level (#84, #85)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openTiles(page);
+    // The study as vendored has no such visit: no note, and no control to
+    // switch on what is not there.
+    await expect(page.locator('.bv-hidden-visits')).toHaveCount(0);
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toHaveCount(0);
+    const plain = await tilesOf(page);
+
+    const added = await addUnscheduled(page);
+    // Of the forty, those with an IL-6 result at Week 2 to copy.
+    expect(added.length).toBeGreaterThan(30);
+    // Off, as the settings default: the tiles are the tiles of the study
+    // without the added rows, point for point.
+    expect(await page.evaluate(() => window.__gc.chart.settings.unscheduled_visits)).toBe(false);
+    let found = await tilesOf(page);
+    expect(found.charts.every((chart) => chart.visits.join() === VISITS.join())).toBe(true);
+    expect(found.charts.map((chart) => chart.lines)).toEqual(
+      plain.charts.map((chart) => chart.lines)
+    );
+    expect(found.charts.map((chart) => chart.y)).toEqual(plain.charts.map((chart) => chart.y));
+    // Not offered by the Visit control.
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
+    expect(await visitsOffered(page)).toEqual(VISITS);
+    // The note, and the control it names, unticked.
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(HIDDEN_NOTE);
+    await expect(page.locator('.bv-hidden-visits')).toHaveAttribute('data-hidden', '2');
+    const control = page.locator('input[data-control="unscheduled-visits"]');
+    await expect(control).toHaveCount(1);
+    await expect(control).not.toBeChecked();
+    await expect(page.getByRole('checkbox', { name: 'Show unscheduled visits' })).toHaveCount(1);
+    await expect(page.locator('.sv-sidebar')).toContainText('Unscheduled visits');
+
+    // One biomarker over time: its visits are the scheduled ones, and R is
+    // asked what it is asked of the study without the added rows.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    let opened = await overTimeOf(page);
+    expect(opened.level).toBe('over-time');
+    expect(opened.visits).toEqual(VISITS);
+    expect(opened.heads.map((head) => head.visit)).toEqual(VISITS);
+    expect(await visitsOffered(page)).toEqual(VISITS);
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(HIDDEN_NOTE);
+    expect(opened.statistics.map((entry) => [entry.dataId, entry.rows])).toEqual([
+      [overTimeResult('over-time-result').dataId, 943]
+    ]);
+    // A few of its visits, a panel each: the same, panel by panel.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8'] })
+    );
+    await expect(page.locator('.bv-panel h3')).toHaveText(VISITS.slice(0, 4));
+    let asked = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.map((entry) => entry.dataId)).toEqual(
+      ['baseline', 'week-2', 'week-4', 'week-8'].map((visit) => resultOf(`result-${visit}`).dataId)
+    );
+    expect(asked.map((entry) => entry.rows)).toEqual([200, 185, 186, 188]);
+
+    // Switched on from the control, with those panels open: the unscheduled
+    // visits are offered, in visit order, and each is a panel.
+    await page.locator('input[data-control="unscheduled-visits"]').check();
+    expect(await visitsOffered(page)).toEqual(WITH_UNSCHEDULED);
+    await expect(page.locator('.bv-hidden-visits')).toHaveCount(0);
+    await expect(page.locator('.bv-panel h3')).toHaveText([
+      'Baseline',
+      'Week 2',
+      'Unscheduled 1',
+      'Week 4',
+      'Week 8',
+      'Early Termination'
+    ]);
+    asked = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.map((entry) => [entry.panel, entry.rows])).toEqual([
+      ['Baseline', 200],
+      ['Week 2', 185],
+      ['Unscheduled 1', added.length],
+      ['Week 4', 186],
+      ['Week 8', 188],
+      ['Early Termination', asked[5].rows]
+    ]);
+    expect(asked[5].rows).toBeGreaterThan(5);
+    expect(asked[5].rows).toBeLessThanOrEqual(10);
+    // The rows now framed hold unscheduled visits, and the identity says so.
+    expect(asked.every((entry) => entry.dataId.unscheduled_visits === true)).toBe(true);
+    // Every visit again: the biomarker over time, across seven visits, in one
+    // request whose identity names them and says that they are unscheduled.
+    await page.locator('[data-control="visits"] summary').click();
+    await page.locator('[data-control="visits"] .sv-ms-all input').check();
+    opened = await overTimeOf(page);
+    expect(opened.level).toBe('over-time');
+    expect(opened.visits).toEqual(WITH_UNSCHEDULED);
+    expect(opened.heads.map((head) => head.visit)).toEqual(WITH_UNSCHEDULED);
+    expect(opened.statistics).toHaveLength(1);
+    expect(opened.statistics[0].dataId.visits).toEqual(WITH_UNSCHEDULED);
+    expect(opened.statistics[0].dataId.unscheduled_visits).toBe(true);
+    expect(opened.statistics[0].args.chrBy).toEqual(WITH_UNSCHEDULED);
+    expect(opened.statistics[0].rows).toBe(943 + added.length + asked[5].rows);
+    // The number in each arm at the added visit is the number of rows added.
+    expect(opened.counts.Placebo[2]).toBe(
+      `n = ${added.filter((row) => row.arm === 'Placebo').length}`
+    );
+
+    // And in every tile: seven visits, the unscheduled ones in their place.
+    await choose(page, 'measure', 'bv_overview');
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toBeChecked();
+    found = await tilesOf(page);
+    expect(found.charts).toHaveLength(12);
+    expect(found.charts.every((chart) => chart.visits.join() === WITH_UNSCHEDULED.join())).toBe(
+      true
+    );
+    expect(found.tiles.every((tile) => tile.visits.join() === 'Baseline,Early Termination')).toBe(
+      true
+    );
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (7)');
+    // The point at Unscheduled 1 is the median of the rows the test added,
+    // worked out here and not by the chart.
+    const median = (values) => {
+      const sorted = [...values].sort((a, b) => a - b);
+      const middle = sorted.length / 2;
+      return sorted.length % 2
+        ? sorted[Math.floor(middle)]
+        : (sorted[middle - 1] + sorted[middle]) / 2;
+    };
+    const il6 = tileChart(found, 'IL-6');
+    il6.lines.forEach((line) => {
+      const own = added.filter((row) => row.arm === line.level).map((row) => row.value);
+      expect(own.length).toBeGreaterThan(5);
+      near(line.points[2][1], median(own), line.level);
+    });
+    // The scheduled points are where they were.
+    il6.lines.forEach((line, arm) => {
+      const before = tileChart(plain, 'IL-6').lines[arm].points.map((point) => point[1]);
+      expect([0, 1, 3, 4, 5].map((at) => line.points[at][1])).toEqual(before);
+    });
+
+    // Off again: five visits, and the note is back.
+    await page.locator('input[data-control="unscheduled-visits"]').uncheck();
+    found = await tilesOf(page);
+    expect(found.charts.every((chart) => chart.visits.join() === VISITS.join())).toBe(true);
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(HIDDEN_NOTE);
+    // The setting opens with them, moves the control, and a specification keeps it.
+    await page.evaluate(() => window.__gc.chart.setSettings({ unscheduled_visits: true }));
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toBeChecked();
+    expect((await tilesOf(page)).charts[0].visits).toEqual(WITH_UNSCHEDULED);
+    expect(
+      await page.evaluate(() => window.__gc.chart.specification().settings.unscheduled_visits)
+    ).toBe(true);
+    // Reset returns to what the settings open on, which is now with them; and
+    // a control unticked is written to the specification as off.
+    await page.locator('input[data-control="unscheduled-visits"]').uncheck();
+    expect(
+      await page.evaluate(() => window.__gc.chart.specification().settings.unscheduled_visits)
+    ).toBe(false);
+    await page.locator('.sv-reset').click();
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toBeChecked();
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-UNS-004: a list of names in `unscheduled_visit_values` decides alone which visits are unscheduled, whatever the pattern says, and another pattern names others; the note counts and names what is left out (#84)', async ({
+    page
+  }) => {
+    await openTiles(page);
+    await addUnscheduled(page, { unscheduled_visit_values: ['Week 12'] });
+    // The list wins over the pattern: Week 12 is left out, and the visits the
+    // pattern would name are drawn.
+    let found = await tilesOf(page);
+    const listed = WITH_UNSCHEDULED.filter((visit) => visit !== 'Week 12');
+    expect(found.charts[0].visits).toEqual(listed);
+    expect(await visitsOffered(page)).toEqual(listed);
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(
+      '1 unscheduled visit not drawn: Week 12. Switch on Unscheduled visits to draw it.'
+    );
+    // A list of none: no visit is unscheduled, so there is no note and no control.
+    await page.evaluate(() => window.__gc.chart.setSettings({ unscheduled_visit_values: [] }));
+    expect((await tilesOf(page)).charts[0].visits).toEqual(WITH_UNSCHEDULED);
+    await expect(page.locator('.bv-hidden-visits')).toHaveCount(0);
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toHaveCount(0);
+    // No list: the pattern decides, and it is a setting.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({
+        unscheduled_visit_values: null,
+        unscheduled_visit_pattern: '/^week (2|4)$/i'
+      })
+    );
+    found = await tilesOf(page);
+    expect(found.charts[0].visits).toEqual([
+      'Baseline',
+      'Unscheduled 1',
+      'Week 8',
+      'Week 12',
+      'Early Termination'
+    ]);
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(
+      '2 unscheduled visits not drawn: Week 2, Week 4. Switch on Unscheduled visits to draw them.'
+    );
+    // A pattern that is no regular expression is refused by name, and nothing changes.
+    const refused = await page.evaluate(() => {
+      try {
+        window.__gc.chart.setSettings({ unscheduled_visit_pattern: '/(/' });
+        return null;
+      } catch (error) {
+        return error.message;
+      }
+    });
+    expect(refused).toMatch(
+      /^bio\.viz: `unscheduled_visit_pattern` is not a regular expression a browser reads: /
+    );
+    expect((await tilesOf(page)).charts[0].visits).toHaveLength(5);
+  });
+
+  test('GC-UNS-005: left out, an unscheduled visit is not the baseline a change is measured from: with no baseline visit named it is the first scheduled visit, and with unscheduled visits switched on, the first visit of all (#84)', async ({
+    page
+  }) => {
+    await openTiles(page, { settings: { baseline_visits: null, value_type: 'change' } });
+    // An unscheduled visit numbered before Baseline: half of everyone's result there.
+    await page.evaluate(() => {
+      const { chart, data } = window.__gc;
+      const early = data.results
+        .filter((row) => row.VISIT === 'Baseline')
+        .map((row) => ({
+          ...row,
+          VISIT: 'Unscheduled 0',
+          VISITNUM: '-1',
+          STRESN: String(Number(row.STRESN) / 2)
+        }));
+      chart.setData({ results: [...data.results, ...early], participants: data.participants });
+    });
+    await expect(page.locator('.sv-notes')).toContainText('Baseline visit: Baseline.');
+    let found = await tilesOf(page);
+    // The change from Baseline, as desktop R gives it for the study itself.
+    expect(found.charts[0].visits).toEqual(VISITS);
+    tileChart(found, 'IL-6').lines.forEach((line, arm) => {
+      line.points.forEach(([at, value]) =>
+        near(value, rLines('IL-6', 'change', 'median')[arm][at], line.level)
+      );
+    });
+    // One visit open: the question for R is the one asked of the study itself.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ start_value: 'IL-6', visits: ['Week 4'] })
+    );
+    await expect(page.locator('.sv-notes')).toContainText('Baseline visit: Baseline.');
+    let [asked] = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.rows).toBe(186);
+    expect(asked.dataId).not.toHaveProperty('unscheduled_visits');
+    const scheduled = await page.evaluate(() =>
+      window.__gc.chart.model.panels[0].records.map((record) => record.y)
+    );
+
+    // Switched on: the first visit of all is the baseline, the values drawn are
+    // other values, and the identity of the rows says they hold unscheduled visits.
+    await page.locator('input[data-control="unscheduled-visits"]').check();
+    await expect(page.locator('.sv-notes')).toContainText('Baseline visit: Unscheduled 0.');
+    [asked] = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked.dataId.unscheduled_visits).toBe(true);
+    const all = await page.evaluate(() =>
+      window.__gc.chart.model.panels[0].records.map((record) => record.y)
+    );
+    expect(all).not.toEqual(scheduled);
+    // Everything else of the identity is as it was.
+    const { unscheduled_visits: said, ...rest } = asked.dataId;
+    expect(said).toBe(true);
+    expect(rest).toEqual({
+      chart: 'group-comparison',
+      measure: 'IL-6',
+      value_type: 'change',
+      visit: 'Week 4',
+      baseline_stat: 'mean',
+      group_by: 'ARM',
+      groups: ['Placebo', 'Treatment']
+    });
+  });
+  test('GC-UNS-006: a specification that names an unscheduled visit, as one written by v0.2.0 for a study that has them, is read; the visit is left out like any other, and the notice above the chart says which and by which setting, not that it is missing from the tables; with `unscheduled_visits` true in it the visit is drawn and nothing is said (#84)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openTiles(page);
+    await addUnscheduled(page);
+    const made = await page.evaluate(() => {
+      const { chart } = window.__gc;
+      const { tables } = chart;
+      // One biomarker at three visits, one of them unscheduled, as the released
+      // chart would have written it: with none of the settings this version adds.
+      const written = chart.specification();
+      for (const key of [
+        'unscheduled_visits',
+        'unscheduled_visit_pattern',
+        'unscheduled_visit_values',
+        'tile_summary',
+        'tile_min_spread'
+      ]) {
+        delete written.settings[key];
+      }
+      written.settings.start_value = 'IL-6';
+      chart.destroy();
+      const remake = (settings) => {
+        const again = window.BioViz.fromSpecification('#chart', {
+          ...written,
+          settings: { ...written.settings, ...settings }
+        }).init(tables);
+        const note = again.root.querySelector('.bv-hidden-visits');
+        const out = {
+          notices: again.notices.map((notice) => notice.said),
+          said: again.root.querySelector('.bv-notices').textContent,
+          panels: again.model.panels.map((panel) => panel.title),
+          hidden: note ? note.textContent : null
+        };
+        again.destroy();
+        return out;
+      };
+      return {
+        off: remake({ visits: ['Week 2', 'Unscheduled 1', 'Week 4'] }),
+        on: remake({ visits: ['Week 2', 'Unscheduled 1', 'Week 4'], unscheduled_visits: true }),
+        absent: remake({ visits: ['Week 2', 'Unscheduled 1', 'Week 99'] }),
+        every: remake({
+          visits: [
+            'Baseline',
+            'Week 2',
+            'Unscheduled 1',
+            'Week 4',
+            'Week 8',
+            'Week 12',
+            'Early Termination'
+          ]
+        })
+      };
+    });
+    const notice =
+      'Visits: Unscheduled 1 is an unscheduled visit, left out unless `unscheduled_visits` is ' +
+      'true, so the chart draws Week 2, Week 4.';
+    expect(made.off.panels).toEqual(['Week 2', 'Week 4']);
+    expect(made.off.notices).toEqual([notice]);
+    expect(made.off.said).toBe(`Not drawn as the specification asks: ${notice}`);
+    expect(made.off.hidden).toBe(HIDDEN_NOTE);
+    // With the switch in the specification, it draws what it names.
+    expect(made.on.panels).toEqual(['Week 2', 'Unscheduled 1', 'Week 4']);
+    expect(made.on.notices).toEqual([]);
+    expect(made.on.hidden).toBe(null);
+    // A visit the tables do not have is still said to be that.
+    expect(made.absent.notices).toEqual([
+      'Visits: Unscheduled 1 is an unscheduled visit, left out unless `unscheduled_visits` is ' +
+        'true, so the chart draws Week 2. Week 99 is not in the tables.'
+    ]);
+    // Every visit the released chart drew of such a study: the scheduled ones are drawn.
+    expect(made.every.panels).toEqual(VISITS);
+    expect(made.every.notices).toEqual([
+      'Visits: Unscheduled 1, Early Termination are unscheduled visits, left out unless ' +
+        '`unscheduled_visits` is true, so the chart draws Baseline, Week 2, Week 4, Week 8, Week 12.'
+    ]);
+    expect(errors).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// One biomarker over time (#85): the level between the tiles and one visit.
+// With a biomarker chosen and every visit it has ticked, the chart draws that
+// biomarker across the visits in one picture, with a table under the axis: the
+// number in each group at each visit, and R's test of the groups at each visit,
+// asked of R in one request. No number below was typed: the marks are held to
+// tests/fixtures/group-comparison-r.json, and the tests to
+// tests/fixtures/group-statistics-r.json, both written by desktop R.
+
+// The fixture page on one biomarker with no visit named: every visit it has.
+const OVER_TIME = {
+  start_value: 'IL-6',
+  visits: null,
+  value_type: 'raw',
+  baseline_visits: 'Baseline',
+  group_by: 'ARM'
+};
+async function openOverTime(page, { data = 'both', settings = {}, before = null, results } = {}) {
+  await open(page, { data, before, settings: { ...OVER_TIME, ...settings } });
+  if (results) {
+    await page.evaluate(
+      (given) =>
+        window.__gc.chart.setSettings({
+          connection: window.BioViz.r.createConnection({ results: given })
+        }),
+      storedOverTime(...results)
+    );
+  }
+}
+const testRow = (page) => page.locator('.bv-time-table tr[data-row="test"]');
+const timeLine = (page) => page.locator('.bv-time-line');
+// R's cell of one group at one visit.
+const rCell = (rows, visit, level) =>
+  rows.find((row) => row.visit === visit && row.level === level);
+// Within a part in a thousand million: a standard error is a square root away
+// from the numbers R and the browser agree on to the last place.
+const close = (actual, expected, label) =>
+  expect(Math.abs(actual - expected), label).toBeLessThanOrEqual(
+    1e-9 * Math.max(1, Math.abs(expected))
+  );
+
+test.describe('group comparison: one biomarker over time', () => {
+  test('GC-TIME-019: a biomarker opened from its tile is drawn across its visits in one picture on the kit’s Chart.js: visit along the bottom in visit order, the groups side by side in their colours as safety.viz’s boxes, and under each visit the number in each group; the boxes and the counts are desktop R’s (#85)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openTiles(page, { settings: { value_type: 'raw', group_by: 'ARM' } });
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    const found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    // One picture, not a panel a visit, drawn by the kit with its own box.
+    expect(found.charts).toBe(1);
+    expect(found.withKit).toBe(true);
+    expect(found.plugins).toEqual(['gc-time-frame', 'gc-time-boxwhisker']);
+    await expect(page.locator('.bv-panel')).toHaveCount(0);
+    await expect(page.locator('.bv-tile')).toHaveCount(0);
+    // Visit along the bottom, in visit order, each named under its place.
+    expect(found.visits).toEqual(VISITS);
+    expect(found.heads.map((head) => head.text)).toEqual(VISITS);
+    expect(found.cells.map((column) => column.at)).toEqual([0, 1, 2, 3, 4]);
+    // A group keeps one colour across the visits, and no line joins boxes.
+    expect(found.groups.map((group) => [group.level, group.colour, group.joined])).toEqual([
+      ['Placebo', COLOURS[0], false],
+      ['Treatment', COLOURS[1], false]
+    ]);
+    // Side by side at each visit, within the visit's own part of the axis.
+    for (const column of found.cells) {
+      const [first, second] = column.cells.map((cell) => cell.x);
+      expect(first, column.visit).toBeLessThan(column.at);
+      expect(second, column.visit).toBeGreaterThan(column.at);
+      expect(column.at - first, column.visit).toBeLessThan(0.5);
+      expect(second - column.at, column.visit).toBeLessThan(0.5);
+    }
+    // Each box is desktop R's: its count, its five quantiles and its mean.
+    const fromDesktop = rOverTime('IL-6', 'raw');
+    for (const column of found.cells) {
+      for (const cell of column.cells) {
+        const expected = rCell(fromDesktop, column.visit, cell.level);
+        expect(cell.n, `${column.visit} ${cell.level}`).toBe(expected.n);
+        for (const key of ['q5', 'q25', 'median', 'q75', 'q95', 'mean']) {
+          near(cell[key], expected[key], `${column.visit} ${cell.level} ${key}`);
+        }
+      }
+    }
+    // Under each visit, the number in each group: R's count, as text.
+    expect(found.counts).toEqual(
+      Object.fromEntries(
+        ['Placebo', 'Treatment'].map((level) => [
+          level,
+          VISITS.map((visit) => `n = ${rCell(fromDesktop, visit, level).n}`)
+        ])
+      )
+    );
+    expect(found.counts.Placebo).toEqual(['n = 100', 'n = 92', 'n = 95', 'n = 93', 'n = 92']);
+    // The key says what is drawn, the caption how a box is read, and the
+    // picture is named for a reader who cannot see it.
+    expect(found.key).toEqual(['Boxes of the result by ARM:', 'Placebo', 'Treatment']);
+    expect(found.caption).toBe(
+      'Each box runs from the 25th to the 75th percentile, with a line at the median and a dot at the mean; its whiskers end at the 5th and 95th percentiles.'
+    );
+    expect(found.yTitle).toBe('IL-6 (pg/mL)');
+    expect(found.label).toBe(
+      'IL-6 (pg/mL), boxes at Baseline, Week 2, Week 4, Week 8, Week 12: Placebo 8.103, 7.794, 8.062, 7.917, 7.925; Treatment 7.818, 6.461, 6.365, 6.368, 6.579'
+    );
+    expect(found.footnote).toBe(
+      'Click a visit to view it alone, with its marks, a second grouping and pairwise comparisons.'
+    );
+    // The value axis holds every whisker.
+    const all = found.cells.flatMap((column) => column.cells);
+    expect(found.y[0]).toBeLessThan(Math.min(...all.map((cell) => cell.q5)));
+    expect(found.y[1]).toBeGreaterThan(Math.max(...all.map((cell) => cell.q95)));
+    // A visit's column of the table is under its place in the picture.
+    const placed = await page.evaluate(() => {
+      const [chart] = window.__gc.chart.charts;
+      const canvas = chart.canvas.getBoundingClientRect();
+      return [...document.querySelectorAll('.bv-time-table thead th[data-visit]')].map(
+        (cell, at) => {
+          const box = cell.getBoundingClientRect();
+          return [(box.left + box.right) / 2, canvas.left + chart.scales.x.getPixelForValue(at)];
+        }
+      );
+    });
+    for (const [column, place] of placed) expect(Math.abs(column - place)).toBeLessThanOrEqual(2);
+    expect(errors).toEqual([]);
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-019', 'il-6-over-time-boxes');
+  });
+
+  test('GC-TIME-020: drawn as means with standard errors, each group is a point at desktop R’s mean at each visit with a bar one standard error either side, joined across the visits by a line in the group’s colour (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page);
+    await choose(page, 'time-mark', 'mean_se');
+    const found = await overTimeOf(page);
+    expect(found.plugins).toEqual(['gc-time-frame', 'gc-time-bars']);
+    expect(found.groups.map((group) => [group.level, group.colour, group.joined])).toEqual([
+      ['Placebo', COLOURS[0], true],
+      ['Treatment', COLOURS[1], true]
+    ]);
+    const fromDesktop = rOverTime('IL-6', 'raw');
+    for (const group of found.groups) {
+      expect(group.points.map((point) => point.visit)).toEqual(VISITS);
+      expect(group.radius).toBeGreaterThan(0);
+      for (const point of group.points) {
+        const expected = rCell(fromDesktop, point.visit, group.level);
+        const where = `${point.visit} ${group.level}`;
+        near(point.y, expected.mean, where);
+        close(point.lower, expected.mean - expected.se, `${where} lower`);
+        close(point.upper, expected.mean + expected.se, `${where} upper`);
+      }
+    }
+    // The standard error is R's: sd(x) / sqrt(n).
+    for (const column of found.cells) {
+      for (const cell of column.cells) {
+        close(cell.se, rCell(fromDesktop, column.visit, cell.level).se, column.visit);
+      }
+    }
+    expect(found.key[0]).toBe('Mean and standard error of the result by ARM:');
+    expect(found.caption).toBe(
+      'Each point is a group’s mean at a visit, and its bar reaches one standard error either side: the standard deviation over the square root of the number in the group.'
+    );
+    expect(found.label).toBe(
+      'IL-6 (pg/mL), means with standard errors at Baseline, Week 2, Week 4, Week 8, Week 12: Placebo 7.941, 7.874, 8.006, 7.989, 8.073; Treatment 7.689, 6.348, 6.462, 6.411, 6.476'
+    );
+    // The value axis is the bars', closer than the boxes' whiskers.
+    const ends = found.groups.flatMap((group) => group.points);
+    expect(found.y[0]).toBeLessThan(Math.min(...ends.map((point) => point.lower)));
+    expect(found.y[1]).toBeGreaterThan(Math.max(...ends.map((point) => point.upper)));
+    expect(found.y[1] - found.y[0]).toBeLessThan(4);
+    // The counts under the visits are the same whatever is drawn.
+    expect(found.counts.Treatment).toEqual(['n = 100', 'n = 93', 'n = 91', 'n = 95', 'n = 92']);
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-020', 'il-6-over-time-means');
+  });
+
+  test('GC-TIME-021: drawn as medians with quartiles, each group is a point at desktop R’s median with a bar from the 25th to the 75th percentile, joined by a line; `time_mark` opens the chart on a form, the control reads it, and a change from baseline starts every group at nought (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, { settings: { time_mark: 'median_iqr' } });
+    await expect(page.locator('select[data-control="time-mark"]')).toHaveValue('median_iqr');
+    let found = await overTimeOf(page);
+    expect(found.plugins).toEqual(['gc-time-frame', 'gc-time-bars']);
+    const check = (rows) => {
+      for (const group of found.groups) {
+        expect(group.joined).toBe(true);
+        expect(group.points.map((point) => point.visit)).toEqual(VISITS);
+        for (const point of group.points) {
+          const expected = rCell(rows, point.visit, group.level);
+          const where = `${point.visit} ${group.level}`;
+          near(point.y, expected.median, where);
+          near(point.lower, expected.q25, `${where} lower`);
+          near(point.upper, expected.q75, `${where} upper`);
+        }
+      }
+    };
+    check(rOverTime('IL-6', 'raw'));
+    expect(found.key[0]).toBe('Median and quartiles of the result by ARM:');
+    expect(found.caption).toBe(
+      'Each point is a group’s median at a visit, and its bar reaches from the 25th to the 75th percentile.'
+    );
+    // The change from baseline: at the baseline visit every group is at nought.
+    await choose(page, 'value-type', 'change');
+    found = await overTimeOf(page);
+    check(rOverTime('IL-6', 'change'));
+    for (const group of found.groups) {
+      expect(group.points[0]).toMatchObject({ visit: 'Baseline', y: 0, lower: 0, upper: 0 });
+    }
+    expect(found.key[0]).toBe('Median and quartiles of the change from baseline by ARM:');
+    expect(found.yTitle).toBe('IL-6, change from baseline (pg/mL)');
+    // The form is the reader's until changed: another biomarker keeps it.
+    await choose(page, 'measure', 'CRP');
+    found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    await expect(page.locator('select[data-control="time-mark"]')).toHaveValue('median_iqr');
+    check(rOverTime('CRP', 'change'));
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-021', 'crp-over-time-medians');
+  });
+
+  test('GC-TIME-022: under each visit the row of tests prints the p-value desktop R returns for that visit, from one request for the whole row; the Adjust across visits switch asks R again and prints R’s adjusted p-values, and the row’s heading and the line under it name the adjustment R made (#85)', async ({
+    page
+  }) => {
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await openOverTime(page, {
+      results: [
+        'over-time-result',
+        'over-time-result-holm',
+        'over-time-result-bh',
+        'over-time-age-40-to-43',
+        'over-time-age-40-to-43-unadjusted'
+      ]
+    });
+    // What R returned for the rows, and what R gives for each visit asked
+    // about alone, with p.adjust() across them (tools/r-group-statistics.R).
+    const held = async (name, heading, said) => {
+      const expected = overTimeResult(name);
+      const found = await overTimeOf(page);
+      // One request, with the key desktop R wrote, answered from what it stored.
+      expect(found.statistics, name).toHaveLength(1);
+      const [asked] = found.statistics;
+      expect({
+        name: asked.name,
+        args: asked.args,
+        dataId: asked.dataId,
+        rows: asked.rows
+      }).toEqual({
+        name: 'Analyze_GroupDifferenceBy',
+        args: expected.args,
+        dataId: expected.dataId,
+        rows: expected.rows
+      });
+      expect(asked.answer.form).toBe('precomputed');
+      expect(found.test.head).toBe('Welch t-test');
+      expect(found.test.sub, name).toBe(heading);
+      expect(found.test.cells.map((cell) => cell.visit)).toEqual(VISITS);
+      expected.value.rows.forEach((row, at) => {
+        const cell = found.test.cells[at];
+        expect(row.by).toBe(VISITS[at]);
+        if (row.status !== 'ok') {
+          expect(cell.text, `${name} ${row.by}`).toBe('not computed');
+          return;
+        }
+        // R's p-value for the visit, by the shared rule; and it is the one R
+        // gives for that visit alone, adjusted by p.adjust() across the visits.
+        const alone = expected.separately.visits.indexOf(row.by);
+        close(row.p_unadjusted, expected.separately.p_unadjusted[alone], `${name} ${row.by}`);
+        close(row.p_value, expected.separately.p_value[alone], `${name} ${row.by} adjusted`);
+        expect(cell.status).toBe('shown');
+        expect(cell.text, `${name} ${row.by}`).toBe(printedP(row.p_value));
+        // The cell's title is the whole sentence: the method, both p-values
+        // where R adjusted, and each group's count.
+        expect(cell.title).toContain(`${row.by}: Welch Two Sample t-test: `);
+        expect(cell.title).toContain(printedP(row.p_unadjusted));
+        expect(cell.title).toContain(`Placebo n = ${row.n_1}, Treatment n = ${row.n_2}`);
+      });
+      expect(found.line.result, name).toBe(said);
+      expect(found.line.state).toBe('shown');
+      return found;
+    };
+    let found = await held(
+      'over-time-result',
+      'p, unadjusted',
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, unadjusted.'
+    );
+    expect(found.test.cells.map((cell) => cell.text)).toEqual([
+      'p = 0.221',
+      'p < 0.001',
+      'p < 0.001',
+      'p < 0.001',
+      'p < 0.001'
+    ]);
+    expect(found.line.scope).toBe(
+      'Each visit has a test of its own, of the levels of ARM on the participants drawn at that visit.'
+    );
+    // R's own remarks on its answer are printed as R wrote them.
+    expect(found.line.remarks).toEqual(
+      overTimeResult('over-time-result').value.notes.map((note) => `R’s note: ${note}`)
+    );
+
+    // The switch: R is asked again, for the adjustment by its p.adjust() name.
+    await choose(page, 'visit-adjustment', 'holm');
+    found = await held(
+      'over-time-result-holm',
+      'p, adjusted (Holm)',
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, adjusted (Holm) across 5 visits.'
+    );
+    expect(found.statistics[0].args.strPAdjust).toBe('holm');
+    expect(found.test.cells[0].title).toBe(
+      'Baseline: Welch Two Sample t-test: p = 0.221 unadjusted, p = 0.221 adjusted across 5 visits (Placebo n = 100, Treatment n = 100). Exploratory, adjusted (Holm).'
+    );
+    await choose(page, 'visit-adjustment', 'BH');
+    found = await held(
+      'over-time-result-bh',
+      'p, adjusted (Benjamini-Hochberg)',
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, adjusted (Benjamini-Hochberg) across 5 visits.'
+    );
+    expect(found.statistics[0].args.strPAdjust).toBe('BH');
+    await captureEvidence(
+      page.locator('.sv-multiples'),
+      'GC-TIME-022',
+      'tests-under-the-visits-adjusted'
+    );
+
+    // Among the participants aged 40 to 43 the p-values are not small, so the
+    // adjustment shows in print: each visit's own p-value, then R's adjusted
+    // one in its place. The filter is the demo's own, set as a reader would.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({
+        visit_adjustment: 'none',
+        filters: [{ value_col: 'AGE', multiple: true, start: ['40', '41', '42', '43'] }]
+      })
+    );
+    found = await overTimeOf(page);
+    expect(found.statistics[0].dataId).toEqual(
+      overTimeResult('over-time-age-40-to-43-unadjusted').dataId
+    );
+    expect(found.test.sub).toBe('p, unadjusted');
+    expect(found.test.cells.map((cell) => cell.text)).toEqual([
+      'p = 0.959',
+      'not computed',
+      'p = 0.635',
+      'not computed',
+      'p = 0.193'
+    ]);
+    await choose(page, 'visit-adjustment', 'holm');
+    found = await overTimeOf(page);
+    expect(found.test.sub).toBe('p, adjusted (Holm)');
+    expect(found.test.cells.map((cell) => cell.text)).toEqual([
+      'p > 0.999',
+      'not computed',
+      'p > 0.999',
+      'not computed',
+      'p = 0.579'
+    ]);
+    const adjusted = overTimeResult('over-time-age-40-to-43');
+    expect(
+      adjusted.value.rows.filter((row) => row.status === 'ok').map((row) => printedP(row.p_value))
+    ).toEqual(['p > 0.999', 'p > 0.999', 'p = 0.579']);
+    expect(found.test.cells[4].title).toBe(
+      'Week 12: Welch Two Sample t-test: p = 0.193 unadjusted, p = 0.579 adjusted across 3 visits (Placebo n = 5, Treatment n = 5). Exploratory, adjusted (Holm).'
+    );
+    // No R ran here, and none was fetched: every answer was stored.
+    expect(requests.filter(isRHost)).toEqual([]);
+  });
+
+  test('GC-TIME-023: the row of tests waits until R answers and then prints each visit’s p-value with the adjustment R names; a change to the test, the adjustment or a filter clears the row and asks again, in one request, and the answer to the question before is never shown (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, { before: stubR });
+    await attachStub(page);
+    const row = testRow(page);
+    await expect(row).toHaveAttribute('data-state', 'waiting');
+    await expect(row.locator('td[colspan]')).toHaveText('Waiting for R…');
+    await expect(row.locator('td[colspan]')).toHaveAttribute('colspan', '5');
+    await expect(timeLine(page)).toHaveAttribute('data-state', 'waiting');
+    await expect(timeLine(page)).toContainText(WAITING);
+    // The picture and the counts are drawn while R is asked.
+    expect((await overTimeOf(page)).counts.Placebo).toHaveLength(5);
+    await expect.poll(() => page.evaluate(() => window.__r.calls.length)).toBe(1);
+    // One request for the whole row: the rows of every visit, by their fields.
+    expect((await calls(page))[0]).toEqual({
+      name: 'Analyze_GroupDifferenceBy',
+      rows: 943,
+      args: {
+        strValueCol: 'y',
+        strGroupCol: 'x',
+        strByCol: 'visit',
+        strMethod: 't',
+        chrBy: VISITS,
+        strPAdjust: 'none'
+      },
+      fields: ['USUBJID', 'y', 'x', 'visit'],
+      counts: { Placebo: 472, Treatment: 471 }
+    });
+    await page.evaluate(() => window.__r.answerVisits(0, [0.5, 0.04, 0.03, 0.0004, 0.9996]));
+    await expect(row).toHaveAttribute('data-state', 'shown');
+    await expect(row.locator('td[data-visit]')).toHaveText([
+      'p = 0.500',
+      'p = 0.040',
+      'p = 0.030',
+      'p < 0.001',
+      'p > 0.999'
+    ]);
+    await expect(row.locator('.bv-time-sub')).toHaveText('p, unadjusted');
+
+    const changes = [
+      {
+        what: 'the test',
+        make: () => choose(page, 'test', 'wilcoxon'),
+        asked: { strMethod: 'wilcoxon', strPAdjust: 'none' },
+        sub: 'p, unadjusted'
+      },
+      {
+        what: 'the adjustment',
+        make: () => choose(page, 'visit-adjustment', 'holm'),
+        asked: { strMethod: 'wilcoxon', strPAdjust: 'holm' },
+        sub: 'p, adjusted (Holm)'
+      },
+      {
+        what: 'a filter',
+        make: () => page.locator('select[data-filter="SEX"]').selectOption('F'),
+        asked: { strMethod: 'wilcoxon', strPAdjust: 'holm' },
+        sub: 'p, adjusted (Holm)'
+      }
+    ];
+    let asked = 1;
+    for (const change of changes) {
+      await change.make();
+      await expect(row, change.what).toHaveAttribute('data-state', 'waiting');
+      await expect(row.locator('td[colspan]'), change.what).toHaveText('Waiting for R…');
+      await expect
+        .poll(() => page.evaluate(() => window.__r.calls.length), { message: change.what })
+        .toBe(asked + 1);
+      expect((await calls(page))[asked].args, change.what).toMatchObject(change.asked);
+      // Drawn again before R answers: one more question, for the same view.
+      await page.evaluate(() => window.__gc.chart.render());
+      await expect
+        .poll(() => page.evaluate(() => window.__r.calls.length), { message: change.what })
+        .toBe(asked + 2);
+      // The first of the two answers late, with numbers that would be wrong here.
+      await page.evaluate(
+        (index) => window.__r.answerVisits(index, [0.111, 0.111, 0.111, 0.111, 0.111]),
+        asked
+      );
+      await page.waitForTimeout(50);
+      await expect(row, change.what).toHaveAttribute('data-state', 'waiting');
+      await expect(page.locator('.sv-main'), change.what).not.toContainText('0.111');
+      await page.evaluate(
+        (index) => window.__r.answerVisits(index, [0.25, 0.25, 0.25, 0.25, 0.25]),
+        asked + 1
+      );
+      await expect(row.locator('td[data-visit]'), change.what).toHaveText(
+        VISITS.map(() => 'p = 0.250')
+      );
+      await expect(row.locator('.bv-time-sub'), change.what).toHaveText(change.sub);
+      asked += 2;
+    }
+    // After the filter the rows asked about are the women's.
+    expect((await calls(page))[asked - 1].rows).toBeLessThan(943);
+    await expect(row.locator('.bv-time-head')).toContainText('Wilcoxon rank-sum test');
+  });
+
+  test('GC-TIME-024: for a change from baseline the baseline visit is drawn, where every group starts at nought, and is not tested: its name is not a button, its cell reads not tested, its rows are not sent to R, and the notes and the line say why (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, {
+      settings: { value_type: 'change' },
+      results: ['over-time-change', 'over-time-change-holm', 'over-time-change-wilcoxon']
+    });
+    const expected = overTimeResult('over-time-change');
+    let found = await overTimeOf(page);
+    expect(found.visits).toEqual(VISITS);
+    expect(found.tested).toEqual(VISITS.slice(1));
+    // Drawn: every group at nought, with everyone who has a baseline.
+    for (const cell of found.cells[0].cells) {
+      expect(cell).toMatchObject({ n: 100, median: 0, q25: 0, q75: 0, mean: 0 });
+    }
+    expect(found.counts.Placebo[0]).toBe('n = 100');
+    // Not a way into a view that would draw nothing.
+    expect(found.heads.map((head) => [head.visit, head.button])).toEqual([
+      ['Baseline', false],
+      ['Week 2', true],
+      ['Week 4', true],
+      ['Week 8', true],
+      ['Week 12', true]
+    ]);
+    // Not sent: R is asked about the four later visits, on their rows alone.
+    expect(found.statistics).toHaveLength(1);
+    expect(found.statistics[0].args).toEqual(expected.args);
+    expect(found.statistics[0].args.chrBy).toEqual(VISITS.slice(1));
+    expect(found.statistics[0].dataId).toEqual(expected.dataId);
+    expect(found.statistics[0].dataId.visits).toEqual(VISITS.slice(1));
+    expect(found.statistics[0].rows).toBe(743);
+    expect(found.statistics[0].rows).toBe(
+      found.cells
+        .slice(1)
+        .flatMap((column) => column.cells)
+        .reduce((total, cell) => total + cell.n, 0)
+    );
+    expect(found.statistics[0].answer.value.rows.map((row) => row.by)).toEqual(VISITS.slice(1));
+    // Its cell says so, and the others hold R's p-values.
+    expect(found.test.cells[0]).toMatchObject({
+      visit: 'Baseline',
+      status: 'untested',
+      text: 'not tested',
+      title:
+        'Baseline is the baseline visit: there the change from baseline is the same for everyone.'
+    });
+    expect(found.test.cells.slice(1).map((cell) => cell.text)).toEqual(
+      expected.value.rows.map((row) => printedP(row.p_value))
+    );
+    await expect(page.locator('.sv-notes')).toContainText(
+      'Baseline visit: Baseline. It is not tested: there the change from baseline is the same for everyone.'
+    );
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 4 visits tested. Exploratory, unadjusted.'
+    );
+    expect(found.line.scope).toBe(
+      'Each visit has a test of its own, of the levels of ARM on the participants drawn at that visit. ' +
+        'Baseline is not tested: it is the baseline visit, where the change from baseline is the same for everyone.'
+    );
+    // A click in its part of the picture opens nothing; in another, that visit.
+    const at = (visit) =>
+      page.evaluate((index) => {
+        const [chart] = window.__gc.chart.charts;
+        const box = chart.canvas.getBoundingClientRect();
+        return {
+          x: box.left + chart.scales.x.getPixelForValue(index),
+          y: box.top + (chart.chartArea.top + chart.chartArea.bottom) / 2
+        };
+      }, VISITS.indexOf(visit));
+    let point = await at('Baseline');
+    await page.mouse.click(point.x, point.y);
+    await page.waitForTimeout(100);
+    expect(await page.locator('.sv-root').getAttribute('data-level')).toBe('over-time');
+    // Adjusted, the adjustment is across the four visits tested.
+    await choose(page, 'visit-adjustment', 'holm');
+    found = await overTimeOf(page);
+    expect(found.test.sub).toBe('p, adjusted (Holm)');
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 4 visits tested. Exploratory, adjusted (Holm) across 4 visits.'
+    );
+    expect(found.statistics[0].answer.value.rows.map((row) => row.adjusted_over)).toEqual([
+      4, 4, 4, 4
+    ]);
+    await captureEvidence(
+      page.locator('.sv-multiples'),
+      'GC-TIME-024',
+      'change-from-baseline-over-time'
+    );
+    point = await at('Week 8');
+    await page.mouse.click(point.x, point.y);
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('1 of 5');
+    await expect(page.locator('[data-control="visits"] input[value="Week 8"]')).toBeChecked();
+    await expect(page.locator('.sv-chart-wrap canvas')).toHaveAttribute(
+      'aria-label',
+      /^IL-6 at Week 8, change from baseline/
+    );
+  });
+
+  test('GC-TIME-025: with no R attached the picture and the counts are drawn all the same, the row of tests says that statistics are unavailable and nothing is fetched; with no test chosen, or one group, R is not asked and the row says so (#85)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await openOverTime(page);
+    let found = await overTimeOf(page);
+    expect(found.charts).toBe(1);
+    expect(found.groups.map((group) => group.points.length)).toEqual([5, 5]);
+    expect(found.counts.Placebo).toEqual(['n = 100', 'n = 92', 'n = 95', 'n = 93', 'n = 92']);
+    expect(found.test).toMatchObject({
+      state: 'unavailable',
+      head: 'Welch t-test',
+      sub: 'p-value'
+    });
+    expect(found.test.cells).toEqual([
+      { visit: null, status: null, text: 'Statistics unavailable', title: null, span: 5 }
+    ]);
+    expect(found.line).toMatchObject({
+      state: 'unavailable',
+      result: 'Statistics are unavailable: no R is attached to this chart.'
+    });
+    // What it would have asked is still on record, with no answer of R's.
+    expect(found.statistics).toHaveLength(1);
+    expect(found.statistics[0].answer.status).toBe('unavailable');
+    const statisticsButton = page.locator('.bv-downloads button[data-download="statistics"]');
+    await expect(statisticsButton).toBeDisabled();
+    await expect(statisticsButton).toHaveAttribute(
+      'title',
+      'R returned no statistics for this view.'
+    );
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-025', 'over-time-with-no-r');
+
+    // No test chosen: R is not asked.
+    await choose(page, 'test', 'none');
+    found = await overTimeOf(page);
+    expect(found.test).toMatchObject({ state: 'none', head: 'Test' });
+    expect(found.test.cells[0].text).toBe('No test chosen');
+    expect(found.line.result).toBe('Statistics: no test chosen.');
+    expect(found.statistics).toEqual([]);
+    await expect(page.locator('select[data-control="visit-adjustment"]')).toBeDisabled();
+    await expect(statisticsButton).toHaveCount(0);
+    // One group: nothing to compare.
+    await choose(page, 'test', 't');
+    await page.locator('select[data-filter="ARM"]').selectOption('Placebo');
+    found = await overTimeOf(page);
+    expect(found.groups.map((group) => group.level)).toEqual(['Placebo']);
+    expect(found.test.state).toBe('none');
+    expect(found.test.cells).toHaveLength(1);
+    expect(found.test.cells[0].text).toBe('No test');
+    expect(found.line.result).toBe(
+      'Statistics: no test. A test compares two or more groups, and only Placebo has values.'
+    );
+    expect(found.statistics).toEqual([]);
+    expect(requests.filter((url) => /webr|r-wasm|statistics\.R/.test(url))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-026: a visit’s name in the table is a button that opens that visit alone, by a click or by the keyboard, as the released single-visit view with its own question for R; the trail above the chart names the level drawn and leads back, to the biomarker over time as All in the Visit control does and to every biomarker across every visit (#85, #112)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openOverTime(page, {
+      settings: { value_type: 'change' },
+      results: ['over-time-change']
+    });
+    await page.evaluate(
+      (results) =>
+        window.__gc.chart.setSettings({
+          connection: window.BioViz.r.createConnection({ results })
+        }),
+      [...storedOverTime('over-time-change'), ...stored('welch')]
+    );
+    let found = await overTimeOf(page);
+    // The trail: where the reader is, and the way back to every biomarker.
+    expect(found.trail).toEqual([
+      { text: 'All biomarkers', button: true },
+      { text: 'IL-6 over time', button: false }
+    ]);
+    await expect(page.locator('.bv-trail')).toHaveAttribute('aria-label', 'Where this view is');
+    await expect(page.locator('.bv-trail [aria-current="true"]')).toHaveText('IL-6 over time');
+    expect(found.heads[2]).toEqual({
+      visit: 'Week 4',
+      button: true,
+      label: 'View IL-6 at Week 4',
+      text: 'Week 4'
+    });
+
+    // A click on Week 4: the single-visit view, as it was released.
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('.bv-time-table')).toHaveCount(0);
+    await expect(page.locator('.sv-chart-wrap canvas')).toHaveAttribute(
+      'aria-label',
+      'IL-6 at Week 4, change from baseline (pg/mL): Placebo n = 95; Treatment n = 91'
+    );
+    const [panel] = await drawn(page);
+    expect(panel.plugins).toContain('gc-boxwhisker');
+    expect(panel.ticks.map((tick) => tick[1])).toEqual(['n = 95', 'n = 91']);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('1 of 5');
+    await expect(page.locator('[data-control="visits"] input[value="Week 4"]')).toBeChecked();
+    // The keyboard's place is on the Visit control, where the way back is.
+    await expect(page.locator('[data-control="visits"] summary')).toBeFocused();
+    // Its own question, with the key the single-visit view always asked with.
+    const asked = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatchObject({
+      name: 'Analyze_GroupDifference',
+      args: resultOf('welch').args,
+      dataId: resultOf('welch').dataId,
+      rows: 186
+    });
+    await expect(page.locator('.sv-main > .bv-statistic .bv-stat-result')).toHaveText(
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.'
+    );
+    // Its marks, its second grouping and its pairwise switch apply there.
+    for (const control of ['color-by', 'panel-by', 'mark']) {
+      await expect(page.locator(`select[data-control="${control}"]`)).toBeEnabled();
+    }
+    await expect(page.locator('select[data-control="time-mark"]')).toHaveCount(0);
+    await expect(page.locator('select[data-control="visit-adjustment"]')).toHaveCount(0);
+    // The trail names the visit, and its middle step leads back.
+    await expect(page.locator('.bv-trail li')).toHaveText([
+      'All biomarkers',
+      'IL-6 over time',
+      'Week 4'
+    ]);
+    await expect(page.locator('.bv-trail [aria-current="true"]')).toHaveText('Week 4');
+    await page.locator('.bv-trail button', { hasText: 'IL-6 over time' }).click();
+    found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    expect(found.visits).toEqual(VISITS);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
+    expect(found.test.cells.map((cell) => cell.status)).toEqual([
+      'untested',
+      'shown',
+      'shown',
+      'shown',
+      'shown'
+    ]);
+
+    // By the keyboard: the button takes the focus, and Enter opens the visit.
+    await page.locator('button.bv-time-visit[data-visit="Week 12"]').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('[data-control="visits"] input[value="Week 12"]')).toBeChecked();
+    expect((await drawn(page))[0].ticks.map((tick) => tick[1])).toEqual(['n = 92', 'n = 92']);
+    // Back by the Visit control: All ticks every visit, and the picture returns.
+    await page.locator('[data-control="visits"] summary').click();
+    await page.locator('[data-control="visits"] .sv-ms-all input').check();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    await expect(page.locator('.bv-time-table')).toHaveCount(1);
+    // The control stays open under the reader's hand, to untick a visit again.
+    await expect(page.locator('[data-control="visits"]')).toHaveAttribute('open', '');
+    // Some of the visits, not all: a panel each, the view between the two.
+    await page.locator('[data-control="visits"] input[value="Week 2"]').uncheck();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('.bv-panel h3')).toHaveText(['Week 4', 'Week 8', 'Week 12']);
+    await expect(page.locator('.bv-trail li')).toHaveText([
+      'All biomarkers',
+      'IL-6 over time',
+      'Baseline, Week 4, Week 8, Week 12'
+    ]);
+    // And the first step of the trail leads to every biomarker, across every
+    // visit: the trail leads back up the levels, so it does not keep the
+    // visits of the level it leaves.
+    await page.locator('.bv-trail button', { hasText: 'All biomarkers' }).click();
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    await expect(page.locator('.bv-trail')).toHaveCount(0);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
+    for (const chart of (await tilesOf(page)).charts) {
+      expect(chart.visits, chart.measure).toEqual(VISITS);
+    }
+    // From one visit too, where the tiles would each be a single point.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
+    await expect(page.locator('.bv-trail [aria-current="true"]')).toHaveText('Week 4');
+    await page.locator('.bv-trail button', { hasText: 'All biomarkers' }).click();
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    for (const chart of (await tilesOf(page)).charts) {
+      expect(chart.visits, chart.measure).toEqual(VISITS);
+    }
+    // All Biomarkers in the Biomarker control is the other way to the tiles,
+    // and keeps the visits the reader chose.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
+    await choose(page, 'measure', 'bv_overview');
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('1 of 5');
+    for (const chart of (await tilesOf(page)).charts) {
+      expect(chart.visits, chart.measure).toEqual(['Week 4']);
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-027: over time, Colour by and Panel by are switched off and say where they apply, Draw as offers the three forms, and Statistics offers the test and the adjustment across visits and no pairwise switch; Group by, Levels, Value, Scale and the filters apply to the picture and its table (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, { data: 'arm-sex' });
+    for (const control of ['color-by', 'panel-by']) {
+      const select = page.locator(`select[data-control="${control}"]`);
+      await expect(select).toBeDisabled();
+      expect(await select.evaluate((element) => element.nextElementSibling.textContent)).toBe(
+        'Applies once a biomarker and a visit are open.'
+      );
+    }
+    await expect(page.locator('.bv-control-note')).toHaveCount(2);
+    const options = (control) =>
+      page
+        .locator(`select[data-control="${control}"] option`)
+        .evaluateAll((all) => all.map((option) => [option.value, option.textContent]));
+    expect(await options('time-mark')).toEqual([
+      ['box', 'Boxes'],
+      ['mean_se', 'Means with standard errors'],
+      ['median_iqr', 'Medians with quartiles']
+    ]);
+    await expect(page.locator('select[data-control="mark"]')).toHaveCount(0);
+    expect(await options('test')).toEqual([
+      ['t', 'Welch t-test'],
+      ['wilcoxon', 'Wilcoxon rank-sum test'],
+      ['none', 'None']
+    ]);
+    expect(await options('visit-adjustment')).toEqual([
+      ['none', 'None'],
+      ['holm', 'Holm'],
+      ['BH', 'Benjamini-Hochberg']
+    ]);
+    expect(
+      await page
+        .locator('select[data-control="visit-adjustment"]')
+        .evaluate((select) => select.parentElement.querySelector('label').textContent)
+    ).toBe('Adjust across visits');
+    await expect(page.locator('input[data-control="pairwise"]')).toHaveCount(0);
+
+    // Group by: four groups side by side, and the tests that fit four.
+    await choose(page, 'group-by', 'ARM_SEX');
+    let found = await overTimeOf(page);
+    expect(found.groups.map((group) => group.level)).toEqual([
+      'Placebo F',
+      'Placebo M',
+      'Treatment F',
+      'Treatment M'
+    ]);
+    expect(Object.keys(found.counts)).toEqual([
+      'Placebo F',
+      'Placebo M',
+      'Treatment F',
+      'Treatment M'
+    ]);
+    expect(await options('test')).toEqual([
+      ['anova', 'One-way ANOVA'],
+      ['kruskal', 'Kruskal-Wallis test'],
+      ['none', 'None']
+    ]);
+    expect(found.statistics[0].args.strMethod).toBe('anova');
+    for (const column of found.cells) {
+      const xs = column.cells.map((cell) => cell.x);
+      expect([...xs].sort((a, b) => a - b)).toEqual(xs);
+      expect(xs[3] - xs[0]).toBeLessThan(1);
+    }
+    // Levels: the ones left keep their colours, and a row of counts each.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ levels: ['Placebo M', 'Treatment M'] })
+    );
+    found = await overTimeOf(page);
+    expect(found.groups.map((group) => group.level)).toEqual(['Placebo M', 'Treatment M']);
+    expect(found.key).toEqual(['Boxes of the result by ARM_SEX:', 'Placebo M', 'Treatment M']);
+    expect(found.counts['Placebo M']).toEqual(['n = 56', 'n = 51', 'n = 53', 'n = 51', 'n = 51']);
+    await expect(page.locator('.sv-notes')).toContainText('2 of 4 levels shown.');
+    expect(found.statistics[0].args.strMethod).toBe('t');
+    // Value and Scale.
+    await choose(page, 'y-scale', 'log');
+    found = await overTimeOf(page);
+    expect(found.yType).toBe('logarithmic');
+    expect(found.y[0]).toBeGreaterThan(0);
+    await choose(page, 'value-type', 'percent_change');
+    found = await overTimeOf(page);
+    expect(found.yTitle).toBe('IL-6, percent change from baseline (%)');
+    expect(found.tested).toEqual(VISITS.slice(1));
+    // A filter: fewer in each count, and R asked about the rows left.
+    const before = found.statistics[0].rows;
+    await page.locator('select[data-filter="RESPONSE"]').selectOption('Responder');
+    found = await overTimeOf(page);
+    expect(found.statistics[0].rows).toBeLessThan(before);
+    expect(found.statistics[0].dataId.filters).toEqual({ RESPONSE: ['Responder'] });
+    // A baseline value has no visit, so no picture over time: one chart.
+    await choose(page, 'value-type', 'baseline');
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('.bv-time-table')).toHaveCount(0);
+    await expect(page.locator('.bv-trail li')).toHaveText([
+      'All biomarkers',
+      'IL-6, baseline value'
+    ]);
+  });
+
+  test('GC-TIME-028: a visit R did not compute reads not computed in its cell, with R’s reason in the cell’s title and under the table, and R’s adjustment is across the visits that have a p-value; when R computes none, every cell says so and the line gives R’s reason; and at a visit where a group has nobody R still answers for every group and says which has none (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, {
+      settings: {
+        visit_adjustment: 'holm',
+        filters: [{ value_col: 'AGE', multiple: true, start: ['40', '41', '42', '43'] }]
+      },
+      results: ['over-time-age-40-to-43', 'over-time-age-57', 'over-time-age-39']
+    });
+    const some = overTimeResult('over-time-age-40-to-43');
+    let found = await overTimeOf(page);
+    expect(found.statistics[0].dataId).toEqual(some.dataId);
+    // Every visit is sent, and R says which it did not compute, and why.
+    expect(found.statistics[0].args.chrBy).toEqual(VISITS);
+    expect(some.value.rows.map((row) => row.status)).toEqual([
+      'ok',
+      'too_small',
+      'ok',
+      'too_small',
+      'ok'
+    ]);
+    expect(found.test.state).toBe('shown');
+    expect(found.test.cells.map((cell) => [cell.visit, cell.status, cell.text])).toEqual([
+      ['Baseline', 'shown', 'p > 0.999'],
+      ['Week 2', 'withheld', 'not computed'],
+      ['Week 4', 'shown', 'p > 0.999'],
+      ['Week 8', 'withheld', 'not computed'],
+      ['Week 12', 'shown', 'p = 0.579']
+    ]);
+    // The picture and the counts hold the small groups all the same.
+    expect(found.counts).toEqual({
+      Placebo: ['n = 5', 'n = 4', 'n = 5', 'n = 3', 'n = 5'],
+      Treatment: ['n = 6', 'n = 6', 'n = 6', 'n = 5', 'n = 5']
+    });
+    // R's reason, as R wrote it, with R's counts.
+    const reasons = some.value.rows
+      .filter((row) => row.status !== 'ok')
+      .map(
+        (row) =>
+          `${row.by}: ${row.reason} Counts: Placebo n = ${row.n_1}, Treatment n = ${row.n_2}.`
+      );
+    expect(reasons).toEqual([
+      'Week 2: Not computed: Placebo has 4. The minimum group size is 5. Counts: Placebo n = 4, Treatment n = 6.',
+      'Week 8: Not computed: Placebo has 3. The minimum group size is 5. Counts: Placebo n = 3, Treatment n = 5.'
+    ]);
+    expect(found.line.levels).toEqual(reasons);
+    expect([found.test.cells[1].title, found.test.cells[3].title]).toEqual(reasons);
+    // The adjustment is R's, across the three visits it computed.
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 3 visits tested. Exploratory, adjusted (Holm) across 3 visits.'
+    );
+    expect(
+      some.value.rows.filter((row) => row.status === 'ok').map((row) => row.adjusted_over)
+    ).toEqual([3, 3, 3]);
+    expect(found.line.scope).toBe(
+      'Each visit has a test of its own, of the levels of ARM on the participants drawn at that visit. Filters: AGE is 40 or 41 or 42 or 43.'
+    );
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-028', 'visits-r-did-not-compute');
+
+    // Aged 57: an arm is below R's minimum at every visit.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ filters: [{ value_col: 'AGE', start: '57' }] })
+    );
+    const none = overTimeResult('over-time-age-57');
+    found = await overTimeOf(page);
+    expect(found.statistics[0].dataId).toEqual(none.dataId);
+    expect(found.test.state).toBe('withheld');
+    expect(found.test.cells.map((cell) => cell.text)).toEqual(VISITS.map(() => 'not computed'));
+    expect(found.test.sub).toBe('p, unadjusted');
+    expect(found.line.state).toBe('withheld');
+    expect(found.line.result).toContain(none.value.reason);
+    expect(found.line.levels).toEqual(
+      none.value.rows.map(
+        (row) =>
+          `${row.by}: ${row.reason} Counts: Placebo n = ${row.n_1}, Treatment n = ${row.n_2}.`
+      )
+    );
+    await expect(page.locator('.sv-main')).not.toContainText('p =');
+    // The picture is drawn: seven and two are still a box and a box.
+    expect(found.charts).toBe(1);
+    expect(found.counts.Treatment).toEqual(['n = 2', 'n = 1', 'n = 1', 'n = 2', 'n = 2']);
+
+    // Aged 39: at Week 12 the Treatment arm has nobody. The groups are the
+    // same at every visit, so R answers for both arms there and says that one
+    // has none; the visit is not tested between the groups that happen to be
+    // there, and the arm keeps its row and its colour, with no mark at Week 12.
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({
+        visit_adjustment: 'none',
+        filters: [{ value_col: 'AGE', start: '39' }]
+      })
+    );
+    const nobody = overTimeResult('over-time-age-39');
+    found = await overTimeOf(page);
+    expect(found.statistics[0].dataId).toEqual(nobody.dataId);
+    expect(found.statistics[0].dataId.groups).toEqual(['Placebo', 'Treatment']);
+    expect(found.statistics[0].args).not.toHaveProperty('chrGroups');
+    expect(nobody.value.rows[4]).toMatchObject({
+      by: 'Week 12',
+      group_1: 'Placebo',
+      n_1: 3,
+      group_2: 'Treatment',
+      n_2: 0,
+      status: 'too_small'
+    });
+    expect(found.counts).toEqual({
+      Placebo: ['n = 3', 'n = 3', 'n = 3', 'n = 3', 'n = 3'],
+      Treatment: ['n = 1', 'n = 1', 'n = 1', 'n = 1', 'n = 0']
+    });
+    expect(found.groups.map((group) => [group.level, group.colour, group.points.length])).toEqual([
+      ['Placebo', COLOURS[0], 5],
+      ['Treatment', COLOURS[1], 4]
+    ]);
+    expect(found.test.cells[4]).toMatchObject({
+      visit: 'Week 12',
+      status: 'withheld',
+      text: 'not computed',
+      title:
+        'Week 12: Not computed: Placebo has 3; Treatment has 0. The minimum group size is 5. Counts: Placebo n = 3, Treatment n = 0.'
+    });
+    expect(found.line.levels[4]).toBe(found.test.cells[4].title);
+  });
+
+  test('GC-TIME-029: with more than two groups the row of tests is the several-group test desktop R returns at each visit, a one-way ANOVA or a Kruskal-Wallis test, adjusted across the visits when asked (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, {
+      data: 'arm-sex',
+      settings: { group_by: 'ARM_SEX', test: 'anova' },
+      results: ['over-time-anova', 'over-time-kruskal-holm']
+    });
+    const anova = overTimeResult('over-time-anova');
+    let found = await overTimeOf(page);
+    expect(found.statistics[0]).toMatchObject({
+      name: 'Analyze_GroupDifferenceBy',
+      args: anova.args,
+      dataId: anova.dataId,
+      rows: 943
+    });
+    expect(found.groups).toHaveLength(4);
+    expect(found.test.head).toBe('One-way ANOVA');
+    expect(found.test.cells.map((cell) => cell.text)).toEqual(
+      anova.value.rows.map((row) => printedP(row.p_value))
+    );
+    expect(found.test.cells[0].text).toBe('p = 0.436');
+    expect(found.test.cells[0].title).toBe(
+      'Baseline: One-way analysis of variance: p = 0.436 (Placebo F n = 44, Placebo M n = 56, Treatment F n = 47, Treatment M n = 53). Exploratory, unadjusted.'
+    );
+    expect(found.line.result).toBe(
+      'One-way analysis of variance at each visit, on the participants drawn there: 5 visits tested. Exploratory, unadjusted.'
+    );
+    await page.evaluate(() =>
+      window.__gc.chart.setSettings({ test: 'kruskal', visit_adjustment: 'holm' })
+    );
+    const kruskal = overTimeResult('over-time-kruskal-holm');
+    found = await overTimeOf(page);
+    expect(found.statistics[0].args).toEqual(kruskal.args);
+    expect(found.test.head).toBe('Kruskal-Wallis test');
+    expect(found.test.sub).toBe('p, adjusted (Holm)');
+    expect(found.test.cells.map((cell) => cell.text)).toEqual(
+      kruskal.value.rows.map((row) => printedP(row.p_value))
+    );
+    expect(found.test.cells[0].text).toBe('p = 0.490');
+    expect(found.line.result).toBe(
+      'Kruskal-Wallis rank sum test at each visit, on the participants drawn there: 5 visits tested. Exploratory, adjusted (Holm) across 5 visits.'
+    );
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-029', 'four-groups-over-time');
+  });
+
+  test('GC-TIME-030: over time the PNG holds the picture with its table of counts and tests, the statistics file holds R’s row for every visit, the table file a row per participant and visit, and the specification written makes the same picture again (#85)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openOverTime(page, {
+      settings: {
+        visit_adjustment: 'holm',
+        time_mark: 'mean_se',
+        title: '{measure}: {value} by {group}',
+        subtitle: 'At {visits}; {n} participants'
+      },
+      results: ['over-time-result-holm']
+    });
+    const expected = overTimeResult('over-time-result-holm');
+    await expect(testRow(page)).toHaveAttribute('data-state', 'shown');
+    // The title and subtitle are filled from the level drawn.
+    await expect(page.locator('#chart .bv-title')).toHaveText('IL-6: Result by ARM');
+    await expect(page.locator('#chart .bv-subtitle')).toHaveText(
+      'At Baseline, Week 2, Week 4, Week 8, Week 12; 200 participants'
+    );
+    // The chart's own footnote names the method, the counts by visit and the adjustment.
+    await expect(page.locator('#chart .bv-foot-line').last()).toContainText(
+      'Statistics: Welch Two Sample t-test (n = 184 to 200 across 5 visits), p-values adjusted by Holm; stored with the page.'
+    );
+    const buttons = page.locator('#chart .bv-downloads button');
+    await expect(buttons).toHaveText(['PNG', 'Statistics (CSV)', 'Table (CSV)']);
+    const save = async (kind) => {
+      const waiting = page.waitForEvent('download');
+      await page.locator(`#chart .bv-downloads button[data-download="${kind}"]`).click();
+      const download = await waiting;
+      return {
+        name: download.suggestedFilename(),
+        bytes: readFileSync(await download.path())
+      };
+    };
+    const base = 'bio.viz-group-comparison-il-6-baseline-week-2-week-4-week-8-week-12-arm';
+
+    // The picture: the frame at twice its size, with the table in it: a
+    // p-value and a count are printed where the page has them, and the empty
+    // cell at the row's end is blank. What is left out of the picture above
+    // the table, the toolbar and the hint, takes its height with it.
+    const where = await page.evaluate(() => {
+      const { main } = window.__gc.chart;
+      const frame = main.getBoundingClientRect();
+      const table = main.querySelector('.bv-time-table');
+      let lost = 0;
+      for (const element of main.querySelectorAll('.bv-no-picture')) {
+        if (element.parentElement.closest('.bv-no-picture')) continue;
+        if (!(element.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+        const box = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        if (box.height) {
+          lost += box.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+        }
+      }
+      const cell = (selector) => {
+        const box = main.querySelector(selector).getBoundingClientRect();
+        return {
+          left: Math.round(box.left - frame.left) + 2,
+          right: Math.round(box.right - frame.left) - 2,
+          top: Math.round(box.top - frame.top - lost) + 2,
+          bottom: Math.round(box.bottom - frame.top - lost) - 2
+        };
+      };
+      return {
+        width: Math.ceil(frame.width),
+        p: cell('.bv-time-table tr[data-row="test"] td[data-visit="Week 4"]'),
+        n: cell('.bv-time-table tr[data-row="n"] td[data-visit="Week 4"]'),
+        blank: cell('.bv-time-table tr[data-row="n"] td:last-child')
+      };
+    });
+    const png = await save('png');
+    expect(png.name).toBe(`${base}.png`);
+    const read = readPng(new Uint8Array(png.bytes));
+    expect(read.width).toBe(where.width * 2);
+    expect(read.text.Title).toBe(
+      'IL-6: Result by ARM — At Baseline, Week 2, Week 4, Week 8, Week 12; 200 participants'
+    );
+    const picture = pixelsOf(new Uint8Array(png.bytes));
+    // Text, not a rule between rows: every channel dark.
+    const lettered = (cell) => {
+      for (let x = cell.left * 2; x <= cell.right * 2; x += 1) {
+        for (let y = cell.top * 2; y <= cell.bottom * 2; y += 1) {
+          if (x < 0 || y < 0 || x >= picture.width || y >= picture.height) continue;
+          if (
+            picture
+              .pixel(x, y)
+              .slice(0, 3)
+              .every((channel) => channel < 130)
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    expect(lettered(where.p)).toBe(true);
+    expect(lettered(where.n)).toBe(true);
+    expect(where.blank.right).toBeGreaterThan(where.blank.left);
+    expect(lettered(where.blank)).toBe(false);
+
+    // The statistics: R's result, then R's row for each visit, every number R's.
+    const file = await save('statistics');
+    expect(file.name).toBe(`${base}-statistics.csv`);
+    const [head, ...records] = parseCsv(file.bytes.toString('utf8'));
+    const column = (name) => head.indexOf(name);
+    expect(records).toHaveLength(1 + VISITS.length);
+    expect(records[0][column('part')]).toBe('result');
+    expect(records[0][column('function')]).toBe('Analyze_GroupDifferenceBy');
+    expected.value.rows.forEach((row, at) => {
+      const record = records[at + 1];
+      expect(record[column('part')]).toBe('rows');
+      expect(record[column('item')]).toBe(String(at + 1));
+      expect(record[column('by')]).toBe(row.by);
+      expect(record[column('adjustment')]).toBe('holm');
+      for (const member of ['p_unadjusted', 'p_value', 'n_1', 'n_2', 'estimate', 'adjusted_over']) {
+        expect(Number(record[column(member)]), `${row.by} ${member}`).toBe(row[member]);
+      }
+      // What it was asked about: the biomarker and the visits of the row.
+      expect(record[column('data/measure')]).toBe('IL-6');
+      expect(record[column('data/visits')]).toBe(VISITS.join(' | '));
+    });
+
+    // The table: one row per participant and visit drawn.
+    const table = await save('table');
+    expect(table.name).toBe(`${base}-table.csv`);
+    const [columns, ...rows] = parseCsv(table.bytes.toString('utf8'));
+    expect(columns).toEqual(['Participant', 'Visit', 'ARM', 'IL-6, Result']);
+    expect(rows).toHaveLength(943);
+    expect([...new Set(rows.map((row) => row[1]))]).toEqual(VISITS);
+    const fixture = readFileSync(
+      new URL('../fixtures/group-statistics/over-time-result.csv', import.meta.url),
+      'utf8'
+    )
+      .trimEnd()
+      .split('\n')
+      .slice(1)
+      .map((line) => line.split(','));
+    // The same rows desktop R ran on: participant, value, group, visit.
+    expect(rows.map(([id, visit, group, value]) => [id, value, group, visit])).toEqual(fixture);
+
+    // The specification: what the controls read, and the same picture again.
+    const trip = await page.evaluate(() => {
+      const old = window.__gc.chart;
+      const written = old.specification();
+      const before = {
+        asked: old
+          .statistics()
+          .map(({ name, args, dataId, rows }) => ({ name, args, dataId, rows })),
+        table: old.tableOf(),
+        label: old.charts[0].canvas.getAttribute('aria-label')
+      };
+      const { connection } = old;
+      old.destroy();
+      const again = window.BioViz.fromSpecification('#chart', JSON.stringify(written), {
+        connection
+      }).init(window.__gc.data);
+      window.__gc.chart = again;
+      return {
+        written,
+        before,
+        after: {
+          asked: again
+            .statistics()
+            .map(({ name, args, dataId, rows }) => ({ name, args, dataId, rows })),
+          table: again.tableOf(),
+          label: again.charts[0].canvas.getAttribute('aria-label')
+        },
+        level: again.root.dataset.level,
+        notices: again.notices,
+        rewritten: again.specification()
+      };
+    });
+    expect(trip.written.settings).toMatchObject({
+      start_value: 'IL-6',
+      visits: VISITS,
+      value_type: 'raw',
+      time_mark: 'mean_se',
+      visit_adjustment: 'holm',
+      test: 't'
+    });
+    expect(trip.level).toBe('over-time');
+    expect(trip.notices).toEqual([]);
+    expect(trip.after).toEqual(trip.before);
+    expect(trip.rewritten).toEqual(trip.written);
+    expect(trip.before.label).toContain('means with standard errors');
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-032: a specification written by bio.viz v0.2.0 that names a biomarker and every visit, which drew a panel for every visit, is read whole and now opens on the biomarker over time, with the same participants at each visit and one request where there were five (#85)', async ({
+    page
+  }) => {
+    await open(page);
+    const entry = released.cases.find((one) => one.name === 'one-biomarker-every-visit');
+    expect(entry.specification.bio_viz_version).toBe('0.2.0');
+    expect(entry.specification.settings).toMatchObject({ start_value: 'IL-6', visits: VISITS });
+    expect(entry.drew.panels.map((panel) => panel.visit)).toEqual(VISITS);
+    await page.evaluate((specification) => {
+      window.__gc.chart.destroy();
+      window.__gc.chart = window.BioViz.fromSpecification('#chart', specification).init(
+        window.__gc.data
+      );
+    }, entry.specification);
+    const found = await overTimeOf(page);
+    expect(await page.evaluate(() => window.__gc.chart.notices)).toEqual([]);
+    expect(found.level).toBe('over-time');
+    expect(found.visits).toEqual(VISITS);
+    await expect(page.locator('.bv-panel')).toHaveCount(0);
+    // The same participants at each visit, in the same groups.
+    expect(
+      VISITS.map((visit, at) =>
+        Object.entries(found.counts).map(([level, counts]) => `${level} ${counts[at]}`)
+      )
+    ).toEqual(entry.drew.panels.map((panel) => panel.groups));
+    // One request, on the rows the released chart sent in five.
+    expect(found.statistics).toHaveLength(1);
+    expect(entry.asked).toHaveLength(5);
+    expect(found.statistics[0].rows).toBe(
+      entry.asked.reduce((total, asked) => total + asked.rows, 0)
+    );
+    expect(found.statistics[0].args.strMethod).toBe(entry.asked[0].args.strMethod);
+    // Written again it holds every setting the released one held, as it was.
+    const again = await page.evaluate(() => window.__gc.chart.specification());
+    for (const [key, value] of Object.entries(entry.specification.settings)) {
+      expect(again.settings[key], key).toEqual(value);
+    }
+    // A reader gets the released view of one of its visits in one click.
+    await page.locator('button.bv-time-visit[data-visit="Week 2"]').click();
+    const asked = await page.evaluate(() => window.__gc.chart.statistics());
+    expect(
+      asked.map(({ panel, name, args, dataId, rows }) => ({ panel, name, args, dataId, rows }))
+    ).toEqual([{ ...entry.asked[1], panel: asked[0].panel }]);
+  });
+
+  test('GC-TIME-034: over time the notes above the chart are two lines for all the visits, the range drawn at a visit and what was left out added up over the visits by reason; each number is the sum of the notes the visits print for themselves, and a visit’s own note is unchanged (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page);
+    const notes = () =>
+      page.locator('.sv-notes > span').evaluateAll((all) =>
+        all.map((note) => ({
+          text: note.textContent,
+          warning: note.classList.contains('sv-warning')
+        }))
+      );
+    // On everyone, the study's own numbers.
+    expect(await notes()).toEqual([
+      { text: '184 to 200 of 200 participants drawn at each visit.', warning: false },
+      {
+        text: 'Left out, added up over the 5 visits: 44, No result at the visit; 13, Result at the visit is missing or not a number. Open a visit for its own counts.',
+        warning: true
+      }
+    ]);
+    await captureEvidence(page.locator('.sv-notes'), 'GC-TIME-034', 'notes-for-all-the-visits');
+
+    // What the visits print for themselves, in the view with a visit open: four
+    // of them together, each note under its visit's name, and then the fifth.
+    const drawn = {};
+    const left = {};
+    const read = async (visits) => {
+      await page.evaluate((given) => window.__gc.chart.setSettings({ visits: given }), visits);
+      await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+      const own = await notes();
+      for (const { text, warning } of own) {
+        const [, name = visits, rest] = text.match(/^(?:(Baseline|Week \d+): )?(.*)$/);
+        const one = rest.match(/^(\d+) of (\d+) participants drawn\.$/);
+        const out = rest.match(/^(\d+) left out: (.+)\.$/);
+        if (one) drawn[name] = { n: Number(one[1]), of: Number(one[2]) };
+        if (out) {
+          expect(warning, text).toBe(true);
+          left[out[2]] = (left[out[2]] || 0) + Number(out[1]);
+        }
+      }
+      return own.map((note) => note.text);
+    };
+    await read(['Baseline', 'Week 2', 'Week 8', 'Week 12']);
+    // A visit's own note is as released.
+    expect(await read('Week 4')).toEqual([
+      '186 of 200 participants drawn.',
+      '13 left out: No result at the visit.',
+      '1 left out: Result at the visit is missing or not a number.'
+    ]);
+    expect(drawn).toEqual({
+      Baseline: { n: 200, of: 200 },
+      'Week 2': { n: 185, of: 200 },
+      'Week 4': { n: 186, of: 200 },
+      'Week 8': { n: 188, of: 200 },
+      'Week 12': { n: 184, of: 200 }
+    });
+    // The line for all the visits says their least and greatest, and their sums.
+    const counts = Object.values(drawn).map((visit) => visit.n);
+    expect([Math.min(...counts), Math.max(...counts)]).toEqual([184, 200]);
+    expect(left).toEqual({
+      'No result at the visit': 44,
+      'Result at the visit is missing or not a number': 13
+    });
+  });
+});
+
+test.describe('group comparison: one biomarker over time, on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test('GC-TIME-031: at 390px the picture over time and its table hold five visits within the page, with no visit’s name broken inside a word; a tap on a visit opens it with the trail and the chart’s top on screen; with more visits than fit, the block scrolls sideways inside the chart and the page still does not (#85)', async ({
+    page
+  }) => {
+    await openOverTime(page, {
+      settings: { value_type: 'change', visit_adjustment: 'holm' },
+      results: ['over-time-change-holm']
+    });
+    expect(await layout(page)).toEqual(HOLDS);
+    await expect(testRow(page)).toHaveAttribute('data-state', 'shown');
+    const block = () =>
+      page.locator('.bv-time-scroll').evaluate((scroll) => ({
+        client: scroll.clientWidth,
+        scroll: scroll.scrollWidth,
+        // The first group's counts: a cell a visit, whatever the row of tests holds.
+        counts: [...scroll.querySelector('tr[data-row="n"]').querySelectorAll('td[data-visit]')]
+          .length,
+        cells: [...scroll.querySelectorAll('tr[data-row="test"] td[data-visit]')].map((cell) => {
+          const box = cell.getBoundingClientRect();
+          return { right: box.right, text: cell.textContent };
+        })
+      }));
+    let held = await block();
+    // Five visits fit: nothing to scroll, and every cell is within the page.
+    expect(held.scroll).toBe(held.client);
+    expect(held.cells).toHaveLength(5);
+    expect(Math.max(...held.cells.map((cell) => cell.right))).toBeLessThanOrEqual(390);
+    expect(held.cells.map((cell) => cell.text)).toEqual([
+      'not tested',
+      'p < 0.001',
+      'p < 0.001',
+      'p < 0.001',
+      'p < 0.001'
+    ]);
+    // No visit's name is broken inside a word, whatever the page's font: a
+    // name is on as many lines as it has words, at most, and inside its column.
+    const names = await page.locator('.bv-time-table thead th[data-visit] > *').evaluateAll((all) =>
+      all.map((name) => {
+        const range = document.createRange();
+        range.selectNodeContents(name);
+        return {
+          text: name.textContent,
+          lines: new Set([...range.getClientRects()].map((box) => Math.round(box.top))).size,
+          inside: name.scrollWidth <= name.clientWidth + 1
+        };
+      })
+    );
+    expect(names.map((name) => name.text)).toEqual(VISITS);
+    for (const name of names) {
+      expect(name.inside, name.text).toBe(true);
+      expect(name.lines, name.text).toBeLessThanOrEqual(name.text.split(' ').length);
+    }
+    expect(names[0].lines).toBe(1);
+    const found = await overTimeOf(page);
+    expect(found.charts).toBe(1);
+    expect(found.trail.map((step) => step.text)).toEqual(['All biomarkers', 'IL-6 over time']);
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-TIME-031', 'over-time-on-a-phone');
+
+    // A tap on a visit, far down the page, opens it with the trail and the
+    // top of the visit's chart on screen. The view is shorter than the picture
+    // it replaces, so the page may come to rest at its end, a few pixels past
+    // the chart's own top, once the statistics line under the chart is written.
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').tap();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    await expect(page.locator('.sv-main > .bv-statistic')).toHaveAttribute(
+      'data-state',
+      'unavailable'
+    );
+    expect(await layout(page)).toEqual(HOLDS);
+    const onScreen = await page.evaluate(() =>
+      ['.bv-trail', '.sv-chart-wrap'].map(
+        (selector) => document.querySelector(selector).getBoundingClientRect().top
+      )
+    );
+    for (const top of onScreen) {
+      expect(top).toBeGreaterThanOrEqual(0);
+      expect(top).toBeLessThan(844 / 2);
+    }
+    await page.locator('.bv-trail button', { hasText: 'IL-6 over time' }).tap();
+    await expect(page.locator('.bv-time-table')).toHaveCount(1);
+    expect(await layout(page)).toEqual(HOLDS);
+
+    // Seven visits, two of them unscheduled: the block is wider than the
+    // chart and scrolls inside it; the page does not scroll sideways.
+    await addUnscheduled(page, { unscheduled_visits: true });
+    await expect(page.locator('.bv-time-table thead th[data-visit]')).toHaveCount(7);
+    held = await block();
+    expect(held.counts).toBe(7);
+    expect(held.scroll).toBeGreaterThan(held.client);
+    expect(await layout(page)).toEqual(HOLDS);
+    // The controls open above it, with the two that do not apply saying so.
+    await page.locator('.sv-sidebar-toggle').click();
+    await expect(page.locator('.bv-control-note')).toHaveCount(2);
+    expect(await layout(page)).toEqual(HOLDS);
   });
 });
 
@@ -2036,54 +4355,62 @@ test.describe('group comparison: on a phone', () => {
   });
 });
 
-test.describe('group comparison: the overview on a phone', () => {
+test.describe('group comparison: the trend tiles on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
-  test('GC-OVW-016: at 390px a biomarker’s row is a card as wide as the page, its visits two to a line, and a tap on it opens the biomarker; the page does not scroll sideways (#17)', async ({
+  test('GC-OVW-016: at 390px the tiles are two to a line, each whole with its range beneath, a tap on one opens its biomarker over time at the chart’s top, and the page does not scroll sideways (#17, #84, #85)', async ({
     page
   }) => {
-    await openOverview(page);
+    await openTiles(page);
     expect(await layout(page)).toEqual(HOLDS);
-    // The controls start folded, so the first biomarkers are on the first screen.
+    // The controls start folded, so the first tiles are on the first screen.
     await expect(page.locator('.sv-root')).toHaveClass(/sv-collapsed/);
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
-    const row = page.locator('.bv-overview-row[data-measure="CRP"]');
-    const card = await row.boundingBox();
-    expect(card.width).toBeGreaterThan(330);
-    expect(card.y).toBeLessThan(844);
-    // Two panels to a line, each wide enough for its two groups' names and counts.
-    const panels = await row
-      .locator('.bv-overview-panel')
-      .evaluateAll((cells) =>
-        cells
-          .map((cell) => cell.getBoundingClientRect())
-          .map((box) => [Math.round(box.left), Math.round(box.top), box.width])
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    const boxes = await page
+      .locator('.bv-tile')
+      .evaluateAll((tiles) =>
+        tiles
+          .map((tile) => tile.getBoundingClientRect())
+          .map((box) => [Math.round(box.left), Math.round(box.top), box.width, box.height])
       );
-    expect(panels).toHaveLength(5);
-    expect(panels[0][1]).toBe(panels[1][1]);
-    expect(panels[2][1]).toBeGreaterThan(panels[0][1]);
-    expect(panels[2][0]).toBe(panels[0][0]);
-    expect(panels[4][0]).toBe(panels[0][0]);
-    for (const [, , width] of panels) expect(width).toBeGreaterThan(135);
-    // Every label is whole and level: none was turned to make it fit.
-    const turned = await page.evaluate(
-      () => window.__gc.chart.charts.filter((chart) => chart.scales.x.labelRotation !== 0).length
+    // Two to a line, six lines.
+    expect(boxes[0][1]).toBe(boxes[1][1]);
+    expect(boxes[2][1]).toBeGreaterThan(boxes[0][1]);
+    expect(boxes[2][0]).toBe(boxes[0][0]);
+    expect(boxes[11][0]).toBe(boxes[1][0]);
+    expect(new Set(boxes.map((box) => box[1])).size).toBe(6);
+    for (const [, , width] of boxes) expect(width).toBeGreaterThan(150);
+    expect(boxes[0][1]).toBeLessThan(844);
+    // Every tile's chart is drawn inside its tile, and its range is on one line.
+    const drawn = await page.evaluate(() =>
+      window.__gc.chart.charts.map((chart) => {
+        const canvas = chart.canvas.getBoundingClientRect();
+        const tile = chart.canvas.closest('.bv-tile');
+        const box = tile.getBoundingClientRect();
+        const range = tile.querySelector('.bv-tile-range').getBoundingClientRect();
+        return {
+          inside: canvas.left >= box.left && canvas.right <= box.right && canvas.width > 100,
+          rangeHeight: range.height
+        };
+      })
     );
-    expect(turned).toBe(0);
-    // Nothing of the overview is wider than the page.
+    expect(drawn.every((entry) => entry.inside)).toBe(true);
+    expect(drawn.every((entry) => entry.rangeHeight < 24)).toBe(true);
+    // Nothing of the tiles is wider than the page.
     const overflowing = await page.evaluate(() =>
       [...document.querySelectorAll('.sv-main *')]
         .filter((element) => element.getBoundingClientRect().right > 390.5)
         .map((element) => element.className)
     );
     expect(overflowing).toEqual([]);
-    await captureEvidence(row, 'GC-OVW-016', 'a-biomarker-row-on-a-phone');
+    await captureEvidence(page.locator('.sv-multiples'), 'GC-OVW-016', 'trend-tiles-on-a-phone');
 
-    // A tap on the row opens its biomarker: the visits, one panel to a line.
-    await row.tap();
-    const cards = page.locator('.bv-panel');
-    await expect(cards).toHaveCount(5);
-    await expect(page.locator('.bv-panel h3').first()).toHaveText('Baseline');
+    // A tap on a tile opens its biomarker over time: one picture, five visits.
+    await page.locator('.bv-tile[data-measure="CRP"]').tap();
+    await expect(page.locator('.bv-time-table')).toHaveCount(1);
+    await expect(page.locator('.bv-time-table thead th[data-visit]').first()).toHaveText(
+      'Baseline'
+    );
     expect(await layout(page)).toEqual(HOLDS);
     // The chart is brought back to the top of the page it replaced.
     const top = await page.locator('.sv-root').evaluate((root) => root.getBoundingClientRect().top);
@@ -2093,31 +4420,39 @@ test.describe('group comparison: the overview on a phone', () => {
     await page.locator('.sv-sidebar-toggle').click();
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('CRP');
     await choose(page, 'measure', 'bv_overview');
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
+    // The controls the tiles do not read say so within the page's width.
+    await expect(page.locator('.bv-control-note')).toHaveCount(3);
     expect(await layout(page)).toEqual(HOLDS);
-    // A row far down the page opens at the chart's top, not below it.
+    // A tile far down the page opens at the chart's top, not below it.
     await page.locator('.sv-sidebar-toggle').click();
-    await page.locator('.bv-overview-row[data-measure="VEGF"]').tap();
-    await expect(page.locator('.bv-panel')).toHaveCount(5);
+    await page.locator('.bv-tile[data-measure="VEGF"]').tap();
+    await expect(page.locator('.bv-time-table thead th[data-visit]')).toHaveCount(5);
     const after = await page
       .locator('.sv-root')
       .evaluate((root) => root.getBoundingClientRect().top);
     expect(after).toBeGreaterThanOrEqual(-1);
     expect(after).toBeLessThan(844);
+    // With unscheduled visits left out, the note that says so holds too.
+    await page.locator('.sv-sidebar-toggle').click();
+    await choose(page, 'measure', 'bv_overview');
+    await addUnscheduled(page);
+    await expect(page.locator('.sv-notes .bv-hidden-visits')).toHaveText(HIDDEN_NOTE);
+    expect(await layout(page)).toEqual(HOLDS);
   });
 });
 
 test.describe('group comparison: on the site', () => {
-  test('GC-FILTER-006: on the demo, filters with nobody in common leave the overview and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)', async ({
+  test('GC-FILTER-006: on the demo, filters with nobody in common leave the tiles and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)', async ({
     page
   }) => {
     const errors = await openDemo(page, 'group-comparison', 'groupComparison');
     const charts = () => window.BioVizDemo.chart.charts.length;
-    // The overview, which asks R for nothing in any case.
+    // The tiles, which ask R for nothing in any case.
     expect(await page.evaluate(charts)).toBeGreaterThan(0);
     expect(await letNobodyThrough(page)).toBe(0);
     await expectNobody(page, errors, { drawn: charts });
-    await expect(page.locator('#chart .bv-overview-row')).toHaveCount(0);
+    await expect(page.locator('#chart .bv-tile')).toHaveCount(0);
     expect(await asked(page)).toBe(0);
     // One biomarker, opened from the controls with nobody through: nothing
     // drawn and nothing asked.
@@ -2132,9 +4467,9 @@ test.describe('group comparison: on the site', () => {
     expect(await page.evaluate(charts)).toBeGreaterThan(0);
     await expect.poll(() => asked(page)).toBeGreaterThan(0);
     await expect(page.locator('#chart .sv-footnote')).not.toHaveText(NOBODY_PASSES);
-    // And back to the overview, which draws its rows again.
+    // And back to the tiles, which are drawn again.
     await page.locator('#chart select[data-control="measure"]').selectOption({ index: 0 });
-    await expect(page.locator('#chart .bv-overview-row').first()).toBeVisible();
+    await expect(page.locator('#chart .bv-tile').first()).toBeVisible();
     expect(
       errors.filter((message) => !/webr|r-wasm|Failed to load resource/.test(message))
     ).toEqual([]);
@@ -2153,9 +4488,8 @@ test.describe('group comparison: on the site', () => {
     await card.getByRole('link', { name: 'Evidence' }).click();
     await expect(page).toHaveURL(/\/_site\/group-comparison\/evidence\.html$/);
     await expect(page.locator('.page-tabs a')).toHaveText([
-      'Gallery',
       'Live demo',
-      'Evidence',
+      'Test evidence',
       'API reference'
     ]);
     await page.locator('.page-tabs').getByRole('link', { name: 'API reference' }).click();
@@ -2163,8 +4497,8 @@ test.describe('group comparison: on the site', () => {
     await expect(
       page.locator('.api-body h2 code').filter({ hasText: /^groupComparison\(/ })
     ).toHaveCount(1);
-    await page.locator('.page-tabs').getByRole('link', { name: 'Gallery' }).click();
-    await card.getByRole('link', { name: 'Live demo' }).click();
+    await page.locator('.site-nav').getByRole('link', { name: 'Gallery' }).click();
+    await card.getByRole('link', { name: 'Demo', exact: true }).click();
     await expect(page).toHaveURL(/\/_site\/group-comparison\/index\.html$/);
     expect(errors).toEqual([]);
   });
@@ -2257,11 +4591,11 @@ test.describe('group comparison: on the site', () => {
     expect(errors).toEqual([]);
   });
 
-  test('GC-OVW-018: the live demo opens on the overview, twelve biomarkers at five visits, and fetches nothing for R until a biomarker is opened (#17)', async ({
+  test('GC-OVW-018: the live demo opens on the trend tiles, one per biomarker of the synthetic study with a line per arm and no statistics line, and fetches nothing for R until a biomarker is opened (#17, #84)', async ({
     page
   }) => {
-    // R's hosts are not blocked while the overview is up: every request the
-    // page makes is recorded, and none may be for R.
+    // R's hosts are not blocked while the tiles are up: every request the page
+    // makes is recorded, and none may be for R.
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     const requests = [];
@@ -2276,80 +4610,73 @@ test.describe('group comparison: on the site', () => {
       'All Biomarkers'
     );
     await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
-    const rows = page.locator('.bv-overview-row');
-    await expect(rows).toHaveCount(12);
-    expect(await rows.evaluateAll((all) => all.map((row) => row.dataset.measure))).toEqual(
+    const tiles = page.locator('.bv-tile');
+    await expect(tiles).toHaveCount(12);
+    expect(await tiles.evaluateAll((all) => all.map((tile) => tile.dataset.measure))).toEqual(
       BIOMARKERS
     );
-    const found = await page.evaluate(() => {
-      const { chart } = window.BioVizDemo;
-      return {
-        charts: chart.charts.length,
-        visits: [...new Set(chart.charts.map((one) => one.$panel.visit))],
-        perRow: [...document.querySelectorAll('.bv-overview-row')].map(
-          (row) => row.querySelectorAll('.bv-overview-panel canvas').length
-        ),
-        il6: chart.charts
-          .filter((one) => one.$measure === 'IL-6')
-          .map((one) => one.scales.x.ticks.map((tick) => tick.label)),
-        statistics: chart.statistics(),
-        settings: [chart.settings.start_value, chart.settings.visits]
-      };
+    const found = await tilesOf(page, 'BioVizDemo');
+    // A chart a tile, a line per arm in each, at the study's five visits.
+    expect(found.charts).toHaveLength(12);
+    for (const chart of found.charts) {
+      expect(
+        chart.lines.map((line) => line.level),
+        chart.measure
+      ).toEqual(['Placebo', 'Treatment']);
+      expect(chart.visits).toEqual(VISITS);
+    }
+    // The medians are desktop R's.
+    tileChart(found, 'IL-6').lines.forEach((line, arm) => {
+      line.points.forEach(([at, value]) =>
+        near(value, rLines('IL-6', 'raw', 'median')[arm][at], line.level)
+      );
     });
-    expect(found.charts).toBe(60);
-    expect(found.visits).toEqual(VISITS);
-    expect(found.perRow).toEqual(BIOMARKERS.map(() => 5));
-    // The number in each group, under each group, in every panel.
-    expect(found.il6).toEqual([
-      [
-        ['Placebo', 'n = 100'],
-        ['Treatment', 'n = 100']
-      ],
-      [
-        ['Placebo', 'n = 92'],
-        ['Treatment', 'n = 93']
-      ],
-      [
-        ['Placebo', 'n = 95'],
-        ['Treatment', 'n = 91']
-      ],
-      [
-        ['Placebo', 'n = 93'],
-        ['Treatment', 'n = 95']
-      ],
-      [
-        ['Placebo', 'n = 92'],
-        ['Treatment', 'n = 92']
-      ]
-    ]);
+    expect(found.key).toEqual(['Median result by Arm:', 'Placebo', 'Treatment']);
     // Neither a biomarker nor a visit is named by the page: these are the defaults.
-    expect(found.settings).toEqual([null, null]);
+    expect(
+      await page.evaluate(() => {
+        const { settings } = window.BioVizDemo.chart;
+        return [settings.start_value, settings.visits, settings.unscheduled_visits];
+      })
+    ).toEqual([null, null, false]);
+    // The synthetic study has no unscheduled visit: no note, and no control.
+    await expect(page.locator('.bv-hidden-visits')).toHaveCount(0);
+    await expect(page.locator('input[data-control="unscheduled-visits"]')).toHaveCount(0);
     expect(found.statistics).toEqual([]);
     await expect(page.locator('.sv-main > .bv-statistic')).toBeHidden();
     await expect(page.locator('.sv-main')).not.toContainText('waiting for R');
+    await expect(page.locator('.sv-main')).not.toContainText('p =');
     await expect(page.locator('#about-demo')).toContainText(
-      'The overview prints no test and asks R for nothing.'
+      'The tiles print no test and ask R for nothing.'
     );
-    // Filters and controls apply to the overview, and still nothing is asked of R.
+    // The title is filled from the tiles' view.
+    await expect(page.locator('#chart .bv-title')).toHaveText('Result: every biomarker by Arm');
+    // Filters and controls apply to the tiles, and still nothing is asked of R.
     await page.locator('select[data-filter="SEX"]').selectOption('F');
     await choose(page, 'group-by', 'ARM_SEX');
-    await choose(page, 'mark', 'violin');
-    await expect(rows).toHaveCount(12);
+    await choose(page, 'tile-summary', 'mean');
+    await expect(tiles).toHaveCount(12);
+    expect((await tilesOf(page, 'BioVizDemo')).key).toEqual([
+      'Mean result by Arm and sex:',
+      'Placebo F',
+      'Treatment F'
+    ]);
     await page.locator('.sv-reset').click();
     await page.waitForTimeout(500);
+    expect(requests.length).toBeGreaterThan(5);
     expect(forR()).toEqual([]);
 
     // From here R's hosts are kept out of reach, so the rest stays on this
     // machine: GC-OVW-019 opens a biomarker with R answering.
     await blockR(page);
-    await rows.nth(6).click();
+    await tiles.nth(6).click();
     await expect(page.locator('select[data-control="measure"]')).toHaveValue('IL-6');
-    await expect(page.locator('.bv-panel h3')).toHaveText(VISITS);
-    await expect(page.locator('.bv-panel .bv-statistic')).toHaveCount(5);
+    await expect(page.locator('.bv-time-table thead th[data-visit]')).toHaveText(VISITS);
+    await expect(page.locator('.bv-time-line')).toHaveCount(1);
     // Opening a biomarker is what asks for R: now, and not before.
     await expect.poll(() => forR().length).toBeGreaterThan(0);
     await choose(page, 'measure', 'bv_overview');
-    await expect(rows).toHaveCount(12);
+    await expect(tiles).toHaveCount(12);
     expect(errors).toEqual([]);
   });
 
@@ -2398,6 +4725,86 @@ test.describe('group comparison: on the site', () => {
     await expect(page.locator('.sv-rail .sv-profile-id')).toBeVisible();
     expect(await measure()).toEqual(holds);
     await captureEvidence(page.locator('#demo'), 'GC-SITE-003', 'demo-on-a-phone');
+  });
+
+  test('GC-TIME-033: on the demo page, whose stylesheet styles every table heading and cell by its tag, the table under the picture over time keeps the chart’s own look; and at 390px, where the site leaves the chart 340 pixels, it holds the five visits with nothing to scroll and no visit’s name broken inside a word (#85)', async ({
+    page
+  }) => {
+    // R's hosts are out of reach: the row of tests is there, with its heading
+    // in the table's first column, and says that R could not be reached.
+    await blockR(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/_site/group-comparison/index.html');
+    await page.evaluate(() => window.BioVizDemo.ready);
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ start_value: 'IL-6' }));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    await expect(page.locator('.bv-time-table tr[data-row="test"]')).toHaveCount(1);
+    const held = await page.locator('.bv-time-scroll').evaluate((scroll) => ({
+      page: [document.documentElement.clientWidth, document.documentElement.scrollWidth],
+      client: scroll.clientWidth,
+      scroll: scroll.scrollWidth,
+      rights: [...scroll.querySelectorAll('tr[data-row="n"]')]
+        .slice(0, 1)
+        .flatMap((row) => [...row.querySelectorAll('td[data-visit]')])
+        .map((cell) => cell.getBoundingClientRect().right),
+      names: [...scroll.querySelectorAll('thead th[data-visit] > *')].map((name) => {
+        const range = document.createRange();
+        range.selectNodeContents(name);
+        return {
+          text: name.textContent,
+          lines: new Set([...range.getClientRects()].map((box) => Math.round(box.top))).size,
+          inside: name.scrollWidth <= name.clientWidth + 1
+        };
+      })
+    }));
+    expect(held.page).toEqual([390, 390]);
+    // The table is the chart's own on a page whose stylesheet styles every
+    // table heading and cell by its tag: its headings are in the chart's face,
+    // as written, with no rule around a cell and nothing behind it.
+    const look = await page.locator('.bv-time-table').evaluate((table) => {
+      const of = (element) => {
+        const style = getComputedStyle(element);
+        return {
+          face: style.fontFamily,
+          transform: style.textTransform,
+          spacing: style.letterSpacing,
+          rule: style.borderLeftWidth,
+          behind: style.backgroundColor
+        };
+      };
+      return {
+        face: getComputedStyle(table).fontFamily,
+        behind: getComputedStyle(table).backgroundColor,
+        parts: [
+          table.querySelector('thead th[data-visit]'),
+          table.querySelector('thead th[data-visit] > *'),
+          table.querySelector('tbody th[scope=row]'),
+          table.querySelector('tbody td[data-visit]')
+        ].map(of)
+      };
+    });
+    expect(look.behind).toBe('rgba(0, 0, 0, 0)');
+    for (const part of look.parts) {
+      expect(part).toEqual({
+        face: look.face,
+        transform: 'none',
+        spacing: 'normal',
+        rule: expect.stringMatching(/^[01]px$/),
+        behind: 'rgba(0, 0, 0, 0)'
+      });
+    }
+    expect(look.parts[2].rule).toBe('0px');
+    expect(look.parts[3].rule).toBe('0px');
+    // The site's own margins leave the chart less than the bare page does.
+    expect(held.client).toBeLessThan(350);
+    expect(held.scroll).toBe(held.client);
+    expect(held.rights).toHaveLength(5);
+    expect(Math.max(...held.rights)).toBeLessThanOrEqual(390);
+    expect(held.names.map((name) => name.text)).toEqual(VISITS);
+    for (const name of held.names) {
+      expect(name.inside, name.text).toBe(true);
+      expect(name.lines, name.text).toBeLessThanOrEqual(name.text.split(' ').length);
+    }
   });
 });
 
@@ -3008,13 +5415,14 @@ test.describe('group comparison: the demo, with R in the browser, live', () => {
 });
 
 // ---------------------------------------------------------------------------
-// The demo as it opens, for real (#17): the overview, and then one biomarker
-// opened from it, with R in the browser. Like the group above this needs the
-// network, fails when R's host cannot be reached, and is not retried. It has a
-// browser of its own, on a new and empty profile, because what it watches is
-// the first time R is asked for on a page that opened without asking.
+// The demo as it opens, for real (#17, #84, #85): the tiles, then one biomarker
+// opened from its tile across its visits, then a few of its visits a panel
+// each, with R in the browser. Like the group above this needs the network,
+// fails when R's host cannot be reached, and is not retried. It has a browser
+// of its own, on a new and empty profile, because what it watches is the first
+// time R is asked for on a page that opened without asking.
 
-test.describe('group comparison: the demo’s overview, with R in the browser, live', () => {
+test.describe('group comparison: the demo’s tiles, with R in the browser, live', () => {
   test.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   let context;
@@ -3024,24 +5432,28 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
     requested.filter((url) => isRHost(url) || new URL(url).pathname.endsWith('/statistics.R'));
 
   test.beforeAll(async ({}, testInfo) => {
-    const profile = mkdtempSync(path.join(tmpdir(), 'bio-viz-overview-'));
+    const profile = mkdtempSync(path.join(tmpdir(), 'bio-viz-tiles-'));
     context = await chromium.launchPersistentContext(profile, {
       headless: true,
       baseURL: testInfo.project.use.baseURL,
       viewport: { width: 1280, height: 800 }
     });
-    // Every state each panel's statistics line takes, in the order it takes them.
+    // Every state the row of tests under the visits takes, and every state each
+    // panel's statistics line takes, in the order they take them.
     await context.addInitScript(() => {
       window.__lines = [];
+      const log = (panel, state, text) => {
+        if (!state) return;
+        const last = window.__lines.filter((one) => one.panel === panel).pop();
+        if (!last || last.state !== state) window.__lines.push({ panel, state, text });
+      };
       new MutationObserver(() => {
+        const row = document.querySelector('.bv-time-table tr[data-row="test"]');
+        const under = document.querySelector('.bv-time-line');
+        if (row) log('', row.dataset.state, under ? under.textContent : '');
         document.querySelectorAll('.bv-panel').forEach((panel) => {
           const line = panel.querySelector('.bv-statistic');
-          if (!line || !line.dataset.state) return;
-          const entry = { panel: panel.dataset.panel, state: line.dataset.state };
-          const last = window.__lines.filter((one) => one.panel === entry.panel).pop();
-          if (!last || last.state !== entry.state) {
-            window.__lines.push({ ...entry, text: line.textContent });
-          }
+          if (line) log(panel.dataset.panel, line.dataset.state, line.textContent);
         });
       }).observe(document, {
         subtree: true,
@@ -3060,18 +5472,129 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
     await context?.close();
   });
 
-  test('GC-OVW-019: on the demo the overview starts no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17)', async ({}, testInfo) => {
-    // The overview, as the page opens: R's hosts are in reach, and not asked.
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+  test('GC-OVW-019: on the demo the tiles start no R; opening a biomarker starts it once, and the row of tests under its visits waits and then prints the p-values desktop R gives, unadjusted and adjusted, from one request each; a few of its visits, a panel each, each wait and print the test desktop R gives for that visit (#17, #84, #85)', async ({}, testInfo) => {
+    // The tiles, as the page opens: R's hosts are in reach, and not asked.
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
     await page.waitForTimeout(1500);
     expect(forR()).toEqual([]);
     expect(await page.evaluate(() => window.BioVizDemo.chart.statistics())).toEqual([]);
 
-    // One biomarker, opened from its row.
-    await page.locator('.bv-overview-row[data-measure="IL-6"]').click();
+    // One biomarker, opened from its tile: across its visits, in one picture.
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    const row = page.locator('.bv-time-table tr[data-row="test"]');
+    await expect(row).toHaveCount(1);
+    // While R starts the picture and the counts are there to read.
+    let found = await overTimeOf(page, 'BioVizDemo');
+    expect(found.level).toBe('over-time');
+    expect(found.charts).toBe(1);
+    expect(found.visits).toEqual(VISITS);
+    expect(found.counts).toEqual({
+      Placebo: ['n = 100', 'n = 92', 'n = 95', 'n = 93', 'n = 92'],
+      Treatment: ['n = 100', 'n = 93', 'n = 91', 'n = 95', 'n = 92']
+    });
+    await expect(row).toHaveAttribute('data-state', 'shown', { timeout: 200_000 });
+    // The row waited, saying what the first start costs, and then printed.
+    let log = await page.evaluate(() => window.__lines);
+    expect(log.map((entry) => [entry.panel, entry.state])).toEqual([
+      ['', 'waiting'],
+      ['', 'shown']
+    ]);
+    expect(log[0].text).toBe(
+      'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.'
+    );
+    // R was started once, and given its one file once.
+    expect(forR().filter((url) => url.endsWith('/webr.mjs'))).toEqual([
+      'https://webr.r-wasm.org/v0.6.0/webr.mjs'
+    ]);
+    expect(forR().filter((url) => url.endsWith('/statistics.R'))).toHaveLength(1);
+    expect(forR().filter((url) => url.endsWith('/R.wasm'))).toHaveLength(1);
+
+    // One request for the whole row, answered with what desktop R gives for
+    // the same rows: every member of the answer, and so the p-value under
+    // every visit, unadjusted and then adjusted.
+    const compared = [];
+    const holdRow = async (name) => {
+      const expected = overTimeResult(name);
+      const at = await overTimeOf(page, 'BioVizDemo');
+      expect(at.statistics, name).toHaveLength(1);
+      const [answer] = at.statistics;
+      expect(answer.answer.status, name).toBe('ok');
+      expect(answer.answer.form).toBe('browser');
+      expect({
+        name: answer.name,
+        args: answer.args,
+        dataId: answer.dataId,
+        rows: answer.rows
+      }).toEqual({
+        name: expected.name,
+        args: expected.args,
+        dataId: expected.dataId,
+        rows: expected.rows
+      });
+      // The rows R was sent are the ones desktop R read.
+      const sent = await page.evaluate(() =>
+        window.BioVizDemo.chart
+          .tableOf()
+          .rows.map((record) => [record.USUBJID, record.y, record.x, record.visit])
+      );
+      const rows = readFileSync(
+        new URL(`../fixtures/group-statistics/${expected.file}`, import.meta.url),
+        'utf8'
+      )
+        .trimEnd()
+        .split('\n')
+        .slice(1)
+        .map((line) => line.split(',').map((cell, index) => (index === 1 ? Number(cell) : cell)));
+      expect(sent, name).toEqual(rows);
+      const leaves = compareValues(expected.value, answer.answer.value);
+      expect(
+        leaves.filter((leaf) => !leaf.ok),
+        name
+      ).toEqual([]);
+      // Under each visit, the p-value R returned for it, by the shared rule.
+      expect(
+        at.test.cells.map((cell) => [cell.visit, cell.text]),
+        name
+      ).toEqual(expected.value.rows.map((entry) => [entry.by, printedP(entry.p_value)]));
+      answer.answer.value.rows.forEach((entry, index) => {
+        compared.push({
+          case: `${name} ${entry.by}`,
+          desktop: expected.value.rows[index].p_value,
+          browser: entry.p_value,
+          numbers: leaves.filter((leaf) => leaf.difference !== null).length
+        });
+      });
+      return at;
+    };
+    found = await holdRow('over-time-result');
+    expect(found.test.sub).toBe('p, unadjusted');
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, unadjusted.'
+    );
+    expect(found.line.scope).toBe(
+      'Each visit has a test of its own, of the levels of Arm on the participants drawn at that visit.'
+    );
+    // The switch: R is asked again, and its adjusted p-values take their place.
+    await choose(page, 'visit-adjustment', 'holm');
+    await expect(row.locator('.bv-time-sub')).toHaveText('p, adjusted (Holm)', {
+      timeout: 60_000
+    });
+    found = await holdRow('over-time-result-holm');
+    expect(found.line.result).toBe(
+      'Welch Two Sample t-test at each visit, on the participants drawn there: 5 visits tested. Exploratory, adjusted (Holm) across 5 visits.'
+    );
+    await choose(page, 'visit-adjustment', 'none');
+    await expect(row.locator('.bv-time-sub')).toHaveText('p, unadjusted', { timeout: 60_000 });
+
+    // A few of its visits, a panel each: each waits and prints for itself what
+    // desktop R gives for that panel's rows.
+    await page.evaluate(() => {
+      window.__lines = [];
+      window.BioVizDemo.chart.setSettings({ visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8'] });
+    });
     const lines = page.locator('.bv-panel .bv-statistic');
-    await expect(lines).toHaveCount(5);
-    // While R starts the page answers: a box lists its participants.
+    await expect(lines).toHaveCount(4);
+    // While R works the page answers: a box lists its participants.
     await page.locator('.bv-panel canvas').first().scrollIntoViewIfNeeded();
     const point = await page.evaluate(() => {
       const chart = window.BioVizDemo.chart.charts[0];
@@ -3084,47 +5607,30 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
     });
     await page.mouse.click(point.x, point.y);
     await expect(page.locator('.sv-listing-actions strong')).toHaveText('100 of 100 records');
-
-    for (const index of [0, 1, 2, 3, 4]) {
-      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 200_000 });
+    for (const index of [0, 1, 2, 3]) {
+      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
     }
-    // Each panel waited and then printed, for itself. The first to wait said
-    // what the first start costs, and only it.
-    const log = await page.evaluate(() => window.__lines);
-    for (const visit of VISITS) {
+    log = await page.evaluate(() => window.__lines);
+    for (const visit of VISITS.slice(0, 4)) {
       expect(
         log.filter((entry) => entry.panel === visit).map((entry) => entry.state),
         visit
       ).toEqual(['waiting', 'shown']);
     }
-    const waited = log.filter((entry) => entry.state === 'waiting').map((entry) => entry.text);
-    expect(waited).toEqual([
-      'Statistics: waiting for R… The first test starts R in this browser: about 13 MB to download, once, and a few seconds.',
-      WAITING,
-      WAITING,
-      WAITING,
-      WAITING
-    ]);
-    // R was started once for the five of them, and given its one file once.
-    expect(forR().filter((url) => url.endsWith('/webr.mjs'))).toEqual([
-      'https://webr.r-wasm.org/v0.6.0/webr.mjs'
-    ]);
-    expect(forR().filter((url) => url.endsWith('/statistics.R'))).toHaveLength(1);
-    expect(forR().filter((url) => url.endsWith('/R.wasm'))).toHaveLength(1);
-
-    // Five requests, one per visit panel, each answered with what desktop R
-    // gives for that panel's rows.
+    // R is running by now: no panel says what a first start costs.
+    expect(
+      log.filter((entry) => entry.state === 'waiting' && entry.panel).map((entry) => entry.text)
+    ).toEqual([WAITING, WAITING, WAITING, WAITING]);
     const asked = await page.evaluate(() => window.BioVizDemo.chart.statistics());
-    expect(asked.map((entry) => entry.panel)).toEqual(VISITS);
+    expect(asked.map((entry) => entry.panel)).toEqual(VISITS.slice(0, 4));
     const drawnRows = await page.evaluate(() =>
       window.BioVizDemo.chart.model.panels.map((panel) =>
         panel.records.map((record) => Object.values(record))
       )
     );
-    const cases = ['baseline', 'week-2', 'week-4', 'week-8', 'week-12'].map((visit) =>
+    const cases = ['baseline', 'week-2', 'week-4', 'week-8'].map((visit) =>
       resultOf(`result-${visit}`)
     );
-    const compared = [];
     cases.forEach((expected, index) => {
       const answer = asked[index];
       expect(answer.answer.status, expected.case).toBe('ok');
@@ -3165,8 +5671,7 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
       'Welch Two Sample t-test: p = 0.221 (Placebo n = 100, Treatment n = 100). Exploratory, unadjusted.',
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 92, Treatment n = 93). Exploratory, unadjusted.',
       'Welch Two Sample t-test: p < 0.001 (Placebo n = 95, Treatment n = 91). Exploratory, unadjusted.',
-      'Welch Two Sample t-test: p < 0.001 (Placebo n = 93, Treatment n = 95). Exploratory, unadjusted.',
-      'Welch Two Sample t-test: p < 0.001 (Placebo n = 92, Treatment n = 92). Exploratory, unadjusted.'
+      'Welch Two Sample t-test: p < 0.001 (Placebo n = 93, Treatment n = 95). Exploratory, unadjusted.'
     ]);
     await expect(page.locator('.bv-panel .bv-stat-estimate').first()).toHaveText(
       'Difference in means (Placebo - Treatment): 0.2522, 95% confidence interval -0.1533 to 0.6577.'
@@ -3175,29 +5680,32 @@ test.describe('group comparison: the demo’s overview, with R in the browser, l
       'This test compares the levels of Arm on the 200 participants drawn in this panel (Baseline). ' +
         'Each panel has a test of its own, and they are not adjusted for one another.'
     );
-    await testInfo.attach('overview-five-panels-desktop-R-and-webR.json', {
+    await testInfo.attach('tiles-over-time-and-panels-desktop-R-and-webR.json', {
       body: JSON.stringify(compared, null, 2),
       contentType: 'application/json'
     });
-    console.log('\nIL-6 opened from the overview: five panels, desktop R beside R in the browser');
+    console.log(
+      '\nIL-6 opened from its tile: the row of tests, then four panels, desktop R beside R in the browser'
+    );
     for (const entry of compared) {
       console.log(
-        `  ${entry.case.padEnd(15)} p_value desktop ${String(entry.desktop).padEnd(24)} ` +
+        `  ${entry.case.padEnd(32)} p_value desktop ${String(entry.desktop).padEnd(24)} ` +
           `browser ${String(entry.browser).padEnd(24)} ${entry.numbers} numbers held equal`
       );
     }
 
-    // Back to the overview: no test, and nothing more asked of R or fetched.
+    // Back to the tiles: no test, and nothing more asked of R or fetched.
     const before = forR().length;
     await choose(page, 'measure', 'bv_overview');
-    await expect(page.locator('.bv-overview-row')).toHaveCount(12);
+    await expect(page.locator('.bv-tile')).toHaveCount(12);
     expect(await page.evaluate(() => window.BioVizDemo.chart.statistics())).toEqual([]);
     await expect(page.locator('.sv-main')).not.toContainText('Welch');
-    // Another biomarker: the same R answers, and nothing is fetched again.
-    await page.locator('.bv-overview-row[data-measure="CRP"]').click();
-    for (const index of [0, 1, 2, 3, 4]) {
-      await expect(lines.nth(index)).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
-    }
+    // Another biomarker, at every visit again: the same R answers, and nothing
+    // is fetched again.
+    await page.evaluate(() => window.BioVizDemo.chart.setSettings({ visits: null }));
+    await page.locator('.bv-tile[data-measure="CRP"]').click();
+    await expect(row).toHaveAttribute('data-state', 'shown', { timeout: 60_000 });
+    await expect(row.locator('td[data-visit]')).toHaveCount(5);
     await page.waitForTimeout(500);
     expect(forR().length).toBe(before);
   });
@@ -3452,7 +5960,8 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
         chart.setData({ results: data.results, participants });
         chart.setSettings({
           start_value: 'IL-6',
-          visits: null,
+          // Four of its five visits: a panel each. All five is the picture over time.
+          visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8'],
           group_by: 'ARM',
           value_type: 'raw'
         });
@@ -3473,7 +5982,7 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
           return { rotation: axis.labelRotation, widest, height, spacing };
         });
       });
-      expect(panels.length, `${width}px`).toBe(5);
+      expect(panels.length, `${width}px`).toBe(4);
       for (const panel of panels) {
         // Level labels fit side by side, or are turned so that neighbours do not touch.
         const fits =
@@ -3510,7 +6019,8 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
         chart.setData({ results: data.results, participants });
         chart.setSettings({
           start_value: 'IL-6',
-          visits: null,
+          // Four of its five visits: a panel each. All five is the picture over time.
+          visits: ['Baseline', 'Week 2', 'Week 4', 'Week 8'],
           group_by: 'ARM',
           value_type: 'raw'
         });
@@ -3531,7 +6041,7 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
           return { rotation: axis.labelRotation, widest, height, spacing };
         });
       });
-      expect(panels.length, `${width}px`).toBe(5);
+      expect(panels.length, `${width}px`).toBe(4);
       for (const panel of panels) {
         // Level labels fit side by side, or are turned so that neighbours do not touch.
         const fits =
@@ -3572,36 +6082,6 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     expect(said.crp.offered).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
   });
 
-  test('GC-OVW-020: in the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others (#52)', async ({
-    page
-  }) => {
-    await page.route(/^https:\/\/(webr|repo)\.r-wasm\.org\//, (route) => route.abort());
-    await page.goto('/tests/e2e/fixtures/group-comparison.html');
-    await page.evaluate(() => window.__gc.ready);
-    const rows = await page.evaluate(async () => {
-      const { chart, data } = window.__gc;
-      // IL-6 has no result at Week 2; the other biomarkers do.
-      const results = data.results.filter(
-        (row) => !(row.TEST === 'IL-6' && row.VISIT === 'Week 2')
-      );
-      chart.setData({ results, participants: data.participants });
-      chart.setSettings({ start_value: null, visits: null, value_type: 'raw' });
-      await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 50)));
-      return [...document.querySelectorAll('#chart .bv-overview-row')].map((row) => ({
-        measure: row.dataset.measure,
-        visits: [...row.querySelectorAll('.bv-overview-panel')].map((cell) => cell.dataset.visit),
-        lefts: [...row.querySelectorAll('.bv-overview-panel')].map((cell) =>
-          Math.round(cell.getBoundingClientRect().left)
-        )
-      }));
-    });
-    const il6 = rows.find((row) => row.measure === 'IL-6');
-    const il8 = rows.find((row) => row.measure === 'IL-8');
-    expect(il6.visits).toEqual(['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week 12']);
-    expect(il6.visits).toEqual(il8.visits);
-    expect(il6.lefts).toEqual(il8.lefts);
-  });
-
   test('GC-FAIL-002: a failure while the controls are built, where the Levels control reads the groups, is said like any other: the chart could not be drawn, and nothing is thrown (#49)', async ({
     page
   }) => {
@@ -3611,7 +6091,8 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     await page.evaluate(() => window.__gc.ready);
     const threw = await page.evaluate(() => {
       const { chart, data } = window.__gc;
-      // Tables the frame refuses, put in place past the checks.
+      // Tables the frame refuses, put in place past the checks, and read as the
+      // chart reads its tables for the visits it draws (#84).
       chart.tables = {
         results: data.results,
         participants: data.participants.map(({ USUBJID, ...rest }) => ({
@@ -3619,6 +6100,7 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
           ...rest
         }))
       };
+      chart.readVisits(false);
       const log = console.error;
       console.error = () => {};
       try {
@@ -3635,6 +6117,234 @@ test.describe('group comparison: what the v0.1.0-RC1 review found', () => {
     await expect(page.locator('#chart .sv-footnote')).toContainText(
       'This chart could not be drawn:'
     );
+    expect(errors).toEqual([]);
+  });
+});
+
+// ---- What the v0.3.0 release review found (#112) ----------------------------------
+
+// The study with one biomarker's results at one visit taken away: IL-6 then
+// has four visits where the study has five.
+const withoutVisit = (page, measure, visit) =>
+  page.evaluate(
+    ([lacking, at]) => {
+      const { chart, data } = window.__gc;
+      chart.setData({
+        results: data.results.filter((row) => !(row.TEST === lacking && row.VISIT === at)),
+        participants: data.participants
+      });
+    },
+    [measure, visit]
+  );
+const viewVisits = (page) => page.evaluate(() => window.__gc.chart.viewSettings().visits);
+// Where the keyboard is: the element that has the focus, by what it is.
+const focused = (page) =>
+  page.evaluate(() => {
+    const at = document.activeElement;
+    if (!at || at === document.body) return 'the page';
+    if (at.matches('.bv-trail [aria-current="true"]')) return `trail: ${at.textContent}`;
+    if (at.matches('.bv-tile')) return `tile: ${at.dataset.measure}`;
+    if (at.dataset.control) return `control: ${at.dataset.control}`;
+    const control = at.closest('[data-control]');
+    return control ? `control: ${control.dataset.control}` : at.tagName;
+  });
+
+test.describe('group comparison: what the v0.3.0 release review found', () => {
+  test('GC-TIME-035: opening one visit of a biomarker that lacks a visit of the study chooses that visit and no other, from its name and from the Visit control: the title and the value axis name the one visit, the tiles afterwards are drawn on it alone, and All still means every visit for the next biomarker (#112)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openTiles(page, { settings: { title: '{measure} at {visits}' } });
+    await withoutVisit(page, 'IL-6', 'Week 12');
+    const four = VISITS.filter((visit) => visit !== 'Week 12');
+    await page.locator('.bv-tile[data-measure="IL-6"]').click();
+    let found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    expect(found.visits).toEqual(four);
+    // The title names the visits drawn, not one the biomarker has no value at.
+    await expect(page.locator('#chart .bv-title')).toHaveText(`IL-6 at ${four.join(', ')}`);
+
+    // From a visit's name: that visit, and no other.
+    await page.locator('button.bv-time-visit[data-visit="Week 4"]').click();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    expect(await viewVisits(page)).toEqual(['Week 4']);
+    await expect(page.locator('#chart .bv-title')).toHaveText('IL-6 at Week 4');
+    expect((await drawn(page)).map((panel) => panel.yTitle)).toEqual(['IL-6 at Week 4 (pg/mL)']);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('1 of 4');
+    await expect(page.locator('.bv-trail li')).toHaveText([
+      'All biomarkers',
+      'IL-6 over time',
+      'Week 4'
+    ]);
+    // All Biomarkers in the control keeps the reader's visit: the one, alone.
+    await choose(page, 'measure', 'bv_overview');
+    let tiles = await tilesOf(page);
+    expect(tiles.charts).toHaveLength(12);
+    for (const chart of tiles.charts) expect(chart.visits, chart.measure).toEqual(['Week 4']);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('1 of 5');
+
+    // From the Visit control: the visits ticked, and no other.
+    await choose(page, 'measure', 'IL-6');
+    await page.locator('[data-control="visits"] summary').click();
+    await page.locator('[data-control="visits"] .sv-ms-all input').check();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    await page.locator('[data-control="visits"] input[value="Week 2"]').uncheck();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    expect(await viewVisits(page)).toEqual(['Baseline', 'Week 4', 'Week 8']);
+    await expect(page.locator('#chart .bv-title')).toHaveText('IL-6 at Baseline, Week 4, Week 8');
+    await choose(page, 'measure', 'bv_overview');
+    tiles = await tilesOf(page);
+    for (const chart of tiles.charts) {
+      expect(chart.visits, chart.measure).toEqual(['Baseline', 'Week 4', 'Week 8']);
+    }
+
+    // All in the Visit control is every visit, for this biomarker and the next:
+    // one that has the visit IL-6 lacks is drawn across all five.
+    await choose(page, 'measure', 'IL-6');
+    await page.locator('[data-control="visits"] summary').click();
+    await page.locator('[data-control="visits"] .sv-ms-all input').check();
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    expect((await overTimeOf(page)).visits).toEqual(four);
+    await choose(page, 'measure', 'CRP');
+    found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    expect(found.visits).toEqual(VISITS);
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-036: after a button of the trail is pressed with the keyboard, the keyboard’s place is on the level it led to, the trail’s own entry for it or, on the tiles, the Biomarker control; with the sidebar closed a tile or a visit’s name opened by the keyboard leaves it on the trail too, and the trail’s way back to the tiles on the first tile: it is never dropped to the page (#112)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openOverTime(page);
+    const press = async (locator) => {
+      await locator.focus();
+      await page.keyboard.press('Enter');
+    };
+    const trailButton = (text) => page.locator('.bv-trail button', { hasText: text });
+    const visitButton = (visit) => page.locator(`button.bv-time-visit[data-visit="${visit}"]`);
+
+    // With the sidebar open: a visit's name leaves the place on the Visit control.
+    await press(visitButton('Week 4'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    expect(await focused(page)).toBe('control: visits');
+    // The trail's way back to the biomarker over time: its own entry for it.
+    await press(trailButton('IL-6 over time'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    expect(await focused(page)).toBe('trail: IL-6 over time');
+    // And Tab goes on from there, to the first thing after the trail.
+    await page.keyboard.press('Tab');
+    expect(await focused(page)).not.toBe('the page');
+    // The trail's way back to every biomarker: the Biomarker control.
+    await press(visitButton('Week 8'));
+    await press(trailButton('All biomarkers'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'biomarkers');
+    expect(await focused(page)).toBe('control: measure');
+
+    // With the sidebar closed there is no control to stand on.
+    await page.locator('.sv-sidebar-toggle').click();
+    await expect(page.locator('select[data-control="measure"]')).toBeHidden();
+    await press(page.locator('.bv-tile[data-measure="CRP"]'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'over-time');
+    expect(await focused(page)).toBe('trail: CRP over time');
+    await press(visitButton('Week 4'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'visits');
+    expect(await focused(page)).toBe('trail: Week 4');
+    await press(trailButton('CRP over time'));
+    expect(await focused(page)).toBe('trail: CRP over time');
+    await press(trailButton('All biomarkers'));
+    await expect(page.locator('.sv-root')).toHaveAttribute('data-level', 'biomarkers');
+    expect(await focused(page)).toBe(`tile: ${BIOMARKERS[0]}`);
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-037: a visit whose name has a space before or after it has R’s answer printed under it: the visit is matched to R’s row by the name the chart sent, as R returned it, and two visits that differ only by such a space each keep their own (#112)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openOverTime(page);
+    // Week 4 is named with a space after it, and Week 8 with one before.
+    const renamed = { 'Week 4': 'Week 4 ', 'Week 8': ' Week 8' };
+    const asked = await page.evaluate(async (names) => {
+      const { chart, data } = window.__gc;
+      window.__asked = [];
+      const p = { Baseline: 0.5, 'Week 2': 0.25, 'Week 4 ': 0.03, ' Week 8': 0.04, 'Week 12': 0.6 };
+      chart.setData(
+        {
+          results: data.results.map((row) => ({ ...row, VISIT: names[row.VISIT] || row.VISIT })),
+          participants: data.participants
+        },
+        {
+          connection: {
+            run: (name, payload) => {
+              window.__asked.push(payload.args.chrBy);
+              return Promise.resolve({
+                status: 'ok',
+                value: {
+                  status: 'ok',
+                  method: 'Welch Two Sample t-test',
+                  rows: payload.args.chrBy.map((by) => ({
+                    by,
+                    group_1: 'Placebo',
+                    n_1: 95,
+                    group_2: 'Treatment',
+                    n_2: 91,
+                    method: 'Welch Two Sample t-test',
+                    p_unadjusted: p[by],
+                    p_value: p[by],
+                    adjustment: 'none',
+                    adjusted_over: payload.args.chrBy.length,
+                    status: 'ok'
+                  }))
+                }
+              });
+            }
+          }
+        }
+      );
+      return window.__asked;
+    }, renamed);
+    await expect(testRow(page)).toHaveAttribute('data-state', 'shown');
+    // R was asked about the visits by the names the table has, spaces and all.
+    expect(asked.at(-1)).toEqual(['Baseline', 'Week 2', 'Week 4 ', ' Week 8', 'Week 12']);
+    const found = await overTimeOf(page);
+    expect(found.test.cells.map((cell) => [cell.visit, cell.status, cell.text])).toEqual([
+      ['Baseline', 'shown', 'p = 0.500'],
+      ['Week 2', 'shown', 'p = 0.250'],
+      ['Week 4 ', 'shown', 'p = 0.030'],
+      [' Week 8', 'shown', 'p = 0.040'],
+      ['Week 12', 'shown', 'p = 0.600']
+    ]);
+    expect(errors).toEqual([]);
+  });
+
+  test('GC-TIME-038: when the settings name another visit column the Visit control offers that column’s visits and the open biomarker is drawn across them: the visits a biomarker has are read again for the settings in force, not kept from the column before (#112)', async ({
+    page
+  }) => {
+    const errors = watch(page);
+    await openOverTime(page, { settings: { baseline_visits: null } });
+    expect(await visitsOffered(page)).toEqual(VISITS);
+    const named = VISITS.map((visit) => `Analysis ${visit}`);
+    await page.evaluate(() => {
+      const { chart, data } = window.__gc;
+      chart.setData({
+        results: data.results.map((row) => ({ ...row, AVISIT: `Analysis ${row.VISIT}` })),
+        participants: data.participants
+      });
+    });
+    expect(await visitsOffered(page)).toEqual(VISITS);
+    await page.evaluate(() => window.__gc.chart.setSettings({ visit_col: 'AVISIT' }));
+    expect(await visitsOffered(page)).toEqual(named);
+    let found = await overTimeOf(page);
+    expect(found.level).toBe('over-time');
+    expect(found.visits).toEqual(named);
+    expect(found.heads.map((head) => head.visit)).toEqual(named);
+    await expect(page.locator('[data-control="visits"] summary')).toHaveText('All (5)');
+    // And back again.
+    await page.evaluate(() => window.__gc.chart.setSettings({ visit_col: 'VISIT' }));
+    expect(await visitsOffered(page)).toEqual(VISITS);
+    found = await overTimeOf(page);
+    expect(found.visits).toEqual(VISITS);
     expect(errors).toEqual([]);
   });
 });

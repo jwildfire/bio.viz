@@ -1,6 +1,6 @@
 {
   "module": "group-comparison",
-  "generatedAt": "2026-10-04T23:12:12.593Z",
+  "generatedAt": "2026-10-06T22:34:04.200Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37242858671",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37242858671"
+    "id": "37541330383",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37541330383"
   },
   "records": [
     {
@@ -114,6 +114,62 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-015"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: every page is styled by safety.viz’s stylesheet as it was copied, published with its record, and then by the site’s own (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-019: the gallery’s cards, a module’s tabs, the fact panel, the evidence table and the reference’s sidebar are drawn by safety.viz’s rules (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: every page carries the header and the footer: the name and version, a Gallery list of every published chart, and links that all lead somewhere (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-020: the Gallery list opens from its button and from the keyboard, leads to a chart’s live demo, and the header marks the page a reader is on (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-021: the header holds at a 390px-wide viewport on every kind of page, and the Gallery list opens under it, on the screen (#91)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-021"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-022: a row of the evidence table is laid out by its own words: the two columns are three fifths and two fifths of the table on every module’s page, and a row keeps its columns when another row is given a test with a long name (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-022"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "CORE-SITE-024: on the gallery and the home page every card says what its module is in the registry’s card text, at most two sentences and five lines at 1280px; with the first row of charts at the top of a 1280 by 800 window the second row’s pictures are in it; and a chart’s fuller text is at the head of its live demo (#96)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-024"],
+      "issueRefs": [96],
       "screenshots": []
     },
     {
@@ -341,7 +397,7 @@
       "screenshots": []
     },
     {
-      "test": "GC-FILTER-006: on the demo, filters with nobody in common leave the overview and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
+      "test": "GC-FILTER-006: on the demo, filters with nobody in common leave the tiles and one biomarker saying, in words, that no participant passes the filters; nothing is drawn, R is asked nothing, the controls stay usable, and loosening a filter draws again (#29)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-FILTER-006"],
@@ -445,83 +501,75 @@
       "screenshots": []
     },
     {
-      "test": "GC-OVW-011: with no biomarker named the chart opens on every biomarker at every visit: a row each, a panel per visit, the number in each group, and no statistics line (#17)",
+      "test": "GC-OVW-011: with no biomarker named the chart opens on a tile per biomarker: in each a line per group in the groups’ colours across every visit, its own value axis with the range and unit printed beneath, one key above them all, and no statistics line (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-011"],
-      "issueRefs": [17],
-      "screenshots": ["GC-OVW-011-a-biomarker-row.png"]
+      "issueRefs": [],
+      "screenshots": ["GC-OVW-011-trend-tiles.png"]
     },
     {
-      "test": "GC-OVW-012: a biomarker’s row is a button that opens it alone, by a click or by Enter or Space, with its visits as panels and a statistics line under each; All Biomarkers returns to the overview (#17)",
+      "test": "GC-OVW-012: a tile is a button named for its biomarker that opens it over time, by a click or by Enter or Space, across its visits with a row of tests under them; All Biomarkers returns to the tiles (#17, #84, #85)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-012"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-013: the overview asks R for nothing: no call, no request to R’s hosts and no waiting text; opening a biomarker asks once per visit panel, and each waits and is answered for itself (#17)",
+      "test": "GC-OVW-013: the tiles ask R for nothing: no call, no request to R’s hosts and no waiting text, however they are drawn again; opening a biomarker asks once, for the row of visits, and an answer that arrives after the tiles are back is dropped (#17, #84, #85)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-013"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-014: the group, the levels, the colour, the mark, the scale, the value and the filters apply to the overview; Panel by waits for one biomarker and says so, and there is no Statistics section (#17)",
+      "test": "GC-OVW-014: Group by, Levels, Value, Scale, Visit and the filters apply to every tile; Colour by, Panel by and Draw as are switched off there and say where they apply, and there is no Statistics section (#17, #84, #85)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-014"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-015: with more biomarkers than the limit the overview draws a page of them, says how many of how many, and reaches the rest by pages (#17)",
+      "test": "GC-OVW-015: with thirty-six biomarkers every one has a tile: there are no pages and no count of how many are shown, and `overview_limit` and `page`, still read, change nothing (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-015"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-016: at 390px a biomarker’s row is a card as wide as the page, its visits two to a line, and a tap on it opens the biomarker; the page does not scroll sideways (#17)",
+      "test": "GC-OVW-016: at 390px the tiles are two to a line, each whole with its range beneath, a tap on one opens its biomarker over time at the chart’s top, and the page does not scroll sideways (#17, #84, #85)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-016"],
-      "issueRefs": [17],
-      "screenshots": ["GC-OVW-016-a-biomarker-row-on-a-phone.png"]
+      "issueRefs": [],
+      "screenshots": ["GC-OVW-016-trend-tiles-on-a-phone.png"]
     },
     {
-      "test": "GC-OVW-017: the first draw of twelve biomarkers at five visits is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17)",
+      "test": "GC-OVW-017: the first draw of thirty-six tiles is timed, at a desk’s width and at a phone’s, and recorded where a reader of the run can find it (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-017"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-018: the live demo opens on the overview, twelve biomarkers at five visits, and fetches nothing for R until a biomarker is opened (#17)",
+      "test": "GC-OVW-018: the live demo opens on the trend tiles, one per biomarker of the synthetic study with a line per arm and no statistics line, and fetches nothing for R until a biomarker is opened (#17, #84)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-018"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
-      "test": "GC-OVW-019: on the demo the overview starts no R; opening a biomarker starts it once, and its five visit panels each wait and print the test desktop R gives for that visit (#17)",
+      "test": "GC-OVW-019: on the demo the tiles start no R; opening a biomarker starts it once, and the row of tests under its visits waits and then prints the p-values desktop R gives, unadjusted and adjusted, from one request each; a few of its visits, a panel each, each wait and print the test desktop R gives for that visit (#17, #84, #85)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["GC-OVW-019"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "GC-OVW-020: in the overview every visit keeps its panel in every row, so a biomarker with no result at one visit has an empty panel there and its row lines up with the others (#52)",
-      "suite": "browser",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-020"],
-      "issueRefs": [52],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -722,6 +770,222 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-043"],
       "issueRefs": [49],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-008: on the page each tile’s line goes through the medians desktop R gives for that arm at each visit, the result and the change from baseline alike, and through R’s means when the tiles are switched to means (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-008"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-009: on the page a tile’s value axis never spans less than the set multiple of desktop R’s standard deviation of the results at the baseline visit, the range printed under the tile is the axis’s own two ends, and the multiple is a setting (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-009"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TILE-010: a specification written by bio.viz v0.2.0 is still read and rebuilds its view: one visit, and a panel per visit, with the panels, the groups and the questions for R the released chart had; and the overview it paged, as a tile for every biomarker (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-010"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-019: a biomarker opened from its tile is drawn across its visits in one picture on the kit’s Chart.js: visit along the bottom in visit order, the groups side by side in their colours as safety.viz’s boxes, and under each visit the number in each group; the boxes and the counts are desktop R’s (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-019"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-019-il-6-over-time-boxes.png"]
+    },
+    {
+      "test": "GC-TIME-020: drawn as means with standard errors, each group is a point at desktop R’s mean at each visit with a bar one standard error either side, joined across the visits by a line in the group’s colour (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-020"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-020-il-6-over-time-means.png"]
+    },
+    {
+      "test": "GC-TIME-021: drawn as medians with quartiles, each group is a point at desktop R’s median with a bar from the 25th to the 75th percentile, joined by a line; `time_mark` opens the chart on a form, the control reads it, and a change from baseline starts every group at nought (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-021"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-021-crp-over-time-medians.png"]
+    },
+    {
+      "test": "GC-TIME-022: under each visit the row of tests prints the p-value desktop R returns for that visit, from one request for the whole row; the Adjust across visits switch asks R again and prints R’s adjusted p-values, and the row’s heading and the line under it name the adjustment R made (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-022"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-022-tests-under-the-visits-adjusted.png"]
+    },
+    {
+      "test": "GC-TIME-023: the row of tests waits until R answers and then prints each visit’s p-value with the adjustment R names; a change to the test, the adjustment or a filter clears the row and asks again, in one request, and the answer to the question before is never shown (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-023"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-024: for a change from baseline the baseline visit is drawn, where every group starts at nought, and is not tested: its name is not a button, its cell reads not tested, its rows are not sent to R, and the notes and the line say why (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-024"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-024-change-from-baseline-over-time.png"]
+    },
+    {
+      "test": "GC-TIME-025: with no R attached the picture and the counts are drawn all the same, the row of tests says that statistics are unavailable and nothing is fetched; with no test chosen, or one group, R is not asked and the row says so (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-025"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-025-over-time-with-no-r.png"]
+    },
+    {
+      "test": "GC-TIME-026: a visit’s name in the table is a button that opens that visit alone, by a click or by the keyboard, as the released single-visit view with its own question for R; the trail above the chart names the level drawn and leads back, to the biomarker over time as All in the Visit control does and to every biomarker across every visit (#85, #112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-026"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-027: over time, Colour by and Panel by are switched off and say where they apply, Draw as offers the three forms, and Statistics offers the test and the adjustment across visits and no pairwise switch; Group by, Levels, Value, Scale and the filters apply to the picture and its table (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-027"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-028: a visit R did not compute reads not computed in its cell, with R’s reason in the cell’s title and under the table, and R’s adjustment is across the visits that have a p-value; when R computes none, every cell says so and the line gives R’s reason; and at a visit where a group has nobody R still answers for every group and says which has none (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-028"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-028-visits-r-did-not-compute.png"]
+    },
+    {
+      "test": "GC-TIME-029: with more than two groups the row of tests is the several-group test desktop R returns at each visit, a one-way ANOVA or a Kruskal-Wallis test, adjusted across the visits when asked (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-029"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-029-four-groups-over-time.png"]
+    },
+    {
+      "test": "GC-TIME-030: over time the PNG holds the picture with its table of counts and tests, the statistics file holds R’s row for every visit, the table file a row per participant and visit, and the specification written makes the same picture again (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-030"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-031: at 390px the picture over time and its table hold five visits within the page, with no visit’s name broken inside a word; a tap on a visit opens it with the trail and the chart’s top on screen; with more visits than fit, the block scrolls sideways inside the chart and the page still does not (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-031"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-031-over-time-on-a-phone.png"]
+    },
+    {
+      "test": "GC-TIME-032: a specification written by bio.viz v0.2.0 that names a biomarker and every visit, which drew a panel for every visit, is read whole and now opens on the biomarker over time, with the same participants at each visit and one request where there were five (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-032"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-033: on the demo page, whose stylesheet styles every table heading and cell by its tag, the table under the picture over time keeps the chart’s own look; and at 390px, where the site leaves the chart 340 pixels, it holds the five visits with nothing to scroll and no visit’s name broken inside a word (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-033"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-034: over time the notes above the chart are two lines for all the visits, the range drawn at a visit and what was left out added up over the visits by reason; each number is the sum of the notes the visits print for themselves, and a visit’s own note is unchanged (#85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-034"],
+      "issueRefs": [85],
+      "screenshots": ["GC-TIME-034-notes-for-all-the-visits.png"]
+    },
+    {
+      "test": "GC-TIME-035: opening one visit of a biomarker that lacks a visit of the study chooses that visit and no other, from its name and from the Visit control: the title and the value axis name the one visit, the tiles afterwards are drawn on it alone, and All still means every visit for the next biomarker (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-035"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-036: after a button of the trail is pressed with the keyboard, the keyboard’s place is on the level it led to, the trail’s own entry for it or, on the tiles, the Biomarker control; with the sidebar closed a tile or a visit’s name opened by the keyboard leaves it on the trail too, and the trail’s way back to the tiles on the first tile: it is never dropped to the page (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-036"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-037: a visit whose name has a space before or after it has R’s answer printed under it: the visit is matched to R’s row by the name the chart sent, as R returned it, and two visits that differ only by such a space each keep their own (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-037"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-TIME-038: when the settings name another visit column the Visit control offers that column’s visits and the open biomarker is drawn across them: the visits a biomarker has are read again for the settings in force, not kept from the column before (#112)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-038"],
+      "issueRefs": [112],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-003: with rows for unscheduled visits added to the study, such a visit is in no tile, not in the Visit control, not a visit of a biomarker over time and not a panel of one, and a note says how many are left out and which; the Unscheduled visits control, or `unscheduled_visits`, brings them in at every level (#84, #85)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-003"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-004: a list of names in `unscheduled_visit_values` decides alone which visits are unscheduled, whatever the pattern says, and another pattern names others; the note counts and names what is left out (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-004"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-005: left out, an unscheduled visit is not the baseline a change is measured from: with no baseline visit named it is the first scheduled visit, and with unscheduled visits switched on, the first visit of all (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-005"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "GC-UNS-006: a specification that names an unscheduled visit, as one written by v0.2.0 for a study that has them, is read; the visit is left out like any other, and the notice above the chart says which and by which setting, not that it is missing from the tables; with `unscheduled_visits` true in it the visit is drawn and nothing is said (#84)",
+      "suite": "browser",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-006"],
+      "issueRefs": [84],
       "screenshots": []
     },
     {
@@ -1101,7 +1365,23 @@
       "screenshots": []
     },
     {
-      "test": "gallery the home page heads its callout for one chart and for several (#26)",
+      "test": "gallery CORE-SITE-023: a card says what its module is in the registry’s card text, at most two sentences and 200 characters, on the gallery and on the home page, and not in the fuller text, which stays at the head of a chart’s live demo; the registry as committed holds every module to it, and the group comparison’s card names its tiles, its picture over time and its single visit (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
+      "screenshots": []
+    },
+    {
+      "test": "gallery CORE-SITE-023: the registry refuses an entry with no card text, with more than two sentences, or with more than 200 characters (#96)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-023"],
+      "issueRefs": [96],
+      "screenshots": []
+    },
+    {
+      "test": "gallery the home page heads its word about the charts for one chart and for several (#26)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": [],
@@ -1165,6 +1445,14 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: a specification the released chart wrote GC-TILE-010: every specification bio.viz v0.2.0 wrote is read as it stands, held by this version’s schema, and taken by the chart’s settings; the two settings its overview paged by are read, the settings this version adds keep their defaults, and the one that names a biomarker and every visit opens on the biomarker over time (#84, #85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-010"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: filters that let nobody through GC-FILTER-005: with no kit on the page an empty selection lets everyone through, as it is not a filter in force (#29)",
       "suite": "unit",
       "status": "pass",
@@ -1173,7 +1461,7 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel, one biomarker or the overview, and the core still refuses a results table with no rows (#29)",
+      "test": "group comparison: filters that let nobody through GC-FILTER-005: with no participant through the filters the chart asks the core for no frame and draws no panel and no tile, one biomarker or every biomarker, and the core still refuses a results table with no rows (#29)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-FILTER-005"],
@@ -1250,6 +1538,54 @@
       "status": "pass",
       "requirementIds": ["GC-STAT-047"],
       "issueRefs": [78],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-002: one column per visit the biomarker has values at, in visit order, and in each a cell per group drawn, side by side, in the group’s colour; a second grouping and panels are not applied (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-002"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-003: a cell describes the records the single-visit view draws for that group at that visit, one per participant: nothing is pooled across visits (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-003"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-004: on the synthetic study every cell’s count, quantiles, mean, standard deviation and standard error, by arm at every visit, for the result and for the change from baseline, equal what desktop R gives (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-004"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-005: each form is drawn from the cell’s own numbers: a box from its quartiles with whiskers at the 5th and 95th percentiles, a mean with one standard error either side, a median with the quartiles either side; a group of one has a mean and no standard error (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-005"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-006: the value axis covers what the form draws, with a little room: the whiskers’ ends for boxes, the standard errors’ for means, the quartiles for medians; on a logarithmic axis the room is a ratio (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-006"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: one biomarker over time GC-TIME-007: for a change, a fold change or a percent change from one baseline visit, that visit is drawn, where every line starts, and is not tested: it is not among the visits R is asked about. With several baseline visits, and for the result itself, every visit is tested (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-007"],
+      "issueRefs": [85],
       "screenshots": []
     },
     {
@@ -1349,11 +1685,11 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: settings GC-CFG-004: the chart has no setting that chooses an adjustment, a confidence level, a minimum group size or a cut (#16)",
+      "test": "group comparison: settings GC-CFG-004: the chart has no setting that chooses a confidence level, a minimum group size or a cut, and one that names an adjustment: the one R makes across the visits of one biomarker over time (#16, #85)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-CFG-004"],
-      "issueRefs": [16],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -1405,59 +1741,11 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: the overview GC-OVW-003: the overview has one row per biomarker, in the Biomarker control’s order, and in each row one panel per visit, in visit order (#17)",
+      "test": "group comparison: the settings of the picture over time GC-TIME-001: what the picture is drawn as, the adjustment across the visits and the R function that answers a row of visits each have a setting with a stated default, and a value none can take is refused by name (#85)",
       "suite": "unit",
       "status": "pass",
-      "requirementIds": ["GC-OVW-003"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-004: every panel of the overview is what that biomarker’s own view draws at that visit: one record per participant, and nothing pooled across visits or biomarkers (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-004"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-005: each biomarker has its own value axis, shared across its visits (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-005"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-006: the group, the levels, the colour, the scale and the filters apply to every row; panels by a further variable do not, because the panels are the visits (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-006"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-007: a baseline value has no visit, so each biomarker has one panel; and for a change from baseline the one baseline visit is not drawn, where the change is the same for everyone (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-007"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-008: a page of the overview holds at most the limit, in the control’s order, and says how many it shows of how many (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-008"],
-      "issueRefs": [17],
-      "screenshots": []
-    },
-    {
-      "test": "group comparison: the overview GC-OVW-009: the levels the overview offers are the group column’s own, from the table that holds it (#17)",
-      "suite": "unit",
-      "status": "pass",
-      "requirementIds": ["GC-OVW-009"],
-      "issueRefs": [17],
+      "requirementIds": ["GC-TIME-001"],
+      "issueRefs": [85],
       "screenshots": []
     },
     {
@@ -1509,6 +1797,110 @@
       "screenshots": []
     },
     {
+      "test": "group comparison: the trend tiles GC-OVW-006: the group, the levels, the value, the scale, the visits and the filters apply to every tile; a second grouping by colour, panels by a further variable and the mark do not (#17, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-006"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-OVW-009: the levels the tiles offer are the group column’s own, from the table that holds it (#17, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-009"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-OVW-020: every visit chosen keeps its place along every tile, so the tiles line up; where a group has no value at a visit it has no point there, and its line runs on to its next value (#52, #84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-020"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-001: one tile per biomarker, in the Biomarker control’s order, named for it with the unit of its values; in each a line per group, with a point at each visit chosen, in visit order (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-001"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-002: a point describes the records that biomarker’s own view draws for that group at that visit, one per participant from the core’s frame: their number, their median and their mean; nothing is pooled across visits or biomarkers (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-002"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-003: on the synthetic study every tile’s medians, means and counts, by arm at every visit, for the result and for the change from baseline, equal desktop R’s median(), mean() and length() (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-003"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-004: each biomarker has its own value axis: from the least point drawn to the greatest, widened about its middle until it spans the set multiple of the standard deviation of the results at the baseline visit, with a little room; the standard deviation is desktop R’s sd() (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-004"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-005: the least an axis may span is in the units of what is drawn: the standard deviation itself for a result, a baseline or a change, over the mean for a fold change and a hundred times that for a percent change, and on a logarithmic axis a ratio from the standard deviation of the logarithms; where there is no such number the axis is left at its points (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-005"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-006: the settings of the tiles: `tile_summary`, the median or the mean, the median by default, and `tile_min_spread`, a number of zero or more, 1.25 by default; a value neither can take is refused (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-006"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the trend tiles GC-TILE-007: for a change from baseline a tile keeps the baseline visit, where every line starts at no change; a baseline value has no visit, so each line is one point (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TILE-007"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: the visits one biomarker’s view draws GC-OVW-007: a baseline value has no visit, so one biomarker has one panel; and for a change from baseline the one baseline visit is not a panel, where the change is the same for everyone (#17)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-OVW-007"],
+      "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: unscheduled visits GC-UNS-001: the chart has safety.viz’s three settings of unscheduled visits, under its names and with its defaults, and a value none can take is refused by name (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-001"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: unscheduled visits GC-UNS-002: with unscheduled visits left out their rows are set aside before anything is framed: they are in no tile and no panel and are not the baseline, R is asked what it is asked of the table without them, and the identity says `unscheduled_visits: true` only when they are drawn and the results have some (#84)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-UNS-002"],
+      "issueRefs": [84],
+      "screenshots": []
+    },
+    {
       "test": "group comparison: what R is asked GC-STAT-010: the request is the function, the panel’s rows, and four arguments: the two column names, the test and whether to compare every pair (#16)",
       "suite": "unit",
       "status": "pass",
@@ -1549,11 +1941,11 @@
       "screenshots": []
     },
     {
-      "test": "group comparison: what the chart opens on GC-OVW-002: the most biomarkers the overview draws at a time is a setting, twelve by default, and a value it cannot take is refused (#17)",
+      "test": "group comparison: what the chart opens on GC-OVW-002: `overview_limit` and `page`, the settings of the overview v0.2.0 paged, are still settings, checked as they were, so what was written for it is not refused (#17, #84)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-OVW-002"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -1602,6 +1994,22 @@
       "status": "pass",
       "requirementIds": ["GC-DATA-011"],
       "issueRefs": [9],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: which level is drawn GC-LVL-001: with no biomarker chosen the chart draws every biomarker; with one chosen and every visit it has, that biomarker over time; with one chosen and some of its visits, a panel per visit (#84, #85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-LVL-001"],
+      "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "group comparison: which level is drawn GC-LVL-002: a biomarker with one visit, and a baseline value, which has no visit, have no picture over time: they are drawn as a single view (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-LVL-002"],
+      "issueRefs": [85],
       "screenshots": []
     },
     {
@@ -1722,6 +2130,94 @@
       "status": "pass",
       "requirementIds": ["CORE-SITE-005"],
       "issueRefs": [7],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: the rows R is run on, and the key R wrote GC-TIME-012: deriving each case’s long rows again, with the chart’s own code from the demo’s own tables and settings, gives the committed files (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-012"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: the rows R is run on, and the key R wrote GC-TIME-013: for every case the function, the arguments, the identity and the row count R wrote by the recipe are the ones the chart asks with, and handed to a connection as stored results each answer is found by the chart’s request and by no other view’s (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-013"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: the rows R is run on, and the key R wrote GC-TIME-014: each visit’s p-value in R’s one answer is the one R gives when that visit is asked alone, and the adjusted one is what R’s p.adjust() makes of those across the visits that have one (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-014"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R is asked GC-TIME-008: R is asked once for the whole row of visits: the rows of every visit tested, one per participant and visit, each the row its own panel hands R with the visit named; the arguments name the column of visits, the visits in order and the adjustment (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-008"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R is asked GC-TIME-009: the identity of the rows names the biomarker, the value, the visits tested in order, the baseline, the groups, the filters in force and a logarithmic axis; it has no colour and no panel, whatever those controls hold, and says unscheduled visits only when they are drawn (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-009"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R is asked GC-TIME-010: the baseline visit of a change is not sent: R is asked about the later visits alone, so it is never asked to test a value that is the same for everyone (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-010"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R is asked GC-TIME-011: a cut’s groups are handed to R low to high, as for one panel, and the identity names the cut variable and keeps the groups sorted by code point (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-011"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R’s answer reads as GC-TIME-015: each visit’s result is R’s, in parts: its p-value as R returned it with the method and each group’s count, and the line names the method once, how many visits were tested, and the adjustment with how many visits it covered (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-015"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R’s answer reads as GC-TIME-016: when no visit could be tested the line gives R’s reason for the whole request once and each visit’s beneath; where the visits’ tests differ in name each visit’s sentence is given; and an answer that is not a row of visits, no R and an R error are each said as such (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-016"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R’s answer reads as GC-TIME-017: the desk asks once for the row of visits, says it is waiting until R answers, reads the answer as a row of results, and drops an answer that arrives after the chart was drawn again (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-017"],
+      "issueRefs": [85],
+      "screenshots": []
+    },
+    {
+      "test": "one biomarker over time: what R’s answer reads as GC-TIME-018: what the tests cover is said in plain words: a test of its own at each visit, the baseline visit of a change that is not tested and why, and the filters in force (#85)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["GC-TIME-018"],
+      "issueRefs": [85],
       "screenshots": []
     },
     {
@@ -1893,11 +2389,27 @@
       "screenshots": []
     },
     {
-      "test": "the many-biomarkers fixture GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds three times the overview’s limit of biomarkers (#17)",
+      "test": "the copied site styles CORE-SITE-018: a copied file that is changed, missing, or beside one the record does not name fails the check, and the second check holds each file to safety.viz at the recorded commit (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the copied site styles CORE-SITE-018: safety.viz’s site stylesheet and page shell are in site/vendor/safety.viz-site/ with a record naming the repository, its dev branch, the commit and each file, and the copy matches its record (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-018"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the many-biomarkers fixture GC-OVW-010: deriving the fixture again from the vendored study gives the committed file, byte for byte, and it holds thirty-six biomarkers, three times the study’s (#17, #84)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["GC-OVW-010"],
-      "issueRefs": [17],
+      "issueRefs": [],
       "screenshots": []
     },
     {
@@ -1906,6 +2418,46 @@
       "status": "pass",
       "requirementIds": ["GC-OVW-010"],
       "issueRefs": [17],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the header’s Gallery entry lists each published chart, leading to its live demo, and is a plain link while none is published (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the page shell CORE-SITE-020: the shell’s header, navigation and footer are the copied shell’s, and its header script is the copied shell’s, character for character (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-020"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every class a page writes is styled by one of the two stylesheets, and the site’s own styles no class the pages do not write (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: every page loads the copied stylesheet and then the site’s own, by paths that hold at any depth (#91)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [91],
+      "screenshots": []
+    },
+    {
+      "test": "the pages and the two stylesheets CORE-SITE-019: the site’s own stylesheet redefines none of safety.viz’s tokens, writes every colour and typeface as one of them, and names no element by its tag alone but the page’s body (#91, #112)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["CORE-SITE-019"],
+      "issueRefs": [],
       "screenshots": []
     },
     {

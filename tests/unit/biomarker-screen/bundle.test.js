@@ -127,12 +127,12 @@ describe('bundle: the biomarker screen ships, safety.viz, Chart.js and webR do n
     }
     expect(codeOf(shared)).toContain('function pageOf');
     expect(codeOf(shared)).toContain("'bv-back'");
-    // The group comparison's overview and the scatter use the same parts.
-    expect(reached(others['group-comparison']).has('src/shared/paging.js')).toBe(true);
+    // The scatter uses the same parts. The group comparison paged its overview
+    // with them until its trend tiles, which have no pages (#84), and pages
+    // nothing of its own.
+    expect(reached(others['group-comparison']).has('src/shared/paging.js')).toBe(false);
     expect(codeOf(others['association-scatter'])).not.toContain("'bv-back'");
-    expect(codeOf(others['group-comparison'])).not.toMatch(
-      /function overviewPage[\s\S]{0,200}Math\.ceil/
-    );
+    expect(codeOf(others['group-comparison'])).not.toMatch(/function pageOf|function overviewPage/);
   });
 
   it('BS-KIT-004: the chart’s source holds no statistical inference: no arithmetic of an estimate, an interval, a p-value or an adjustment, and nothing ordered by a key R did not return (#36)', () => {

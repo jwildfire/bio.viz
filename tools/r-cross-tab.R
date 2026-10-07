@@ -312,8 +312,14 @@ cases <- list(
   case("response-by-crp-median-fisher", "RESPONSE", crp("median"), "fisher"),
   case("response-by-crp-typed-chisq", "RESPONSE", crp(8), "chisq"),
   case("arm-by-response-women-chisq", "ARM", "RESPONSE", "chisq", list(SEX = "F")),
-  # CRP cut at 10 leaves 4 participants above it: below R's minimum group size.
+  # CRP cut at 10 leaves 2 participants above it: below R's minimum group size,
+  # which stops the chi-square test. Fisher's exact test is exempt from the
+  # minimum (gsm.bio#46), and R computes it for the same table.
   case("response-by-crp-10-chisq", "RESPONSE", crp(10), "chisq"),
+  case("response-by-crp-10-fisher", "RESPONSE", crp(10), "fisher"),
+  # Cut at 9.5, three are above it, and Fisher's p-value is an ordinary one.
+  # At 10 it is 1, which fisher.test() returns as 1.0000000000000002.
+  case("response-by-crp-9.5-fisher", "RESPONSE", crp(9.5), "fisher"),
   case(
     "arm-by-crp-change-median-chisq", "ARM",
     list(measure = "CRP", visit = "Week 4", value = "change", cut = "median"), "chisq"

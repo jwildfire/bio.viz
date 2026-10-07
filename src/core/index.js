@@ -7,5 +7,6 @@
 export { variable, label, cutWords, VALUE_TYPES } from './variable.js';
 export { CUTS, cutPoints, cutGroup, cutLabels } from './cut.js';
 export { frame, visits } from './frame.js';
+export { UNSCHEDULED_DEFAULTS, isUnscheduledVisit, scheduledResults } from './unscheduled.js';
 export { DEFAULT_SETTINGS, BASELINE_STATS } from './settings.js';
 export { DROPPED, UNUSED } from './reasons.js';

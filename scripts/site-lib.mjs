@@ -5,6 +5,14 @@
 // The module registry in site/config.json drives every page here: the gallery
 // lists the modules whose `kind` is `chart`, and every module, chart or shared
 // part, gets an evidence page and an API reference.
+//
+// The pages are written in the markup safety.viz's site uses (#91), so that its
+// stylesheet, copied to site/vendor/safety.viz-site/, styles them as it is: the
+// header and its Gallery menu, a page's title and tagline, the tabs of a
+// module's pages, gallery cards, the fact panel, the evidence table and the
+// reference's sidebar. A class these functions write is one that stylesheet
+// defines, or one of the few in site/site.css; tests/unit/site/siteStyles.test.js
+// fails on any other.
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -19,9 +27,40 @@ import {
 
 export { escapeHtml };
 
+// The header's Gallery entry, as safety.viz's header has it: the link to the
+// gallery, and beside it a button that opens a menu of one link per published
+// chart, straight to its live demo. The list is the registry's, so a chart
+// published later is in the menu without an edit here. `root` is the path from
+// the page back to the site root. The shell's script opens and closes the
+// menu; with no script, pointing at the entry opens it and the link still
+// leads to the gallery.
+export function renderGalleryNav(modules = [], root = '') {
+  const items = modules
+    .filter((entry) => entry.kind === 'chart' && isPublished(entry) && entry.demo)
+    .map(
+      (entry) =>
+        `<li><a href="${root}${escapeHtml(entry.module)}/index.html">` +
+        `${escapeHtml(entry.title)}</a></li>`
+    )
+    .join('');
+  const link = `<a href="${root}gallery/index.html">Gallery</a>`;
+  // With no chart published there is nothing to open.
+  if (!items) return link;
+  return (
+    `<div class="nav-group">` +
+    link +
+    `<button type="button" class="nav-disclosure" aria-expanded="false" ` +
+    `aria-controls="gallery-menu" aria-label="Show charts">` +
+    `<span class="nav-caret" aria-hidden="true"></span></button>` +
+    `<ul id="gallery-menu" class="nav-menu">${items}</ul>` +
+    `</div>`
+  );
+}
+
 // Shared shell: replaces {{title}}, {{description}}, {{version}}, {{build}},
-// {{root}} and {{content}}. {{root}} prefixes shell-level links so one shell
-// serves pages at any depth.
+// {{galleryNav}}, {{root}} and {{content}}. {{root}} prefixes shell-level links
+// so one shell serves pages at any depth; {{galleryNav}} is the header's
+// Gallery entry, built from the registry's modules.
 export function renderShell({
   shell,
   title,
@@ -30,14 +69,14 @@ export function renderShell({
   version = '',
   description = '',
   build = '',
-  mainClass = ''
+  modules = []
 }) {
   return shell
-    .replaceAll('{{mainClass}}', escapeHtml(mainClass))
     .replaceAll('{{title}}', escapeHtml(title))
     .replaceAll('{{description}}', escapeHtml(description))
     .replaceAll('{{version}}', escapeHtml(version))
     .replaceAll('{{build}}', build)
+    .replaceAll('{{galleryNav}}', renderGalleryNav(modules, root))
     .replaceAll('{{root}}', root)
     .replace('{{content}}', content);
 }
@@ -55,6 +94,49 @@ export function summarizeModule({ requirements, evidence } = {}) {
 
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
+// What a card says of its module is short, as safety.viz's cards are: the
+// registry's `card`, one or two sentences, so a screen of the gallery holds
+// two rows of charts. The fuller text, `blurb`, is at the head of a chart's
+// live demo. The registry is refused when a card runs past either limit.
+export const CARD_LIMITS = { sentences: 2, characters: 200 };
+
+// How many sentences a text has, counted by their ends: a full stop, a
+// question mark or an exclamation mark before a space or the end. Text with
+// no end is one sentence, and an abbreviation's stop counts as an end.
+export function sentencesOf(text) {
+  const said = String(text).trim();
+  if (!said) return 0;
+  const ends = said.match(/[.?!](?=\s|$)/g) || [];
+  return ends.length + (/[.?!]$/.test(said) ? 0 : 1);
+}
+
+// One module's card, as safety.viz's gallery draws a chart's: a picture when
+// there is one, the title as a link, what it is, and the links to its pages. A
+// chart's title leads to its live demo; a shared part has none, and its title
+// leads to its API reference. `root` is the path from the page that carries
+// the card back to the site root, and `facts` a line of counts, when the page
+// has them.
+function moduleCard(entry, { root = '', hero = null, facts = '' } = {}) {
+  const base = `${root}${escapeHtml(entry.module)}`;
+  const picture = hero
+    ? `<a class="card-thumb" href="${base}/index.html">` +
+      `<img src="${base}/evidence/${escapeHtml(hero)}" ` +
+      `alt="${escapeHtml(entry.title)}: a screenshot captured by its tests"></a>`
+    : '';
+  return (
+    `<li class="card" data-module="${escapeHtml(entry.module)}">` +
+    picture +
+    `<div class="card-body">` +
+    `<h3><a href="${base}/${entry.demo ? 'index' : 'api'}.html">${escapeHtml(entry.title)}</a>` +
+    `${statusBadge(entry)}</h3>` +
+    statusNote(entry) +
+    `<p>${escapeHtml(entry.card)}</p>` +
+    facts +
+    moduleLinks(entry, root) +
+    `</div></li>`
+  );
+}
+
 function renderModule(entry, summary, config) {
   const facts = [];
   if (summary) {
@@ -64,15 +146,9 @@ function renderModule(entry, summary, config) {
   const matrix = entry.matrix
     ? `<a href="${escapeHtml(config.matrixBaseUrl)}/${escapeHtml(entry.matrix)}">Requirement matrix</a>`
     : '';
-  return (
-    `<li class="module" data-module="${escapeHtml(entry.module)}">` +
-    `<h3>${escapeHtml(entry.title)}</h3>` +
-    statusBadge(entry) +
-    `<p>${escapeHtml(entry.blurb)}</p>` +
-    `<p class="module-facts">${[...facts.map(escapeHtml), matrix].filter(Boolean).join(' · ')}</p>` +
-    moduleLinks(entry) +
-    `</li>`
-  );
+  return moduleCard(entry, {
+    facts: `<p class="gallery-count">${[...facts.map(escapeHtml), matrix].filter(Boolean).join(' · ')}</p>`
+  });
 }
 
 // Home page. The page loads the committed script-tag bundle by its versioned
@@ -85,68 +161,65 @@ export function renderHome({ config, version, summaries = {} }) {
     .join('');
   const published = config.modules.filter((entry) => entry.kind === 'chart' && isPublished(entry));
   return `
-<section class="hero">
-  <p class="eyebrow">Biomarker charts · every test computed by R</p>
-  <h1>bio.viz <span class="hero-version">${escapeHtml(version)}</span></h1>
-  <p class="lead">
-    Charts for comparing groups and relating variables in biomarker data. They run beside
-    <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> and reuse its shared parts.
-    The library computes no statistical test itself: each one is asked of R.
-  </p>
-</section>
+<h1>bio.viz</h1>
+<p class="tagline home-intro">
+  bio.viz is a charting library for comparing groups and relating variables in biomarker data. It
+  runs beside <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> and reuses its
+  shared parts, and it computes no statistical test itself: each one is asked of R.
+</p>
 
 ${
   published.length
-    ? `<aside class="callout">
+    ? `<section id="the-charts">
   <h2>${published.length === 1 ? 'The first chart' : 'The charts'}</h2>
-  <p>
+  <p class="lead">
     The <a href="gallery/index.html">gallery</a> has the charts that are published, each with a
     live demo on a made-up study. A chart draws; it does not test. Every test is computed by R,
     and the charts say so where one would be printed.
   </p>
-</aside>`
-    : `<aside class="callout">
+</section>`
+    : `<section id="the-charts">
   <h2>No charts yet</h2>
-  <p>
+  <p class="lead">
     This first release sets the repository up and measures what running R in the browser costs:
     how many megabytes it downloads and how many seconds pass before the first result. The charts
     follow once that is known.
   </p>
-</aside>`
+</section>`
 }
 
-<section>
+<section id="this-build">
   <h2>This build</h2>
   <dl class="facts">
-    <div><dt>Library</dt><dd>bio.viz</dd></div>
-    <div><dt>Version in package.json</dt><dd>${escapeHtml(version)}</dd></div>
-    <div>
+    <div class="fact"><dt>Library</dt><dd>bio.viz</dd></div>
+    <div class="fact"><dt>Version in package.json</dt><dd>${escapeHtml(version)}</dd></div>
+    <div class="fact">
       <dt>Version reported by the bundle this page loaded</dt>
       <dd><code id="bundle-version">not loaded</code></dd>
     </div>
-    <div><dt>Bundle</dt><dd><code>${escapeHtml(bundle)}</code></dd></div>
+    <div class="fact"><dt>Bundle</dt><dd><code>${escapeHtml(bundle)}</code></dd></div>
   </dl>
 </section>
 
-<section>
-  <h2>What is in it</h2>
-  <ul class="modules">${modules}</ul>
-  <p class="sub">
+<section id="modules">
+  <h2>What is in it <span class="gallery-count">${plural(config.modules.length, 'module')}</span></h2>
+  <ul class="gallery">${modules}</ul>
+  <p class="section-summary">
     The <a href="gallery/index.html">gallery</a> lists each chart, with the tests that prove it
     and the reference for calling it.
   </p>
 </section>
 
-<section>
+<section id="r-checked">
   <h2>R in the browser, checked</h2>
-  <p>
+  <p class="lead">
     The <a href="r-check/index.html">R check page</a> runs two real tests through R in this
     browser, shows each answer beside the one desktop R gives, and reports what starting R costs
     in megabytes and seconds.
   </p>
 </section>
 
-<section>
+<section id="loading">
   <h2>Loading it</h2>
   <p>The bundle is committed, so a page needs no build step:</p>
   <pre><code>&lt;script src="${escapeHtml(bundle)}"&gt;&lt;/script&gt;
@@ -209,7 +282,7 @@ function renderRecorded(measured) {
     </thead>
     <tbody>${rows}</tbody>
   </table>
-  <ul class="notes">
+  <ul class="demo-tips">
     <li>Recorded on ${escapeHtml(longDate(measured.recorded))} in ${escapeHtml(measured.browser)}, on ${escapeHtml(measured.machine)}; network: ${escapeHtml(measured.network || 'not recorded')}. The browser started on ${escapeHtml(measured.profile || 'a new profile')}.</li>
     <li>MB is megabytes over the network; From network is how many of the requests were not answered from the browser's cache. Both, and the requests, are counted by the browser itself, through its DevTools protocol, for every request for R's files that the page and R's worker make from the press of the button to the last result. Megabytes are ${escapeHtml(measured.sizes)}.</li>
     <li>Seconds are from the call to the first result for cold and reload, which includes starting R, installing survival and reading the R source; and for one repeated rank-sum call for warm.</li>
@@ -223,15 +296,12 @@ export function renderCheckPage({ version, expected, measured }) {
   const made = expected.made_by;
   const bundle = `../dist/bio.viz-${version}/bio.viz.js`;
   return `
-<section class="hero">
-  <p class="eyebrow">R in the browser, measured</p>
-  <h1>R check</h1>
-  <p class="lead">
-    A chart in bio.viz computes no test itself: it asks R. This page asks R for two test results
-    three ways, compares what R in this browser answers with what desktop R answers, and reports
-    what starting R in a browser costs.
-  </p>
-</section>
+<h1>R check</h1>
+<p class="tagline">
+  A chart in bio.viz computes no test itself: it asks R. This page asks R for two test results
+  three ways, compares what R in this browser answers with what desktop R answers, and reports
+  what starting R in a browser costs.
+</p>
 
 <section id="without-r">
   <h2>With no R attached</h2>
@@ -259,7 +329,7 @@ export function renderCheckPage({ version, expected, measured }) {
   <p id="r-status" role="status">R has not been started.</p>
   <p id="r-session"></p>
   <div id="comparisons"></div>
-  <p class="sub">
+  <p class="section-summary">
     Two numbers count as the same when they differ by no more than 1 part in 10<sup>8</sup> of the
     larger: eight digits must agree, five more than a chart prints. Desktop R and R in the browser
     are different versions built by different compilers, so the last digits of a number may
@@ -274,7 +344,7 @@ export function renderCheckPage({ version, expected, measured }) {
     <thead><tr><th scope="col">Step</th><th scope="col">Time</th></tr></thead>
     <tbody id="timings-body"></tbody>
   </table>
-  <p class="sub">
+  <p class="section-summary">
     The first result includes fetching and starting R, installing survival and reading the R
     source. This page cannot say how many megabytes that took, or whether they came over the
     network or from this browser's cache: R's files are fetched by a worker, and a page cannot see
@@ -289,7 +359,7 @@ export function renderCheckPage({ version, expected, measured }) {
 
 <section id="data">
   <h2>The data and the R</h2>
-  <ul class="notes">
+  <ul class="demo-tips">
     <li>Rank-sum test: Alanine Aminotransferase at Week 8, Placebo against Xanomeline High Dose (<a href="data/alt-week-8.csv">alt-week-8.csv</a>).</li>
     <li>Log-rank test: days on study with discontinuation as the event, three arms (<a href="data/days-on-study.csv">days-on-study.csv</a>).</li>
     <li>Both tables are cut from the public CDISC Pilot 01 test data published by pharmaverse (Apache-2.0), as vendored by safety.viz. No real participant is described.</li>
@@ -347,6 +417,20 @@ export function validateRegistry(config) {
     }
     if (!isText(entry.title)) say('needs a `title`.');
     if (!isText(entry.blurb)) say('needs a `blurb`.');
+    if (!isText(entry.card)) {
+      say('needs `card`, what its card says in one or two sentences.');
+    } else {
+      const sentences = sentencesOf(entry.card);
+      const characters = entry.card.trim().length;
+      if (sentences > CARD_LIMITS.sentences) {
+        say(`\`card\` is ${sentences} sentences; a card holds at most ${CARD_LIMITS.sentences}.`);
+      }
+      if (characters > CARD_LIMITS.characters) {
+        say(
+          `\`card\` is ${characters} characters; a card holds at most ${CARD_LIMITS.characters}.`
+        );
+      }
+    }
     if (!isText(entry.matrix) || !entry.matrix.endsWith('.md')) {
       say('needs `matrix`, the name of its requirement matrix in requirements/.');
     }
@@ -396,30 +480,37 @@ export function validateRegistry(config) {
 // The modules that have pages on the site.
 export const availableModules = (config) => config.modules.filter(isPublished);
 
-// An experimental module's badge and the reason it is experimental; nothing
-// for any other.
+// An experimental module's badge, as safety.viz marks an experimental chart: a
+// pill after its title, on its card and on its pages. The pill's own title is
+// the reason, for whoever points at it. Nothing for any other module.
 function statusBadge(entry) {
   if (entry.status !== 'experimental') return '';
-  return (
-    `<p class="module-status"><span class="status-badge status-experimental">Experimental</span> ` +
-    `${escapeHtml(entry.statusNote)}</p>`
-  );
+  return ` <span class="site-badge" title="${escapeHtml(entry.statusNote)}">Experimental</span>`;
 }
 
-// Links to a module's two pages. `root` is the path from the page that carries
-// the links back to the site root.
+// The reason an experimental module is experimental, written out under its
+// title; nothing for any other.
+function statusNote(entry) {
+  if (entry.status !== 'experimental') return '';
+  return `<p class="kit-status">${escapeHtml(entry.statusNote)}</p>`;
+}
+
+// The links on a module's card to its pages, worded as safety.viz's cards
+// word them. `root` is the path from the page that carries the links back to
+// the site root.
 export function moduleLinks(entry, root = '') {
   const base = `${root}${escapeHtml(entry.module)}`;
   return (
-    `<p class="module-links">` +
-    (entry.demo ? `<a href="${base}/index.html">Live demo</a> · ` : '') +
+    `<p class="card-links">` +
+    (entry.demo ? `<a href="${base}/index.html">Demo</a> · ` : '') +
     `<a href="${base}/evidence.html">Evidence</a> · ` +
-    `<a href="${base}/api.html">API reference</a>` +
+    `<a href="${base}/api.html">API</a>` +
     `</p>`
   );
 }
 
-// The tabs at the top of a module's pages.
+// The tabs at the top of a module's pages, as safety.viz's chart pages have
+// them. The gallery is one step away in the header on every page.
 function moduleTabs(active, entry = {}) {
   const tab = (id, href, label) =>
     id === active
@@ -427,10 +518,9 @@ function moduleTabs(active, entry = {}) {
       : `<a href="${href}">${label}</a>`;
   return (
     `<nav class="page-tabs" aria-label="Pages for this module">` +
-    tab('gallery', '../gallery/index.html', 'Gallery') +
     // A chart has a live demo; a shared part has none.
     (entry.demo ? tab('demo', 'index.html', 'Live demo') : '') +
-    tab('evidence', 'evidence.html', 'Evidence') +
+    tab('evidence', 'evidence.html', 'Test evidence') +
     tab('api', 'api.html', 'API reference') +
     `</nav>`
   );
@@ -448,26 +538,6 @@ const STUDY_TABLES = {
   'synthetic_outcomes.csv': ['Outcomes', 'One row per participant and endpoint']
 };
 
-// A chart's card shows a picture of it when one of its evidence screenshots is
-// named as its `hero` and is committed (`heroes` lists the ones that are).
-function galleryCard(entry, heroes = {}) {
-  const hero = heroes[entry.module];
-  const picture = hero
-    ? `<a class="module-hero" href="../${escapeHtml(entry.module)}/index.html">` +
-      `<img src="../${escapeHtml(entry.module)}/evidence/${escapeHtml(hero)}" ` +
-      `alt="${escapeHtml(entry.title)}: a screenshot captured by its tests"></a>`
-    : '';
-  return (
-    `<li class="module" data-module="${escapeHtml(entry.module)}">` +
-    picture +
-    `<h3>${escapeHtml(entry.title)}</h3>` +
-    statusBadge(entry) +
-    `<p>${escapeHtml(entry.blurb)}</p>` +
-    moduleLinks(entry, '../') +
-    `</li>`
-  );
-}
-
 function renderStudy(study) {
   if (!study) return '';
   const tables = study.files
@@ -475,13 +545,14 @@ function renderStudy(study) {
       const [title, per] = STUDY_TABLES[entry.file] || [entry.file, 'One row per record'];
       const columns = entry.columns.map((column) => `<code>${escapeHtml(column)}</code>`);
       return (
-        `<li class="module" data-file="${escapeHtml(entry.file)}">` +
+        `<li class="card" data-file="${escapeHtml(entry.file)}"><div class="card-body">` +
         `<h3>${escapeHtml(title)}</h3>` +
         `<p>${escapeHtml(per)}: ${count(entry.rows)} rows.</p>` +
-        `<p class="module-facts">` +
+        `<p>Columns ${columns.join(', ')}</p>` +
+        `<p class="card-links">` +
         `<a href="../data/synthetic-study/${escapeHtml(entry.file)}">${escapeHtml(entry.file)}</a>` +
-        ` · columns ${columns.join(', ')}</p>` +
-        `</li>`
+        `</p>` +
+        `</div></li>`
       );
     })
     .join('');
@@ -489,14 +560,14 @@ function renderStudy(study) {
   return `
 <section id="demo-data">
   <h2>Demo data</h2>
-  <p>
+  <p class="lead">
     Every demo and most tests run on one made-up study, generated in
     <a href="${escapeHtml(study.repository)}">gsm.bio</a> from a seeded model with known effects
     planted in it, so a test can assert an answer that is known in advance. No real participant
     is in it.
   </p>
-  <ul class="modules">${tables}</ul>
-  <ul class="notes">
+  <ul class="gallery">${tables}</ul>
+  <ul class="demo-tips">
     <li id="study-source">Copied byte for byte from gsm.bio at commit <a href="${commitUrl}"><code>${escapeHtml(study.commit.slice(0, 7))}</code></a>${study.license ? `, licence ${escapeHtml(study.license)}` : ''}. Nothing is retyped or regenerated here.</li>
     <li>The <a href="../data/synthetic-study/SOURCE.json">source record</a> holds each file's checksum, and the unit tests fail when a file no longer matches it.</li>
   </ul>
@@ -504,38 +575,36 @@ function renderStudy(study) {
 }
 
 // The gallery: the charts that are published, the shared parts they are built
-// on, and the data the demos run on. With no chart published it says so.
+// on, and the data the demos run on. With no chart published it says so. A
+// chart's card shows a picture of it when one of its evidence screenshots is
+// named as its `hero` and is committed (`heroes` lists the ones that are).
 export function renderGallery({ config, study, heroes = {} }) {
   const modules = availableModules(config);
   const charts = modules.filter((entry) => entry.kind === 'chart');
   const shared = modules.filter((entry) => entry.kind !== 'chart');
+  const card = (entry) => moduleCard(entry, { root: '../', hero: heroes[entry.module] });
   const chartList = charts.length
-    ? `<ul class="modules" id="charts-list">${charts.map((entry) => galleryCard(entry, heroes)).join('')}</ul>`
-    : `<aside class="callout" id="no-charts">
-    <p>
+    ? `<ul class="gallery gallery-lead" id="charts-list">${charts.map(card).join('')}</ul>`
+    : `<p class="queue-strip" id="no-charts">
       No chart is published yet. When one is, it is listed here with a live demo on the synthetic
       study below, its evidence page and its API reference.
-    </p>
-  </aside>`;
+    </p>`;
   return `
-<section class="hero">
-  <p class="eyebrow">Charts · evidence · reference</p>
-  <h1>Gallery</h1>
-  <p class="lead">
-    Each chart in bio.viz, with the tests that prove it does what its requirements say and the
-    reference for calling it.
-  </p>
-</section>
+<h1>Gallery</h1>
+<p class="tagline">
+  Each chart in bio.viz, with the tests that prove it does what its requirements say and the
+  reference for calling it.
+</p>
 
 <section id="charts">
-  <h2>Charts</h2>
+  <h2>Charts <span class="gallery-count">${charts.length} published</span></h2>
   ${chartList}
 </section>
 
 <section id="shared-parts">
-  <h2>Shared parts</h2>
-  <p>What every chart is built on. Each has the same two pages a chart has.</p>
-  <ul class="modules" id="shared-list">${shared.map((entry) => galleryCard(entry)).join('')}</ul>
+  <h2>Shared parts <span class="gallery-count">${shared.length} published</span></h2>
+  <p class="lead">What every chart is built on. Each has the same two pages a chart has.</p>
+  <ul class="gallery" id="shared-list">${shared.map(card).join('')}</ul>
 </section>
 ${renderStudy(study)}
 `;
@@ -547,13 +616,14 @@ ${renderStudy(study)}
 // A sentence may hold a link.
 const DEMO_NOTES = {
   'group-comparison': [
-    'The chart opens on every biomarker at every visit: a row for each biomarker, and in the row a small panel for each visit, with the groups drawn in it and the number in each group beneath. Each biomarker has its own value axis, the same across its visits. Click a biomarker, or press Enter or Space on it, to view it alone; choose All Biomarkers under Biomarker in the controls to come back.',
+    'The chart opens on a tile for each biomarker: a line for each group through the group\u2019s median at every visit, in the groups\u2019 colours, with one key above the tiles. Each biomarker has its own value axis, and its range is printed under its tile. An axis is never narrower than 1.25 standard deviations of the results at the baseline visit, so lines that differ by less than that stay close to flat, and a tile whose lines part is one to open. Click a biomarker, or press Enter or Space on it, to view it across the visits; choose All Biomarkers under Biomarker in the controls, or in the trail above the chart, to come back.',
     'To find which biomarker differs between two groups, start from the <a href="../biomarker-screen/index.html">biomarker screen</a>: every biomarker at once, one row each, with R\'s standardised difference and its p-values adjusted across them. A click on a row there opens that biomarker here.',
-    'Choose the value, the visits, the groups and how they are drawn in the controls: they apply to every row. On a phone the controls are folded away above the chart: tap Controls to open them.',
-    "With one biomarker open, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.",
-    'With one biomarker open, the line under each panel is a test of the groups, computed by R. The overview prints no test and asks R for nothing. R is started in this browser the first time a biomarker is opened: the line says it is waiting, and what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.',
+    'Choose the value, the visits, the groups and the scale in the controls: they apply to every tile, and Tiles draw switches the lines from medians to means. Draw as applies once a biomarker is open, and Colour by and Panel by once a biomarker and a visit are; each says so until then. On a phone the controls are folded away above the chart: tap Controls to open them.',
+    'With one biomarker open and every visit ticked, the chart draws it over time: the groups side by side at each visit, as boxes, as means with standard errors or as medians with quartiles, and under each visit the number in each group and R\u2019s test of the groups there. Adjust across visits has R adjust those p-values across the visits. Click a visit\u2019s name to view that visit alone; the trail above the chart, or All in the Visit control, leads back.',
+    "With one visit open, or a few, each visit is a panel. Click a box, a violin or a point to list its participants, and a row of the list to open that participant's profile.",
+    'With one biomarker open, the row under the visits, and the line under each panel, is a test of the groups, computed by R. The tiles print no test and ask R for nothing. R is started in this browser the first time a biomarker is opened: the row says it is waiting, and the line under it what that first start downloads, until R answers. Nothing leaves this machine, and the chart computes no test itself.',
     'Choose the test under Statistics in the controls: a Welch t-test or a Wilcoxon rank-sum test between two groups, a one-way ANOVA or a Kruskal-Wallis test across more, or none. Group by Arm and sex for four groups, and switch on Pairwise comparisons to compare every pair, with the p-values adjusted across the pairs.',
-    "Every result is exploratory, and each panel's test is its own: they are not adjusted for one another. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn."
+    "Every result is exploratory. Each visit's test is its own, adjusted across the visits only when you ask for it, and the row says which; panels are not adjusted for one another. A change to a filter, a group or the test clears the line and asks R again, on the participants then drawn."
   ],
   'correlation-matrix': [
     "The chart opens on every biomarker at the first visit, Baseline: twelve biomarkers, sixty-six pairs. Below the diagonal a pair is a mark, wider and darker the stronger R's coefficient, a filled blue disc where it is positive and an orange ring where it is negative; above the diagonal is the coefficient itself. One pair was planted with a correlation, TNF-alpha with IL-10, true Pearson coefficient 0.6; the rest are unrelated by construction.",
@@ -596,8 +666,8 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
       `${count(study.files[1] ? study.files[1].rows : 0)} made-up participants, and no real one.`
     : '';
   const built = kit
-    ? `<p class="sub" id="demo-kit">The controls, the filters, the listing, the participant ` +
-      `profile and the Chart.js this chart draws with are safety.viz's, version ` +
+    ? `<p class="section-summary" id="demo-kit">The controls, the filters, the listing, the ` +
+      `participant profile and the Chart.js this chart draws with are safety.viz's, version ` +
       `${escapeHtml(kit.version)}, loaded beside bio.viz from ` +
       `<a href="../vendor/safety.viz/SOURCE.json">a copy with a record of where it came from</a>.` +
       (kit.merged_to_dev === false
@@ -608,7 +678,7 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
   // Which R functions answer, and from where: gsm.bio's statistics file, as
   // vendored, with the commit it was copied from.
   const computed = statistics
-    ? `<p class="sub" id="demo-statistics">The ${entry.module === 'group-comparison' ? 'tests' : 'statistics'} are gsm.bio's, version ` +
+    ? `<p class="section-summary" id="demo-statistics">The ${entry.module === 'group-comparison' ? 'tests' : 'statistics'} are gsm.bio's, version ` +
       `${escapeHtml(statistics.version || '')}: R in this browser is given ` +
       `<a href="../vendor/gsm.bio/statistics.R">one file of R</a>, copied from gsm.bio at commit ` +
       `<code>${escapeHtml(statistics.commit.slice(0, 7))}</code> with ` +
@@ -616,26 +686,27 @@ export function renderDemoPage({ entry, version, study, kit, statistics }) {
       `file, run in desktop R on the rows this chart hands over, wrote the answers the ` +
       `browser tests hold this page to.</p>`
     : '';
+  // `demo-page` gives the page the room a chart with its sidebar needs, as it
+  // does on safety.viz's site.
   return `
-<section class="hero">
-  <p class="eyebrow">Live demo</p>
-  <h1>${escapeHtml(entry.title)}</h1>
-  ${statusBadge(entry)}
-  <p class="lead">${escapeHtml(entry.blurb)}${source}</p>
-  ${moduleTabs('demo', entry)}
-</section>
+<div class="demo-page">
+<h1>${escapeHtml(entry.title)}${statusBadge(entry)}</h1>
+<p class="tagline">${escapeHtml(entry.blurb)}${source}</p>
+${statusNote(entry)}
+${moduleTabs('demo', entry)}
 
 <section id="demo">
   <div id="chart"></div>
 </section>
 
 <section id="about-demo">
-  <ul class="notes">
+  <ul class="demo-tips">
     ${notes}
   </ul>
   ${built}
   ${computed}
 </section>
+</div>
 
 <script src="../vendor/safety.viz/safety.viz.js"></script>
 <script src="${escapeHtml(bundle)}"></script>
@@ -703,10 +774,15 @@ function runFact(evidence) {
     : NOT_RECORDED;
 }
 
-// A module's evidence page: each requirement in its matrix, in the matrix's
-// order, with the tests named for it, what each recorded, and any screenshot a
-// test captured. A requirement with no test is shown as having none; the
-// evidence run fails on one, so a published page should never show it.
+// What a screenshot shows, from its name: `<requirement ID>-<what it shows>.png`.
+const shotCaption = (id, file) => file.slice(id.length + 1, -4).replaceAll('-', ' ');
+
+// A module's evidence page, laid out as safety.viz's is: the facts of the run,
+// then a table with a row for each requirement in the module's matrix, in the
+// matrix's order, with the tests named for it, what each recorded, and any
+// screenshot a test captured; then every screenshot again, larger. A
+// requirement with no test is shown as having none; the evidence run fails on
+// one, so a published page should never show it.
 //
 // `screenshots` is the list of PNG files committed in the module's evidence
 // folder. A capture is named `<requirement ID>-<what it shows>.png`, and is
@@ -728,7 +804,7 @@ export function renderEvidencePage({
   const failing = named.filter((record) => record.status === 'fail');
   const untested = ids.filter((id) => testsFor(id).length === 0);
   const shotsFor = (id) => screenshots.filter((file) => file.startsWith(`${id}-`)).sort();
-  const shown = ids.flatMap(shotsFor);
+  const shown = ids.flatMap((id) => shotsFor(id).map((file) => ({ id, file })));
   const matrixUrl = `${escapeHtml(config.matrixBaseUrl)}/${escapeHtml(entry.matrix)}`;
   const plural = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
@@ -745,18 +821,20 @@ export function renderEvidencePage({
           (file) =>
             `<a href="evidence/${escapeHtml(file)}"><img class="screenshot" ` +
             `src="evidence/${escapeHtml(file)}" loading="lazy" alt="Screenshot captured by a ` +
-            `test of ${escapeHtml(id)}: ${escapeHtml(file.slice(id.length + 1, -4).replaceAll('-', ' '))}"></a>`
+            `test of ${escapeHtml(id)}: ${escapeHtml(shotCaption(id, file))}"></a>`
         )
         .join('');
       return (
-        `<li class="requirement" id="${escapeHtml(id)}" data-status="${status}">` +
-        `<h3><span class="req-id">${escapeHtml(id)}</span> ${chip(status, runUrl)}</h3>` +
-        `<p class="req-text">${mdInline(requirements[id])}</p>` +
+        `<tr class="requirement" id="${escapeHtml(id)}" data-status="${status}">` +
+        `<td data-label="Requirement">` +
+        `<div class="req-ids"><span class="req-id">${escapeHtml(id)}</span>${chip(status, runUrl)}</div>` +
+        `<div class="req-texts"><p class="req-text">${mdInline(requirements[id])}</p></div></td>` +
+        `<td data-label="Tests and evidence">` +
         (tests.length
           ? `<ul class="tests">${tests.map((record) => testItem(record, config, runUrl)).join('')}</ul>`
           : `<p class="sub">No test is named for this requirement.</p>`) +
         (shots ? `<div class="screenshots">${shots}</div>` : '') +
-        `</li>`
+        `</td></tr>`
       );
     })
     .join('\n');
@@ -767,13 +845,36 @@ export function renderEvidencePage({
       ? `${chip('none')} ${plural(untested.length, 'requirement')} with no test`
       : `${chip('pass', runUrl)} every test passing`;
 
+  const visual = shown.length
+    ? `
+<section id="visual-evidence">
+  <h2>Visual evidence</h2>
+  <p class="section-summary">
+    Every screenshot below is a committed baseline: the same picture is what the browser tests
+    compare the page with and what is shown here. Click one for the picture at its full size.
+  </p>
+  <ul class="evidence-gallery">
+${shown
+  .map(
+    ({ id, file }) =>
+      `<li><figure><a href="evidence/${escapeHtml(file)}">` +
+      `<img src="evidence/${escapeHtml(file)}" loading="lazy" ` +
+      `alt="Evidence screenshot: ${escapeHtml(shotCaption(id, file))}"></a>` +
+      `<figcaption><code>${escapeHtml(id)}</code> — ${escapeHtml(shotCaption(id, file))}</figcaption>` +
+      `</figure></li>`
+  )
+  .join('\n')}
+  </ul>
+</section>`
+    : '';
+
   const otherTests = other.length
     ? `
 <section id="shared-tests">
   <h2>Tests run with every module</h2>
   <details>
     <summary>${plural(other.length, 'test')} of the site, the evidence pipeline and the repository’s own checks</summary>
-    <p class="sub">
+    <p class="section-summary">
       These are recorded in every module’s evidence set. A requirement ID one of them carries
       belongs to another module’s page.
     </p>
@@ -783,28 +884,27 @@ export function renderEvidencePage({
     : '';
 
   return `
-<section class="hero">
-  <p class="eyebrow">Test evidence</p>
-  <h1>${escapeHtml(entry.title)}</h1>
-  <p class="lead">
-    Every requirement of this module, the tests named for it, and what each test recorded the
-    last time the evidence was rebuilt.
-  </p>
-  ${moduleTabs('evidence', entry)}
-</section>
+<h1>${escapeHtml(entry.title)}: test evidence${statusBadge(entry)}</h1>
+<p class="tagline">
+  Every requirement of this module, the tests named for it, and what each test recorded the
+  last time the evidence was rebuilt.
+</p>
+${moduleTabs('evidence', entry)}
+<p class="matrix-link">
+  <a href="${matrixUrl}">Requirement matrix ↗</a> — the rows these tests are named for.
+</p>
 
 <section id="summary">
-  <h2>Summary</h2>
   <dl class="facts">
-    <div><dt>Requirements</dt><dd id="fact-requirements">${ids.length}</dd></div>
-    <div><dt>Tests named for them</dt><dd id="fact-tests">${named.length} <span class="sub">(${named.filter((record) => record.suite === 'unit').length} unit, ${named.filter((record) => record.suite === 'browser').length} browser)</span></dd></div>
-    <div><dt>Result</dt><dd id="fact-result">${result}</dd></div>
-    <div><dt>Screenshots</dt><dd id="fact-screenshots">${shown.length}</dd></div>
-    <div><dt>Recorded</dt><dd id="fact-recorded">${recordedFact(evidence)}</dd></div>
-    <div><dt>Environment</dt><dd id="fact-environment">${environmentFact(evidence)}</dd></div>
-    <div><dt>Test run</dt><dd id="fact-run">${runFact(evidence)}</dd></div>
+    <div class="fact"><dt>Requirements</dt><dd id="fact-requirements">${ids.length}</dd></div>
+    <div class="fact"><dt>Tests named for them</dt><dd id="fact-tests">${named.length} <span class="sub">${named.filter((record) => record.suite === 'unit').length} unit · ${named.filter((record) => record.suite === 'browser').length} browser</span></dd></div>
+    <div class="fact"><dt>Result</dt><dd id="fact-result">${result}</dd></div>
+    <div class="fact"><dt>Screenshots</dt><dd id="fact-screenshots">${shown.length}</dd></div>
+    <div class="fact"><dt>Recorded</dt><dd id="fact-recorded">${recordedFact(evidence)}</dd></div>
+    <div class="fact"><dt>Environment</dt><dd id="fact-environment">${environmentFact(evidence)}</dd></div>
+    <div class="fact"><dt>Test run</dt><dd id="fact-run">${runFact(evidence)}</dd></div>
   </dl>
-  <p class="sub">
+  <p class="section-summary">
     The requirements are the rows of the module’s
     <a href="${matrixUrl}">requirement matrix</a>. A test is named for a requirement by starting
     its name with the requirement’s ID. The results are read from the committed
@@ -815,12 +915,17 @@ export function renderEvidencePage({
 
 <section id="requirements">
   <h2>Requirements and their tests</h2>
-  <ol class="requirements">
+  <p class="section-summary">${plural(ids.length, 'requirement')} · ${plural(named.length, 'test')}</p>
+  <table class="evidence doc-table">
+    <thead><tr><th scope="col">Requirement</th><th scope="col">Tests and evidence</th></tr></thead>
+    <tbody>
 ${rows}
-  </ol>
+    </tbody>
+  </table>
 </section>
+${visual}
 ${otherTests}
-<section id="reproduce">
+<section class="reproduce" id="reproduce">
   <h2>Checking this page</h2>
   <pre><code>npm ci
 npm run evidence:check   # rerun every test and compare with the committed evidence set
@@ -851,6 +956,14 @@ export function validateEvidenceScreenshots(evidence, evidenceDir, label = evide
 //
 // `pages` maps another module's reference file to that module's page, so a
 // link between two reference files stays on the site.
+//
+// The list of sections is a narrow column beside the page, as safety.viz's is,
+// and a heading here is often a whole signature. `breakAfterBracket` lets one
+// break after its opening bracket, so it does not break inside a word. Only the
+// text between tags is touched, and only in the list: the heading is as written.
+const breakAfterBracket = (html) =>
+  html.replace(/(^|>)([^<]+)/g, (match, open, text) => open + text.replace(/\(/g, '(<wbr>'));
+
 export function renderApiPage({ entry, config, markdown, pages = {} }) {
   const lines = String(markdown).split('\n');
   const titleAt = lines.findIndex((line) => /^#\s+/.test(line));
@@ -861,16 +974,22 @@ export function renderApiPage({ entry, config, markdown, pages = {} }) {
   });
   const contents = extractHeadings(body)
     .filter((heading) => heading.level === 2)
-    .map((heading) => `<li><a href="#${heading.id}">${mdInline(heading.text)}</a></li>`)
+    .map(
+      (heading) =>
+        `<li><a href="#${heading.id}">${breakAfterBracket(mdInline(heading.text))}</a></li>`
+    )
     .join('');
   const docUrl = `${escapeHtml(config.repoUrl)}/blob/HEAD/docs/${escapeHtml(entry.api.doc)}`;
   return `
-<section class="hero">
-  <p class="eyebrow">API reference</p>
-  <h1>${escapeHtml(title)}</h1>
-  ${moduleTabs('api', entry)}
-</section>
+<h1>${escapeHtml(title)}${statusBadge(entry)}</h1>
+<p class="tagline" id="api-source">
+  This page is the file <a href="${docUrl}"><code>docs/${escapeHtml(entry.api.doc)}</code></a>,
+  rendered. The site build fails when the library exports something the file does not document,
+  or when the file documents a function the library does not export.
+</p>
+${moduleTabs('api', entry)}
 
+<div class="api-layout">
 <nav class="api-toc" aria-label="On this page">
   <h2>On this page</h2>
   <ul>${contents}</ul>
@@ -879,12 +998,7 @@ export function renderApiPage({ entry, config, markdown, pages = {} }) {
 <article class="api-body">
 ${mdBlock(body)}
 </article>
-
-<p class="sub" id="api-source">
-  This page is the file <a href="${docUrl}"><code>docs/${escapeHtml(entry.api.doc)}</code></a>,
-  rendered. The site build fails when the library exports something the file does not document,
-  or when the file documents a function the library does not export.
-</p>
+</div>
 `;
 }
 

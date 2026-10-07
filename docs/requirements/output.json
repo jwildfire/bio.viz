@@ -29,7 +29,7 @@
     "EXP-AUTO-005": "The footnote never names a released version for code that is not one: a build with changes since its release says `with development changes`; package.json's `bioviz.development` is true exactly while the release log has an upcoming section, and false in a tagged build.",
     "EXP-AUTO-006": "Counts are named for four groups and summarised for five or more, numeric text is read as a number, and many counts are summarised without spreading them; the source is the connection's form as it says, and a stored result's date is named.",
     "EXP-TXT-004": "A title or subtitle of only white space is absent; a chart whose placeholders throw is still titled and the error is reported; each placeholder's value is a run of its own, drawn in a `<bdi>` so its direction is isolated.",
-    "EXP-TXT-005": "In the group comparison's overview, `{n}` is the participants drawn anywhere on its page of biomarkers.",
+    "EXP-TXT-005": "On the group comparison's trend tiles, `{n}` is the participants behind a point of any tile.",
     "EXP-UPD-001": "The group comparison's title and subtitle are filled again when a filter or a control moves: `{filters}` names the filter, `{n}` counts the participants it lets through, and the control's placeholder reads its new value.",
     "EXP-UPD-002": "The same for the association scatter.",
     "EXP-UPD-003": "The same for the correlation matrix.",
@@ -41,7 +41,7 @@
     "EXP-PNG-004": "Every control of a chart's frame (the toolbar, the hint, the listing, the bar of downloads, a chart's own download and pager buttons) is marked `bv-no-picture`, which the picture leaves out.",
     "EXP-DL-008": "A download that fails says so in the bar, in a line a screen reader announces; the next download works and takes the line away.",
     "EXP-DL-009": "The table download holds the value a cut was made from: the survival chart's biomarker beside its group, and the cross-tabulation's for a cut row or column.",
-    "EXP-DL-010": "In the group comparison's overview, Table downloads every value drawn on its page of biomarkers, one row per participant, biomarker and visit, with each group; the overview offers the PNG and the table, and no statistics, since it asks R nothing.",
+    "EXP-DL-010": "On the group comparison's trend tiles, Table downloads the values every point is the median or the mean of, one row per participant, biomarker and visit, with each group; the tiles offer the PNG and the table, and no statistics, since they ask R nothing.",
     "EXP-CSV-003": "Every member R returned is a column, however nested: lists of objects or of lists in the data asked about are flattened by place, nested names are joined by a slash, and a member that would take an identifying column's name, or two written alike, is refused.",
     "EXP-CSV-004": "NaN, Inf and -Inf are written as R writes them, apart from a value missing; a list of values is joined by ` | `.",
     "EXP-SPEC-001": "A specification names its format, its format version, the bio.viz version, the chart, every setting that is data and every filter in force as a column, an operator and values; the page's connection and way back, and anything that is not data, are not written.",
@@ -59,12 +59,12 @@
     "EXP-SPEC-013": "A selection emptied by hand round-trips: every Visit of the group comparison and every biomarker of the correlation matrix unticked write `[]`, which the reader takes, and the chart made again draws the same nothing.",
     "EXP-SPEC-014": "A filter of several values emptied by hand writes `values: []` and comes back empty, letting nobody through.",
     "EXP-SPEC-015": "What a specification asks for that the data cannot draw is said above the chart and listed in `chart.notices`: a filter on a column the participant table lacks, a value a filter does not offer, a grouping the tables lack, a filter on the id column; a filter named twice is refused.",
-    "EXP-SPEC-016": "A specification opens on the same page of the group comparison's overview and of the screen, in the screen's order, and the survival chart's Groups keep the cut it opened on after a moved line.",
+    "EXP-SPEC-016": "A specification opens the group comparison's trend tiles as they were switched, to means; it opens on the same page of the screen, in the screen's order; and the survival chart's Groups keep the cut it opened on after a moved line.",
     "EXP-SPEC-017": "Reading a specification makes every check making the chart makes: a value the chart refuses is refused with the chart's sentence, and an empty selection the chart can draw is read.",
     "EXP-SPEC-018": "An object given as a specification is read once, own data properties only: a getter or a setter is refused, a Proxy's traps run once each and only the copy is checked, and nesting deeper than 64 is refused.",
     "EXP-SPEC-019": "`__proto__`, `constructor` and `prototype` are no column: a filter on one, or a setting naming one, is refused by the reader and the schema.",
     "EXP-SPEC-020": "The reader and the schema agree: `bio_viz_version` is text, a filter names a column once and each value once, a column's name is not blank, `settings.filters` is a list or null; the schema gives every setting's default and is written from the one chart list.",
-    "EXP-SITE-002": "Every chart's picture in the gallery is a capture of its frame taken by `captureGallery`, which fails rather than capture when the frame lacks its title or its own footnote, or when R has not answered.",
+    "EXP-SITE-002": "Every chart's picture in the gallery is a capture of its frame taken by `captureGallery`, which fails rather than capture when the frame lacks its title or its own footnote, or when R has not answered; a view that prints no statistic is captured only when its footnote says R was asked for none.",
     "EXP-SITE-003": "The built gallery shows every chart in that picture, its title and footnotes drawn in, and at 390px the page does not scroll sideways."
   }
 }

@@ -17,6 +17,7 @@ const config = {
       module: 'core',
       title: 'Library core',
       status: 'available',
+      card: 'Entry point & bundles.',
       blurb: 'Entry point & bundles.',
       matrix: 'core.md'
     }

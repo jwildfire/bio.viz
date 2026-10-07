@@ -14,7 +14,7 @@ const specOf = (module) =>
   specs.filter((file) => moduleForFile(`tests/e2e/${file}`, modules) === module);
 
 describe('getting results out: the gallery', () => {
-  it('EXP-SITE-002: every chart’s picture in the gallery is a capture taken by captureGallery, which holds the capture to the chart’s frame with its title and its own footnote inside it (#66)', () => {
+  it('EXP-SITE-002: every chart’s picture in the gallery is a capture taken by captureGallery, which holds the capture to the chart’s frame with its title and its own footnote inside it; a view that asks R for nothing, the group comparison’s opening tiles, is captured with a footnote that says so (#66, #108)', () => {
     expect(charts).toHaveLength(6);
     for (const chart of charts) {
       const match = /^([A-Z]+-DRAW-001)-as-the-gallery-shows-it\.png$/.exec(chart.hero || '');
@@ -38,5 +38,17 @@ describe('getting results out: the gallery', () => {
     expect(body).toContain("'as-the-gallery-shows-it'");
     expect(body).toContain('.bv-no-picture{display:none');
     expect(body).toContain("not.toContainText('unavailable')");
+    // A view that prints no statistic is captured only when its footnote says
+    // R was asked for none, and one chart is: the group comparison, whose
+    // picture is the view it opens on, the trend tiles (#108).
+    expect(body).toContain("toContainText('No statistic was asked of R.')");
+    const unasked = charts.filter((chart) =>
+      specOf(chart.module).some((file) =>
+        /captureGallery\([^;]*statistics: false/.test(
+          readFileSync(new URL(`tests/e2e/${file}`, ROOT), 'utf8')
+        )
+      )
+    );
+    expect(unasked.map((chart) => chart.module)).toEqual(['group-comparison']);
   });
 });

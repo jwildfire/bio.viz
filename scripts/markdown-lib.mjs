@@ -118,7 +118,7 @@ function renderTable(lines, start) {
     )
     .join('\n');
   return {
-    html: `<table class="doc-table"><thead><tr>${head}</tr></thead>\n<tbody>${body}</tbody></table>`,
+    html: `<table class="api doc-table"><thead><tr>${head}</tr></thead>\n<tbody>${body}</tbody></table>`,
     end
   };
 }

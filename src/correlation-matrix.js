@@ -50,20 +50,22 @@ import {
   unitOfGrid
 } from './correlation-matrix/structureData.js';
 import {
-  VALUE_LABELS,
   addFilterControls,
+  checkTables,
   downloadCsv,
+  drawSafely,
   filtersForScope,
   findKit,
   lineStyles,
   mountShell,
+  ownHeading,
+  ownTable,
   readGiven,
-  writeStatistic,
-  drawSafely,
-  checkTables,
-  writeTitles,
   specificationOf,
-  startFilters
+  startFilters,
+  VALUE_LABELS,
+  writeStatistic,
+  writeTitles
 } from './shared/chartHost.js';
 import { coreSettings } from './shared/settings.js';
 import {
@@ -80,7 +82,8 @@ const STYLE_ID = 'bio-viz-correlation-matrix-styles';
 const C = `.${MODULE_CLASS}`;
 const STYLES = `${lineStyles(C)}
 ${C} .bv-matrix{margin:0 0 .6rem;border:1px solid #d8dee4;border-radius:10px;background:#fff;padding:.8rem}
-${C} .bv-matrix-title{margin:0 0 .6rem;font-size:.92rem;font-weight:600;color:#1f2933}
+${ownHeading(`${C} .bv-matrix-title`, 600)}
+${C} .bv-matrix-title{margin:0 0 .6rem;font-size:.92rem;color:#1f2933}
 ${C} .bv-matrix-scroll{max-width:100%;overflow-x:auto}
 ${C} .bv-matrix-grid{display:grid;grid-template-columns:fit-content(var(--bv-label)) repeat(var(--bv-n),var(--bv-cell));gap:2px;width:max-content;font-size:.78rem;color:#1f2933}
 ${C} .bv-col-head{writing-mode:vertical-rl;transform:rotate(180deg);max-height:var(--bv-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-self:center;align-self:end;padding:.3rem 0;line-height:1.1}
@@ -106,8 +109,12 @@ ${C} .bv-pairs{margin-top:1rem;font-size:.85rem}
 ${C} .bv-pairs summary{cursor:pointer;font-weight:600;margin:0 0 .4rem}
 ${C} .bv-pairs-tools{margin:0 0 .4rem}
 ${C} .bv-pairs-tools button{padding:.3rem .6rem;border:1px solid #d8dee4;border-radius:6px;background:#fff;color:#1f2933;font:inherit;font-size:.8rem;cursor:pointer}
+${ownTable(`${C} .bv-pairs-table`)}
+/* The list is in the kit's listing, whose headings are small capitals: the
+   chart states them itself, where it leaned on the kit's rule before (#97). */
 ${C} .bv-pairs table{width:100%;border-collapse:collapse;background:#fff;table-layout:fixed}
 ${C} .bv-pairs th,${C} .bv-pairs td{border-bottom:1px solid #e3e8ee;padding:.4rem .5rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+${C} .bv-pairs th{font-size:.75rem;letter-spacing:.03em;text-transform:uppercase;color:#52616f}
 ${C} .bv-pairs thead th{border-bottom:2px solid #d8dee4;font-size:.8rem;font-weight:600;color:#52616f;overflow-wrap:normal}
 ${C} .bv-pairs th[scope=row]{font-weight:400}
 ${C} .bv-pairs thead th:nth-child(1){width:38%}
@@ -985,7 +992,7 @@ class CorrelationMatrix {
         'bio.viz-correlation-matrix-pairs.csv'
       );
     tools.append(download);
-    const table = document.createElement('table');
+    const table = kit.createElement('table', 'bv-pairs-table');
     const header = document.createElement('tr');
     ['Pair', 'Complete pairs', head].forEach((title) => {
       const cell = kit.createElement('th', null, title);

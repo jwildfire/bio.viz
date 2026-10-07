@@ -27,6 +27,8 @@
     "CT-STAT-014": "A column's categories are drawn in one order in every browser language, numbers in their names as numbers (2 mg before 10 mg), and R is handed them in that order, so Fisher's odds ratio is of the table drawn, on the side of 1 the drawn table is, and names its rows and columns.",
     "CT-STAT-015": "In the page, with the arms named as doses, the table draws 2 mg before 10 mg, R is handed the rows in that order, and Fisher's odds ratio prints as R gave it for the table drawn, named 2 mg over 10 mg.",
     "CT-STAT-016": "Fisher's infinite odds ratio, stored by desktop R as `\"Inf\"`, prints from the stored answer exactly as live R's does; an estimate stored with no number beside a bound is said not to be shown, and why, and never vanishes.",
+    "CT-STAT-017": "A table with a category below R's minimum group size prints Fisher's exact test as R computed it, the p-value with its method and counts and the odds ratio with its interval, while the chi-square test of the same table still prints R's reason; R's note that the minimum was not applied names the table's variable, not the column the chart handed R.",
+    "CT-STAT-018": "In the page, for a table with a column below R's minimum group size, the line prints Fisher's p-value, odds ratio and R's note with the table's variable named, and at 390px the page does not scroll sideways; a p-value R gives as 1 prints `p > 0.999`; by chi-square the same table prints R's reason and no number.",
     "CT-LIST-001": "Clicking a count lists that cell's participants, the ones desktop R puts in that cell, in the kit's listing, and a row of it opens safety.viz's participant profile of that participant.",
     "CT-FAIL-001": "When drawing fails the chart says so in its footnote, empties the listing and the rail, keeps its controls and leaves nothing half drawn, and draws again once it can.",
     "CT-DROP-001": "With a participant table, participants it does not have and rows with no participant id are counted by reason; a participant table without the id column is refused with a sentence; filters that let nobody through say so; the id column and the table change together.",
@@ -34,8 +36,10 @@
     "CT-SITE-001": "The live demo holds at a 390-pixel-wide viewport with no horizontal scroll, with the controls open.",
     "CT-SITE-002": "The gallery lists the chart with links to its live demo, its evidence page and its API reference; the demo opens on arm by response, draws the table where R cannot be reached and says so, and offers CRP at Baseline cut at its median.",
     "CT-SITE-003": "The API reference has a table row for every setting the chart has, with the default the code has; the site build fails when one is missing.",
+    "CT-SITE-004": "On the demo page, whose stylesheet styles every table, heading cell and cell by its tag, the table of counts keeps the chart's own look: its face, size, weight, spacing, rules, ground and margins are the same, part for part, as on a page with no stylesheet, with no capitals and no letter-spacing, and the table is the size it is with the page's stylesheet switched off.",
     "CT-LIVE-001": "Against R started in the browser on the demo: arm by response, by chi-square and by Fisher's exact test, every count, statistic and p-value equals desktop R's within 1 part in 10^8.",
     "CT-LIVE-002": "Against R in the browser: response by CRP at Baseline cut at its median, by both tests, and cut at 8, where R warns of small expected counts, equal desktop R's, warning included.",
-    "CT-LIVE-003": "Against R in the browser: the women alone, by the filter, equals desktop R's."
+    "CT-LIVE-003": "Against R in the browser: the women alone, by the filter, equals desktop R's.",
+    "CT-LIVE-004": "Against R in the browser: response by CRP at Baseline cut at 9.5 and at 10, three and two participants above the cut, by Fisher's exact test equals desktop R's, and by chi-square the table cut at 10 is withheld with R's reason."
   }
 }

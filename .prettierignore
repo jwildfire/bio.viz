@@ -29,13 +29,18 @@ site/r-check/data/
 # unit tests hold each to what its tool writes.
 tests/e2e/fixtures/data/
 
+# What the released chart wrote, read from the git tag by
+# tools/write-released-specifications.mjs: its bytes are the tool's.
+tests/fixtures/group-comparison-specifications-0.2.0.json
+
 # The vendored synthetic study and its source record are written by
 # tools/vendor-synthetic-study.mjs: gsm.bio's bytes, and a record of them.
 site/data/
 
-# safety.viz's bundle and gsm.bio's statistics file, each copied byte for byte
-# by its vendoring tool (tools/vendor-safety-viz.mjs, tools/vendor-statistics.mjs),
-# with its record.
+# safety.viz's bundle, its site stylesheet and page shell, and gsm.bio's
+# statistics file, each copied byte for byte by its vendoring tool
+# (tools/vendor-safety-viz.mjs, tools/vendor-site-styles.mjs,
+# tools/vendor-statistics.mjs), with its record.
 site/vendor/
 
 # safety.viz's portfolio manifest format, copied byte for byte by

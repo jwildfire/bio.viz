@@ -70,6 +70,7 @@
     "PVAL-RULE-008": "A reason that already says the result was not computed is printed as it is, with the counts after it, so that \"not computed\" is said once.",
     "PVAL-RULE-009": "A result R marked as an error is printed as R's message, said to be an error, with the counts where R knew them and no number.",
     "PVAL-RULE-010": "An adjustment R names by its `p.adjust` method is printed by its usual name, `holm` as Holm and `BH` as Benjamini-Hochberg; any other name is printed as given.",
+    "PVAL-RULE-011": "A p-value R returns a rounding above 1, as `fisher.test()` does (1.0000000000000002) for a table no other is less likely than, is read as 1 and printed `p > 0.999`, in a result, a screen's row and a level's row; a value more than 0.000000001 above 1, or any below 0, is still refused.",
     "PVAL-EST-001": "An estimate is printed with its name, what it is an estimate of, and its interval with the level R gave, each number to four significant figures; an estimate with no interval is printed without one.",
     "PVAL-EST-002": "An estimate with no name or no number (not-a-number among them), or with an interval that has a part missing, is refused, and no number is printed in its place.",
     "PVAL-EST-003": "An infinite estimate or bound R gave, as Fisher's odds ratio of a table with an empty cell, is printed in words (`infinite`, `infinity`, `minus infinity`) with the finite bound as it is; not-a-number is still refused.",
@@ -83,6 +84,8 @@
     "PVAL-PAIR-002": "A pair's result that does not name its two variables, or has no count, no estimate or half an interval, is refused, and one R could not compute shows R's words with its count and no number.",
     "PVAL-SCREEN-001": "One row of a biomarker screen is formatted by the rules a whole result is held to: its estimate with its interval at the level R gave, or none where R gave none, its unadjusted p-value with its method and counts, each group's for a difference, and its adjusted p-value with the adjustment by name and how many rows it was adjusted across; all are handed over in parts for a table.",
     "PVAL-SCREEN-002": "A row with no biomarker, no method, no counts, no estimate, half an interval, no adjustment or no number of rows adjusted across is refused, and one R could not compute shows R's words with its counts and no number.",
+    "PVAL-LEVEL-001": "One level's result from the rows of a request by level, a visit's among them, is formatted in parts for a table: its p-value as R returned it, adjusted where R adjusted, with its method, each group's count and the level's label; an adjusted one names the adjustment and how many levels it covered, beside the unadjusted one.",
+    "PVAL-LEVEL-002": "A level R could not compute shows R's words with each group's count and no number; a row with no level, fewer than two groups named, no method, no counts, no unadjusted p-value or no number of levels adjusted across is refused.",
     "PVAL-FMT-005": "The README's example prints what `formatStatistic` prints for desktop R's own Wilcoxon answer, R's method name as R wrote it."
   }
 }

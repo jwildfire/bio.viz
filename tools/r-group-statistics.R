@@ -9,23 +9,32 @@
 #
 # The rows are not worked out here. Each case in tests/fixtures/group-statistics/
 # is one panel of the gallery's demo chart, and its CSV file holds the rows the
-# chart's own code made for that panel (tools/derive-group-statistics.mjs). This
+# chart's own code made for that panel (tools/derive-group-statistics.mjs). The
+# cases named over-time- are one biomarker across its visits: one file of long
+# rows, a participant, a value, a group and a visit to a row, for the one
+# request the chart makes of Analyze_GroupDifferenceBy (bio.viz#85). This
 # script reads them, calls the function the chart calls with the arguments the
 # chart sends, and writes each answer as a stored result: the function's name,
 # its arguments, the identity of the rows, the number of rows and what R
 # returned.
 #
 # The name, the arguments and the identity are written by `group_comparison_key`
-# below from what an R user knows of a view: the settings, by the chart's own
-# names. That function is the recipe in docs/group-comparison.md, and the unit
-# tests hold what it writes to what the chart asks, so a stored result written
+# below, and for one biomarker over time by `group_comparison_by_visit_key`,
+# from what an R user knows of a view: the settings, by the chart's own names.
+# Those functions are the recipes in docs/group-comparison.md, and the unit
+# tests hold what they write to what the chart asks, so a stored result written
 # this way is found by the chart.
 #
 # The file records the R version that made it and the commit and checksum of the
 # statistics file it sourced. The numbers in it are never typed in: rerun this
 # script to change them.
 #
-# Base R and the stats package only: Analyze_GroupDifference needs nothing else.
+# Beside each answer for a row of visits the file holds what R gives for each
+# visit asked about alone, followed by stats::p.adjust() across the visits that
+# have a p-value: the unit tests hold the one answer to those.
+#
+# Base R and the stats package only: Analyze_GroupDifference and
+# Analyze_GroupDifferenceBy need nothing else.
 # The JSON is written by hand (tools/r-json.R), following the rules by which
 # bio.viz's connection turns an R value into JavaScript (docs/r-connection.md),
 # so that the file holds each value in exactly the shape R in the browser
@@ -133,6 +142,8 @@ group_comparison_key <- function(dfRows, lView) {
     })
   }
   if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  # Unscheduled visits are drawn, and the results have some.
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
   lArgs <- list(
     strValueCol = "y",
     strGroupCol = "x",
@@ -145,6 +156,59 @@ group_comparison_key <- function(dfRows, lView) {
     lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
   }
   list(name = lView$statistic, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
+}
+
+# ---- The recipe: the key of the stored result for one biomarker over time -----
+#
+# The picture of one biomarker across its visits asks R once, for the test at
+# every visit (bio.viz#85).
+#
+# dfRows   the rows of every visit tested, one per participant and visit: the
+#          id, `y`, `x` and `visit`, each the row of that visit's own panel.
+#          The visits are in visit order. When the groups are a cut variable's,
+#          `x` is the factor cut() made, its levels low to high
+# lView    the view, by the chart's names: statistic_by_visit, test,
+#          visit_adjustment, measure, value_type, visits (the visits tested, in
+#          visit order: every visit the biomarker has values at, without the
+#          baseline visit when the value is a change, a fold change or a
+#          percent change from one baseline visit), baseline_visits,
+#          baseline_stat, group_by, filters, y_scale, unscheduled_visits
+#
+# The picture takes no second grouping and no panels, so the identity has no
+# `color_by`, `panel_by` or `panel`. In place of one panel's `visit` it has
+# `visits`, the visits tested. The arguments name the column of visits, the
+# visits in order, and the adjustment across them by p.adjust()'s name for it,
+# "none" when there is none. As for one panel, a column's groups are left to R
+# and a cut's are handed over low to high.
+group_comparison_by_visit_key <- function(dfRows, lView) {
+  chrGroups <- sort(unique(chart_text(dfRows$x)), method = "radix")
+  chrVisits <- chart_text(lView$visits)
+  lDataId <- list(chart = "group-comparison", measure = chart_text(lView$measure), value_type = lView$value_type)
+  lDataId$visits <- as.list(chrVisits)
+  if (!is.null(lView$baseline_visits)) lDataId$baseline_visits <- as.list(chart_text(lView$baseline_visits))
+  lDataId$baseline_stat <- lView$baseline_stat
+  if (!is.null(lView$group_by)) lDataId$group_by <- lView$group_by
+  lDataId$groups <- as.list(chrGroups)
+  if (length(lView$filters) > 0) {
+    lDataId$filters <- lapply(lView$filters, function(xValues) {
+      as.list(sort(unique(chart_text(xValues)), method = "radix"))
+    })
+  }
+  if (identical(lView$y_scale, "log")) lDataId$positive_only <- TRUE
+  if (isTRUE(lView$unscheduled_visits)) lDataId$unscheduled_visits <- TRUE
+  lArgs <- list(
+    strValueCol = "y",
+    strGroupCol = "x",
+    strByCol = "visit",
+    strMethod = lView$test,
+    chrBy = as.list(chrVisits),
+    strPAdjust = lView$visit_adjustment
+  )
+  if (is.list(lView$group_by)) {
+    if (!is.factor(dfRows$x)) stop("the groups of a cut variable must be the factor cut() made")
+    lArgs$chrGroups <- as.list(levels(droplevels(dfRows$x)))
+  }
+  list(name = lView$statistic_by_visit, args = lArgs, dataId = lDataId, rows = nrow(dfRows))
 }
 
 # ---- Reading the cases ---------------------------------------------------------
@@ -197,6 +261,44 @@ results <- lapply(seq_len(nrow(cases)), function(i) {
     list(case = case$case, file = case$file),
     key,
     list(value = do.call(key$name, c(list(rows), key$args)))
+  )
+})
+
+# One biomarker over time: one request for the whole row of visits. Beside what
+# R answered, `separately` holds what R gives when each visit is asked alone
+# and the p-values are then adjusted by p.adjust(): what each row of the answer
+# is held to.
+read_view_by_visit <- function(case) {
+  list(
+    statistic_by_visit = case$statistic_by_visit, test = case$test,
+    visit_adjustment = case$visit_adjustment, measure = case$measure,
+    value_type = case$value_type, visits = several(case$visits),
+    baseline_visits = several(case$baseline_visits), baseline_stat = case$baseline_stat,
+    group_by = one(case$group_by), filters = read_filters(case$filters), y_scale = case$y_scale
+  )
+}
+over_time_cases <- read_text("over-time-cases.csv")
+over_time <- lapply(seq_len(nrow(over_time_cases)), function(i) {
+  case <- as.list(over_time_cases[i, ])
+  rows <- read_rows(case$file)
+  view <- read_view_by_visit(case)
+  key <- group_comparison_by_visit_key(rows, view)
+  chrGroups <- sort(unique(rows$x), method = "radix")
+  alone <- vapply(view$visits, function(visit) {
+    answer <- Analyze_GroupDifference(rows[rows$visit == visit, ], "y", "x", strMethod = view$test,
+                                      chrGroups = chrGroups, bPairwise = FALSE)
+    if (identical(answer$status, "ok")) answer$p_value else NA_real_
+  }, numeric(1), USE.NAMES = FALSE)
+  adjusted <- alone
+  adjusted[!is.na(alone)] <- stats::p.adjust(alone[!is.na(alone)], method = view$visit_adjustment)
+  c(
+    list(case = case$case, file = case$file),
+    key,
+    list(
+      value = do.call(key$name, c(list(rows), lapply(key$args, unlist))),
+      separately = list(visits = as.list(view$visits), p_unadjusted = as.list(alone),
+                        p_value = as.list(adjusted))
+    )
   )
 })
 
@@ -261,6 +363,20 @@ recipes <- local({
     # leaves a group below R's minimum size.
     cut_case("cut-median", "median", "t"),
     cut_case("cut-too-small", list(10), "t"),
+    # A view with unscheduled visits drawn (#84): the identity says so, and is
+    # otherwise the one the same rows have without them.
+    local({
+      case <- as.list(cases[cases$case == "welch", ])
+      rows <- read_rows(case$file)
+      view <- read_view(case)
+      view$unscheduled_visits <- TRUE
+      key <- group_comparison_key(rows, view)
+      c(
+        list(case = "unscheduled-visits", file = case$file),
+        key,
+        list(value = do.call(key$name, c(list(rows), key$args)))
+      )
+    }),
     # The edge of the claim: numbers of 13 significant digits, the most for
     # which R's reading of a number is exact enough to find the fewest digits;
     # and NaN, which JSON cannot hold as a value but the chart writes "NaN".
@@ -298,9 +414,12 @@ lines <- c(
   "  ],",
   "  \"recipes\": [",
   paste0("    ", vapply(recipes, to_json, character(1)), c(rep(",", length(recipes) - 1), "")),
+  "  ],",
+  "  \"over_time\": [",
+  paste0("    ", vapply(over_time, to_json, character(1)), c(rep(",", length(over_time) - 1), "")),
   "  ]",
   "}"
 )
 writeLines(lines, out)
 cat(sprintf("Wrote %s with R %s: %d results from gsm.bio's statistics at %s\n", out,
-            made_by$r_version, length(results), substr(made_by$statistics_commit, 1, 7)))
+            made_by$r_version, length(results) + length(over_time), substr(made_by$statistics_commit, 1, 7)))

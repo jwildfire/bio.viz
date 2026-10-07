@@ -77,6 +77,26 @@ export function applyStyles(id, styles) {
   document.head.append(style);
 }
 
+// A table of a chart's own says how it looks (#97). A page a chart is put in
+// may style every \`table\`, \`th\` and \`td\` by its tag, as safety.viz's site and
+// its demo app do: headings in another face, in capitals, on a tinted ground,
+// a rule round every cell, the table as wide as the page and a margin above
+// it. So a chart's table starts from this, which sets each of those to what a
+// page with no stylesheet gives it, in the chart's own face, and then states
+// what it wants. \`table\` is the table's selector, as specific as the rules
+// that follow it: write those after this, so they are the ones that hold.
+export const ownTable = (table) => `
+${table}{box-sizing:border-box;width:auto;margin:0;background:none;font-family:inherit;font-size:inherit;line-height:normal}
+${table} caption,${table} th,${table} td{box-sizing:content-box}
+${table} th,${table} td{border:0;padding:1px;background:none;color:inherit;font-family:inherit;font-size:inherit;letter-spacing:normal;text-transform:none;vertical-align:inherit}
+${table} th{font-weight:700;text-align:center}
+${table} td{text-align:inherit}`;
+
+// A heading of a chart's own, the same way: a page may set every \`h3\` in a
+// face of its own, lighter, with its own line height.
+export const ownHeading = (heading, weight = 700) =>
+  `${heading}{box-sizing:content-box;font-family:inherit;font-weight:${weight};line-height:normal}`;
+
 // The styles of the statistics line, the listing and the rail, for one chart's
 // root class: every chart prints a result the same way.
 export const lineStyles = (root) => `
@@ -86,12 +106,14 @@ ${root} .bv-statistic p{margin:0 0 .3rem}
 ${root} .bv-statistic[data-state=waiting],${root} .bv-statistic[data-state=none]{color:#52616f;font-style:italic}
 ${root} .bv-stat-remark,${root} .bv-stat-scope{font-size:.8rem;color:#52616f}
 ${root} .bv-stat-remark[data-kind=warning]{color:#8a4b00}
+${ownTable(`${root} .bv-stat-pairs`)}
 ${root} .bv-stat-pairs{border-collapse:collapse;margin:.2rem 0 .5rem;font-size:.8rem;width:100%;max-width:36rem}
 ${root} .bv-stat-pairs caption{text-align:left;padding:0 0 .25rem;caption-side:top}
 ${root} .bv-stat-pairs th,${root} .bv-stat-pairs td{text-align:left;font-weight:400;padding:.2rem .6rem .2rem 0;border-top:1px solid #d9dee3;vertical-align:top;overflow-wrap:anywhere}
 ${root} .bv-stat-pairs thead th{font-weight:600;border-top:0}
 ${root} .bv-stat-pairs td:nth-child(2){white-space:nowrap}
 ${root} .bv-stat-method{display:block;color:#52616f}
+${ownHeading(`${root} .bv-panel h3`)}
 ${root} .bv-panel-canvas{height:300px;position:relative}
 ${root} .bv-panel-note{margin:0 0 .4rem;font-size:.8rem;color:#52616f}
 ${root} .sv-listing table{table-layout:fixed}
@@ -526,6 +548,8 @@ const said = (value) =>
  * What a chart made from a specification draws other than the specification
  * asks, setting by setting and filter by filter, once the chart has its
  * tables: `{ kind, name, asked, drawn, said }`, `kind` `setting` or `filter`.
+ * A setting is said not to be in the tables, unless the chart gives another
+ * reason in its `noticeOf(setting, asked, drawn)`.
  * @param {object} chart The chart, made by `fromSpecification`.
  * @returns {object[]}
  */
@@ -541,12 +565,16 @@ export function noticesOf(chart) {
     const drawn = view[key];
     if (JSON.stringify(asked) === JSON.stringify(drawn)) continue;
     const name = SETTING_NAMES[key] || `\`${key}\``;
+    // A chart that knows another reason says it in its own words (`noticeOf`).
+    const own = typeof chart.noticeOf === 'function' ? chart.noticeOf(key, asked, drawn) : null;
     notices.push({
       kind: 'setting',
       name: key,
       asked,
       drawn,
-      said: `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
+      said:
+        own ||
+        `${name}: ${said(asked)} is not in the tables, so the chart draws ${drawn === null || drawn === undefined ? 'none' : said(drawn)}.`
     });
   }
   const id = settings.participant_id_col || settings.id_col;

@@ -4,32 +4,32 @@ What a page or a widget can rely on before it asks for a chart: where the bundle
 
 ## Loading the library
 
-The bundles are committed, so a page needs no build step and no package manager. Copy the folder `dist/bio.viz-0.2.0/` and load the script-tag bundle; it defines one global, `BioViz`:
+The bundles are committed, so a page needs no build step and no package manager. Copy the folder `dist/bio.viz-0.3.0/` and load the script-tag bundle; it defines one global, `BioViz`:
 
 ```html
-<script src="dist/bio.viz-0.2.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
 <script>
-  console.log(BioViz.version); // "0.2.0"
+  console.log(BioViz.version); // "0.3.0"
 </script>
 ```
 
 An ES module bundle with the same exports sits beside it:
 
 ```js
-import { version, core, r } from './dist/bio.viz-0.2.0/bio.viz.esm.js';
+import { version, core, r } from './dist/bio.viz-0.3.0/bio.viz.esm.js';
 ```
 
 | File                                | What it is                                                |
 | ----------------------------------- | --------------------------------------------------------- |
-| `dist/bio.viz-0.2.0/bio.viz.js`     | The script-tag bundle. Defines the global `BioViz`.       |
-| `dist/bio.viz-0.2.0/bio.viz.esm.js` | The ES module bundle. The same exports, as named exports. |
+| `dist/bio.viz-0.3.0/bio.viz.js`     | The script-tag bundle. Defines the global `BioViz`.       |
+| `dist/bio.viz-0.3.0/bio.viz.esm.js` | The ES module bundle. The same exports, as named exports. |
 | `*.map`                             | A source map for each, so a debugger shows the source.    |
 
 Nothing else is bundled into either file. safety.viz and R are loaded beside bio.viz on a page: safety.viz with its own script tag, and R the first time a statistic is asked for.
 
 ## `version`
 
-A string: the version of the library, `0.2.0`. It equals the `version` field of `package.json` and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.
+A string: the version of the library, `0.3.0`. It equals the `version` field of `package.json` and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.
 
 ## A variable
 
@@ -266,6 +266,62 @@ BioViz.core.visits(results); // ['Baseline', 'Week 2', 'Week 4', 'Week 8', 'Week
 
 `results` is the results table and `settings` the same settings `frame` takes; only the column names are read.
 
+## Unscheduled visits
+
+A results table often holds visits that were not planned: an unscheduled draw, an early termination. A chart that reads a table visit by visit leaves them out unless asked, and which visits those are is decided once, here, by safety.viz's rule under safety.viz's setting names, so one mapping means the same in both libraries:
+
+- A visit is unscheduled when `unscheduled_visit_values` names it. A list decides alone: when there is one, the pattern is not read, and an empty list means no visit is unscheduled.
+- With no list, a visit is unscheduled when its name matches `unscheduled_visit_pattern`, a regular expression written as text, either `/source/flags` or a plain source.
+- With neither, no visit is unscheduled.
+
+safety.viz's kit does not share its rule, so bio.viz carries a copy of the two functions in safety.viz's `src/unscheduled-visits.js`, and the copy's source says which safety.viz commit it was made from. A unit test reads safety.viz's own functions out of the bundle vendored at `site/vendor/safety.viz/`, runs them beside these, and holds the answers and the default pattern equal.
+
+The rule is in the core because it decides which rows a chart reads, and R code that prepares the same chart has to arrive at the same rows. A pattern is a JavaScript regular expression, and R's are not quite the same. So a caller in R that must agree with the page, as gsm.bio's widget must, works out the visits itself and names them in `unscheduled_visit_values`: a list is matched by name, and reads the same in both languages.
+
+The group comparison chart is the first to use the rule; [its reference](group-comparison.md#unscheduled-visits) says what it does with it. `frame()` and `visits()` do not apply it: they read the table they are given.
+
+## `UNSCHEDULED_DEFAULTS`
+
+The rule's three settings, with safety.viz's names and the defaults of safety.viz's results over time chart. A chart spreads them into its own settings.
+
+| Setting                     | Default                               | Meaning                                                                                                                            |
+| --------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `unscheduled_visits`        | `false`                               | Whether unscheduled visits are drawn. The switch is the chart's to read: the two functions below answer the same whatever it says. |
+| `unscheduled_visit_pattern` | `'/unscheduled\|early termination/i'` | The regular expression an unscheduled visit's name matches, as text. Null means none.                                              |
+| `unscheduled_visit_values`  | `null`                                | The unscheduled visits, by name. When given, it decides alone.                                                                     |
+
+As a value: `{ unscheduled_visits: false, unscheduled_visit_pattern: '/unscheduled|early termination/i', unscheduled_visit_values: null }`.
+
+## `isUnscheduledVisit(visit, settings)`
+
+Whether a visit is unscheduled, by the rule above. `visit` is the visit's name. `settings` holds the rule's `unscheduled_visit_pattern` and `unscheduled_visit_values`; a setting left out is not defaulted here, so with no settings at all no visit is unscheduled. A pattern that is not a regular expression throws a `SyntaxError`, as safety.viz's does; a chart checks its pattern when its settings are read.
+
+```js
+const { isUnscheduledVisit, UNSCHEDULED_DEFAULTS } = BioViz.core;
+isUnscheduledVisit('Unscheduled 1', UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit('Early Termination', UNSCHEDULED_DEFAULTS); // true
+isUnscheduledVisit('Week 4', UNSCHEDULED_DEFAULTS); // false
+isUnscheduledVisit('Unscheduled 1', { unscheduled_visit_values: ['Retest'] }); // false: the list decides
+```
+
+## `scheduledResults(results, settings)`
+
+The results a chart reads when it draws only scheduled visits, and what was set aside. `results` is the results table. `settings` names the visit column, `visit_col`, and holds the rule's `unscheduled_visit_pattern` and `unscheduled_visit_values`.
+
+It answers `{ results, visits, rows }`: the rows at scheduled visits, in the table's order; the names of the unscheduled visits found, in the order first seen; and how many rows were set aside. A row with no visit is kept. A table with no unscheduled visit comes back as it is, the same array. Nothing given is changed.
+
+```js
+const {
+  results: scheduled,
+  visits,
+  rows
+} = BioViz.core.scheduledResults(results, {
+  visit_col: 'VISIT',
+  ...BioViz.core.UNSCHEDULED_DEFAULTS
+});
+// visits: ['Unscheduled 1', 'Early Termination'], rows: 31
+```
+
 ## `DEFAULT_SETTINGS`
 
 The settings and their defaults. The names are safety.viz's, so one column mapping drives both libraries, and the defaults are the columns of the synthetic study.
@@ -365,6 +421,8 @@ Object.keys(BioViz.portfolio.modules);
 | `modules.*.tables`           | The tables `init` takes: `results`, from the labs and vitals domain (`bds`), required; and `participants`, from the subject-level domain (`subject`), optional. They are also the entry's `domains` and `optionalDomains`.                                                    |
 | `modules.*.settings`         | Each column setting of the chart, keyed as in its settings: the domain it reads, the standard column it defaults to (`null` where the chart has no default) and whether the chart cannot be made without it. `participant_id_col` reads the subject-level domain's `USUBJID`. |
 | `modules.*.unmappedSettings` | `omit`: a setting with no column mapped is left out, so the chart keeps its default, because a chart refuses `null` for the columns it needs.                                                                                                                                 |
+
+A setting names a column only of a table its entry lists. The biomarker screen's hazard-ratio rows read a third table, the outcomes, which the format cannot name ([#63](https://github.com/jwildfire/bio.viz/issues/63)): its six outcomes settings (`outcome_id_col`, `endpoint_col`, `endpoint_label_col`, `time_col`, `censor_col`, `event_col`) are listed with no column and not required, so the app passes nothing for them and lists the screen with its difference and correlation rows. A page that hands the chart an outcomes table itself gets the hazard-ratio rows, read by the chart's own defaults. Every column the list does name is a column of its domain in safety.viz's standard set, which a test holds ([#99](https://github.com/jwildfire/bio.viz/issues/99)).
 
 The participant is named once in each file. `id_col` reads it from the results and `participant_id_col` from the participant table, so when the two files call it differently the app maps each file's own name and the charts join the two on them. Left out, `participant_id_col` is `id_col`'s name, as in every chart.
 
