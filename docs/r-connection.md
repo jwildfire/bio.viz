@@ -177,7 +177,7 @@ const connection = BioViz.r.createConnection({
 
 On the first `run` that needs R, and not before, the connection calls `engine.start()`, with no argument, and waits for it. Calls made meanwhile wait for the same start. If it fails, every waiting call is answered `unavailable` with reason `load-failed` and the message `Statistics are unavailable: R on the server could not be reached (…)`, and the next call starts again.
 
-`engine.call(name, { data, args })` is given what `run` was given, without the data identity, and resolves to the R function's answer or rejects with R's message. The answer crosses a network as JSON, so it is read as a stored result is: it must be in the shape [a stored result's `value`](#stored-results) has, and `"Inf"`, `"-Inf"` and `"NaN"` where R returned a number are read back as the numbers.
+`engine.call(name, { data, args })` is given what `run` was given, without the data identity, and resolves to the R function's answer or rejects with R's message. An engine that could not reach its server at all, because a session has ended, rejects with an error whose `unreachable` is `true`: R reported nothing, so the answer is `unavailable` with reason `load-failed` and not an error, and the next call starts the engine again. The answer crosses a network as JSON, so it is read as a stored result is: it must be in the shape [a stored result's `value`](#stored-results) has, and `"Inf"`, `"-Inf"` and `"NaN"` where R returned a number are read back as the numbers.
 
 The result is `{ status: 'ok', value, form: 'server' }`, with `computedBy` when the connection was told which R answers there. A chart's own footnote then reads `computed by R 4.5.1 with gsm.bio 0.4.0 on this server`.
 

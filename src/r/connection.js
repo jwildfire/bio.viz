@@ -172,7 +172,9 @@ function misuse(name, request) {
  *   asked on the first run that needs it. Not given with `browser`.
  * @param {{start: Function, call: Function}} options.server.engine What reaches
  *   that R: `start()` resolves when it can be asked, and `call(name, { data,
- *   args })` resolves to its answer, in the shape a stored result has.
+ *   args })` resolves to its answer, in the shape a stored result has. It
+ *   rejects with R's message, or with an error whose `unreachable` is true
+ *   when the server was not reached.
  * @param {{r_version: string, gsm_bio_version?: string}} [options.server.computedBy]
  *   Which R answers there. An answer from the server carries it as `computedBy`.
  * @returns {{run: function(string, {data?: object[], args?: object, dataId?: *}): Promise<object>}}
@@ -258,6 +260,16 @@ export function createConnection(options = {}) {
         const value = await browser.engine.call(name, { data, args });
         return { status: 'ok', value, form: 'browser' };
       } catch (error) {
+        // A server that was reached once can be lost: its engine says so by
+        // rejecting with `unreachable: true`. R reported nothing, so the answer
+        // is not an error of R's, and the next run starts the engine again.
+        if (server && error && error.unreachable === true) {
+          starting = null;
+          return unavailable(
+            'load-failed',
+            `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
+          );
+        }
         return failed(messageOf(error));
       }
     } catch (error) {

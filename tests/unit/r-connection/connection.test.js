@@ -442,6 +442,40 @@ describe('connection: the server form', () => {
     ).toEqual({ status: 'error', message: 'object of type closure is not subsettable' });
   });
 
+  it('RCON-SRV-007: an engine that loses its server after reaching it rejects with unreachable true: the answer is unavailable with reason load-failed, not an error of R’s, and the next run starts the engine again (#122)', async () => {
+    let lost = true;
+    const { engine, log } = stubEngine({
+      impl: () => {
+        if (!lost) return { p_value: 0.3 };
+        throw Object.assign(new Error('the session has ended'), { unreachable: true });
+      }
+    });
+    const connection = createConnection({ server: { engine } });
+    expect(await connection.run('f', { data: rows })).toEqual({
+      status: 'unavailable',
+      reason: 'load-failed',
+      message:
+        'Statistics are unavailable: R on the server could not be reached (the session has ended).'
+    });
+    expect(log.starts).toHaveLength(1);
+    lost = false;
+    expect(await connection.run('f', { data: rows })).toEqual({
+      status: 'ok',
+      value: { p_value: 0.3 },
+      form: 'server'
+    });
+    expect(log.starts).toHaveLength(2);
+    // The browser form has no such answer: whatever its engine throws is R's.
+    const browser = stubEngine({
+      impl: () => {
+        throw Object.assign(new Error('stopped'), { unreachable: true });
+      }
+    });
+    expect(
+      await createConnection({ browser: { engine: browser.engine } }).run('f', { data: rows })
+    ).toEqual({ status: 'error', message: 'stopped' });
+  });
+
   it('RCON-SRV-006: a server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks start or call, or if a browser form is given with it (#122)', () => {
     const { engine } = stubEngine();
     expect(() => createConnection({ server: 'https://example.org/r' })).toThrow(TypeError);

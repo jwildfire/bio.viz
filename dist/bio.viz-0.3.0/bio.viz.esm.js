@@ -427,6 +427,13 @@ function createConnection(options = {}) {
         const value = await browser.engine.call(name, { data, args });
         return { status: "ok", value, form: "browser" };
       } catch (error) {
+        if (server && error && error.unreachable === true) {
+          starting = null;
+          return unavailable(
+            "load-failed",
+            `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
+          );
+        }
         return failed(messageOf(error));
       }
     } catch (error) {

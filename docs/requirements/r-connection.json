@@ -23,6 +23,7 @@
     "RCON-SRV-004": "A server's answer is read as a stored one is: `\"Inf\"`, `\"-Inf\"` and `\"NaN\"`, where R returned a number, are `Infinity`, `-Infinity` and `NaN`, and text spelled so elsewhere stays text.",
     "RCON-SRV-005": "A server that cannot be reached answers `unavailable` with reason `load-failed` and the cause, in words about the server, and the next run tries again; an error R reports there is `{ status: 'error', message }` with R's message.",
     "RCON-SRV-006": "A server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks `start` or `call`, or if a browser form is given with it.",
+    "RCON-SRV-007": "An engine that loses its server after reaching it rejects with `unreachable` true: the answer is `unavailable` with reason `load-failed`, not an error of R's, and the next run starts the engine again; the browser form has no such answer.",
     "RCON-LAZY-001": "Creating a connection starts nothing; the first run that needs R starts the engine, with the location, packages and source the connection was given.",
     "RCON-LAZY-002": "Two simultaneous first calls cause one start, and later calls reuse it.",
     "RCON-LAZY-003": "A start that fails answers `unavailable` with reason `load-failed` and the cause, for every call waiting on it, and the next run tries again.",
