@@ -13,17 +13,20 @@
 //                                             draws and prints the message
 //   { status: 'error', message }              R ran and reported an error
 //
-// Two forms sit behind it and either or both may be configured. Precomputed:
-// results shipped with the page, looked up without loading anything. Browser:
-// R started in the page the first time a result is needed that was not stored.
-// With neither, every answer is `unavailable`.
+// Three forms sit behind it. Precomputed: results shipped with the page, looked
+// up without loading anything. Browser: R started in the page the first time a
+// result is needed that was not stored. Server: R running somewhere else,
+// reached through an engine the page supplies, the first time a result is
+// needed that was not stored. Stored results may be configured with either of
+// the other two, which are not configured together. With none, every answer is
+// `unavailable`.
 //
 // A connection keeps its state to itself — its stored results and its one R
 // session — so it can be handed to any chart, in this library or another, as a
 // setting.
 
 import { isPlainObject } from './canonical.js';
-import { createStore, lookUp } from './storedResults.js';
+import { createStore, lookUp, readNonFinite } from './storedResults.js';
 import { createWebREngine, WEBR_BASE_URL } from './webREngine.js';
 
 const PACKAGE_NAME = /^[A-Za-z][A-Za-z0-9.]*$/;
@@ -79,8 +82,12 @@ function readBrowser(browser) {
 }
 
 // Which R computed the stored results: `{ r_version, gsm_bio_version,
-// computed_at }`, each text, as gsm.bio's widget writes it, or nothing.
-function readComputedBy(computedBy) {
+// computed_at }`, each text, as gsm.bio's widget writes it, or nothing. `what`
+// is how a refusal names the setting and what the record is of.
+function readComputedBy(
+  computedBy,
+  what = ['`computedBy`', 'which R computed the stored results']
+) {
   if (computedBy === undefined || computedBy === null) return null;
   const text = (value) => typeof value === 'string' && value.trim() !== '';
   if (
@@ -90,8 +97,8 @@ function readComputedBy(computedBy) {
     (computedBy.computed_at !== undefined && !text(computedBy.computed_at))
   ) {
     throw new TypeError(
-      'bio.viz: `computedBy` must be { r_version, gsm_bio_version, computed_at }, each text: ' +
-        'which R computed the stored results.'
+      `bio.viz: ${what[0]} must be { r_version, gsm_bio_version, computed_at }, each text: ` +
+        `${what[1]}.`
     );
   }
   const { r_version, gsm_bio_version, computed_at } = computedBy;
@@ -100,6 +107,23 @@ function readComputedBy(computedBy) {
     ...(gsm_bio_version === undefined ? {} : { gsm_bio_version }),
     ...(computed_at === undefined ? {} : { computed_at })
   });
+}
+
+// The server form: something that reaches an R running somewhere else, and
+// which R answers there. Nothing of webR's applies to it.
+function readServer(server) {
+  if (server === undefined || server === null) return null;
+  if (!isPlainObject(server)) {
+    throw new TypeError('bio.viz: `server` must be an object of settings.');
+  }
+  const { engine, computedBy } = server;
+  if (!engine || typeof engine.start !== 'function' || typeof engine.call !== 'function') {
+    throw new TypeError('bio.viz: `server.engine` must have `start` and `call` methods.');
+  }
+  return {
+    engine,
+    computedBy: readComputedBy(computedBy, ['`server.computedBy`', 'which R answers on the server'])
+  };
 }
 
 // Why a call cannot be made at all, or null. These are mistakes in the calling
@@ -144,6 +168,13 @@ function misuse(name, request) {
  *   the public CDN for the pinned version.
  * @param {{start: Function, call: Function}} [options.browser.engine] Something
  *   else to reach R with, in place of webR.
+ * @param {object} [options.server] The server form: R running somewhere else,
+ *   asked on the first run that needs it. Not given with `browser`.
+ * @param {{start: Function, call: Function}} options.server.engine What reaches
+ *   that R: `start()` resolves when it can be asked, and `call(name, { data,
+ *   args })` resolves to its answer, in the shape a stored result has.
+ * @param {{r_version: string, gsm_bio_version?: string}} [options.server.computedBy]
+ *   Which R answers there. An answer from the server carries it as `computedBy`.
  * @returns {{run: function(string, {data?: object[], args?: object, dataId?: *}): Promise<object>}}
  */
 export function createConnection(options = {}) {
@@ -153,6 +184,10 @@ export function createConnection(options = {}) {
   const store = createStore(options.results);
   const computedBy = readComputedBy(options.computedBy);
   const browser = readBrowser(options.browser);
+  const server = readServer(options.server);
+  if (browser && server) {
+    throw new TypeError('bio.viz: give `browser` or `server`, not both.');
+  }
 
   // The one start this connection shares between every call that needs R. A
   // start that fails is forgotten, so the next call tries again.
@@ -160,7 +195,7 @@ export function createConnection(options = {}) {
   function started() {
     if (!starting) {
       starting = Promise.resolve()
-        .then(() => browser.engine.start({ ...browser.config }))
+        .then(() => (server ? server.engine.start() : browser.engine.start({ ...browser.config })))
         .catch((error) => {
           starting = null;
           throw error;
@@ -191,7 +226,7 @@ export function createConnection(options = {}) {
         missed = found.message;
       }
 
-      if (!browser) {
+      if (!browser && !server) {
         return missed
           ? unavailable('not-precomputed', missed)
           : unavailable(
@@ -205,11 +240,21 @@ export function createConnection(options = {}) {
       } catch (error) {
         return unavailable(
           'load-failed',
-          `Statistics are unavailable: R could not be started (${messageOf(error)}).`
+          server
+            ? `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
+            : `Statistics are unavailable: R could not be started (${messageOf(error)}).`
         );
       }
 
       try {
+        if (server) {
+          // A server's answer arrives as JSON, which has no number for R's
+          // non-finite ones: it is read as a stored answer is.
+          const value = readNonFinite(await server.engine.call(name, { data, args }));
+          return server.computedBy
+            ? { status: 'ok', value, form: 'server', computedBy: { ...server.computedBy } }
+            : { status: 'ok', value, form: 'server' };
+        }
         const value = await browser.engine.call(name, { data, args });
         return { status: 'ok', value, form: 'browser' };
       } catch (error) {

@@ -7,7 +7,9 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 # bio.viz v0.3.0.9000 (Upcoming)
 
-_Nothing merged yet._
+## What's new
+
+- **A chart can ask an R that runs on a server.** The connection takes a third form beside stored results and R in the browser: the page supplies what reaches its server, and the chart's footnote reads "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". Made for the Shiny app in gsm.bio. [#122](https://github.com/jwildfire/bio.viz/issues/122)
 
 # bio.viz v0.3.0
 

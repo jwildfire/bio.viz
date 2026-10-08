@@ -298,7 +298,10 @@ describe('API reference: held to the code', () => {
       'options.browser.sourceUrl',
       'options.browser.packages',
       'options.browser.baseUrl',
-      'options.browser.engine'
+      'options.browser.engine',
+      'options.server',
+      'options.server.engine',
+      'options.server.computedBy'
     ]);
     expect(params.formatStatistic).toEqual(['statistic']);
   });
