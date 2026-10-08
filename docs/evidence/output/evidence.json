@@ -1,6 +1,6 @@
 {
   "module": "output",
-  "generatedAt": "2026-10-07T04:06:09.021Z",
+  "generatedAt": "2026-10-08T12:42:56.415Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37569793375",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37569793375"
+    "id": "37778716306",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37778716306"
   },
   "records": [
     {
@@ -1082,6 +1082,14 @@
       "status": "pass",
       "requirementIds": ["EXP-AUTO-006"],
       "issueRefs": [],
+      "screenshots": []
+    },
+    {
+      "test": "getting results out: what the #69 review found EXP-AUTO-007: an answer from a server is worded as computed on this server, with the R and gsm.bio versions the connection was told, and with neither when it was told none; an answer from R in the browser and a stored answer read as they did (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["EXP-AUTO-007"],
+      "issueRefs": [122],
       "screenshots": []
     },
     {

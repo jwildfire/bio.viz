@@ -334,3 +334,159 @@ describe('connection: the browser form starts R lazily and once', () => {
     expect(() => createConnection({ browser: { engine: {} } })).toThrow(/engine/);
   });
 });
+
+// The server form (#122): R running somewhere else, reached through an engine
+// the page supplies. An answer arrives as JSON, as a stored one does.
+describe('connection: the server form', () => {
+  const by = { r_version: '4.5.1', gsm_bio_version: '0.4.0' };
+
+  it('RCON-SRV-001: with a server form, a call is answered through its engine as form server; creating the connection starts nothing, the first run starts the engine once with nothing of webR’s, and later runs reuse it (#122)', async () => {
+    const { engine, log } = stubEngine({ impl: () => ({ method: 'Welch', p_value: 0.2 }) });
+    const connection = createConnection({ server: { engine } });
+    expect(log.starts).toHaveLength(0);
+    const request = { data: rows, args: { value: 'AVAL' }, dataId: 'any' };
+    const [first, second] = await Promise.all([
+      connection.run('welch', request),
+      connection.run('welch', request)
+    ]);
+    expect(first).toEqual({
+      status: 'ok',
+      value: { method: 'Welch', p_value: 0.2 },
+      form: 'server'
+    });
+    expect(second).toEqual(first);
+    await connection.run('welch', request);
+    expect(log.starts).toEqual([undefined]);
+    expect(log.calls).toHaveLength(3);
+    expect(log.calls[0]).toEqual(['welch', { data: rows, args: { value: 'AVAL' } }]);
+  });
+
+  it('RCON-SRV-002: a server form given computedBy, which R answers there, hands that record with every answer from the server; one that is not a record is refused when the connection is created (#122)', async () => {
+    const { engine } = stubEngine();
+    const connection = createConnection({ server: { engine, computedBy: by } });
+    const result = await connection.run('f', { data: rows });
+    expect(result).toEqual({
+      status: 'ok',
+      value: { p_value: 0.04 },
+      form: 'server',
+      computedBy: by
+    });
+    // The record handed over is a copy: changing it changes no later answer.
+    result.computedBy.r_version = '0.0.0';
+    expect((await connection.run('f', { data: rows })).computedBy).toEqual(by);
+    expect(() => createConnection({ server: { engine, computedBy: 'R 4.5.1' } })).toThrow(
+      /computedBy/
+    );
+    expect(() => createConnection({ server: { engine, computedBy: {} } })).toThrow(/computedBy/);
+  });
+
+  it('RCON-SRV-003: with stored results and a server form, a stored result answers without the server, with its own record, and a call with none goes to the server (#122)', async () => {
+    const { engine, log } = stubEngine({ impl: () => ({ p_value: 0.5 }) });
+    const connection = createConnection({
+      results: stored,
+      computedBy: { r_version: '4.3.3' },
+      server: { engine, computedBy: by }
+    });
+    const args = { value: 'AVAL', group: 'ARM' };
+    const kept = await connection.run('rank_sum', { data: rows, args, dataId: 'opening view' });
+    expect(kept.form).toBe('precomputed');
+    expect(kept.computedBy).toEqual({ r_version: '4.3.3' });
+    expect(log.starts).toHaveLength(0);
+    const asked = await connection.run('rank_sum', { data: rows, args, dataId: 'SEX = F' });
+    expect(asked).toEqual({
+      status: 'ok',
+      value: { p_value: 0.5 },
+      form: 'server',
+      computedBy: by
+    });
+    expect(log.calls).toHaveLength(1);
+  });
+
+  it('RCON-SRV-004: a server’s answer is read as a stored one is: "Inf", "-Inf" and "NaN" where R returned a number are Infinity, -Infinity and NaN, and text elsewhere spelled so is left as text (#122)', async () => {
+    const { engine } = stubEngine({
+      impl: () => ({
+        p_value: 'NaN',
+        estimates: [
+          { name: 'odds ratio', group: 'Inf', estimate: 'Inf', lower: 14.86, upper: 'Inf' }
+        ],
+        notes: ['Inf']
+      })
+    });
+    const { value } = await createConnection({ server: { engine } }).run('fisher', { data: [] });
+    expect(value.p_value).toBeNaN();
+    expect(value.estimates).toEqual([
+      { name: 'odds ratio', group: 'Inf', estimate: Infinity, lower: 14.86, upper: Infinity }
+    ]);
+    expect(value.notes).toEqual(['Inf']);
+  });
+
+  it('RCON-SRV-005: a server that cannot be reached answers unavailable with reason load-failed and the cause, in words about the server, and the next run tries again; an error R reports there is an error with R’s message (#122)', async () => {
+    const { engine, log } = stubEngine({ failStarts: 1 });
+    const connection = createConnection({ server: { engine } });
+    expect(await connection.run('f', { data: rows })).toEqual({
+      status: 'unavailable',
+      reason: 'load-failed',
+      message:
+        'Statistics are unavailable: R on the server could not be reached (the engine file could not be fetched).'
+    });
+    expect((await connection.run('f', { data: rows })).status).toBe('ok');
+    expect(log.starts).toHaveLength(2);
+
+    const failing = stubEngine({
+      impl: () => {
+        throw new Error('object of type closure is not subsettable');
+      }
+    });
+    expect(
+      await createConnection({ server: { engine: failing.engine } }).run('f', { data: rows })
+    ).toEqual({ status: 'error', message: 'object of type closure is not subsettable' });
+  });
+
+  it('RCON-SRV-007: an engine that loses its server after reaching it rejects with unreachable true: the answer is unavailable with reason load-failed, not an error of R’s, and the next run starts the engine again (#122)', async () => {
+    let lost = true;
+    const { engine, log } = stubEngine({
+      impl: () => {
+        if (!lost) return { p_value: 0.3 };
+        throw Object.assign(new Error('the session has ended'), { unreachable: true });
+      }
+    });
+    const connection = createConnection({ server: { engine } });
+    expect(await connection.run('f', { data: rows })).toEqual({
+      status: 'unavailable',
+      reason: 'load-failed',
+      message:
+        'Statistics are unavailable: R on the server could not be reached (the session has ended).'
+    });
+    expect(log.starts).toHaveLength(1);
+    lost = false;
+    expect(await connection.run('f', { data: rows })).toEqual({
+      status: 'ok',
+      value: { p_value: 0.3 },
+      form: 'server'
+    });
+    expect(log.starts).toHaveLength(2);
+    // The browser form has no such answer: whatever its engine throws is R's.
+    const browser = stubEngine({
+      impl: () => {
+        throw Object.assign(new Error('stopped'), { unreachable: true });
+      }
+    });
+    expect(
+      await createConnection({ browser: { engine: browser.engine } }).run('f', { data: rows })
+    ).toEqual({ status: 'error', message: 'stopped' });
+  });
+
+  it('RCON-SRV-006: a server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks start or call, or if a browser form is given with it (#122)', () => {
+    const { engine } = stubEngine();
+    expect(() => createConnection({ server: 'https://example.org/r' })).toThrow(TypeError);
+    expect(() => createConnection({ server: {} })).toThrow(/server\.engine/);
+    expect(() => createConnection({ server: { engine: { start() {} } } })).toThrow(
+      /server\.engine/
+    );
+    expect(() => createConnection({ server: { engine }, browser: { engine } })).toThrow(
+      /`browser` or `server`, not both/
+    );
+    // Absent or null is no server form, as for the browser form.
+    expect(() => createConnection({ server: null })).not.toThrow();
+  });
+});

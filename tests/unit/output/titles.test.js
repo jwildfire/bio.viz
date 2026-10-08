@@ -302,7 +302,7 @@ describe('getting results out: what the #69 review found', () => {
     expect(say({ status: 'ok', value: welch, form: 'browser' })).toMatch(
       /; computed by R in this browser\.$/
     );
-    expect(say({ status: 'ok', value: welch, form: 'server' })).toMatch(/; computed by R\.$/);
+    expect(say({ status: 'ok', value: welch, form: 'elsewhere' })).toMatch(/; computed by R\.$/);
     expect(say({ status: 'ok', value: welch })).toMatch(/; computed by R\.$/);
     expect(
       say({
@@ -318,6 +318,45 @@ describe('getting results out: what the #69 review found', () => {
     ).toMatch(
       /; computed by R 4\.3\.3 with gsm\.bio 0\.2\.0 on 2026-10-01, stored with the page\.$/
     );
+  });
+
+  it('EXP-AUTO-007: an answer from a server is worded as computed on this server, with the R and gsm.bio versions the connection was told, and with neither when it was told none; an answer from R in the browser and a stored answer read as they did (#122)', () => {
+    const server = (computedBy) => ({
+      status: 'ok',
+      value: welch,
+      form: 'server',
+      ...(computedBy ? { computedBy } : {})
+    });
+    expect(say(server({ r_version: '4.5.1', gsm_bio_version: '0.4.0' }))).toMatch(
+      /; computed by R 4\.5\.1 with gsm\.bio 0\.4\.0 on this server\.$/
+    );
+    expect(say(server({ r_version: '4.5.1' }))).toMatch(
+      /; computed by R 4\.5\.1 on this server\.$/
+    );
+    expect(say(server())).toMatch(/; computed by R on this server\.$/);
+    // A date is a stored result's: a server answers now.
+    expect(say(server({ r_version: '4.5.1', computed_at: '2026-10-01T09:00:00Z' }))).toMatch(
+      /; computed by R 4\.5\.1 on this server\.$/
+    );
+    // The other two forms are worded as before.
+    expect(say({ status: 'ok', value: welch, form: 'browser' })).toMatch(
+      /; computed by R in this browser\.$/
+    );
+    expect(
+      say({ status: 'ok', value: welch, form: 'precomputed', computedBy: { r_version: '4.3.3' } })
+    ).toMatch(/; computed by R 4\.3\.3, stored with the page\.$/);
+    // Through a connection: what it hands over is what the footnote words.
+    const engine = { start: async () => {}, call: async () => welch };
+    const connection = createConnection({
+      server: { engine, computedBy: { r_version: '4.5.1', gsm_bio_version: '0.4.0' } }
+    });
+    return connection
+      .run('Analyze_GroupDifference', { data: [] })
+      .then((answer) =>
+        expect(say(answer)).toMatch(
+          /; computed by R 4\.5\.1 with gsm\.bio 0\.4\.0 on this server\.$/
+        )
+      );
   });
 
   it('EXP-TXT-004: a title or subtitle of only white space is absent; a chart whose placeholders throw is still titled, and the error is reported, not swallowed; each placeholder’s value is its own run of text, so a page can isolate its direction (#69 review)', () => {
