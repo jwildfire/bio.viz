@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-07T04:06:09.021Z",
+  "generatedAt": "2026-10-08T12:42:56.415Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37569793375",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37569793375"
+    "id": "37778716306",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37778716306"
   },
   "records": [
     {
@@ -578,6 +578,62 @@
       "status": "pass",
       "requirementIds": ["RCON-PRE-006"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-001: with a server form, a call is answered through its engine as form server; creating the connection starts nothing, the first run starts the engine once with nothing of webR’s, and later runs reuse it (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-001"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-002: a server form given computedBy, which R answers there, hands that record with every answer from the server; one that is not a record is refused when the connection is created (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-002"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-003: with stored results and a server form, a stored result answers without the server, with its own record, and a call with none goes to the server (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-003"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-004: a server’s answer is read as a stored one is: \"Inf\", \"-Inf\" and \"NaN\" where R returned a number are Infinity, -Infinity and NaN, and text elsewhere spelled so is left as text (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-004"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-005: a server that cannot be reached answers unavailable with reason load-failed and the cause, in words about the server, and the next run tries again; an error R reports there is an error with R’s message (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-005"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-006: a server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks start or call, or if a browser form is given with it (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-006"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-007: an engine that loses its server after reaching it rejects with unreachable true: the answer is unavailable with reason load-failed, not an error of R’s, and the next run starts the engine again (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-007"],
+      "issueRefs": [122],
       "screenshots": []
     },
     {
