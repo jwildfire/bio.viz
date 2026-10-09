@@ -45,6 +45,19 @@ Branch rulesets run the merge. An increment pull request targets `dev`, opens no
 
 One task issue, one branch named `<task-number>-<slug>` off `dev`, one pull request whose body carries the task's definition-of-done proof.
 
+## Release notes
+
+`NEWS.md` is the release log, newest first: each release has a section, and the GitHub release is published with that section as it stands. A section is short. @jwildfire, 2026-10-06, on notes that ran to 2,088 words: "Release notes are way too wordy. … see the latests safety.viz releases notes for a decent template. The details go in the demo page."
+
+A section follows the shape and the limits of obot.agent's [release-notes skill](https://github.com/jwildfire/obot.agent/blob/main/skills/release-notes/SKILL.md):
+
+- It opens with a `**See it move:**` line that links the release's annotated demo page, then two to four sentences on what the release is.
+- Its headings are What's new, Deprecated, Removed, Also in this release, and Tests and provenance, in that order and no other; Deprecated and Removed appear only when something is.
+- A section is at most 600 words. "What's new" has at most six bullets, of at most 70 words each. Words are counted as a reader meets them: a link counts as its text, and the issue and pull-request links that close a bullet are not counted.
+- The detail goes on the release's demo page, where there is a picture beside it: how a feature works, its settings, its edge cases, and what changes in detail for a page written for the release before.
+
+When a change lands between releases, add its bullet to the `(Upcoming)` section in the same pull request, already at that length. The skill's checker, `node check-notes.mjs NEWS.md` from obot.agent's `skills/release-notes/`, prints a section's count and what is over a limit. `npm test` holds the upcoming section and the newest released one to the same limits with a count of its own (`CORE-NEWS-002` in `tests/unit/core/news.test.js`), so the suite needs neither the network nor that repository. A released section is the release as it was published and is not rewritten; the sections for v0.2.0 and v0.1.0 are older than the limits and are left as they are.
+
 ## Traceability convention
 
 Test names are keyed to requirement IDs from the matrices in [`requirements/`](requirements/README.md) and reference the GitHub issue they belong to, in qcthat's `(#N)` style:

@@ -222,11 +222,19 @@ function methodsOf(value) {
   return { methods, adjustments };
 }
 
-// Who answered, as the connection says: R started in this page, or a result
-// stored with it, with the R and gsm.bio versions and the date that computed it
-// when the page was told them; any other form, R.
+// Who answered, as the connection says: R started in this page; R on a server,
+// with the R and gsm.bio versions the page was told answer there, the white
+// space around each left out; or a result stored with the page, with those
+// versions and the date that computed it when the page was told them; any
+// other form, R.
 function sourceText(answer) {
   if (answer.form === 'browser') return 'computed by R in this browser';
+  if (answer.form === 'server') {
+    const by = answer.computedBy;
+    if (!by || !isText(by.r_version)) return 'computed by R on this server';
+    const gsmBio = isText(by.gsm_bio_version) ? ` with gsm.bio ${by.gsm_bio_version.trim()}` : '';
+    return `computed by R ${by.r_version.trim()}${gsmBio} on this server`;
+  }
   if (answer.form !== 'precomputed') return 'computed by R';
   const by = answer.computedBy;
   if (!by || !isText(by.r_version)) return 'stored with the page';

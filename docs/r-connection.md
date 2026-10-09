@@ -39,10 +39,13 @@ Returns a frozen object with one method, `run`. Creating a connection loads noth
 | `browser.packages`  | array of strings | R packages to install and attach before the source is evaluated, for example `['survival']`.                                                                                                                                                                                                                                                                                                                              |
 | `browser.baseUrl`   | string           | Where webR is served from. Default `https://webr.r-wasm.org/v0.6.0/`. A deployment that serves its own copy gives its location; relative locations resolve against the page.                                                                                                                                                                                                                                              |
 | `browser.engine`    | object           | Something else to reach R with, in place of webR: `{ start(config), call(name, { data, args }) }`. Used by the tests.                                                                                                                                                                                                                                                                                                     |
+| `server`            | object           | The server form: R running somewhere else, asked on the first run that needs it. Omit for none. Not given with `browser`. See [the server form](#the-server-form).                                                                                                                                                                                                                                                        |
+| `server.engine`     | object           | What reaches that R: `{ start(), call(name, { data, args }) }`. Needed when `server` is given.                                                                                                                                                                                                                                                                                                                            |
+| `server.computedBy` | object           | Which R answers there: `{ r_version, gsm_bio_version, computed_at }`, each text; `r_version` is needed and the other two may be left out. White space around each is trimmed. An answer from the server carries it as `computedBy`, and a chart's own footnote names the two versions; it prints no date for a server, which answers now.                                                                                 |
 
 A malformed option throws a `TypeError` when the connection is created. That is the only place this interface throws.
 
-With both forms configured, stored results are tried first and R in the browser answers whatever they do not hold. With neither, every answer is `unavailable`.
+Stored results may be configured with the browser form or with the server form: they are tried first, and R answers whatever they do not hold. The browser form and the server form are not configured together; a connection given both is refused. With no form, every answer is `unavailable`.
 
 ## `connection.run(name, { data, args, dataId })`
 
@@ -57,19 +60,20 @@ Asks R to call the function `name` with the table first and the arguments after 
 
 `run` returns a promise that always resolves, to one of three results. It never rejects.
 
-| Result                                       | When                                                                                                                                                                     |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `{ status: 'ok', value, form }`              | R answered. `value` is what the function returned. `form` is `'precomputed'` or `'browser'`. A stored result also carries `computedBy` when the connection was given it. |
-| `{ status: 'unavailable', reason, message }` | No R answered. The chart still draws; `message` is a sentence it can print. `reason` is one of the codes below.                                                          |
-| `{ status: 'error', message }`               | R ran and stopped with an error. `message` is R's own message, with nothing added.                                                                                       |
+| Result                                       | When                                                                                                                                                                                                                                           |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{ status: 'ok', value, form }`              | R answered. `value` is what the function returned. `form` is `'precomputed'`, `'browser'` or `'server'`. A stored result carries `computedBy` when the connection was given it, and so does an answer from a server given `server.computedBy`. |
+| `{ status: 'unavailable', reason, message }` | No R answered, or a server's answer could not be read. The chart still draws; `message` is a sentence it can print. `reason` is one of the codes below.                                                                                        |
+| `{ status: 'error', message }`               | R ran and stopped with an error. `message` is R's own message, with nothing added.                                                                                                                                                             |
 
 Reasons a result is unavailable:
 
-| `reason`          | Meaning                                                                                                        |
-| ----------------- | -------------------------------------------------------------------------------------------------------------- |
-| `no-r-attached`   | The connection has neither form.                                                                               |
-| `not-precomputed` | The connection has only stored results, and none matches this call exactly. The message says what was missing. |
-| `load-failed`     | R could not be started in the browser. The message carries the cause. The next run tries again.                |
+| `reason`            | Meaning                                                                                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no-r-attached`     | The connection has no form.                                                                                                                                          |
+| `not-precomputed`   | The connection has only stored results, and none matches this call exactly. The message says what was missing.                                                       |
+| `load-failed`       | R could not be started in the browser, or the server could not be reached. The message carries the cause, when the engine gave one. The next run tries again.        |
+| `answer-unreadable` | The server answered, and its answer is not data the page can copy and read. The message carries the cause. R reported no error, and the engine is not started again. |
 
 A call that cannot be made at all (no function name, `data` that is not an array, `args` that is not an object) also resolves to `{ status: 'error', message }`, with a message that begins `bio.viz:`.
 
@@ -133,7 +137,7 @@ A call is answered by a stored result only when all of these hold:
 - `dataId` is the same, compared the same way. The call must give one.
 - `rows`, if recorded, equals the number of records in `data`.
 
-Anything else is a miss, answered `unavailable` with reason `not-precomputed`, or passed to R in the browser when that form is configured. A stored result is never returned for a call it was not computed for.
+Anything else is a miss, answered `unavailable` with reason `not-precomputed`, or passed to R in the browser, or on the server, when that form is configured. A stored result is never returned for a call it was not computed for.
 
 R's numbers that JSON has no number for are written as text, as gsm.bio's widget writes them: `"Inf"`, `"-Inf"` and `"NaN"`. The connection reads the three back as `Infinity`, `-Infinity` and `NaN`, as the browser form hands them over, in the members that hold a number R may return so: `estimate`, `lower`, `upper`, `value`, `statistic`, `p_value`, `p_unadjusted`, `expected`, `median`, `hazard_ratio`, `hr_lower`, `hr_upper` and `hr_p_value`. Text spelled the same in a name, a group, a category or a note stays text. A stored page then prints Fisher's infinite odds ratio as live R's does: `infinite, 95% confidence interval 14.86 to infinity`. NA is `null`, and an estimate whose number is `null` while R gave a bound is said not to be shown, with the reason, and is never left out.
 
@@ -155,6 +159,32 @@ On the first `run` that needs R, and not before, the connection:
 Calls made while this is in progress wait for the same start; there is one R session per connection, kept for its lifetime. If the start fails, every waiting call is answered `unavailable` with reason `load-failed`, and the next call starts again.
 
 A copy of webR served from another location must be version 0.6.0. The version is pinned by the default location, not checked.
+
+## The server form
+
+For a page that has an R behind it: an application whose server runs R, such as gsm.bio's Shiny app. The page supplies the engine, because how a page reaches its server is the page's business; bio.viz holds no code for any server.
+
+```js
+const connection = BioViz.r.createConnection({
+  server: {
+    engine: {
+      start: () => whenTheServerIsReady(), // a promise
+      call: (name, { data, args }) => askTheServer(name, data, args) // a promise of the answer
+    },
+    computedBy: { r_version: '4.5.1', gsm_bio_version: '0.4.0' }
+  }
+});
+```
+
+On the first `run` that needs R, and not before, the connection calls `engine.start()`, with no argument, and waits for it. Calls made meanwhile wait for the same start, and `start()` is never called while an earlier call of it has not settled. If it fails, every waiting call is answered `unavailable` with reason `load-failed` and the message `Statistics are unavailable: R on the server could not be reached (…).`, with the engine's own message in the brackets, and the next call starts again. An engine that rejects with no message is answered with the sentence alone: `Statistics are unavailable: R on the server could not be reached.`
+
+`engine.call(name, { data, args })` is given what `run` was given, without the data identity, and resolves to the R function's answer or rejects with R's message. An engine that could not reach its server at all, because a session has ended, rejects with an error whose `unreachable` is `true`: R reported nothing, so the answer is `unavailable` with reason `load-failed` and not an error, and the next call starts the engine again. Such a rejection forgets only the start its own call waited on: one that arrives late, after a later start has begun or succeeded, leaves that start alone.
+
+The answer crosses a network as JSON, so it is read as a stored result is: it must be in the shape [a stored result's `value`](#stored-results) has, and `"Inf"`, `"-Inf"` and `"NaN"` where R returned a number are read back as the numbers. The connection reads a copy, so the object the engine resolved to is left as it was given, and may be frozen. An answer that cannot be copied or read, such as one that holds a function, is not R's error and is not printed as one: it is `unavailable` with reason `answer-unreadable` and the message `Statistics are unavailable: the answer from R on the server could not be read (…).`
+
+The result is `{ status: 'ok', value, form: 'server' }`, with `computedBy` when the connection was told which R answers there. A chart's own footnote then names the versions it was told: for the example above, `computed by R 4.5.1 with gsm.bio 0.4.0 on this server`.
+
+Which R functions a server will run, and for whom, is the server's to decide. A page can ask for any name; a server should answer only the ones it lists.
 
 ## `WEBR_VERSION` and `WEBR_BASE_URL`
 

@@ -1,6 +1,6 @@
 {
   "module": "r-connection",
-  "generatedAt": "2026-10-06T22:34:04.200Z",
+  "generatedAt": "2026-10-09T04:20:15.564Z",
   "environment": {
     "os": "linux 6.17.0-1022-azure",
     "node": "v22.23.3",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37541330383",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37541330383"
+    "id": "37883349476",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37883349476"
   },
   "records": [
     {
@@ -277,7 +277,7 @@
       "screenshots": []
     },
     {
-      "test": "RCON-RES-002: with neither form configured the page answers unavailable, and requests nothing (#2)",
+      "test": "RCON-RES-002: with no form configured the page answers unavailable, and requests nothing (#2)",
       "suite": "browser",
       "status": "pass",
       "requirementIds": ["RCON-RES-002"],
@@ -517,7 +517,7 @@
       "screenshots": []
     },
     {
-      "test": "connection: the call and its three answers RCON-RES-002: with neither form configured, run answers unavailable with a reason (#2)",
+      "test": "connection: the call and its three answers RCON-RES-002: with no form configured, run answers unavailable with a reason (#2)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["RCON-RES-002"],
@@ -565,7 +565,7 @@
       "screenshots": []
     },
     {
-      "test": "connection: the precomputed form RCON-PRE-005: with both forms, a call with no stored result goes to R in the browser (#2)",
+      "test": "connection: the precomputed form RCON-PRE-005: with stored results and the browser form, a call with no stored result goes to R in the browser (#2)",
       "suite": "unit",
       "status": "pass",
       "requirementIds": ["RCON-PRE-005"],
@@ -578,6 +578,94 @@
       "status": "pass",
       "requirementIds": ["RCON-PRE-006"],
       "issueRefs": [2],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-001: with a server form, a call is answered through its engine as form server; creating the connection starts nothing, the first run starts the engine once with nothing of webR’s, and later runs reuse it (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-001"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-002: a server form given computedBy, which R answers there, hands that record with every answer from the server; one that is not a record is refused when the connection is created (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-002"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-003: with stored results and a server form, a stored result answers without the server, with its own record, and a call with none goes to the server (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-003"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-004: a server’s answer is read as a stored one is: \"Inf\", \"-Inf\" and \"NaN\" where R returned a number are Infinity, -Infinity and NaN, and text elsewhere spelled so is left as text (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-004"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-005: a server that cannot be reached answers unavailable with reason load-failed and the cause, in words about the server, and the next run tries again; an error R reports there is an error with R’s message (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-005"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-006: a server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks start or call, or if a browser form is given with it (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-006"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-007: an engine that loses its server after reaching it rejects with unreachable true: the answer is unavailable with reason load-failed, not an error of R’s, and the next run starts the engine again (#122)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-007"],
+      "issueRefs": [122],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-008: a rejection marked unreachable forgets only the start its call waited on: with two calls in flight and one rejected, the other’s late rejection neither begins a second start beside one still running nor discards a start that succeeded since (#127)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-008"],
+      "issueRefs": [127],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-009: a server’s answer is copied before it is read, so the engine’s own object is left as it was given, frozen or not; an answer the page cannot read is unavailable with reason answer-unreadable and the cause, not an error of R’s, and the engine is not started again (#127)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-009"],
+      "issueRefs": [127],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-010: an engine that rejects with no message, from its start or from a call marked unreachable, is answered with one sentence, that R on the server could not be reached, and no cause in brackets (#127)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-010"],
+      "issueRefs": [127],
+      "screenshots": []
+    },
+    {
+      "test": "connection: the server form RCON-SRV-011: a server form’s computedBy may hold computed_at beside r_version and gsm_bio_version, each text; white space around each is trimmed in the record handed with an answer, and a member that is not text is refused in a sentence that names all three (#127)",
+      "suite": "unit",
+      "status": "pass",
+      "requirementIds": ["RCON-SRV-011"],
+      "issueRefs": [127],
       "screenshots": []
     },
     {
