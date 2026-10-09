@@ -1,0 +1,22 @@
+{
+  "styles": "safety.viz site stylesheet and page shell",
+  "repository": "https://github.com/jwildfire/safety.viz",
+  "ref": "dev",
+  "commit": "ee3e6550c9db583c34dabc2e56fdfbed72d73990",
+  "version": "1.9.1",
+  "merged_to_dev": true,
+  "files": [
+    {
+      "file": "site.css",
+      "source": "site/site.css",
+      "sha256": "99c56a1f9a982c2328dbb8b6993454450716c35f5e313481a5efe6b1fc56380a",
+      "bytes": 23572
+    },
+    {
+      "file": "shell.html",
+      "source": "site/shell.html",
+      "sha256": "c3d2b01402c381ed198e8bc0a72c76a0955977a8ddd10edd17f6435bab6ddd6e",
+      "bytes": 6880
+    }
+  ]
+}
