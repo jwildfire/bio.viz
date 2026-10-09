@@ -21,7 +21,7 @@ This release lets a chart take its statistics from an R that runs on a server, w
 
 ## Tests and provenance
 
-UNIT_N unit and BROWSER_N browser tests pass, and each of the ROWS_N requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
+510 unit and 401 browser tests pass, and each of the 773 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
 
 # bio.viz v0.3.0
 
