@@ -1584,8 +1584,8 @@ var BioViz = (() => {
   var refuse4 = (message) => {
     throw new TypeError(`bio.viz: ${message}`);
   };
-  var VERSION = true ? "0.3.0" : "unbuilt";
-  var DEVELOPMENT = true ? true : true;
+  var VERSION = true ? "0.4.0" : "unbuilt";
+  var DEVELOPMENT = true ? false : true;
   var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
   var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
   var DOWNLOAD_DEFAULTS = Object.freeze({ downloads: true, png_scale: 2 });
@@ -14122,7 +14122,7 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
   };
 
   // src/main.js
-  var version = "0.3.0";
+  var version = "0.4.0";
   return __toCommonJS(main_exports);
 })();
 //# sourceMappingURL=bio.viz.js.map
