@@ -11,7 +11,7 @@ It is built the way the [group comparison chart](group-comparison.md) is, from t
 ```html
 <div id="chart"></div>
 <script src="vendor/safety.viz/safety.viz.js"></script>
-<script src="dist/bio.viz-0.3.0/bio.viz.js"></script>
+<script src="dist/bio.viz-0.4.0/bio.viz.js"></script>
 <script>
   const chart = BioViz.associationScatter('#chart', {
     x: { measure: 'TNF-alpha', visit: 'Baseline' },

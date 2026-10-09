@@ -27,7 +27,7 @@ Under it, the two footnotes and the chart's own:
 
 > Synthetic study from gsm.bio.
 > Filters: none.
-> Drawn on 2026-10-04 by bio.viz 0.3.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
+> Drawn on 2026-10-04 by bio.viz 0.4.0. Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R in this browser.
 
 ## The settings
 
@@ -69,7 +69,7 @@ The title and the subtitle are drawn at the top of the chart's own frame, above 
 
 The last footnote is the chart's, and it says three things:
 
-1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.3.0.` A build with changes made since its release says so, `bio.viz 0.3.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true between a release and the preparation of the next, when the release log holds the package's version as released and another section is upcoming; false while a release is prepared, once its section is promoted, and in a tagged build. A unit test fails when the flag and the log disagree.
+1. The date the chart was drawn, in UTC, and the bio.viz version that drew it: `Drawn on 2026-10-04 by bio.viz 0.4.0.` A build with changes made since its release says so, `bio.viz 0.4.0 with development changes`, so the footnote never names a release for code that is not one. The package's `bioviz.development` says which it is: true between a release and the preparation of the next, when the release log holds the package's version as released and another section is upcoming; false while a release is prepared, once its section is promoted, and in a tagged build. A unit test fails when the flag and the log disagree.
 2. For every statistic printed, every method R used, the counts R used, as R returned them, and every adjustment of its p-values (`p-values adjusted by Holm`, `by Benjamini-Hochberg`); with a pairwise test, the overall test first, `Kruskal-Wallis rank sum test, with Wilcoxon rank sum test with continuity correction (…), p-values adjusted by Holm`. Its form: `Welch Two Sample t-test (Placebo n = 95, Treatment n = 91)`. One count is written `n = 200`; up to four groups each by name; more, such as a screen's biomarkers, as the least and the most with how many there are: `n = 179 to 186 across 12 biomarkers`.
 3. Which R computed them, as the connection says: `computed by R in this browser` for R started in the page; `computed by R 4.5.1 with gsm.bio 0.4.0 on this server` for R on a server, with the versions the connection was told answer there, and `computed by R on this server` when it was told none; for a result stored with the page, `computed by R 4.3.3 with gsm.bio 0.2.0 on 2026-10-01, stored with the page` when the connection was told the versions and the date (`computedBy`, below), and `stored with the page` when it was not; for any other form, `computed by R`.
 
@@ -105,7 +105,7 @@ The bar has three buttons. Each saves a file named for the chart and the view, t
 
 The chart's frame as the page draws it, from the title to the chart's own footnote: the title and subtitle, the notes, what the chart draws, the statistics line and the footnotes. What a reader works the chart with is left out: every element marked `bv-no-picture`, which the toolbar, the hint under the chart, the listing, the bar of downloads, a chart's own download buttons and the overview's pager buttons are. A chart's marks (the matrix's discs and key, the screen's zero line, intervals and dots, the bars and curves) are drawn at the size the page draws them, and text finds its own height. What scrolls sideways on the page, such as the survival chart's at-risk table on a phone, is drawn whole, and the picture is as wide as it needs to be.
 
-It is drawn at `png_scale` image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its `pHYs` chunk gives the pixels per metre. Each Chart.js canvas is drawn again at that resolution for the picture, so the plotted marks are as sharp as the text. Its text chunks (`iTXt`, UTF-8) are three, and there is nothing else in it: its `Title` (the title and subtitle), its `Description` (the footnotes, one a line, the chart's own last) and its `Software`, the software that made it and its version, as the footnote says it (`bio.viz 0.3.0`). So the file still says what it is when it is separated from the page, and it holds no date, no file path and no data.
+It is drawn at `png_scale` image pixels per CSS pixel, so at the default it is twice the width the frame has on the page, and the file says so: its `pHYs` chunk gives the pixels per metre. Each Chart.js canvas is drawn again at that resolution for the picture, so the plotted marks are as sharp as the text. Its text chunks (`iTXt`, UTF-8) are three, and there is nothing else in it: its `Title` (the title and subtitle), its `Description` (the footnotes, one a line, the chart's own last) and its `Software`, the software that made it and its version, as the footnote says it (`bio.viz 0.4.0`). So the file still says what it is when it is separated from the page, and it holds no date, no file path and no data.
 
 When the picture cannot be made, the bar says so in a line of its own, where the reader sees it: a browser will not write a canvas larger than it allows (Safari about 16.7 million pixels, which a tall screen at `png_scale` 4 can pass), will not read one it has been given a picture from elsewhere, or cannot read the drawing. Another download, or a smaller `png_scale`, can follow.
 
@@ -142,7 +142,7 @@ BioViz.fromSpecification('#chart', saved, { connection }).init({ results, partic
 {
   "format": "bio.viz specification",
   "format_version": 1,
-  "bio_viz_version": "0.3.0",
+  "bio_viz_version": "0.4.0",
   "chart": "cross-tab",
   "settings": {
     "row_by": "ARM",

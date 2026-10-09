@@ -5,11 +5,23 @@ what a user can now do; the GitHub release publishes from the section here when 
 release-candidate pull request (dev -> main) merges and is tagged.
 -->
 
-# bio.viz v0.3.0.9000 (Upcoming)
+# bio.viz v0.4.0 (Upcoming)
+
+**See it move:** the [annotated v0.4.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.4-demo/) has captures, try-it steps and the detail behind everything below.
+
+This release lets a chart take its statistics from an R that runs on a server, which is how the Shiny app in gsm.bio v0.4.0 answers every view. Nothing else in the library changed: a page written for v0.3.0 loads and draws as it did. It is released together with gsm.bio v0.4.0.
 
 ## What's new
 
-- **A chart can ask an R that runs on a server.** The connection takes a third form beside stored results and R in the browser: the page supplies what reaches its server, and the chart's footnote reads "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". Made for the Shiny app in gsm.bio. [#122](https://github.com/jwildfire/bio.viz/issues/122)
+- **A chart can ask an R that runs on a server.** The connection takes a third form beside stored results and R in the browser: the page supplies what reaches its server, and the chart's footnote reads "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". Made for the Shiny app in gsm.bio. [obot.roadmap#399](https://github.com/jwildfire/obot.roadmap/issues/399), [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
+
+## Also in this release
+
+- **When the server cannot be reached the chart says so,** in the line where the statistic would be, and still draws. [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
+
+## Tests and provenance
+
+510 unit and 401 browser tests pass, and each of the 773 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
 
 # bio.viz v0.3.0
 
