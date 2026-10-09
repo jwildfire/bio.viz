@@ -9,8 +9,9 @@
 //                                             form answered, and a stored
 //                                             result carries `computedBy` when
 //                                             the connection was told it
-//   { status: 'unavailable', reason, message } no R answered; the chart still
-//                                             draws and prints the message
+//   { status: 'unavailable', reason, message } no R answered, or its answer
+//                                             could not be read; the chart
+//                                             still draws and prints the message
 //   { status: 'error', message }              R ran and reported an error
 //
 // Three forms sit behind it. Precomputed: results shipped with the page, looked
@@ -34,13 +35,27 @@ const PACKAGE_NAME = /^[A-Za-z][A-Za-z0-9.]*$/;
 const unavailable = (reason, message) => ({ status: 'unavailable', reason, message });
 const failed = (message) => ({ status: 'error', message });
 
-// Whatever was thrown, as a sentence: an Error's message, a bare string, or a
-// plain statement that nothing was said.
-function messageOf(thrown) {
+// What was thrown said, or null when it said nothing: an Error's message, a
+// bare string, or the message of anything else that has one.
+function causeOf(thrown) {
   if (thrown instanceof Error && thrown.message) return thrown.message;
   if (typeof thrown === 'string' && thrown !== '') return thrown;
   if (thrown && typeof thrown.message === 'string' && thrown.message !== '') return thrown.message;
-  return 'R stopped without a message';
+  return null;
+}
+
+// Whatever was thrown, as a sentence: what it said, or a plain statement that
+// nothing was said.
+const messageOf = (thrown) => causeOf(thrown) ?? 'R stopped without a message';
+
+// A server that was not reached, in one sentence: the cause follows in brackets
+// only when the engine gave one.
+function notReached(thrown) {
+  const cause = causeOf(thrown);
+  return unavailable(
+    'load-failed',
+    `Statistics are unavailable: R on the server could not be reached${cause ? ` (${cause})` : ''}.`
+  );
 }
 
 function readBrowser(browser) {
@@ -83,10 +98,12 @@ function readBrowser(browser) {
 
 // Which R computed the stored results: `{ r_version, gsm_bio_version,
 // computed_at }`, each text, as gsm.bio's widget writes it, or nothing. `what`
-// is how a refusal names the setting and what the record is of.
+// is how a refusal names the setting and what the record is of. With `trimmed`
+// the white space around each member is left out of the record.
 function readComputedBy(
   computedBy,
-  what = ['`computedBy`', 'which R computed the stored results']
+  what = ['`computedBy`', 'which R computed the stored results'],
+  trimmed = false
 ) {
   if (computedBy === undefined || computedBy === null) return null;
   const text = (value) => typeof value === 'string' && value.trim() !== '';
@@ -102,15 +119,17 @@ function readComputedBy(
     );
   }
   const { r_version, gsm_bio_version, computed_at } = computedBy;
+  const said = (member) => (trimmed ? member.trim() : member);
   return Object.freeze({
-    r_version,
-    ...(gsm_bio_version === undefined ? {} : { gsm_bio_version }),
-    ...(computed_at === undefined ? {} : { computed_at })
+    r_version: said(r_version),
+    ...(gsm_bio_version === undefined ? {} : { gsm_bio_version: said(gsm_bio_version) }),
+    ...(computed_at === undefined ? {} : { computed_at: said(computed_at) })
   });
 }
 
 // The server form: something that reaches an R running somewhere else, and
-// which R answers there. Nothing of webR's applies to it.
+// which R answers there, its record trimmed of white space. Nothing of webR's
+// applies to it.
 function readServer(server) {
   if (server === undefined || server === null) return null;
   if (!isPlainObject(server)) {
@@ -122,7 +141,11 @@ function readServer(server) {
   }
   return {
     engine,
-    computedBy: readComputedBy(computedBy, ['`server.computedBy`', 'which R answers on the server'])
+    computedBy: readComputedBy(
+      computedBy,
+      ['`server.computedBy`', 'which R answers on the server'],
+      true
+    )
   };
 }
 
@@ -174,9 +197,13 @@ function misuse(name, request) {
  *   that R: `start()` resolves when it can be asked, and `call(name, { data,
  *   args })` resolves to its answer, in the shape a stored result has. It
  *   rejects with R's message, or with an error whose `unreachable` is true
- *   when the server was not reached.
- * @param {{r_version: string, gsm_bio_version?: string}} [options.server.computedBy]
- *   Which R answers there. An answer from the server carries it as `computedBy`.
+ *   when the server was not reached. The answer is copied before it is read,
+ *   so the engine's own object is left as it was given.
+ * @param {{r_version: string, gsm_bio_version?: string, computed_at?: string}} [options.server.computedBy]
+ *   Which R answers there: `r_version` always, `gsm_bio_version` and
+ *   `computed_at` when known, each text, with the white space around it
+ *   trimmed. An answer from the server carries it as `computedBy`, and a
+ *   chart's footnote names the two versions.
  * @returns {{run: function(string, {data?: object[], args?: object, dataId?: *}): Promise<object>}}
  */
 export function createConnection(options = {}) {
@@ -192,16 +219,22 @@ export function createConnection(options = {}) {
   }
 
   // The one start this connection shares between every call that needs R. A
-  // start that fails is forgotten, so the next call tries again.
+  // start that fails is forgotten, so the next call tries again. Only the
+  // start a failure belongs to is forgotten: by the time a failure arrives a
+  // later start may have taken its place, and that one is kept.
   let starting = null;
+  const forget = (start) => {
+    if (starting === start) starting = null;
+  };
   function started() {
     if (!starting) {
-      starting = Promise.resolve()
+      const start = Promise.resolve()
         .then(() => (server ? server.engine.start() : browser.engine.start({ ...browser.config })))
         .catch((error) => {
-          starting = null;
+          forget(start);
           throw error;
         });
+      starting = start;
     }
     return starting;
   }
@@ -237,41 +270,61 @@ export function createConnection(options = {}) {
             );
       }
 
+      // The start this call waits on, kept so that a failure of the call
+      // forgets that start and no other.
+      const start = started();
       try {
-        await started();
+        await start;
       } catch (error) {
-        return unavailable(
-          'load-failed',
-          server
-            ? `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
-            : `Statistics are unavailable: R could not be started (${messageOf(error)}).`
-        );
+        return server
+          ? notReached(error)
+          : unavailable(
+              'load-failed',
+              `Statistics are unavailable: R could not be started (${messageOf(error)}).`
+            );
       }
 
-      try {
-        if (server) {
-          // A server's answer arrives as JSON, which has no number for R's
-          // non-finite ones: it is read as a stored answer is.
-          const value = readNonFinite(await server.engine.call(name, { data, args }));
-          return server.computedBy
-            ? { status: 'ok', value, form: 'server', computedBy: { ...server.computedBy } }
-            : { status: 'ok', value, form: 'server' };
+      if (!server) {
+        try {
+          const value = await browser.engine.call(name, { data, args });
+          return { status: 'ok', value, form: 'browser' };
+        } catch (error) {
+          return failed(messageOf(error));
         }
-        const value = await browser.engine.call(name, { data, args });
-        return { status: 'ok', value, form: 'browser' };
+      }
+
+      let answer;
+      try {
+        answer = await server.engine.call(name, { data, args });
       } catch (error) {
         // A server that was reached once can be lost: its engine says so by
         // rejecting with `unreachable: true`. R reported nothing, so the answer
         // is not an error of R's, and the next run starts the engine again.
-        if (server && error && error.unreachable === true) {
-          starting = null;
-          return unavailable(
-            'load-failed',
-            `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
-          );
+        if (error && error.unreachable === true) {
+          forget(start);
+          return notReached(error);
         }
         return failed(messageOf(error));
       }
+
+      // A server's answer arrives as JSON, which has no number for R's
+      // non-finite ones: it is read as a stored answer is, from a copy, so the
+      // engine's own object is left as it was given. An answer that cannot be
+      // copied or read is not data; R reported no error, so none is said.
+      let value;
+      try {
+        value = readNonFinite(structuredClone(answer));
+      } catch (error) {
+        const cause = causeOf(error);
+        return unavailable(
+          'answer-unreadable',
+          'Statistics are unavailable: the answer from R on the server could not be read' +
+            `${cause ? ` (${cause})` : ''}.`
+        );
+      }
+      return server.computedBy
+        ? { status: 'ok', value, form: 'server', computedBy: { ...server.computedBy } }
+        : { status: 'ok', value, form: 'server' };
     } catch (error) {
       // Nothing above should throw; if it does, the promise still resolves.
       return failed(messageOf(error));

@@ -24,8 +24,8 @@
       "title": "Connection to R",
       "kind": "shared",
       "status": "available",
-      "card": "The one call a chart makes to get a statistic from R, answered from stored results or by R in the browser, and the shared rule for printing a p-value.",
-      "blurb": "The one call a chart makes to get a statistic from R, answered from results shipped with the page or by R started in the browser on first use, and the shared rule for printing a p-value with its method and counts.",
+      "card": "The one call a chart makes to get a statistic from R, answered from stored results, by R in the browser or by R on a server, and the shared rule for printing a p-value.",
+      "blurb": "The one call a chart makes to get a statistic from R, answered from results shipped with the page, by R started in the browser on first use or by R on a server the page reaches, and the shared rule for printing a p-value with its method and counts.",
       "matrix": "r-connection.md",
       "api": {
         "doc": "r-connection.md",
