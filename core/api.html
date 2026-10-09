@@ -18,7 +18,7 @@
     <header class="site-header">
       <a class="site-name" href="../index.html">
         bio.viz
-        <span class="site-version">v0.3.0</span>
+        <span class="site-version">v0.4.0</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
         <div class="nav-group"><a href="../gallery/index.html">Gallery</a><button type="button" class="nav-disclosure" aria-expanded="false" aria-controls="gallery-menu" aria-label="Show charts"><span class="nav-caret" aria-hidden="true"></span></button><ul id="gallery-menu" class="nav-menu"><li><a href="../group-comparison/index.html">Group comparison</a></li><li><a href="../association-scatter/index.html">Association scatter</a></li><li><a href="../correlation-matrix/index.html">Correlation matrix</a></li><li><a href="../biomarker-screen/index.html">Biomarker screen</a></li><li><a href="../cross-tab/index.html">Cross-tabulation</a></li><li><a href="../stratified-survival/index.html">Stratified survival</a></li></ul></div>
@@ -62,20 +62,20 @@
 <article class="api-body">
 <p>What a page or a widget can rely on before it asks for a chart: where the bundles are, what they define and the version they report; and the two steps every chart shares before anything is drawn, exported as <code>BioViz.core</code>: a variable named one way, and named variables resolved to one row per participant. The charts and the connection to R each have a reference of their own.</p>
 <h2 id="loading-the-library">Loading the library</h2>
-<p>The bundles are committed, so a page needs no build step and no package manager. Copy the folder <code>dist/bio.viz-0.3.0/</code> and load the script-tag bundle; it defines one global, <code>BioViz</code>:</p>
-<pre><code class="language-html">&lt;script src=&quot;dist/bio.viz-0.3.0/bio.viz.js&quot;&gt;&lt;/script&gt;
+<p>The bundles are committed, so a page needs no build step and no package manager. Copy the folder <code>dist/bio.viz-0.4.0/</code> and load the script-tag bundle; it defines one global, <code>BioViz</code>:</p>
+<pre><code class="language-html">&lt;script src=&quot;dist/bio.viz-0.4.0/bio.viz.js&quot;&gt;&lt;/script&gt;
 &lt;script&gt;
-  console.log(BioViz.version); // &quot;0.3.0&quot;
+  console.log(BioViz.version); // &quot;0.4.0&quot;
 &lt;/script&gt;</code></pre>
 <p>An ES module bundle with the same exports sits beside it:</p>
-<pre><code class="language-js">import { version, core, r } from &#39;./dist/bio.viz-0.3.0/bio.viz.esm.js&#39;;</code></pre>
+<pre><code class="language-js">import { version, core, r } from &#39;./dist/bio.viz-0.4.0/bio.viz.esm.js&#39;;</code></pre>
 <table class="api doc-table"><thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead>
-<tbody><tr><td data-label="File"><code>dist/bio.viz-0.3.0/bio.viz.js</code></td><td data-label="What it is">The script-tag bundle. Defines the global <code>BioViz</code>.</td></tr>
-<tr><td data-label="File"><code>dist/bio.viz-0.3.0/bio.viz.esm.js</code></td><td data-label="What it is">The ES module bundle. The same exports, as named exports.</td></tr>
+<tbody><tr><td data-label="File"><code>dist/bio.viz-0.4.0/bio.viz.js</code></td><td data-label="What it is">The script-tag bundle. Defines the global <code>BioViz</code>.</td></tr>
+<tr><td data-label="File"><code>dist/bio.viz-0.4.0/bio.viz.esm.js</code></td><td data-label="What it is">The ES module bundle. The same exports, as named exports.</td></tr>
 <tr><td data-label="File"><code>*.map</code></td><td data-label="What it is">A source map for each, so a debugger shows the source.</td></tr></tbody></table>
 <p>Nothing else is bundled into either file. safety.viz and R are loaded beside bio.viz on a page: safety.viz with its own script tag, and R the first time a statistic is asked for.</p>
 <h2 id="version"><code>version</code></h2>
-<p>A string: the version of the library, <code>0.3.0</code>. It equals the <code>version</code> field of <code>package.json</code> and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.</p>
+<p>A string: the version of the library, <code>0.4.0</code>. It equals the <code>version</code> field of <code>package.json</code> and is fixed when the bundle is built, so it says which build a page loaded. The folder the bundle sits in carries the same number.</p>
 <h2 id="a-variable">A variable</h2>
 <p>A variable is what goes on an axis, makes a group, a colour or a panel. It is written one way wherever a chart takes one, and it is one of two things:</p>
 <pre><code class="language-js">// a biomarker at a visit, with a value type
@@ -322,9 +322,9 @@ Object.keys(BioViz.portfolio.modules);
 </main>
     <footer class="site-footer">
       <p>
-        bio.viz v0.3.0 — biomarker charts on the
+        bio.viz v0.4.0 — biomarker charts on the
         <a href="https://jwildfire.github.io/safety.viz/">safety.viz</a> stack, with every
-        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/4a85d613dc7fbea1a604b34d1e057d61865747c0"><code>4a85d61</code></a>.
+        statistical test computed by R. Built from commit <a href="https://github.com/jwildfire/bio.viz/commit/0f707891c4370d8ff151bc674ea35b3c6ecd3dbc"><code>0f70789</code></a>.
       </p>
       <p>
         Built in the open — follow the

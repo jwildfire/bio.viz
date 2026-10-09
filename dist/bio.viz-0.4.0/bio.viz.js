@@ -312,11 +312,19 @@ var BioViz = (() => {
   var PACKAGE_NAME = /^[A-Za-z][A-Za-z0-9.]*$/;
   var unavailable = (reason, message) => ({ status: "unavailable", reason, message });
   var failed = (message) => ({ status: "error", message });
-  function messageOf(thrown) {
+  function causeOf(thrown) {
     if (thrown instanceof Error && thrown.message) return thrown.message;
     if (typeof thrown === "string" && thrown !== "") return thrown;
     if (thrown && typeof thrown.message === "string" && thrown.message !== "") return thrown.message;
-    return "R stopped without a message";
+    return null;
+  }
+  var messageOf = (thrown) => causeOf(thrown) ?? "R stopped without a message";
+  function notReached(thrown) {
+    const cause = causeOf(thrown);
+    return unavailable(
+      "load-failed",
+      `Statistics are unavailable: R on the server could not be reached${cause ? ` (${cause})` : ""}.`
+    );
   }
   function readBrowser(browser) {
     if (browser === void 0 || browser === null) return null;
@@ -352,20 +360,39 @@ var BioViz = (() => {
       config: { baseUrl, packages: [...packages], source, sourceUrl }
     };
   }
-  function readComputedBy(computedBy) {
+  function readComputedBy(computedBy, what = ["`computedBy`", "which R computed the stored results"], trimmed = false) {
     if (computedBy === void 0 || computedBy === null) return null;
     const text2 = (value) => typeof value === "string" && value.trim() !== "";
     if (!isPlainObject(computedBy) || !text2(computedBy.r_version) || computedBy.gsm_bio_version !== void 0 && !text2(computedBy.gsm_bio_version) || computedBy.computed_at !== void 0 && !text2(computedBy.computed_at)) {
       throw new TypeError(
-        "bio.viz: `computedBy` must be { r_version, gsm_bio_version, computed_at }, each text: which R computed the stored results."
+        `bio.viz: ${what[0]} must be { r_version, gsm_bio_version, computed_at }, each text: ${what[1]}.`
       );
     }
     const { r_version, gsm_bio_version, computed_at } = computedBy;
+    const said2 = (member) => trimmed ? member.trim() : member;
     return Object.freeze({
-      r_version,
-      ...gsm_bio_version === void 0 ? {} : { gsm_bio_version },
-      ...computed_at === void 0 ? {} : { computed_at }
+      r_version: said2(r_version),
+      ...gsm_bio_version === void 0 ? {} : { gsm_bio_version: said2(gsm_bio_version) },
+      ...computed_at === void 0 ? {} : { computed_at: said2(computed_at) }
     });
+  }
+  function readServer(server) {
+    if (server === void 0 || server === null) return null;
+    if (!isPlainObject(server)) {
+      throw new TypeError("bio.viz: `server` must be an object of settings.");
+    }
+    const { engine, computedBy } = server;
+    if (!engine || typeof engine.start !== "function" || typeof engine.call !== "function") {
+      throw new TypeError("bio.viz: `server.engine` must have `start` and `call` methods.");
+    }
+    return {
+      engine,
+      computedBy: readComputedBy(
+        computedBy,
+        ["`server.computedBy`", "which R answers on the server"],
+        true
+      )
+    };
   }
   function misuse(name, request) {
     if (typeof name !== "string" || name.trim() === "") {
@@ -389,13 +416,21 @@ var BioViz = (() => {
     const store = createStore(options.results);
     const computedBy = readComputedBy(options.computedBy);
     const browser = readBrowser(options.browser);
+    const server = readServer(options.server);
+    if (browser && server) {
+      throw new TypeError("bio.viz: give `browser` or `server`, not both.");
+    }
     let starting = null;
+    const forget = (start) => {
+      if (starting === start) starting = null;
+    };
     function started() {
       if (!starting) {
-        starting = Promise.resolve().then(() => browser.engine.start({ ...browser.config })).catch((error) => {
-          starting = null;
+        const start = Promise.resolve().then(() => server ? server.engine.start() : browser.engine.start({ ...browser.config })).catch((error) => {
+          forget(start);
           throw error;
         });
+        starting = start;
       }
       return starting;
     }
@@ -417,26 +452,50 @@ var BioViz = (() => {
           }
           missed = found.message;
         }
-        if (!browser) {
+        if (!browser && !server) {
           return missed ? unavailable("not-precomputed", missed) : unavailable(
             "no-r-attached",
             "Statistics are unavailable: no R is attached to this chart."
           );
         }
+        const start = started();
         try {
-          await started();
+          await start;
         } catch (error) {
-          return unavailable(
+          return server ? notReached(error) : unavailable(
             "load-failed",
             `Statistics are unavailable: R could not be started (${messageOf(error)}).`
           );
         }
+        if (!server) {
+          try {
+            const value2 = await browser.engine.call(name, { data, args });
+            return { status: "ok", value: value2, form: "browser" };
+          } catch (error) {
+            return failed(messageOf(error));
+          }
+        }
+        let answer;
         try {
-          const value = await browser.engine.call(name, { data, args });
-          return { status: "ok", value, form: "browser" };
+          answer = await server.engine.call(name, { data, args });
         } catch (error) {
+          if (error && error.unreachable === true) {
+            forget(start);
+            return notReached(error);
+          }
           return failed(messageOf(error));
         }
+        let value;
+        try {
+          value = readNonFinite(structuredClone(answer));
+        } catch (error) {
+          const cause = causeOf(error);
+          return unavailable(
+            "answer-unreadable",
+            `Statistics are unavailable: the answer from R on the server could not be read${cause ? ` (${cause})` : ""}.`
+          );
+        }
+        return server.computedBy ? { status: "ok", value, form: "server", computedBy: { ...server.computedBy } } : { status: "ok", value, form: "server" };
       } catch (error) {
         return failed(messageOf(error));
       }
@@ -1555,7 +1614,7 @@ var BioViz = (() => {
   var refuse4 = (message) => {
     throw new TypeError(`bio.viz: ${message}`);
   };
-  var VERSION = true ? "0.3.0" : "unbuilt";
+  var VERSION = true ? "0.4.0" : "unbuilt";
   var DEVELOPMENT = true ? false : true;
   var VERSION_SAID = DEVELOPMENT ? `${VERSION} with development changes` : VERSION;
   var TITLE_DEFAULTS = Object.freeze({ title: null, subtitle: null, footnotes: null });
@@ -1666,6 +1725,12 @@ var BioViz = (() => {
   }
   function sourceText(answer) {
     if (answer.form === "browser") return "computed by R in this browser";
+    if (answer.form === "server") {
+      const by2 = answer.computedBy;
+      if (!by2 || !isText3(by2.r_version)) return "computed by R on this server";
+      const gsmBio2 = isText3(by2.gsm_bio_version) ? ` with gsm.bio ${by2.gsm_bio_version.trim()}` : "";
+      return `computed by R ${by2.r_version.trim()}${gsmBio2} on this server`;
+    }
     if (answer.form !== "precomputed") return "computed by R";
     const by = answer.computedBy;
     if (!by || !isText3(by.r_version)) return "stored with the page";
@@ -14087,7 +14152,7 @@ ${C4} .bv-control-note{display:block;margin:.2rem 0 0;font-size:.75rem;color:#52
   };
 
   // src/main.js
-  var version = "0.3.0";
+  var version = "0.4.0";
   return __toCommonJS(main_exports);
 })();
 //# sourceMappingURL=bio.viz.js.map
