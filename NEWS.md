@@ -18,7 +18,7 @@ This release lets a chart take its statistics from an R that runs on a server, w
 ## Also in this release
 
 - **When the server cannot be reached the chart says so,** in the line where the statistic would be, and still draws. [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
-- **An answer from the server that the page cannot read is no longer called an error of R's,** and a server lost while several statistics were waiting is reached again once, not once for each. [#127](https://github.com/jwildfire/bio.viz/issues/127), PR [#PR_NUMBER](https://github.com/jwildfire/bio.viz/pull/PR_NUMBER)
+- **An answer from the server that the page cannot read is said to be unreadable,** and is not called an error of R's. A server lost while several statistics were waiting is reached again once, not once for each. [#127](https://github.com/jwildfire/bio.viz/issues/127), PR [#130](https://github.com/jwildfire/bio.viz/pull/130)
 
 ## Tests and provenance
 
