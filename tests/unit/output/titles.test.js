@@ -359,6 +359,18 @@ describe('getting results out: what the #69 review found', () => {
       );
   });
 
+  it('EXP-AUTO-008: white space around the versions a server’s answer names is not printed: the footnote reads one space between its words, for a record as an answer carries it and for one given to a connection (#127)', async () => {
+    const spaced = { r_version: '  4.5.1  ', gsm_bio_version: '\t0.4.0 \n' };
+    const worded = `${drawn} Statistics: Welch Two Sample t-test (Placebo n = 95, Treatment n = 91); computed by R 4.5.1 with gsm.bio 0.4.0 on this server.`;
+    expect(say({ status: 'ok', value: welch, form: 'server', computedBy: spaced })).toBe(worded);
+    expect(
+      say({ status: 'ok', value: welch, form: 'server', computedBy: { r_version: ' 4.5.1 ' } })
+    ).toMatch(/; computed by R 4\.5\.1 on this server\.$/);
+    const engine = { start: async () => {}, call: async () => welch };
+    const connection = createConnection({ server: { engine, computedBy: spaced } });
+    expect(say(await connection.run('Analyze_GroupDifference', { data: [] }))).toBe(worded);
+  });
+
   it('EXP-TXT-004: a title or subtitle of only white space is absent; a chart whose placeholders throw is still titled, and the error is reported, not swallowed; each placeholder’s value is its own run of text, so a page can isolate its direction (#69 review)', () => {
     const chart = (settings, placeholders) => ({
       settings: { title: null, subtitle: null, footnotes: null, ...settings },

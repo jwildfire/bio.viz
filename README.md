@@ -37,7 +37,7 @@ import { version, core, r } from './dist/bio.viz-0.4.0/bio.viz.esm.js';
 
 ## Asking R for a statistic
 
-A chart reaches R through a connection. The same call is answered from results shipped with the page, or by R started in the browser the first time a result is needed; with neither, it says that statistics are unavailable.
+A chart reaches R through a connection. The same call is answered in one of three ways: from results shipped with the page, by R started in the browser the first time a result is needed, or by R running on a server, reached through an engine the page supplies. With none of them, it says that statistics are unavailable.
 
 ```js
 const connection = BioViz.r.createConnection({
@@ -55,7 +55,7 @@ if (result.status === 'ok') {
 }
 ```
 
-R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched from its public CDN on first use and never bundled. The full interface, including the format of stored results, is in [docs/r-connection.md](docs/r-connection.md), which the site publishes as the connection's [API reference](https://jwildfire.github.io/bio.viz/dev/r-connection/api.html).
+R in the browser is [webR](https://docs.r-wasm.org/webr/latest/) 0.6.0, fetched from its public CDN on first use and never bundled. The full interface, including the format of stored results and what a page supplies to reach a server, is in [docs/r-connection.md](docs/r-connection.md), which the site publishes as the connection's [API reference](https://jwildfire.github.io/bio.viz/dev/r-connection/api.html).
 
 ## The group comparison chart
 

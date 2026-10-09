@@ -13,15 +13,16 @@ This release lets a chart take its statistics from an R that runs on a server, w
 
 ## What's new
 
-- **A chart can ask an R that runs on a server.** The connection takes a third form beside stored results and R in the browser: the page supplies what reaches its server, and the chart's footnote reads "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". Made for the Shiny app in gsm.bio. [obot.roadmap#399](https://github.com/jwildfire/obot.roadmap/issues/399), [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
+- **A chart can take its statistics from R running on a server.** A page with an R behind it, such as the Shiny app in gsm.bio, can have that R answer every chart, with no results stored ahead and no R started in the browser. The chart's footnote names the R that answered: for example, "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". [obot.roadmap#399](https://github.com/jwildfire/obot.roadmap/issues/399), [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
 
 ## Also in this release
 
 - **When the server cannot be reached the chart says so,** in the line where the statistic would be, and still draws. [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
+- **An answer from the server that the page cannot read is no longer called an error of R's,** and a server lost while several statistics were waiting is reached again once, not once for each. [#127](https://github.com/jwildfire/bio.viz/issues/127), PR [#PR_NUMBER](https://github.com/jwildfire/bio.viz/pull/PR_NUMBER)
 
 ## Tests and provenance
 
-510 unit and 401 browser tests pass, and each of the 773 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
+515 unit and 401 browser tests pass, and each of the 778 requirement rows has a test named for it. R's answers in the browser are held to desktop R's within 1 part in 10^8. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
 
 # bio.viz v0.3.0
 

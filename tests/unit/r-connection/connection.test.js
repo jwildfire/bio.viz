@@ -33,6 +33,31 @@ function stubEngine({ failStarts = 0, impl = () => ({ p_value: 0.04 }) } = {}) {
   return { engine, log };
 }
 
+// An engine whose starts and calls settle only when a test says so, in the
+// order they were made, and which counts how many starts ran at once.
+function heldEngine() {
+  const starts = [];
+  const calls = [];
+  let running = 0;
+  let most = 0;
+  const hold = (list, entry = {}) =>
+    new Promise((resolve, reject) => list.push({ ...entry, resolve, reject }));
+  const engine = {
+    start() {
+      running += 1;
+      most = Math.max(most, running);
+      return hold(starts).finally(() => {
+        running -= 1;
+      });
+    },
+    call: (name) => hold(calls, { name })
+  };
+  return { engine, starts, calls, mostAtOnce: () => most };
+}
+
+// Long enough for every promise already settled to be acted on.
+const turn = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 const stored = [
   {
     name: 'rank_sum',
@@ -61,7 +86,7 @@ describe('connection: the call and its three answers', () => {
     });
   });
 
-  it('RCON-RES-002: with neither form configured, run answers unavailable with a reason (#2)', async () => {
+  it('RCON-RES-002: with no form configured, run answers unavailable with a reason (#2)', async () => {
     const result = await createConnection().run('rank_sum', { data: rows, args: {} });
     expect(result).toEqual({
       status: 'unavailable',
@@ -194,7 +219,7 @@ describe('connection: the precomputed form', () => {
     ).toThrow(/same/);
   });
 
-  it('RCON-PRE-005: with both forms, a call with no stored result goes to R in the browser (#2)', async () => {
+  it('RCON-PRE-005: with stored results and the browser form, a call with no stored result goes to R in the browser (#2)', async () => {
     const { engine, log } = stubEngine({ impl: () => ({ p_value: 0.5 }) });
     const connection = createConnection({ results: stored, browser: { engine } });
     const result = await connection.run('rank_sum', {
@@ -474,6 +499,163 @@ describe('connection: the server form', () => {
     expect(
       await createConnection({ browser: { engine: browser.engine } }).run('f', { data: rows })
     ).toEqual({ status: 'error', message: 'stopped' });
+  });
+
+  it('RCON-SRV-008: a rejection marked unreachable forgets only the start its call waited on: with two calls in flight and one rejected, the other’s late rejection neither begins a second start beside one still running nor discards a start that succeeded since (#127)', async () => {
+    const lost = () => Object.assign(new Error('the session has ended'), { unreachable: true });
+    const ask = (connection, name) => connection.run(name, { data: rows });
+
+    // A start still running when the late rejection arrives.
+    const held = heldEngine();
+    const connection = createConnection({ server: { engine: held.engine } });
+    const first = ask(connection, 'first');
+    const second = ask(connection, 'second');
+    await turn();
+    expect(held.starts).toHaveLength(1);
+    held.starts[0].resolve();
+    await turn();
+    expect(held.calls.map((call) => call.name)).toEqual(['first', 'second']);
+    // The first call loses its server, and a new run begins the second start.
+    held.calls[0].reject(lost());
+    expect((await first).reason).toBe('load-failed');
+    const third = ask(connection, 'third');
+    await turn();
+    expect(held.starts).toHaveLength(2);
+    // The second call's rejection arrives late: it waited on the first start.
+    held.calls[1].reject(lost());
+    expect((await second).reason).toBe('load-failed');
+    const fourth = ask(connection, 'fourth');
+    await turn();
+    expect(held.starts).toHaveLength(2);
+    expect(held.mostAtOnce()).toBe(1);
+    held.starts[1].resolve();
+    await turn();
+    expect(held.calls.map((call) => call.name)).toEqual(['first', 'second', 'third', 'fourth']);
+    held.calls[2].resolve({ p_value: 0.3 });
+    held.calls[3].resolve({ p_value: 0.3 });
+    expect((await third).status).toBe('ok');
+    expect((await fourth).status).toBe('ok');
+
+    // A start that has succeeded by the time the late rejection arrives.
+    const again = heldEngine();
+    const other = createConnection({ server: { engine: again.engine } });
+    const one = ask(other, 'one');
+    const two = ask(other, 'two');
+    await turn();
+    again.starts[0].resolve();
+    await turn();
+    again.calls[0].reject(lost());
+    await one;
+    const three = ask(other, 'three');
+    await turn();
+    again.starts[1].resolve();
+    await turn();
+    again.calls[2].resolve({ p_value: 0.3 });
+    expect((await three).status).toBe('ok');
+    again.calls[1].reject(lost());
+    expect((await two).status).toBe('unavailable');
+    const four = ask(other, 'four');
+    await turn();
+    // No third start: the call is made on the start that succeeded.
+    expect(again.starts).toHaveLength(2);
+    expect(again.calls.map((call) => call.name)).toEqual(['one', 'two', 'three', 'four']);
+    again.calls[3].resolve({ p_value: 0.3 });
+    expect((await four).status).toBe('ok');
+    expect(again.mostAtOnce()).toBe(1);
+  });
+
+  it('RCON-SRV-009: a server’s answer is copied before it is read, so the engine’s own object is left as it was given, frozen or not; an answer the page cannot read is unavailable with reason answer-unreadable and the cause, not an error of R’s, and the engine is not started again (#127)', async () => {
+    const freeze = (value) => {
+      if (value && typeof value === 'object') Object.values(value).forEach(freeze);
+      return Object.freeze(value);
+    };
+    const given = () => ({
+      p_value: 'NaN',
+      estimates: [{ name: 'odds ratio', estimate: 'Inf', lower: 14.86, upper: 'Inf' }]
+    });
+    const read = {
+      p_value: NaN,
+      estimates: [{ name: 'odds ratio', estimate: Infinity, lower: 14.86, upper: Infinity }]
+    };
+    for (const answer of [freeze(given()), given()]) {
+      const { engine } = stubEngine({ impl: () => answer });
+      const result = await createConnection({ server: { engine } }).run('fisher', { data: [] });
+      expect(result).toEqual({ status: 'ok', value: read, form: 'server' });
+      // The engine's object still holds what it was given.
+      expect(answer).toEqual(given());
+      expect(result.value).not.toBe(answer);
+      expect(result.value.estimates[0]).not.toBe(answer.estimates[0]);
+    }
+
+    // An answer that is not data cannot be copied, so it cannot be read. R
+    // reported no error, and the server was reached.
+    const odd = stubEngine({ impl: () => ({ p_value: 0.2, method: () => 'Welch' }) });
+    const connection = createConnection({ server: { engine: odd.engine } });
+    const result = await connection.run('welch', { data: rows });
+    expect(result.status).toBe('unavailable');
+    expect(result.reason).toBe('answer-unreadable');
+    expect(result.message).toMatch(
+      /^Statistics are unavailable: the answer from R on the server could not be read \(.+\)\.$/
+    );
+    expect(result.message).not.toMatch(/R stopped|could not be reached/);
+    await connection.run('welch', { data: rows });
+    expect(odd.log.starts).toHaveLength(1);
+    expect(odd.log.calls).toHaveLength(2);
+  });
+
+  it('RCON-SRV-010: an engine that rejects with no message, from its start or from a call marked unreachable, is answered with one sentence, that R on the server could not be reached, and no cause in brackets (#127)', async () => {
+    const sentence = 'Statistics are unavailable: R on the server could not be reached.';
+    for (const thrown of [undefined, new Error(''), '', { odd: true }]) {
+      const engine = {
+        start: async () => {
+          throw thrown;
+        },
+        call: async () => ({})
+      };
+      expect(await createConnection({ server: { engine } }).run('f', { data: rows })).toEqual({
+        status: 'unavailable',
+        reason: 'load-failed',
+        message: sentence
+      });
+    }
+    const { engine } = stubEngine({
+      impl: () => {
+        throw Object.assign(new Error(''), { unreachable: true });
+      }
+    });
+    expect((await createConnection({ server: { engine } }).run('f', { data: rows })).message).toBe(
+      sentence
+    );
+  });
+
+  it('RCON-SRV-011: a server form’s computedBy may hold computed_at beside r_version and gsm_bio_version, each text; white space around each is trimmed in the record handed with an answer, and a member that is not text is refused in a sentence that names all three (#127)', async () => {
+    const { engine } = stubEngine();
+    const connection = createConnection({
+      server: {
+        engine,
+        computedBy: {
+          r_version: '  4.5.1 ',
+          gsm_bio_version: ' 0.4.0\n',
+          computed_at: '\t2026-10-09T08:00:00Z '
+        }
+      }
+    });
+    expect((await connection.run('f', { data: rows })).computedBy).toEqual({
+      r_version: '4.5.1',
+      gsm_bio_version: '0.4.0',
+      computed_at: '2026-10-09T08:00:00Z'
+    });
+    const one = createConnection({ server: { engine, computedBy: { r_version: ' 4.5.1' } } });
+    expect((await one.run('f', { data: rows })).computedBy).toEqual({ r_version: '4.5.1' });
+    for (const computedBy of [
+      { r_version: '4.5.1', computed_at: 20261009 },
+      { r_version: '4.5.1', gsm_bio_version: '  ' },
+      { gsm_bio_version: '0.4.0' }
+    ]) {
+      expect(() => createConnection({ server: { engine, computedBy } })).toThrow(
+        'bio.viz: `server.computedBy` must be { r_version, gsm_bio_version, computed_at }, each text'
+      );
+    }
   });
 
   it('RCON-SRV-006: a server form is refused when the connection is created if it is not an object of settings, if its engine is missing or lacks start or call, or if a browser form is given with it (#122)', () => {

@@ -312,11 +312,19 @@ var BioViz = (() => {
   var PACKAGE_NAME = /^[A-Za-z][A-Za-z0-9.]*$/;
   var unavailable = (reason, message) => ({ status: "unavailable", reason, message });
   var failed = (message) => ({ status: "error", message });
-  function messageOf(thrown) {
+  function causeOf(thrown) {
     if (thrown instanceof Error && thrown.message) return thrown.message;
     if (typeof thrown === "string" && thrown !== "") return thrown;
     if (thrown && typeof thrown.message === "string" && thrown.message !== "") return thrown.message;
-    return "R stopped without a message";
+    return null;
+  }
+  var messageOf = (thrown) => causeOf(thrown) ?? "R stopped without a message";
+  function notReached(thrown) {
+    const cause = causeOf(thrown);
+    return unavailable(
+      "load-failed",
+      `Statistics are unavailable: R on the server could not be reached${cause ? ` (${cause})` : ""}.`
+    );
   }
   function readBrowser(browser) {
     if (browser === void 0 || browser === null) return null;
@@ -352,7 +360,7 @@ var BioViz = (() => {
       config: { baseUrl, packages: [...packages], source, sourceUrl }
     };
   }
-  function readComputedBy(computedBy, what = ["`computedBy`", "which R computed the stored results"]) {
+  function readComputedBy(computedBy, what = ["`computedBy`", "which R computed the stored results"], trimmed = false) {
     if (computedBy === void 0 || computedBy === null) return null;
     const text2 = (value) => typeof value === "string" && value.trim() !== "";
     if (!isPlainObject(computedBy) || !text2(computedBy.r_version) || computedBy.gsm_bio_version !== void 0 && !text2(computedBy.gsm_bio_version) || computedBy.computed_at !== void 0 && !text2(computedBy.computed_at)) {
@@ -361,10 +369,11 @@ var BioViz = (() => {
       );
     }
     const { r_version, gsm_bio_version, computed_at } = computedBy;
+    const said2 = (member) => trimmed ? member.trim() : member;
     return Object.freeze({
-      r_version,
-      ...gsm_bio_version === void 0 ? {} : { gsm_bio_version },
-      ...computed_at === void 0 ? {} : { computed_at }
+      r_version: said2(r_version),
+      ...gsm_bio_version === void 0 ? {} : { gsm_bio_version: said2(gsm_bio_version) },
+      ...computed_at === void 0 ? {} : { computed_at: said2(computed_at) }
     });
   }
   function readServer(server) {
@@ -378,7 +387,11 @@ var BioViz = (() => {
     }
     return {
       engine,
-      computedBy: readComputedBy(computedBy, ["`server.computedBy`", "which R answers on the server"])
+      computedBy: readComputedBy(
+        computedBy,
+        ["`server.computedBy`", "which R answers on the server"],
+        true
+      )
     };
   }
   function misuse(name, request) {
@@ -408,12 +421,16 @@ var BioViz = (() => {
       throw new TypeError("bio.viz: give `browser` or `server`, not both.");
     }
     let starting = null;
+    const forget = (start) => {
+      if (starting === start) starting = null;
+    };
     function started() {
       if (!starting) {
-        starting = Promise.resolve().then(() => server ? server.engine.start() : browser.engine.start({ ...browser.config })).catch((error) => {
-          starting = null;
+        const start = Promise.resolve().then(() => server ? server.engine.start() : browser.engine.start({ ...browser.config })).catch((error) => {
+          forget(start);
           throw error;
         });
+        starting = start;
       }
       return starting;
     }
@@ -441,31 +458,44 @@ var BioViz = (() => {
             "Statistics are unavailable: no R is attached to this chart."
           );
         }
+        const start = started();
         try {
-          await started();
+          await start;
         } catch (error) {
-          return unavailable(
+          return server ? notReached(error) : unavailable(
             "load-failed",
-            server ? `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).` : `Statistics are unavailable: R could not be started (${messageOf(error)}).`
+            `Statistics are unavailable: R could not be started (${messageOf(error)}).`
           );
         }
-        try {
-          if (server) {
-            const value2 = readNonFinite(await server.engine.call(name, { data, args }));
-            return server.computedBy ? { status: "ok", value: value2, form: "server", computedBy: { ...server.computedBy } } : { status: "ok", value: value2, form: "server" };
+        if (!server) {
+          try {
+            const value2 = await browser.engine.call(name, { data, args });
+            return { status: "ok", value: value2, form: "browser" };
+          } catch (error) {
+            return failed(messageOf(error));
           }
-          const value = await browser.engine.call(name, { data, args });
-          return { status: "ok", value, form: "browser" };
+        }
+        let answer;
+        try {
+          answer = await server.engine.call(name, { data, args });
         } catch (error) {
-          if (server && error && error.unreachable === true) {
-            starting = null;
-            return unavailable(
-              "load-failed",
-              `Statistics are unavailable: R on the server could not be reached (${messageOf(error)}).`
-            );
+          if (error && error.unreachable === true) {
+            forget(start);
+            return notReached(error);
           }
           return failed(messageOf(error));
         }
+        let value;
+        try {
+          value = readNonFinite(structuredClone(answer));
+        } catch (error) {
+          const cause = causeOf(error);
+          return unavailable(
+            "answer-unreadable",
+            `Statistics are unavailable: the answer from R on the server could not be read${cause ? ` (${cause})` : ""}.`
+          );
+        }
+        return server.computedBy ? { status: "ok", value, form: "server", computedBy: { ...server.computedBy } } : { status: "ok", value, form: "server" };
       } catch (error) {
         return failed(messageOf(error));
       }
@@ -1698,8 +1728,8 @@ var BioViz = (() => {
     if (answer.form === "server") {
       const by2 = answer.computedBy;
       if (!by2 || !isText3(by2.r_version)) return "computed by R on this server";
-      const gsmBio2 = isText3(by2.gsm_bio_version) ? ` with gsm.bio ${by2.gsm_bio_version}` : "";
-      return `computed by R ${by2.r_version}${gsmBio2} on this server`;
+      const gsmBio2 = isText3(by2.gsm_bio_version) ? ` with gsm.bio ${by2.gsm_bio_version.trim()}` : "";
+      return `computed by R ${by2.r_version.trim()}${gsmBio2} on this server`;
     }
     if (answer.form !== "precomputed") return "computed by R";
     const by = answer.computedBy;

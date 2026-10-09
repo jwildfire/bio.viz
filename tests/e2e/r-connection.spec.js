@@ -62,7 +62,7 @@ test.describe('connection to R', () => {
     expect(requests).toEqual([]);
   });
 
-  test('RCON-RES-002: with neither form configured the page answers unavailable, and requests nothing (#2)', async ({
+  test('RCON-RES-002: with no form configured the page answers unavailable, and requests nothing (#2)', async ({
     page
   }) => {
     const requests = await openFixture(page);
