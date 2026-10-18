@@ -7,7 +7,9 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 # bio.viz v0.4.0.9000 (Upcoming)
 
-_Nothing merged yet._
+## What's new
+
+- **bio.viz is licensed under the Apache License 2.0,** the licence gsm.safety, gsm.bio and open.csr carry. The repository has a LICENSE file and `package.json` names it.
 
 # bio.viz v0.4.0
 

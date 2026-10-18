@@ -224,3 +224,7 @@ npm run test:e2e
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full command list, the test-naming convention and how a pull request merges.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
