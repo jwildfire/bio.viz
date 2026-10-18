@@ -21,6 +21,8 @@ This release lets a chart take its statistics from an R that runs on a server, w
 
 - **A chart can take its statistics from R running on a server.** A page with an R behind it, such as the Shiny app in gsm.bio, can have that R answer every chart, with no results stored ahead and no R started in the browser. The chart's footnote names the R that answered: for example, "computed by R 4.5.1 with gsm.bio 0.4.0 on this server". [obot.roadmap#399](https://github.com/jwildfire/obot.roadmap/issues/399), [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
 
+## Also in this release
+
 - **When the server cannot be reached the chart says so,** in the line where the statistic would be, and still draws. [#122](https://github.com/jwildfire/bio.viz/issues/122), PR [#123](https://github.com/jwildfire/bio.viz/pull/123)
 - **An answer from the server that the page cannot read is said to be unreadable,** and is not called an error of R's. A server lost while several statistics were waiting is reached again once, not once for each. [#127](https://github.com/jwildfire/bio.viz/issues/127), PR [#130](https://github.com/jwildfire/bio.viz/pull/130)
 
@@ -41,6 +43,8 @@ This release redraws the group comparison as three levels, from every biomarker 
 - **One visit, a click away.** A visit's name opens that visit alone, as v0.2.0 drew it, and a trail above the chart leads back up. [#85](https://github.com/jwildfire/bio.viz/issues/85), PR [#93](https://github.com/jwildfire/bio.viz/pull/93)
 - **Unscheduled visits are left out unless asked for.** A visit named as unscheduled or as an early termination is not drawn at any level; a note says which are left out, and a control switches them on. The settings and the default pattern are safety.viz's. Set `unscheduled_visits: true` to draw them as v0.2.0 did. [#84](https://github.com/jwildfire/bio.viz/issues/84), PR [#87](https://github.com/jwildfire/bio.viz/pull/87)
 - **The site is laid out and styled as safety.viz's is,** by loading safety.viz's own stylesheet, copied with a record of its commit. [obot.roadmap#369](https://github.com/jwildfire/obot.roadmap/issues/369), [#91](https://github.com/jwildfire/bio.viz/issues/91), PR [#92](https://github.com/jwildfire/bio.viz/pull/92)
+
+## Also in this release
 
 - **Fisher's exact test answers for a table with a small category,** where the cross-tabulation printed a reason and no number; the chi-square test of such a table is withheld as before. A p-value R returns a rounding above 1 prints `p > 0.999`. [#104](https://github.com/jwildfire/bio.viz/issues/104), PR [#106](https://github.com/jwildfire/bio.viz/pull/106)
 - **A host app can list the biomarker screen again.** The chart list no longer says the outcomes table's columns are read from the results table. [#99](https://github.com/jwildfire/bio.viz/issues/99), PR [#100](https://github.com/jwildfire/bio.viz/pull/100)
@@ -71,6 +75,8 @@ This release adds two charts, survival rows in the biomarker screen, and three w
   - the table the chart drew from, as CSV, the overview's with a row per participant, biomarker and visit.
 - **Specifications.** Every chart writes its settings and filters as JSON data, and `BioViz.fromSpecification` makes the same chart again from them. Anything a chart does not have is refused with a sentence naming it, and what the data cannot draw is listed in `chart.notices`. The format has a JSON schema, published with the site, for gsm.bio's batch runner. [API reference](https://jwildfire.github.io/bio.viz/output/api.html#specifications), [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361), [#71](https://github.com/jwildfire/bio.viz/pull/71)
 
+## Also in this release
+
 - **A shared rule for cutting a biomarker into groups.** R's `quantile()` points and R's `cut()` groups, labelled with their bounds. The group comparison uses it for its groups and panels, and the cross-tabulation and the survival chart use it for theirs. [API reference](https://jwildfire.github.io/bio.viz/core/api.html#the-cut-rule), [obot.roadmap#359](https://github.com/jwildfire/obot.roadmap/issues/359), [#46](https://github.com/jwildfire/bio.viz/pull/46)
 - **CSV that reads back.** Every CSV, the listing's export among them, is written by RFC 4180, so a heading with a comma stays one column, where the kit's CSV split it, as noted in [#39](https://github.com/jwildfire/bio.viz/issues/39) (the kit's own fix is [safety.viz#208](https://github.com/jwildfire/safety.viz/issues/208)). [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361), [#70](https://github.com/jwildfire/bio.viz/pull/70)
 - **Which R computed a stored result.** A connection given gsm.bio's record of which R computed its stored results, `computedBy`, names the R and gsm.bio versions in each chart's footnote. [API reference](https://jwildfire.github.io/bio.viz/r-connection/api.html), [obot.roadmap#361](https://github.com/jwildfire/obot.roadmap/issues/361), [#66](https://github.com/jwildfire/bio.viz/issues/66), [#69](https://github.com/jwildfire/bio.viz/pull/69)
@@ -95,6 +101,8 @@ bio.viz is a chart library beside safety.viz for comparing groups and relating v
 - **R in the browser, measured.** A chart asks R for a statistic with one call, answered from results stored with the page or by R started in the browser on first use. The R check page shows its answers beside desktop R's, and what starting R costs. [R check](https://jwildfire.github.io/bio.viz/r-check/), [obot.roadmap#363](https://github.com/jwildfire/obot.roadmap/issues/363), [#5](https://github.com/jwildfire/bio.viz/pull/5), [#6](https://github.com/jwildfire/bio.viz/pull/6)
 - **One way to name a variable.** A biomarker at a visit, as its result, its baseline, or its change, fold change or percent change from baseline, or a column, resolved to one row per participant for every chart. [API reference](https://jwildfire.github.io/bio.viz/core/api.html), [obot.roadmap#355](https://github.com/jwildfire/obot.roadmap/issues/355), [#11](https://github.com/jwildfire/bio.viz/pull/11)
 - **A chart list for safety.viz's demo app.** `BioViz.portfolio`, in safety.viz's manifest format, also published as [`portfolio.json`](https://jwildfire.github.io/bio.viz/portfolio.json). [obot.roadmap#366](https://github.com/jwildfire/obot.roadmap/issues/366), [#42](https://github.com/jwildfire/bio.viz/pull/42)
+
+## Also in this release
 
 - **Built from safety.viz's kit,** loaded beside bio.viz on the page and never bundled: bio.viz needs safety.viz v1.9.0 or later (until that is released, safety.viz `dev`, which the site copies at a recorded commit). Filters follow safety.viz's rule. [obot.roadmap#354](https://github.com/jwildfire/obot.roadmap/issues/354), [#40](https://github.com/jwildfire/bio.viz/pull/40)
 - **A gallery, an evidence page and an API reference** for every chart and shared part, on the [site](https://jwildfire.github.io/bio.viz/gallery/). The synthetic study is copied from gsm.bio with a checksum per file. [#10](https://github.com/jwildfire/bio.viz/pull/10)
