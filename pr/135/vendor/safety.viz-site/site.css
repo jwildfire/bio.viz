@@ -1,0 +1,1164 @@
+/* ============================================================================
+   safety.viz docs site — keynote portfolio theme (#21)
+
+   Extracted from the obot.roadmap site theme (the jwildfire.github.io keynote
+   look): espresso #271810 · paper #faf6f1 · orange #f97316 accent, with
+   Instrument Serif headings, Instrument Sans body, IBM Plex Mono meta.
+
+   Structured for extraction to obot.agent as the shared portfolio stylesheet:
+
+     1. Design tokens        — portable: colors, type, spacing (edit here)
+     2. Base elements        — portable: body, headings, links, code, tables
+     3. Site chrome          — portable: full-bleed header/footer bands
+     4. Shared components    — portable: cards, badges, chips, panels, tabs
+     5. safety.viz pages     — site-specific: gallery, evidence, API, demo
+
+   Sections 1–4 carry no safety.viz-specific selectors.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* ---- 1. Design tokens ---------------------------------------------------- */
+
+:root {
+  /* Surfaces */
+  --side-bg: #271810; /* espresso bands */
+  --side-ink: #f5ede4;
+  --side-soft: #c4a995;
+  --paper: #faf6f1;
+  --panel: #f5efe7; /* warm inset: code, table heads */
+  --card: #ffffff;
+
+  /* Ink */
+  --ink: #2a211b;
+  --muted: #6b5d52;
+  --faint: #a3958a;
+
+  /* Accent */
+  --accent: #c2410c; /* links */
+  --accent-bright: #f97316; /* borders, hover, highlights */
+
+  /* Rules & status */
+  --rule: #ece2d7;
+  --good: #166534;
+  --good-bg: #dcfce7;
+  --good-rule: #bbf7d0;
+  --warn: #92400e;
+  --warn-bg: #fef3c7;
+  --warn-rule: #fde68a;
+  --bad: #b91c1c;
+  --bad-bg: #fee2e2;
+  --bad-rule: #fecaca;
+
+  /* Type */
+  --sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Layout */
+  --measure: 64rem; /* main column */
+  --band-pad: max(calc(50vw - (var(--measure) / 2)), 1.5rem);
+  --radius: 14px;
+  --radius-small: 8px;
+}
+
+/* ---- 2. Base elements ---------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: 2.1rem;
+  margin: 1.2rem 0 0.5rem;
+}
+
+/* "Experimental" pill next to an exploratory renderer's page title. */
+/* A kit member whose promise is narrower than the rest's (#193): the note
+   under its description, with the Experimental badge in it. */
+.kit-status {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.site-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a3412;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  position: relative;
+  top: -0.28em;
+  white-space: nowrap;
+}
+
+.site-badge-prototype {
+  color: #6b4e12;
+  background: #fdf6e6;
+  border-color: #e6c98a;
+}
+
+/* On a gallery card the badge sits inline after the title, not raised. */
+.card-body h3 .site-badge {
+  margin-left: 0.4rem;
+  top: 0;
+  font-size: 0.62rem;
+  padding: 0.14rem 0.45rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin: 2.2rem 0 0.75rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: var(--accent-bright);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.92rem;
+  background: var(--card);
+}
+
+th,
+td {
+  border: 1px solid var(--rule);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+blockquote {
+  border-left: 4px solid var(--accent-bright);
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  color: var(--muted);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+/* Wide tables scroll inside their own container instead of the page. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-scroll > table {
+  min-width: 40rem;
+}
+
+/* ---- 3. Site chrome: espresso bands -------------------------------------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.9rem var(--band-pad) 1rem;
+  background: var(--side-bg);
+  border-top: 4px solid var(--accent-bright);
+}
+
+.site-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  color: var(--side-ink);
+  text-decoration: none;
+}
+
+.site-name:hover {
+  color: var(--side-ink);
+  text-decoration: none;
+}
+
+.site-version {
+  font: 500 0.72rem/1.5 var(--mono);
+  color: var(--side-soft);
+  border: 1px solid rgba(196, 169, 149, 0.4);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  text-decoration: none;
+}
+
+a.site-version:hover {
+  color: var(--accent-bright);
+  border-color: var(--accent-bright);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.1rem;
+}
+
+.site-nav a {
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  color: var(--side-soft);
+}
+
+.site-nav a:hover {
+  color: var(--accent-bright);
+  text-decoration: none;
+}
+
+.site-nav a.current {
+  color: var(--accent-bright);
+  border-bottom: 2px solid var(--accent-bright);
+  padding-bottom: 0.1rem;
+}
+
+/* The Demo app link (#172) is set apart from its neighbours: it is the one
+   entry that leaves the docs pages for a page of its own. A bordered pill, with
+   an arrow drawn as decoration so the link's text stays "Demo app". */
+.site-nav a.nav-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.18rem 0.7rem;
+  border: 1px solid var(--accent-bright);
+  border-radius: 999px;
+  color: var(--side-ink);
+  white-space: nowrap;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.site-nav a.nav-app::after {
+  content: '';
+  flex: none;
+  width: 0.62em;
+  height: 0.62em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.5 2.25h6.25V8.5M9.5 2.5 2.5 9.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.5 2.25h6.25V8.5M9.5 2.5 2.5 9.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.site-nav a.nav-app:hover,
+.site-nav a.nav-app:focus-visible {
+  background: var(--accent-bright);
+  color: var(--side-bg);
+}
+
+/* Gallery dropdown (#71): the Gallery link plus an adjacent disclosure caret,
+   revealing a data-driven list of chart pages. Opens on pointer hover and when
+   the disclosure button reports expanded (click / touch / keyboard). The menu
+   sits flush under the group so there is no hover gap to cross. */
+.nav-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.nav-disclosure {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.2rem;
+  margin: 0;
+  background: none;
+  border: 0;
+  color: var(--side-soft);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-small);
+}
+
+.nav-disclosure:hover,
+.nav-group:hover .nav-disclosure,
+.nav-disclosure[aria-expanded='true'] {
+  color: var(--accent-bright);
+}
+
+.nav-disclosure:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+}
+
+.nav-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform 0.15s ease;
+}
+
+.nav-disclosure[aria-expanded='true'] .nav-caret {
+  transform: rotate(180deg);
+}
+
+.nav-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  display: none;
+  min-width: 13rem;
+  /* Flush under the trigger (no margin) so the pointer never crosses a gap;
+     the top row of padding provides the visual breathing room. */
+  margin: 0;
+  padding: 0.4rem 0.3rem 0.3rem;
+  list-style: none;
+  background: var(--side-bg);
+  border: 1px solid rgba(196, 169, 149, 0.25);
+  border-radius: var(--radius-small);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Reveal on pointer hover or when the disclosure button reports expanded
+   (click / touch / arrow-key open). aria-expanded is the single source of
+   truth for keyboard/AT state, so it never disagrees with what is shown. */
+.nav-group:hover .nav-menu,
+.nav-disclosure[aria-expanded='true'] + .nav-menu {
+  display: block;
+}
+
+.nav-menu li {
+  margin: 0;
+}
+
+.nav-menu a {
+  display: block;
+  padding: 0.32rem 0.6rem;
+  border-radius: var(--radius-small);
+  color: var(--side-ink);
+  white-space: nowrap;
+}
+
+.nav-menu a:hover,
+.nav-menu a:focus-visible {
+  color: var(--accent-bright);
+  background: rgba(249, 115, 22, 0.12);
+}
+
+.nav-menu a.current {
+  color: var(--accent-bright);
+  border-bottom: 0;
+  padding-bottom: 0.32rem;
+}
+
+/* Narrow / touch layouts: the header already wraps, so let the dropdown span
+   the nav width instead of overflowing off a small screen. */
+@media (max-width: 34rem) {
+  .nav-group {
+    position: static;
+  }
+
+  .nav-menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+}
+
+.site-footer {
+  margin-top: 3.5rem;
+  padding: 1.4rem var(--band-pad) 2rem;
+  background: var(--side-bg);
+  color: var(--side-soft);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.site-footer p {
+  margin: 0.35rem 0;
+}
+
+.site-footer a {
+  color: var(--side-ink);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent-bright);
+}
+
+.site-main {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+}
+
+/* ---- 4. Shared components ------------------------------------------------ */
+
+.tagline {
+  color: var(--muted);
+  font-size: 1.08rem;
+  margin: 0 0 1rem;
+}
+
+.lead {
+  max-width: 46rem;
+}
+
+/* Cards */
+
+.card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(39, 24, 16, 0.12);
+}
+
+/* Badges (renderer status) */
+
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.badge-available {
+  color: var(--good);
+  background: var(--good-bg);
+  border-color: var(--good-rule);
+}
+
+.badge-in-migration {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-color: var(--warn-rule);
+}
+
+/* Status chips (test results) */
+
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.status-pass {
+  color: var(--good);
+  background: var(--good-bg);
+  border-color: var(--good-rule);
+}
+
+.status-fail {
+  color: var(--bad);
+  background: var(--bad-bg);
+  border-color: var(--bad-rule);
+}
+
+.status-none {
+  color: var(--muted);
+  background: var(--panel);
+}
+
+a.chip-link {
+  text-decoration: none;
+}
+
+/* Fact panel (key/value summary grid) */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.9rem 1.4rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 1rem 1.2rem;
+  margin: 1.25rem 0;
+}
+
+.fact {
+  margin: 0;
+}
+
+.fact dt {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.15rem;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.fact dd .sub {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* Page tabs (renderer sub-pages) */
+
+.page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-tabs a {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--muted);
+  padding: 0.3rem 0.75rem 0.35rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+}
+
+.page-tabs a:hover {
+  color: var(--accent-bright);
+  text-decoration: none;
+}
+
+.page-tabs a.current {
+  color: var(--ink);
+  background: var(--card);
+  border-color: var(--rule);
+  position: relative;
+  top: 1px;
+  border-top: 2px solid var(--accent-bright);
+}
+
+/* ---- 5. safety.viz pages ------------------------------------------------- */
+
+/* Homepage gallery — gallery-first layout (#29): the intro is one tagline,
+   the cards are the page, and the queue is a single mono strip. */
+
+.tagline.home-intro {
+  font-size: 1.2rem;
+  max-width: 46rem;
+  margin: 0 0 1.6rem;
+}
+
+.queue-strip {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--rule);
+  margin-top: 2.2rem;
+  padding-top: 1.1rem;
+}
+
+.gallery-count {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.gallery {
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.1rem;
+}
+
+.gallery.gallery-lead {
+  gap: 1.4rem;
+}
+
+.gallery.gallery-lead .card-thumb img {
+  height: 15rem;
+}
+
+.card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-thumb {
+  display: block;
+  border-bottom: 1px solid var(--rule);
+  background: var(--card);
+}
+
+.card-thumb img {
+  display: block;
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.card-body {
+  padding: 0.85rem 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.card-body h3 {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.card-body h3 a {
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.card-body h3 a:hover {
+  color: var(--accent);
+}
+
+.card-body p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.card-body .badge {
+  align-self: flex-start;
+}
+
+.card-links {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Evidence + API tables */
+
+table.evidence,
+table.api {
+  font-size: 0.9rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.section-summary {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+ul.tests {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.tests li {
+  margin: 0.3rem 0;
+}
+
+.test-file {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+}
+
+/* Requirement cell (#63): the traceability IDs sit above the reviewed
+   requirement text so a reviewer sees what each test evidences without
+   leaving the page for the matrix. */
+table.evidence td:first-child {
+  min-width: 13rem;
+  vertical-align: top;
+}
+
+.req-ids {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.req-texts {
+  margin-top: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.req-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.req-id {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  margin-right: 0.35rem;
+  white-space: nowrap;
+}
+
+.screenshots {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.screenshots img.screenshot {
+  display: block;
+  height: 6.5rem;
+  width: auto;
+  max-width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--card);
+}
+
+.screenshots a:hover img.screenshot {
+  border-color: var(--accent-bright);
+}
+
+/* Visual evidence gallery */
+
+.evidence-gallery {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+.evidence-gallery figure {
+  margin: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-small);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.evidence-gallery a {
+  display: block;
+}
+
+.evidence-gallery img {
+  display: block;
+  width: 100%;
+  height: 11rem;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.evidence-gallery figcaption {
+  padding: 0.5rem 0.75rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-top: 1px solid var(--rule);
+}
+
+.routing {
+  font-size: 0.95rem;
+}
+
+.reproduce {
+  margin-top: 2rem;
+}
+
+/* API page: sidebar TOC + body */
+
+.api-layout {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.api-toc {
+  position: sticky;
+  top: 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 0.9rem 1rem 1rem;
+  font-size: 0.88rem;
+}
+
+.api-toc h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.api-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.api-toc li {
+  margin: 0.25rem 0;
+}
+
+.api-toc ul ul {
+  margin-left: 0.85rem;
+  border-left: 1px solid var(--rule);
+  padding-left: 0.6rem;
+}
+
+.api-toc a {
+  text-decoration: none;
+}
+
+.api-toc code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+@media (max-width: 52rem) {
+  .api-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .api-toc {
+    position: static;
+  }
+}
+
+.returns {
+  margin: 0.35rem 0 1rem;
+}
+
+/* About + architecture pages */
+
+.renderer-credits td:first-child {
+  white-space: nowrap;
+}
+
+ol.pipeline {
+  list-style: none;
+  counter-reset: step;
+  margin: 1rem 0 1rem 0.9rem;
+  padding: 0;
+}
+
+ol.pipeline li {
+  counter-increment: step;
+  position: relative;
+  margin: 0;
+  padding: 0.55rem 0 0.55rem 1.7rem;
+  border-left: 2px solid var(--rule);
+}
+
+ol.pipeline li::before {
+  content: counter(step);
+  position: absolute;
+  left: -0.95rem;
+  top: 0.65rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--side-bg);
+  color: var(--side-ink);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--accent-bright);
+}
+
+ol.pipeline strong {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* Domains page (#139): its tables are narrow enough to size to content rather
+   than the wide-table 40rem minimum, scrolling only when a phone makes them. */
+
+.domains-page .table-scroll > table {
+  min-width: 0;
+}
+
+/* Kit page (#154): two-column member tables — a signature and what it does —
+   that size to the column on a phone instead of scrolling at the wide-table
+   minimum; a long signature wraps inside its cell. */
+
+.kit-page .table-scroll > table {
+  min-width: 0;
+}
+
+.kit-page table.api td:first-child {
+  width: 42%;
+}
+
+.kit-page table.api td code {
+  overflow-wrap: anywhere;
+}
+
+/* Stacked under the contents list on a phone, the body column is held to the
+   viewport so its code samples scroll inside themselves, not the page. */
+@media (max-width: 52rem) {
+  .kit-page .api-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Demo page: the module brings its own embedded styles; give it room. */
+
+.site-main:has(.demo-page) {
+  max-width: 85rem;
+}
+
+.demo-tips {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+#container {
+  margin-top: 1.25rem;
+}
+
+/* Clinical guide (v1.2): the reviewer's guide page (docs/guides/<module>.md). */
+.guide-caution {
+  border-left: 4px solid var(--warn-rule);
+  background: var(--warn-bg);
+  color: var(--warn);
+  padding: 0.7rem 0.95rem;
+  margin: 0 0 1.6rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.95rem;
+}
+.guide-body h2 {
+  margin-top: 2rem;
+}
+.guide-body h3 {
+  margin-top: 1.4rem;
+}
+.guide-body ul,
+.guide-body ol {
+  padding-left: 1.4rem;
+}
+.guide-body li {
+  margin: 0.25rem 0;
+}
+
+/* Ported workflow diagrams and reference tables (#52 full port). Figures are
+   framed as light cards with a muted caption; guide tables size to content
+   rather than the wide-table 40rem minimum, scrolling only when they must. */
+.guide-figure {
+  margin: 1.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--card);
+  text-align: center;
+}
+.guide-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 3px;
+}
+.guide-figure figcaption {
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.guide-body .table-scroll > table.guide-table {
+  min-width: 0;
+}
+.guide-table td {
+  font-size: 0.92rem;
+}
+
+/* Sticky sidebar TOC beside the guide body (long, step-based guide). Mirrors
+   the API page's .api-toc, but the TOC scrolls within its own sticky column
+   since the step list is long, and collapses above the body on narrow screens. */
+.guide-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+.guide-toc {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 0.9rem 1rem 1rem;
+  font-size: 0.85rem;
+}
+.guide-toc h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.guide-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.guide-toc > ul > li {
+  margin: 0.4rem 0;
+}
+.guide-toc > ul > li > a {
+  font-weight: 600;
+}
+.guide-toc li {
+  margin: 0.25rem 0;
+}
+.guide-toc ul ul {
+  margin: 0.2rem 0 0.4rem 0.7rem;
+  border-left: 1px solid var(--rule);
+  padding-left: 0.6rem;
+}
+.guide-toc a {
+  display: inline-block;
+  line-height: 1.3;
+  text-decoration: none;
+}
+@media (max-width: 60rem) {
+  .guide-layout {
+    grid-template-columns: 1fr;
+  }
+  .guide-toc {
+    position: static;
+    max-height: 45vh;
+    margin-bottom: 1.5rem;
+  }
+}
+/* Requirement-matrix link in the Test evidence area (replaces the former tab). */
+.matrix-link {
+  margin: -0.4rem 0 1.4rem;
+  font-size: 0.95rem;
+}

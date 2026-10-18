@@ -1,0 +1,53 @@
+{
+  "study": "Synthetic biomarker study",
+  "repository": "https://github.com/jwildfire/gsm.bio",
+  "ref": "dev",
+  "commit": "20e4a033e8196084556037c354f14c590e6d594f",
+  "license": "Apache License (>= 2)",
+  "files": [
+    {
+      "file": "synthetic_results.csv",
+      "source": "inst/extdata/synthetic_results.csv",
+      "sha256": "68a370bcc8292c167b83a34c8e386f13107d1ae6249e747852ad3739478b73a5",
+      "bytes": 419420,
+      "columns": [
+        "USUBJID",
+        "VISIT",
+        "VISITNUM",
+        "TEST",
+        "STRESU",
+        "STRESN"
+      ],
+      "rows": 11472
+    },
+    {
+      "file": "synthetic_participants.csv",
+      "source": "inst/extdata/synthetic_participants.csv",
+      "sha256": "6d7d7f3bef86cc395255c01097e6ac099fb620fb0ea83b748ea0d02c049a9b09",
+      "bytes": 7909,
+      "columns": [
+        "USUBJID",
+        "ARM",
+        "SEX",
+        "AGE",
+        "BMIBL",
+        "RESPONSE"
+      ],
+      "rows": 200
+    },
+    {
+      "file": "synthetic_outcomes.csv",
+      "source": "inst/extdata/synthetic_outcomes.csv",
+      "sha256": "118343dc83ad8f8d42afa49bfe40cdc54ce65d32afac4fc4255a5f672ec0f1f0",
+      "bytes": 9611,
+      "columns": [
+        "USUBJID",
+        "PARAMCD",
+        "PARAM",
+        "AVAL",
+        "CNSR"
+      ],
+      "rows": 200
+    }
+  ]
+}
