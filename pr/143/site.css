@@ -1,0 +1,324 @@
+/* ============================================================================
+   bio.viz site: the rules that are this site's own (#91).
+
+   Every page loads safety.viz's site stylesheet first, as it was copied
+   (site/vendor/safety.viz-site/site.css, with the commit it came from in
+   SOURCE.json beside it), and this file after it. The header, the type, the
+   colours, the cards, the tabs, the fact panel, the evidence table and the
+   reference's sidebar are all that stylesheet's; nothing here restates them,
+   and every colour, face and radius below is one of its tokens.
+
+   What is left is what safety.viz's site has no rule for:
+
+     1. Holding at 390px: this site lets nothing run past the right edge, even
+        where the page would hide it, so code wraps and a table restacks. And
+        holding still: the evidence table's columns are set, not fitted.
+     2. Words this site's pages use that safety.viz's do not.
+     3. The R check page, which safety.viz has no like of.
+
+   tests/unit/site/siteStyles.test.js fails when a rule here names a class the
+   pages do not write, or redefines one of safety.viz's tokens.
+   ============================================================================ */
+
+/* ---- 1. Holding at 390px ------------------------------------------------- */
+
+/* A long unbroken string (a path, an identifier, a signature) wraps instead of
+   widening the page. */
+body {
+  overflow-wrap: anywhere;
+}
+
+/* A column heading of the site's own tables wraps between words, never inside
+   one. Named, as every rule here that could reach a chart's parts is. */
+.doc-table th,
+.recorded th {
+  overflow-wrap: normal;
+}
+
+/* The evidence table's two columns are set, three fifths and two fifths, not
+   fitted to what the table holds. Fitted, a row's columns moved whenever a test
+   was added to another requirement, on this page or by a pull request, and the
+   picture of one row (CORE-SITE-006) with them. On a narrow screen the table
+   is a list, below, and this does nothing. */
+table.evidence {
+  table-layout: fixed;
+}
+
+table.evidence th:first-child {
+  width: 60%;
+}
+
+/* That stops at a chart. A chart's own parts wrap as the chart has them, on a
+   demo page as on any page it is put in: a table heading is not broken inside
+   a word because the page around it would be. */
+#chart {
+  overflow-wrap: normal;
+}
+
+/* Code wraps rather than scrolls: a phone reader sees the whole snippet. Named
+   by where the site writes a snippet (the home page's loading section, an
+   evidence page's checking section, a reference's body), so the rule cannot
+   reach a `pre` a chart makes. */
+#loading pre,
+.reproduce pre,
+.api-body pre {
+  white-space: pre-wrap;
+}
+
+/* The Gallery list opens under the header on a narrow screen. safety.viz's
+   rule for that width spans the list across the nearest positioned box, and
+   with none it is the screen: the list opens below the first screenful. */
+@media (max-width: 34rem) {
+  .site-header {
+    position: relative;
+  }
+}
+
+/* Stacked under its list of sections, a reference's body is held to the
+   viewport, as safety.viz's kit page holds its own. */
+@media (max-width: 52rem) {
+  .api-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* On a narrow screen a table becomes a list of rows, each cell under the name
+   of its column, so no table needs a sideways scroll. The evidence table and
+   every table of a reference file are written with a `data-label` per cell. */
+@media (max-width: 44rem) {
+  .doc-table,
+  .doc-table tbody,
+  .doc-table tr,
+  .doc-table td {
+    display: block;
+  }
+
+  .doc-table thead {
+    display: none;
+  }
+
+  .doc-table tr {
+    border: 1px solid var(--rule);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .doc-table tr + tr {
+    border-top: 0;
+  }
+
+  .doc-table td {
+    border: 0;
+    padding: 0.2rem 0;
+  }
+
+  .doc-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
+/* ---- 2. This site's own words -------------------------------------------- */
+
+/* A chart's demo script draws into #chart; safety.viz's draws into #container,
+   and gives it this room. */
+#chart {
+  margin-top: 1.25rem;
+}
+
+/* A picture is shown whole, where safety.viz's site crops one to fill its
+   frame. A gallery card's picture has the chart's title at its top and its
+   footnotes at its bottom, and both are what the picture is evidence of; and
+   an evidence picture here is of one part of a page, a line of text as often
+   as a chart, which a crop would enlarge past reading. */
+.gallery .card-thumb img,
+.evidence-gallery img {
+  object-fit: contain;
+  object-position: top center;
+}
+
+/* A quieter aside: a count beside a row heading, a fact that was not recorded. */
+.sub {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+th .sub {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Which suite a test ran in, beside its result. */
+.suite {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* A requirement's result sits beside its ID. */
+.req-ids .chip {
+  vertical-align: 0.05em;
+}
+
+/* A folded list, of the tests that name no requirement or of every answer on
+   the R check page, opens on its summary line. Named, so the rule stays off a
+   list a chart folds inside a demo page. */
+#shared-tests summary,
+.comparison-block summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* ---- 3. The R check page ------------------------------------------------- */
+
+/* The page's one button. Named, so the rule stays off the buttons a chart
+   draws inside a demo page. */
+#start-r {
+  background: var(--side-bg);
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--side-ink);
+  cursor: pointer;
+  font: 600 1rem var(--sans);
+  padding: 0.7rem 1.1rem;
+}
+
+#start-r:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+#start-r:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+#r-status {
+  font-weight: 600;
+}
+
+.answers {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* An answer and a comparison are panels, drawn as the fact panel is. */
+.answer,
+.comparison-block {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+}
+
+.comparison-block {
+  margin-bottom: 1rem;
+}
+
+.answer h3,
+.comparison-block h3 {
+  margin-top: 0;
+}
+
+.answer-data {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+/* What a chart would print: R's answer, in the chart's own words. */
+.answer-text {
+  background: var(--panel);
+  border-left: 4px solid var(--accent-bright);
+  border-radius: 0 6px 6px 0;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.answer .answer-text {
+  margin-bottom: 0;
+}
+
+.verdict {
+  font-weight: 600;
+}
+
+.verdict.differs,
+.comparison .differs h4 {
+  color: var(--bad);
+}
+
+.comparison {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.comparison li {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.6rem;
+}
+
+.comparison h4 {
+  font: 600 0.86rem var(--mono);
+  margin: 0 0 0.3rem;
+}
+
+.comparison dl {
+  display: grid;
+  gap: 0.15rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin: 0;
+}
+
+.comparison dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.comparison dd {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.comparison-block details {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+}
+
+.comparison-block details .comparison {
+  margin-top: 0.6rem;
+}
+
+/* A table of measurements: numbers in the mono face, each on one line. */
+.recorded td {
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+@media (max-width: 44rem) {
+  .recorded th,
+  .recorded td {
+    padding: 0.4rem 0.35rem;
+  }
+
+  .recorded th {
+    letter-spacing: 0;
+  }
+}
