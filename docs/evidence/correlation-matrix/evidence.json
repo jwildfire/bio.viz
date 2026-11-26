@@ -1,15 +1,15 @@
 {
   "module": "correlation-matrix",
-  "generatedAt": "2026-10-09T12:12:46.166Z",
+  "generatedAt": "2026-11-26T14:02:04.457Z",
   "environment": {
-    "os": "linux 6.17.0-1022-azure",
-    "node": "v22.23.3",
+    "os": "linux 7.0.0-1020-azure",
+    "node": "v22.23.5",
     "playwright": "1.61.1",
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "37928504165",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/37928504165"
+    "id": "45834875508",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/45834875508"
   },
   "records": [
     {
