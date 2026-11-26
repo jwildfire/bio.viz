@@ -9,11 +9,11 @@ release-candidate pull request (dev -> main) merges and is tagged.
 
 **See it move:** the [annotated v0.4.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.4-demo/) still describes every chart: this release changes the licence and nothing a chart draws.
 
-Anyone may now use, change and share bio.viz, under the Apache License 2.0. No chart, setting or number changed: a page written for v0.4.0 loads and draws as it did.
+Anyone may now use, change and share bio.viz, under the Apache License 2.0. No chart, setting or number changed: a page written for v0.4.0 loads and draws as it did, and one that moves to the 0.4.1 bundle differs only in the version it names.
 
 ## What's new
 
-- **bio.viz is licensed under the Apache License 2.0,** the licence gsm.safety, gsm.bio and open.csr carry. The repository has a LICENSE file and `package.json` names it. PR [#135](https://github.com/jwildfire/bio.viz/pull/135)
+- **bio.viz is licensed under the Apache License 2.0,** the licence gsm.safety, gsm.bio and open.csr carry. The repository has a LICENSE file and `package.json` names it. Issue [#139](https://github.com/jwildfire/bio.viz/issues/139), PR [#135](https://github.com/jwildfire/bio.viz/pull/135)
 
 ## Tests and provenance
 
