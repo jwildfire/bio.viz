@@ -1,6 +1,6 @@
 {
   "module": "biomarker-screen",
-  "generatedAt": "2026-11-26T14:02:04.457Z",
+  "generatedAt": "2026-11-26T14:13:37.977Z",
   "environment": {
     "os": "linux 7.0.0-1020-azure",
     "node": "v22.23.5",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "45834875508",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/45834875508"
+    "id": "45836776612",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/45836776612"
   },
   "records": [
     {
