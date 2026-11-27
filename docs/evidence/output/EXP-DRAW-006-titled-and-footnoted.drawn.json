@@ -1,6 +1,6 @@
 {
   "versions": [
-    "bio.viz 0.4.1"
+    "bio.viz 0.4.1 with development changes"
   ],
-  "sha256": "58bfa1041004c6dbd1438062ef10083ec58f6890a12393d5d315bcde29c2f978"
+  "sha256": "71244ccd9b595b28f32e0e870e8cc88ea9629aff50d2568855d3b0af8f31058a"
 }
