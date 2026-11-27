@@ -5,7 +5,21 @@ what a user can now do; the GitHub release publishes from the section here when 
 release-candidate pull request (dev -> main) merges and is tagged.
 -->
 
-# bio.viz v0.4.0 (Upcoming)
+# bio.viz v0.4.1 (Upcoming)
+
+**See it move:** the [annotated v0.4.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.4-demo/) still describes every chart: this release changes the licence and nothing a chart draws.
+
+Anyone may now use, change and share bio.viz, under the Apache License 2.0. No chart, setting or number changed: a page written for v0.4.0 loads and draws as it did, and one that moves to the 0.4.1 bundle differs only in the version it names.
+
+## What's new
+
+- **bio.viz is licensed under the Apache License 2.0,** the licence gsm.safety, gsm.bio and open.csr carry. The repository has a LICENSE file and `package.json` names it. Issue [#139](https://github.com/jwildfire/bio.viz/issues/139), PR [#135](https://github.com/jwildfire/bio.viz/pull/135)
+
+## Tests and provenance
+
+515 unit and 401 browser tests pass, and each of the 778 requirement rows has a test named for it. `dist/bio.viz-0.4.1/` is the release bundle: v0.4.0's code under the new version number. `dist/bio.viz-0.4.0/` is as v0.4.0 released it. The statistics file is gsm.bio's at [9eda3a8](https://github.com/jwildfire/gsm.bio/commit/9eda3a8a7d347cfedd653447f4ee0f6e15ef1952), copied byte for byte.
+
+# bio.viz v0.4.0
 
 **See it move:** the [annotated v0.4.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.4-demo/) has captures, try-it steps and the detail behind everything below.
 
