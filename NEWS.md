@@ -5,7 +5,11 @@ what a user can now do; the GitHub release publishes from the section here when 
 release-candidate pull request (dev -> main) merges and is tagged.
 -->
 
-# bio.viz v0.4.1 (Upcoming)
+# bio.viz v0.4.1.9000 (Upcoming)
+
+_Nothing merged yet._
+
+# bio.viz v0.4.1
 
 **See it move:** the [annotated v0.4.0 demo](https://jwildfire.github.io/obot.roadmap/reports/biomarker-v0.4-demo/) still describes every chart: this release changes the licence and nothing a chart draws.
 
