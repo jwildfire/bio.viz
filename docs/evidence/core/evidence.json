@@ -1,6 +1,6 @@
 {
   "module": "core",
-  "generatedAt": "2026-11-27T03:55:27.409Z",
+  "generatedAt": "2026-11-27T04:11:50.597Z",
   "environment": {
     "os": "linux 7.0.0-1020-azure",
     "node": "v22.23.5",
@@ -8,8 +8,8 @@
     "chromium": "149.0.7827.55"
   },
   "run": {
-    "id": "45936885709",
-    "url": "https://github.com/jwildfire/bio.viz/actions/runs/45936885709"
+    "id": "45938468820",
+    "url": "https://github.com/jwildfire/bio.viz/actions/runs/45938468820"
   },
   "records": [
     {
@@ -903,7 +903,7 @@
     {
       "test": "evidence pictures: the version each one draws CORE-SITE-017: every committed evidence picture, the gallery’s among them, has the record of the versions of bio.viz it draws, each the package’s version as the footnote says it, written for its own bytes (sha256), with the pictures it shows named; no record is left without its picture (#78)",
       "suite": "unit",
-      "status": "fail",
+      "status": "pass",
       "requirementIds": ["CORE-SITE-017"],
       "issueRefs": [78],
       "screenshots": []
