@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "private": true,
   "bioviz": {
-    "development": false
+    "development": true
   },
   "type": "module",
   "module": "src/main.js",
